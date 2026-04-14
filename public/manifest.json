@@ -1,0 +1,15 @@
+{
+  "name": "myTV+",
+  "short_name": "myTV+",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1115",
+  "theme_color": "#dc2626",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/833/833281.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
