@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Home, Search, Tv, Bookmark, User, LogOut } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 
-export default function Sidebar() {
+export default function Sidebar({ currentTab, onChange }: { currentTab?: string, onChange?: (tab: string) => void }) {
   const { t } = useLanguage();
   const pathname = usePathname();
 
