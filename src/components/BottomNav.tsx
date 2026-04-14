@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Home, Search, Tv, Bookmark, User } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 
-export default function BottomNav() {
+export default function BottomNav({ currentTab, onChange }: { currentTab: string, onChange: (tab: string) => void }) {
   const { t } = useLanguage();
   const pathname = usePathname();
   
@@ -25,8 +25,12 @@ export default function BottomNav() {
         return (
           <Link
             key={tab.id}
-            href={tab.path}
-            className={`flex flex-col items-center space-y-1 ${isActive ? 'text-red-500' : 'text-neutral-400 hover:text-neutral-200'}`}
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              onChange(tab.id);
+            }}
+            className={`flex flex-col items-center space-y-1 ${currentTab === tab.id ? 'text-red-500' : 'text-neutral-400 hover:text-neutral-200'}`}
           >
             <Icon size={24} className={isActive ? 'fill-current' : ''} />
             <span className="text-[10px] font-medium">{tab.label}</span>
