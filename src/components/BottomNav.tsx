@@ -18,7 +18,7 @@ export default function BottomNav({ currentTab, onChange }: { currentTab?: strin
   ];
 
   return (
-    <div className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 bg-neutral-900 border-t border-neutral-800 flex justify-around items-center p-3 z-50 pb-safe">
+    <div className="fixed bottom-0 w-full bg-neutral-900 light-mode:bg-white border-t border-neutral-800 light-mode:border-neutral-200 flex justify-around items-center p-3 z-50 pb-safe">
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = pathname === tab.path;

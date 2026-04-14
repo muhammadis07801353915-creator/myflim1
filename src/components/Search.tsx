@@ -30,7 +30,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
             placeholder={t.search}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-neutral-900 border border-neutral-800 text-white rounded-full py-3.5 pl-12 pr-4 rtl:pl-4 rtl:pr-12 focus:outline-none focus:border-red-500 transition-colors"
+            className="w-full bg-neutral-900 light-mode:bg-white border border-neutral-800 light-mode:border-neutral-200 text-white light-mode:text-black rounded-full py-3.5 pl-12 pr-4 rtl:pl-4 rtl:pr-12 focus:outline-none focus:border-red-500 transition-colors shadow-sm"
           />
         </div>
       </div>
@@ -40,7 +40,11 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${filter === f ? 'bg-red-600 text-white' : 'bg-neutral-900 text-neutral-400 hover:bg-neutral-800'}`}
+            className={`px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition ${
+              filter === f 
+                ? 'bg-red-600 text-white shadow-md shadow-red-600/20' 
+                : 'bg-neutral-900 light-mode:bg-neutral-200 text-neutral-400 light-mode:text-neutral-600 hover:bg-neutral-800 light-mode:hover:bg-neutral-300'
+            }`}
           >
             {f}
           </button>
@@ -54,12 +58,12 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
       ) : (
         <div className="space-y-4">
           {filteredMovies.map(movie => (
-            <div key={movie.id} className="flex space-x-4 rtl:space-x-reverse bg-neutral-900/50 hover:bg-neutral-900 rounded-xl p-3 cursor-pointer transition border border-transparent hover:border-neutral-800" onClick={() => onSelect(movie)}>
+            <div key={movie.id} className="flex space-x-4 rtl:space-x-reverse bg-neutral-900/50 light-mode:bg-white hover:bg-neutral-900 light-mode:hover:bg-neutral-50 rounded-xl p-3 cursor-pointer transition border border-transparent hover:border-neutral-800 light-mode:hover:border-neutral-200 shadow-sm" onClick={() => onSelect(movie)}>
               <div className="w-24 h-32 relative shrink-0 rounded-lg overflow-hidden">
                 <Image src={movie.image} alt={movie.title} fill sizes="96px" className="object-cover" unoptimized />
               </div>
               <div className="flex-1 py-2">
-                <h3 className="font-semibold text-lg">{movie.title}</h3>
+                <h3 className="font-semibold text-lg text-white light-mode:text-black">{movie.title}</h3>
                 <div className="flex items-center text-sm text-neutral-400 mt-1 mb-2">
                   <span className="flex items-center text-yellow-500 mr-3 rtl:mr-0 rtl:ml-3"><Star size={14} className="mr-1 rtl:mr-0 rtl:ml-1 fill-current" /> {movie.rating}</span>
                   <span>{movie.year}</span>

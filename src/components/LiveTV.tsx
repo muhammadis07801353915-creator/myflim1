@@ -63,7 +63,7 @@ export default function LiveTV() {
 
   if (loading) {
     return (
-      <div className="bg-[#1A1D24] min-h-screen flex items-center justify-center">
+      <div className="bg-[#1A1D24] light-mode:bg-white min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
       </div>
     );
@@ -138,13 +138,13 @@ export default function LiveTV() {
           })()}
         </div>
 
-        <div className="p-5 bg-neutral-900 border-t border-neutral-800 z-10 flex-1">
+        <div className="p-5 bg-neutral-900 light-mode:bg-white border-t border-neutral-800 light-mode:border-neutral-200 z-10 flex-1">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-xl font-bold mb-1">{playingChannel.name}</h1>
-              <p className="text-sm text-neutral-400">{playingChannel.category}</p>
+              <h1 className="text-xl font-bold mb-1 text-white light-mode:text-black">{playingChannel.name}</h1>
+              <p className="text-sm text-neutral-400 light-mode:text-neutral-500">{playingChannel.category}</p>
             </div>
-            <div className="flex items-center space-x-1.5 text-neutral-300 bg-neutral-800 px-3 py-1.5 rounded-lg">
+            <div className="flex items-center space-x-1.5 text-neutral-300 light-mode:text-neutral-700 bg-neutral-800 light-mode:bg-neutral-100 px-3 py-1.5 rounded-lg">
               <Users size={16} className="text-red-500" />
               <span className="font-medium text-sm">LIVE</span>
             </div>
@@ -157,9 +157,9 @@ export default function LiveTV() {
   if (viewAllCategory) {
     const categoryChannels = channelsByCategory[viewAllCategory] || [];
     return (
-      <div className="bg-[#1A1D24] min-h-screen text-white pb-24 font-sans">
+      <div className="bg-[#1A1D24] light-mode:bg-gray-50 min-h-screen text-white light-mode:text-black pb-24 font-sans">
         {/* Header for View All */}
-        <div className="flex items-center px-4 py-4 bg-[#22252D] sticky top-0 z-40 shadow-md">
+        <div className="flex items-center px-4 py-4 bg-[#22252D] light-mode:bg-white sticky top-0 z-40 shadow-md border-b light-mode:border-neutral-200">
           <button 
             onClick={() => setViewAllCategory(null)}
             className="mr-4 rtl:mr-0 rtl:ml-4 hover:text-red-400 transition"
@@ -176,9 +176,9 @@ export default function LiveTV() {
               <div 
                 key={channel.id} 
                 onClick={() => handleChannelSelect(channel)}
-                className="bg-[#2A2D34] border border-neutral-700/50 rounded-xl aspect-[4/3] flex flex-col items-center justify-center p-3 cursor-pointer hover:bg-[#333740] hover:border-neutral-500 transition group relative overflow-hidden"
+                className="bg-[#2A2D34] light-mode:bg-white border border-neutral-700/50 light-mode:border-neutral-200 rounded-xl aspect-[4/3] flex flex-col items-center justify-center p-3 cursor-pointer hover:bg-[#333740] light-mode:hover:bg-neutral-50 hover:border-neutral-500 transition group relative overflow-hidden shadow-sm"
               >
-                <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] flex items-center space-x-1 z-10">
+                <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] flex items-center space-x-1 z-10 text-white">
                   <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
                   <span>LIVE</span>
                 </div>
@@ -206,29 +206,29 @@ export default function LiveTV() {
   }
 
   return (
-    <div className="bg-[#1A1D24] min-h-screen text-white pb-24 font-sans">
+    <div className="bg-[#1A1D24] light-mode:bg-gray-50 min-h-screen text-white light-mode:text-black pb-24 font-sans">
       {/* Header */}
       {isSearchOpen ? (
-        <div className="flex items-center w-full px-4 py-3 bg-[#22252D] sticky top-0 z-40 shadow-md space-x-3 rtl:space-x-reverse">
+        <div className="flex items-center w-full px-4 py-3 bg-[#22252D] light-mode:bg-white sticky top-0 z-40 shadow-md space-x-3 rtl:space-x-reverse border-b light-mode:border-neutral-200">
           <Search size={20} className="text-neutral-400" />
           <input 
             type="text" 
             autoFocus
             placeholder={t.searchChannels} 
-            className="flex-1 bg-transparent text-white outline-none"
+            className="flex-1 bg-transparent text-white light-mode:text-black outline-none"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <button onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}>
-            <X size={20} className="text-neutral-400 hover:text-white" />
+            <X size={20} className="text-neutral-400 hover:text-white light-mode:hover:text-black" />
           </button>
         </div>
       ) : (
-        <div className="flex items-center justify-between px-4 py-3 bg-[#22252D] sticky top-0 z-40 shadow-md">
+        <div className="flex items-center justify-between px-4 py-3 bg-[#22252D] light-mode:bg-white sticky top-0 z-40 shadow-md border-b light-mode:border-neutral-200">
           <div className="flex-1 flex justify-start">
             <button 
               onClick={() => setIsCategoryModalOpen(true)}
-              className="flex items-center space-x-1 rtl:space-x-reverse text-sm font-medium hover:text-red-400 transition"
+              className="flex items-center space-x-1 rtl:space-x-reverse text-sm font-medium hover:text-red-400 transition text-white light-mode:text-black"
             >
               <ChevronDown size={16} />
               <span>{t.category}</span>
@@ -238,8 +238,8 @@ export default function LiveTV() {
           {/* Logo in the middle */}
           <div className="flex-1 flex justify-center">
              <div className="flex items-center space-x-1.5 leading-none">
-                <span className="text-xl font-black text-white tracking-tighter">MY</span>
-                <span className="text-xl font-medium text-white relative">
+                <span className="text-xl font-black text-white light-mode:text-black tracking-tighter">MY</span>
+                <span className="text-xl font-medium text-white light-mode:text-black relative">
                   Film
                   <span className="absolute -top-1 -right-0.5 w-1.5 h-1.5 bg-red-600 rounded-full"></span>
                 </span>
@@ -249,7 +249,7 @@ export default function LiveTV() {
           <div className="flex-1 flex justify-end">
             <button 
               onClick={() => setIsSearchOpen(true)}
-              className="flex items-center space-x-1 text-sm font-medium hover:text-red-400 transition"
+              className="flex items-center space-x-1 text-sm font-medium hover:text-red-400 transition text-white light-mode:text-black"
             >
               <Search size={20} />
             </button>
@@ -402,9 +402,9 @@ export default function LiveTV() {
                   <div 
                     key={channel.id} 
                     onClick={() => handleChannelSelect(channel)}
-                    className="bg-[#2A2D34] border border-neutral-700/50 rounded-xl aspect-[4/3] flex flex-col items-center justify-center p-3 cursor-pointer hover:bg-[#333740] hover:border-neutral-500 transition group relative overflow-hidden"
+                    className="bg-[#2A2D34] light-mode:bg-white border border-neutral-700/50 light-mode:border-neutral-200 rounded-xl aspect-[4/3] flex flex-col items-center justify-center p-3 cursor-pointer hover:bg-[#333740] light-mode:hover:bg-neutral-50 hover:border-neutral-500 transition group relative overflow-hidden shadow-sm"
                   >
-                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] flex items-center space-x-1 z-10">
+                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] flex items-center space-x-1 z-10 text-white">
                       <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
                       <span>LIVE</span>
                     </div>
@@ -449,13 +449,11 @@ export default function LiveTV() {
         })}
       </div>
         </>
-      )}
-
       {/* Category Modal */}
       {isCategoryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#22252D] w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
-            <div className="p-4 border-b border-neutral-800">
+          <div className="bg-[#22252D] light-mode:bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] text-white light-mode:text-black border border-transparent light-mode:border-neutral-200">
+            <div className="p-4 border-b border-neutral-800 light-mode:border-neutral-100">
               <h3 className="text-lg font-semibold">{t.category}</h3>
             </div>
             <div className="overflow-y-auto p-2">
@@ -480,21 +478,21 @@ export default function LiveTV() {
                     setSelectedCategory(cat.name);
                     setIsCategoryModalOpen(false);
                   }}
-                  className="w-full flex items-center space-x-3 rtl:space-x-reverse p-3 rounded-xl hover:bg-[#2A2D34] transition text-left rtl:text-right"
+                  className="w-full flex items-center space-x-3 rtl:space-x-reverse p-3 rounded-xl hover:bg-[#2A2D34] light-mode:hover:bg-neutral-100 transition text-left rtl:text-right"
                 >
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedCategory === cat.name ? 'border-red-500' : 'border-neutral-500'}`}>
                     {selectedCategory === cat.name && <div className="w-2.5 h-2.5 bg-red-500 rounded-full" />}
                   </div>
-                  <span className={selectedCategory === cat.name ? 'text-white font-medium' : 'text-neutral-400'}>
+                  <span className={selectedCategory === cat.name ? 'text-white light-mode:text-red-500 font-medium' : 'text-neutral-400 light-mode:text-neutral-600'}>
                     {cat.name}
                   </span>
                 </button>
               ))}
             </div>
-            <div className="p-4 border-t border-neutral-800">
+            <div className="p-4 border-t border-neutral-800 light-mode:border-neutral-100">
               <button 
                 onClick={() => setIsCategoryModalOpen(false)}
-                className="w-full py-3 bg-neutral-800 hover:bg-neutral-700 rounded-xl font-medium transition"
+                className="w-full py-3 bg-neutral-800 light-mode:bg-neutral-200 text-white light-mode:text-black hover:bg-neutral-700 light-mode:hover:bg-neutral-300 rounded-xl font-medium transition"
               >
                 {t.close}
               </button>

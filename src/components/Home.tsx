@@ -208,7 +208,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
       {topContents.length > 0 && (
         <div className="mt-6 px-4">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white">Top Contents</h2>
+            <h2 className="text-2xl font-bold text-white light-mode:text-black">Top Contents</h2>
             <button onClick={() => setViewingList({ title: 'Top Contents', items: topContents })} className="text-red-500 text-sm font-medium">{t.all}</button>
           </div>
           <div className="flex space-x-4 md:space-x-8 overflow-x-auto pb-8 scrollbar-hide -mx-4 px-4">
@@ -235,7 +235,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                     </span>
                   </div>
                 </div>
-                <h3 className="mt-4 text-sm md:text-lg font-bold truncate text-neutral-200 group-hover:text-red-500 transition-colors uppercase tracking-tight">{movie.title}</h3>
+                <h3 className="mt-4 text-sm md:text-lg font-bold truncate text-neutral-200 light-mode:text-black group-hover:text-red-500 transition-colors uppercase tracking-tight">{movie.title}</h3>
               </div>
             ))}
           </div>
@@ -250,7 +250,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
         return (
           <div key={list.id} className="mt-8 px-4">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">{list.name}</h2>
+              <h2 className="text-xl font-semibold text-white light-mode:text-black">{list.name}</h2>
               <button onClick={() => setViewingList({ title: list.name, items: listMovies })} className="text-red-500 text-sm font-medium">{t.all}</button>
             </div>
             <div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
@@ -269,7 +269,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                       <Play size={18} className="text-white fill-white" />
                     </div>
                   </div>
-                  <h3 className="mt-3 text-xs md:text-sm font-bold truncate text-neutral-300 group-hover:text-white transition-colors uppercase tracking-tight">{movie.title}</h3>
+                  <h3 className="mt-3 text-xs md:text-sm font-bold truncate text-neutral-300 light-mode:text-slate-700 group-hover:text-red-600 transition-colors uppercase tracking-tight">{movie.title}</h3>
                 </div>
               ))}
             </div>
@@ -280,7 +280,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
       {/* Default Movies Section (if not in any list) */}
       <div className="mt-8 px-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">{t.movies}</h2>
+          <h2 className="text-xl font-semibold text-white light-mode:text-black">{t.movies}</h2>
           <button onClick={() => setViewingList({ title: t.movies, items: movies.filter(m => !m.list_name || m.list_name === '') })} className="text-red-500 text-sm font-medium">{t.all}</button>
         </div>
         <div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
@@ -296,7 +296,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                   unoptimized={true}
                 />
               </div>
-              <h3 className="mt-3 text-xs md:text-sm font-bold truncate text-neutral-300 uppercase tracking-tight">{movie.title}</h3>
+              <h3 className="mt-3 text-xs md:text-sm font-bold truncate text-neutral-300 light-mode:text-slate-700 uppercase tracking-tight">{movie.title}</h3>
             </div>
           ))}
         </div>

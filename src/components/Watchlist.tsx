@@ -18,12 +18,12 @@ export default function Watchlist({ onSelect }: { onSelect: (item: any) => void 
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {watchlist.map(movie => (
-            <div key={movie.id} className="flex space-x-4 rtl:space-x-reverse bg-neutral-900/50 hover:bg-neutral-900 border border-transparent hover:border-neutral-800 rounded-xl p-3 relative transition group">
+            <div key={movie.id} className="flex space-x-4 rtl:space-x-reverse bg-neutral-900/50 light-mode:bg-white hover:bg-neutral-900 light-mode:hover:bg-neutral-50 border border-transparent hover:border-neutral-800 light-mode:hover:border-neutral-200 rounded-xl p-3 relative transition group shadow-sm">
               <div className="w-24 h-32 relative shrink-0 cursor-pointer rounded-lg overflow-hidden" onClick={() => onSelect(movie)}>
                 <Image src={movie.image} alt={movie.title} fill sizes="96px" className="object-cover" unoptimized />
               </div>
               <div className="flex-1 py-1 cursor-pointer min-w-0" onClick={() => onSelect(movie)}>
-                <h3 className="font-bold text-base md:text-lg pr-8 rtl:pr-0 rtl:pl-8 truncate">{movie.title}</h3>
+                <h3 className="font-bold text-base md:text-lg pr-8 rtl:pr-0 rtl:pl-8 truncate text-white light-mode:text-black">{movie.title}</h3>
                 <div className="flex items-center text-sm text-neutral-400 mt-1 mb-2">
                   <span className="flex items-center text-yellow-500 mr-3 rtl:mr-0 rtl:ml-3 min-w-fit"><Star size={14} className="mr-1 rtl:mr-0 rtl:ml-1 fill-current" /> {movie.rating}</span>
                   <span className="truncate">{movie.year}</span>
