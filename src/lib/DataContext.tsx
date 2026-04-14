@@ -56,10 +56,34 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
   }, []);
 
   useEffect(() => {
-    // Only fetch client-side if no initial data was provided
+    // Initial fetch if no initial data
     if (!initialData) {
       fetchData();
     }
+
+    // Subscribe to realtime changes for all tables
+    const moviesSub = supabase.channel('movies-all')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'movies' }, () => fetchData())
+      .subscribe();
+      
+    const channelsSub = supabase.channel('channels-all')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'channels' }, () => fetchData())
+      .subscribe();
+
+    const listsSub = supabase.channel('lists-all')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'movie_lists' }, () => fetchData())
+      .subscribe();
+
+    const bannersSub = supabase.channel('banners-all')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'banners' }, () => fetchData())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(moviesSub);
+      supabase.removeChannel(channelsSub);
+      supabase.removeChannel(listsSub);
+      supabase.removeChannel(bannersSub);
+    };
   }, [initialData, fetchData]);
 
   return (
