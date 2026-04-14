@@ -125,6 +125,7 @@ export default function Movies() {
       is_featured: false,
       is_pro: false,
       top_rank: '',
+      status: 'Published',
       servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
       episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }] }]
     });
