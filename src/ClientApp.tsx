@@ -19,9 +19,13 @@ export default function ClientApp() {
   useEffect(() => {
     const recordVisit = async () => {
       try {
-        if (!sessionStorage.getItem('visited_site')) {
+        const lastVisit = localStorage.getItem('last_visit_time');
+        const now = new Date().getTime();
+        
+        // ئەگەر 30 خولەک (1,800,000 ملی چرکە) بەسەر کۆتا سەرداندا تێپەڕیبوو، ئەوا بە بینەرێکی نوێ هەژماری دەکەین
+        if (!lastVisit || now - parseInt(lastVisit) > 1800000) {
+          localStorage.setItem('last_visit_time', now.toString());
           await supabase.from('site_visits').insert([{ page: 'home' }]);
-          sessionStorage.setItem('visited_site', 'true');
         }
       } catch (e) {
         console.error("Failed to record visit", e);

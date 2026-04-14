@@ -17,6 +17,18 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [viewIncremented, setViewIncremented] = useState(false);
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
 
+  useEffect(() => {
+    // هەرکاتێک بەکارهێنەر دەگەڕێتەوە ناو فیلمەکە، ژمارە تازەکە دەهێنین
+    if (item?.id) {
+      supabase.from('movies').select('views').eq('id', item.id).single()
+        .then(({ data, error }) => {
+          if (!error && data) {
+            setViewCount(data.views || 0);
+          }
+        });
+    }
+  }, [item?.id]);
+
   useHardwareBack(isPlaying || showServersModal, () => {
     setIsPlaying(false);
     setShowServersModal(false);
