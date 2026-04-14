@@ -18,6 +18,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [viewCount, setViewCount] = useState(item.views || 0);
   const [viewIncremented, setViewIncremented] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
 
   useEffect(() => {
@@ -32,9 +33,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     }
   }, [item?.id]);
 
-  useHardwareBack(isPlaying || showServersModal, () => {
+  useHardwareBack(isPlaying || showServersModal || isFullScreen, () => {
     setIsPlaying(false);
     setShowServersModal(false);
+    setIsFullScreen(false);
   });
 
   const isBookmarked = isInWatchlist(item.id);
@@ -187,15 +189,24 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   return (
     <div className="bg-neutral-950 min-h-screen text-white pb-24">
       {/* Header / Backdrop or Player */}
-      <div className="relative w-full bg-black aspect-video md:h-[70vh] md:aspect-auto">
+      <div className={`${isFullScreen ? 'fixed inset-0 z-[1000] bg-black h-screen' : 'relative w-full bg-black aspect-video md:h-[70vh] md:aspect-auto'}`}>
         {isPlaying ? (
           <div className="w-full h-full relative">
-            <button 
-              onClick={() => setIsPlaying(false)} 
-              className="absolute top-4 right-4 z-[100] w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition"
-            >
-              <X size={20} />
-            </button>
+            <div className="flex absolute top-4 right-4 z-[100] space-x-2">
+              <button 
+                onClick={() => setIsFullScreen(!isFullScreen)} 
+                className="w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition"
+                title="Toggle Fullscreen"
+              >
+                <MonitorPlay size={20} />
+              </button>
+              <button 
+                onClick={() => { setIsPlaying(false); setIsFullScreen(false); }} 
+                className="w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition"
+              >
+                <X size={20} />
+              </button>
+            </div>
             
             {(() => {
               const isM3u8 = selectedServerUrl?.toLowerCase().includes('.m3u8');
@@ -210,7 +221,9 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                     src={getEmbedUrl(selectedServerUrl)} 
                     className="w-full h-full border-0 absolute inset-0 z-10"
                     allowFullScreen
-                    allow="autoplay; fullscreen; picture-in-picture; encrypted-media; clipboard-write"
+                    webkitallowfullscreen="true"
+                    mozallowfullscreen="true"
+                    allow="autoplay; fullscreen; picture-in-picture; encrypted-media; clipboard-write; gyroscope; accelerometer"
                     referrerPolicy="origin"
                   ></iframe>
                   
