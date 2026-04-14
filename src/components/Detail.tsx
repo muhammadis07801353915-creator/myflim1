@@ -230,7 +230,14 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         ) : (
           <>
             <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/20 to-transparent z-10" />
-            <Image src={item.backdrop || item.image || ''} alt={item.title} fill className="object-cover opacity-70" priority />
+            <Image 
+              src={item.backdrop || item.image || ''} 
+              alt={item.title} 
+              fill 
+              className="object-cover opacity-70" 
+              priority 
+              unoptimized={true}
+            />
             
             <div className="absolute top-0 left-0 w-full p-4 pt-6 z-[100] flex justify-between items-center pointer-events-none">
               <button onClick={onBack} className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md transition pointer-events-auto">
@@ -354,7 +361,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             {[1,2,3,4].map(i => (
               <div key={i} className="flex items-center space-x-3 bg-neutral-900/50 pr-5 p-2 rounded-full border border-neutral-800/50 flex-none">
                 <div className="w-12 h-12 relative overflow-hidden rounded-full shrink-0">
-                  <Image src={`https://i.pravatar.cc/150?img=${i+10}`} alt="Actor" fill className="object-cover" sizes="48px" />
+                  <Image src={`https://i.pravatar.cc/150?img=${i+10}`} alt="Actor" fill className="object-cover" sizes="48px" unoptimized />
                 </div>
                 <div>
                   <p className="text-sm font-medium">Actor Name</p>

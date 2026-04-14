@@ -20,7 +20,7 @@ export default function Watchlist({ onSelect }: { onSelect: (item: any) => void 
           {watchlist.map(movie => (
             <div key={movie.id} className="flex space-x-4 rtl:space-x-reverse bg-neutral-900/50 hover:bg-neutral-900 border border-transparent hover:border-neutral-800 rounded-xl p-3 relative transition group">
               <div className="w-24 h-32 relative shrink-0 cursor-pointer rounded-lg overflow-hidden" onClick={() => onSelect(movie)}>
-                <Image src={movie.image} alt={movie.title} fill sizes="96px" className="object-cover" />
+                <Image src={movie.image} alt={movie.title} fill sizes="96px" className="object-cover" unoptimized />
               </div>
               <div className="flex-1 py-1 cursor-pointer min-w-0" onClick={() => onSelect(movie)}>
                 <h3 className="font-bold text-base md:text-lg pr-8 rtl:pr-0 rtl:pl-8 truncate">{movie.title}</h3>

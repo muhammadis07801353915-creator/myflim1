@@ -56,7 +56,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           {filteredMovies.map(movie => (
             <div key={movie.id} className="flex space-x-4 rtl:space-x-reverse bg-neutral-900/50 hover:bg-neutral-900 rounded-xl p-3 cursor-pointer transition border border-transparent hover:border-neutral-800" onClick={() => onSelect(movie)}>
               <div className="w-24 h-32 relative shrink-0 rounded-lg overflow-hidden">
-                <Image src={movie.image} alt={movie.title} fill sizes="96px" className="object-cover" />
+                <Image src={movie.image} alt={movie.title} fill sizes="96px" className="object-cover" unoptimized />
               </div>
               <div className="flex-1 py-2">
                 <h3 className="font-semibold text-lg">{movie.title}</h3>

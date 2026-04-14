@@ -79,6 +79,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                   fill
                   sizes="(max-width: 768px) 33vw, 20vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                  unoptimized={true}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
                   <Play size={20} className="text-white fill-white" />
@@ -126,6 +127,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                   priority={idx === 0}
                   sizes="(max-width: 768px) 85vw, 450px"
                   className="object-cover group-hover:scale-110 transition-transform duration-700"
+                  unoptimized={true}
                 />
                 
                 {/* Overlay with Content */}
@@ -219,6 +221,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                     fill
                     sizes="(max-width: 768px) 50vw, 33vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-700" 
+                    unoptimized={true}
                   />
                   {/* Type Badge */}
                   <div className="absolute top-3 left-3 bg-red-600 px-2.5 py-1 rounded-lg text-[10px] md:text-xs font-black text-white shadow-lg uppercase tracking-wider z-20">
@@ -260,6 +263,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                       fill
                       sizes="(max-width: 768px) 33vw, 20vw"
                       className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                      unoptimized={true}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
                       <Play size={18} className="text-white fill-white" />
@@ -289,6 +293,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                   fill
                   sizes="(max-width: 768px) 33vw, 20vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                  unoptimized={true}
                 />
               </div>
               <h3 className="mt-3 text-xs md:text-sm font-bold truncate text-neutral-300 uppercase tracking-tight">{movie.title}</h3>

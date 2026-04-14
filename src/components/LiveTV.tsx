@@ -189,6 +189,7 @@ export default function LiveTV() {
                     fill
                     sizes="(max-width: 768px) 33vw, 15vw"
                     className="object-contain opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all p-2"
+                    unoptimized={true}
                   />
                 ) : (
                   <span className="text-xs text-center text-neutral-400 font-medium">{channel.name}</span>
@@ -279,6 +280,7 @@ export default function LiveTV() {
                       fill
                       sizes="(max-width: 768px) 33vw, 15vw"
                       className="object-contain opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all p-2"
+                      unoptimized={true}
                     />
                   ) : (
                     <span className="text-xs text-center text-neutral-400 font-medium">{channel.name}</span>
@@ -317,6 +319,7 @@ export default function LiveTV() {
                     priority
                     sizes="100vw"
                     className="object-cover"
+                    unoptimized={true}
                   />
                   <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
                 </motion.div>
@@ -368,6 +371,7 @@ export default function LiveTV() {
                 alt="Ad"
                 fill
                 sizes="100vw"
+                unoptimized={true}
               />
             </div>
           ))}
@@ -411,6 +415,7 @@ export default function LiveTV() {
                         fill
                         sizes="(max-width: 768px) 33vw, 15vw"
                         className="object-contain opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all p-2"
+                        unoptimized={true}
                       />
                     ) : (
                       <span className="text-xs text-center text-neutral-400 font-medium">{channel.name}</span>
@@ -435,6 +440,7 @@ export default function LiveTV() {
                     alt="Ad"
                     fill
                     sizes="100vw"
+                    unoptimized={true}
                   />
                 </div>
               ))}
