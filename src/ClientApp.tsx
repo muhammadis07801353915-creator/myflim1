@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Home from './components/Home';
 import Search from './components/Search';
 import LiveTV from './components/LiveTV';
@@ -9,11 +9,26 @@ import BottomNav from './components/BottomNav';
 import Sidebar from './components/Sidebar';
 import { useHardwareBack } from './lib/useHardwareBack';
 import { useData } from './lib/DataContext';
+import { supabase } from './lib/supabase';
 
 export default function ClientApp() {
   const [currentTab, setCurrentTab] = useState('home');
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const { loading } = useData();
+
+  useEffect(() => {
+    const recordVisit = async () => {
+      try {
+        if (!sessionStorage.getItem('visited_site')) {
+          await supabase.from('site_visits').insert([{ page: 'home' }]);
+          sessionStorage.setItem('visited_site', 'true');
+        }
+      } catch (e) {
+        console.error("Failed to record visit", e);
+      }
+    };
+    recordVisit();
+  }, []);
 
   useHardwareBack(!!selectedItem, () => setSelectedItem(null));
 

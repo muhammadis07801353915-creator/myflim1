@@ -1,17 +1,20 @@
-import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import HlsPlayer from './HlsPlayer';
 import { useWatchlist } from '../lib/useWatchlist';
 import { useHardwareBack } from '../lib/useHardwareBack';
 import { Browser } from '@capacitor/browser';
 import Image from 'next/image';
+import { supabase } from '../lib/supabase';
 
 export default function Detail({ item, onBack }: { item: any, onBack: () => void }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showServersModal, setShowServersModal] = useState(false);
   const [selectedServerUrl, setSelectedServerUrl] = useState('');
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(0);
+  const [viewCount, setViewCount] = useState(item.views || 0);
+  const [viewIncremented, setViewIncremented] = useState(false);
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
 
   useHardwareBack(isPlaying || showServersModal, () => {
@@ -55,7 +58,26 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     return [{ name: 'Default Server', url: item.video_url || '', quality: 'Auto' }];
   }, [item.type, item.video_url, episodes, currentEpisodeIndex]);
 
+  const incrementViews = async () => {
+    if (viewIncremented || !item.id) return;
+    try {
+      setViewCount(prev => prev + 1);
+      setViewIncremented(true);
+      
+      const { data, error } = await supabase.from('movies').select('views').eq('id', item.id).single();
+      if (!error && data) {
+        await supabase.from('movies').update({ views: (data.views || 0) + 1 }).eq('id', item.id);
+      } else {
+        // Fallback for first view if views is null/undefined
+        await supabase.from('movies').update({ views: 1 }).eq('id', item.id);
+      }
+    } catch (e) {
+      console.error("Error incrementing views", e);
+    }
+  };
+
   const handlePlayClick = () => {
+    if (!isPlaying) incrementViews();
     const currentServers = servers;
     if (currentServers.length > 1) {
       setShowServersModal(true);
@@ -233,6 +255,12 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         </button>
 
         <div className="flex justify-around border-y border-neutral-800/60 py-5 mb-8">
+          <button className="flex flex-col items-center text-neutral-400 hover:text-white transition group cursor-default">
+            <div className="w-12 h-12 rounded-full bg-neutral-900 flex items-center justify-center mb-2 transition text-red-500">
+              <Eye size={20} />
+            </div>
+            <span className="text-xs font-medium">{viewCount.toLocaleString()} Views</span>
+          </button>
           <button className="flex flex-col items-center text-neutral-400 hover:text-white transition group">
             <div className="w-12 h-12 rounded-full bg-neutral-900 group-hover:bg-neutral-800 flex items-center justify-center mb-2 transition">
               <Download size={20} />

@@ -13,7 +13,8 @@ import {
   Trophy,
   Menu,
   X,
-  Image as ImageIcon
+  Image as ImageIcon,
+  BarChart
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -24,6 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} /> },
+    { name: 'Analytics', path: '/admin/analytics', icon: <BarChart size={20} /> },
     { name: 'Users', path: '/admin/users', icon: <Users size={20} /> },
     { name: 'Movies & Series', path: '/admin/movies', icon: <Film size={20} /> },
     { name: 'Top Contents', path: '/admin/top-contents', icon: <Trophy size={20} /> },
