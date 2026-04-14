@@ -58,13 +58,13 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
 
   if (viewingList) {
     return (
-      <div className="pb-24 pt-6 px-4">
+      <div className="pb-24 pt-6 px-4 bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black">
         <div className="flex items-center mb-6">
           <button 
             onClick={() => setViewingList(null)}
-            className="w-10 h-10 bg-neutral-900 hover:bg-neutral-800 rounded-full flex items-center justify-center mr-4 transition"
+            className="w-10 h-10 bg-neutral-900 light-mode:bg-neutral-100 hover:bg-neutral-800 light-mode:hover:bg-neutral-200 rounded-full flex items-center justify-center mr-4 rtl:mr-0 rtl:ml-4 transition"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={20} className="rtl:rotate-180" />
           </button>
           <h1 className="text-2xl font-bold">{viewingList.title}</h1>
         </div>
@@ -85,7 +85,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                   <Play size={20} className="text-white fill-white" />
                 </div>
               </div>
-              <h3 className="mt-3 text-sm font-semibold truncate text-neutral-200 group-hover:text-red-500 transition-colors uppercase tracking-tight">{movie.title}</h3>
+              <h3 className="mt-3 text-sm font-semibold truncate text-neutral-200 light-mode:text-black group-hover:text-red-500 transition-colors uppercase tracking-tight">{movie.title}</h3>
             </div>
           ))}
         </div>

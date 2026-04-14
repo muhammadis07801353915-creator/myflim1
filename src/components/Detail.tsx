@@ -185,7 +185,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   };
 
   return (
-    <div className="bg-neutral-950 min-h-screen text-white pb-24">
+    <div className="bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black pb-24">
       {/* Header / Backdrop or Player */}
       <div className="relative w-full bg-black aspect-video md:h-[70vh] md:aspect-auto">
         {isPlaying ? (
@@ -244,7 +244,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           </div>
         ) : (
           <>
-            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/20 to-transparent z-10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 light-mode:from-white via-neutral-950/20 to-transparent z-10" />
             <Image 
               src={item.backdrop || item.image || ''} 
               alt={item.title} 
@@ -285,7 +285,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
       {/* Content Info */}
       <div className="px-5 -mt-8 relative z-30">
-        <h1 className="text-3xl font-bold mb-3">{item.title}</h1>
+        <h1 className="text-3xl font-bold mb-3 text-white light-mode:text-black">{item.title}</h1>
         <div className="flex items-center space-x-4 text-sm text-neutral-400 mb-6">
           <span className="flex items-center text-yellow-500 font-medium"><Star size={16} className="mr-1 fill-current" /> {item.rating}</span>
           <span>{item.year}</span>
@@ -299,27 +299,27 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           <Play size={20} className="mr-2 fill-current" /> Watch Now
         </button>
 
-        <div className="flex justify-around border-y border-neutral-800/60 py-5 mb-8">
-          <button className="flex flex-col items-center text-neutral-400 hover:text-white transition group cursor-default">
-            <div className="w-12 h-12 rounded-full bg-neutral-900 flex items-center justify-center mb-2 transition text-red-500">
+        <div className="flex justify-around border-y border-neutral-800/60 light-mode:border-neutral-200 py-5 mb-8">
+          <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group cursor-default">
+            <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 flex items-center justify-center mb-2 transition text-red-500">
               <Eye size={20} />
             </div>
             <span className="text-xs font-medium">{viewCount.toLocaleString()} Views</span>
           </button>
-          <button className="flex flex-col items-center text-neutral-400 hover:text-white transition group">
-            <div className="w-12 h-12 rounded-full bg-neutral-900 group-hover:bg-neutral-800 flex items-center justify-center mb-2 transition">
+          <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group">
+            <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200 flex items-center justify-center mb-2 transition">
               <Download size={20} />
             </div>
             <span className="text-xs font-medium">Download</span>
           </button>
-          <button className="flex flex-col items-center text-neutral-400 hover:text-white transition group">
-            <div className="w-12 h-12 rounded-full bg-neutral-900 group-hover:bg-neutral-800 flex items-center justify-center mb-2 transition">
+          <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group">
+            <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200 flex items-center justify-center mb-2 transition">
               <MonitorPlay size={20} />
             </div>
             <span className="text-xs font-medium">Trailer</span>
           </button>
-          <button className="flex flex-col items-center text-neutral-400 hover:text-white transition group">
-            <div className="w-12 h-12 rounded-full bg-neutral-900 group-hover:bg-neutral-800 flex items-center justify-center mb-2 transition">
+          <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group">
+            <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200 flex items-center justify-center mb-2 transition">
               <Share2 size={20} />
             </div>
             <span className="text-xs font-medium">Share</span>
@@ -327,8 +327,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         </div>
 
         <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-3">Story Line</h3>
-          <p className="text-neutral-400 text-sm leading-relaxed">
+          <h3 className="text-xl font-semibold mb-3 text-white light-mode:text-black">Story Line</h3>
+          <p className="text-neutral-400 light-mode:text-neutral-600 text-sm leading-relaxed">
             {item.description}
           </p>
         </div>
@@ -349,7 +349,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                       className={`relative flex flex-col items-center justify-center py-4 rounded-xl border transition-all duration-300 transform active:scale-95 ${
                         currentEpisodeIndex === index 
                           ? 'bg-blue-600 border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.4)] scale-105 z-10' 
-                          : 'bg-[#1a1d24] border-neutral-800/50 hover:bg-[#22252d] hover:border-neutral-700'
+                          : 'bg-[#1a1d24] light-mode:bg-neutral-100 border-neutral-800/50 light-mode:border-neutral-200 hover:bg-[#22252d] light-mode:hover:bg-neutral-200 hover:border-neutral-700'
                       }`}
                    >
                       <span className={`text-[10px] uppercase font-black tracking-tighter mb-1 ${currentEpisodeIndex === index ? 'text-blue-100' : 'text-neutral-400'}`}>
@@ -371,16 +371,16 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         )}
 
         <div className="mt-12">
-          <h3 className="text-xl font-semibold mb-4">Star cast</h3>
+          <h3 className="text-xl font-semibold mb-4 text-white light-mode:text-black">Star cast</h3>
           <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide -mx-5 px-5">
             {[1,2,3,4].map(i => (
-              <div key={i} className="flex items-center space-x-3 bg-neutral-900/50 pr-5 p-2 rounded-full border border-neutral-800/50 flex-none">
+              <div key={i} className="flex items-center space-x-3 bg-neutral-900/50 light-mode:bg-neutral-100 pr-5 p-2 rounded-full border border-neutral-800/50 light-mode:border-neutral-200 flex-none">
                 <div className="w-12 h-12 relative overflow-hidden rounded-full shrink-0">
                   <Image src={`https://i.pravatar.cc/150?img=${i+10}`} alt="Actor" fill className="object-cover" sizes="48px" unoptimized />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Actor Name</p>
-                  <p className="text-xs text-neutral-500">Character</p>
+                  <p className="text-sm font-medium text-white light-mode:text-black">Actor Name</p>
+                  <p className="text-xs text-neutral-500 light-mode:text-neutral-600">Character</p>
                 </div>
               </div>
             ))}
@@ -391,10 +391,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       {/* Servers Modal */}
       {showServersModal && (
         <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#1a1d24] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col max-h-[80vh] border border-neutral-800 animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
-            <div className="p-5 border-b border-neutral-800 flex justify-between items-center bg-[#22252D]">
+          <div className="bg-[#1a1d24] light-mode:bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col max-h-[80vh] border border-neutral-800 light-mode:border-neutral-200 animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+            <div className="p-5 border-b border-neutral-800 light-mode:border-neutral-100 flex justify-between items-center bg-[#22252D] light-mode:bg-neutral-50">
               <div>
-                <h3 className="text-xl font-bold text-white">Choose Server</h3>
+                <h3 className="text-xl font-bold text-white light-mode:text-black">Choose Server</h3>
                 <p className="text-sm text-neutral-400 mt-1">{servers.length} servers available</p>
               </div>
               <button 
@@ -409,14 +409,14 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                 <button
                   key={index}
                   onClick={() => handleServerSelect(server.url)}
-                  className="w-full flex items-center justify-between p-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-red-500/50 transition group"
+                  className="w-full flex items-center justify-between p-4 rounded-xl bg-neutral-900 light-mode:bg-neutral-50 hover:bg-neutral-800 light-mode:hover:bg-neutral-100 border border-neutral-800 light-mode:border-neutral-200 hover:border-red-500/50 transition group"
                 >
                   <div className="flex items-center space-x-4">
                     <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition">
                       <Server size={20} />
                     </div>
                     <div className="text-left">
-                      <p className="font-semibold text-white">
+                      <p className="font-semibold text-white light-mode:text-black">
                         {server.name === 'ok' ? 'OK.ru' : 
                          server.name === 'VK' ? 'VK.com' : 
                          server.name === 'telegram' ? 'Telegram' : 
@@ -442,10 +442,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                 </button>
               ))}
             </div>
-            <div className="p-4 border-t border-neutral-800 bg-[#22252D]">
+            <div className="p-4 border-t border-neutral-800 light-mode:border-neutral-100 bg-[#22252D] light-mode:bg-neutral-50">
               <button 
                 onClick={() => setShowServersModal(false)}
-                className="w-full py-3.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl font-semibold transition"
+                className="w-full py-3.5 bg-neutral-800 light-mode:bg-neutral-200 text-white light-mode:text-black hover:bg-neutral-700 light-mode:hover:bg-neutral-300 rounded-xl font-semibold transition"
               >
                 Cancel
               </button>
