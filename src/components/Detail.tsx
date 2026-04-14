@@ -129,9 +129,12 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                        selectedServerUrl?.includes('telegram.me') || 
                        selectedServerUrl?.includes('ok.ru') ||
                        selectedServerUrl?.includes('vk.com') ||
+                       selectedServerUrl?.includes('drive.google.com') ||
+                       selectedServerUrl?.includes('docs.google.com') ||
                        servers.find(s => s.url === selectedServerUrl)?.name === 'ok' ||
                        servers.find(s => s.url === selectedServerUrl)?.name === 'VK' ||
                        servers.find(s => s.url === selectedServerUrl)?.name === 'embed' ||
+                       servers.find(s => s.url === selectedServerUrl)?.name === 'google' ||
                        servers.find(s => s.url === selectedServerUrl)?.name === 'telegram';
   
   // Convert standard links to embed links if needed
@@ -146,6 +149,18 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       finalUrl = 'https://' + finalUrl;
     }
 
+    if (finalUrl.includes('drive.google.com') || finalUrl.includes('docs.google.com')) {
+      // Convert /view or /edit to /preview for embedding
+      if (finalUrl.includes('/view')) return finalUrl.replace('/view', '/preview');
+      if (finalUrl.includes('/edit')) return finalUrl.replace('/edit', '/preview');
+      if (!finalUrl.endsWith('/preview')) {
+        const parts = finalUrl.split('?')[0].split('/');
+        const id = parts[parts.indexOf('d') + 1];
+        if (id) return `https://drive.google.com/file/d/${id}/preview`;
+      }
+      return finalUrl;
+    }
+
     if (finalUrl.includes('t.me') || finalUrl.includes('telegram.me')) {
       if (finalUrl.includes('embed=1')) return finalUrl;
       const separator = finalUrl.includes('?') ? '&' : '?';
@@ -155,8 +170,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       return finalUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
     }
     if (finalUrl.includes('vk.com/video')) {
-      // Basic conversion for VK, though usually users should provide the iframe src directly
-      // Example: https://vk.com/video_ext.php?oid=...&id=...&hash=...
       return finalUrl; 
     }
     return finalUrl;
@@ -405,13 +418,20 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                         {server.name === 'ok' ? 'OK.ru' : 
                          server.name === 'VK' ? 'VK.com' : 
                          server.name === 'telegram' ? 'Telegram' : 
+                         server.name === 'google' ? 'Google Drive' : 
                          server.name === 'embed' ? 'Embed Server' : 
                          server.name === 'm3u8' ? 'HLS Stream' : 
                          server.name === 'mp4' ? 'Direct MP4' : 
                          server.name === 'youtube' ? 'YouTube' : 
                          server.name}
                       </p>
-                      <p className="text-xs text-neutral-400 mt-0.5">{server.url.includes('youtube') ? 'YouTube' : server.url.includes('t.me') ? 'Telegram' : server.url.includes('ok.ru') ? 'OK.ru' : 'Direct Stream'}</p>
+                      <p className="text-xs text-neutral-400 mt-0.5">
+                        {server.url.includes('youtube') ? 'YouTube' : 
+                         server.url.includes('drive.google.com') ? 'Google Drive' : 
+                         server.url.includes('t.me') ? 'Telegram' : 
+                         server.url.includes('ok.ru') ? 'OK.ru' : 
+                         'Direct Stream'}
+                      </p>
                     </div>
                   </div>
                   <div className="bg-neutral-800 group-hover:bg-neutral-700 px-3 py-1 rounded-full text-xs font-medium text-neutral-300 transition">

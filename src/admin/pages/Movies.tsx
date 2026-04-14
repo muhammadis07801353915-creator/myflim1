@@ -429,6 +429,7 @@ export default function Movies() {
                           >
                             <option value="ok">OK.ru</option>
                             <option value="VK">VK.com</option>
+                            <option value="google">Google Drive</option>
                             <option value="embed">Embed (Iframe)</option>
                             <option value="telegram">Telegram</option>
                             <option value="m3u8">M3U8 (HLS)</option>
@@ -573,6 +574,7 @@ export default function Movies() {
                                 >
                                   <option value="ok">OK.ru</option>
                                   <option value="VK">VK.com</option>
+                                  <option value="google">Google Drive</option>
                                   <option value="embed">Embed</option>
                                   <option value="telegram">Telegram</option>
                                   <option value="m3u8">M3U8</option>
