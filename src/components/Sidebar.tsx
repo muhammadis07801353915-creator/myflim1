@@ -29,9 +29,15 @@ export default function Sidebar({ currentTab, onChange }: { currentTab?: string,
           return (
             <Link
               key={item.id}
-              href={item.path}
+              href={onChange ? '#' : item.path}
+              onClick={(e) => {
+                if (onChange) {
+                  e.preventDefault();
+                  onChange(item.id);
+                }
+              }}
               className={`w-full flex items-center space-x-4 px-4 py-3.5 rounded-xl transition-all duration-300 ${
-                isActive
+                (onChange ? currentTab === item.id : isActive)
                   ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
                   : 'text-neutral-400 hover:bg-neutral-800 hover:text-white'
               }`}
