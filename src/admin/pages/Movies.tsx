@@ -28,6 +28,11 @@ export default function Movies() {
     episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }] }]
   });
 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('All');
+  const [filterStatus, setFilterStatus] = useState('All');
+  const [filterList, setFilterList] = useState('All');
+
   const [showTmdbModal, setShowTmdbModal] = useState(false);
   const [tmdbSearch, setTmdbSearch] = useState('');
   const [tmdbResults, setTmdbResults] = useState<any[]>([]);
@@ -801,19 +806,39 @@ export default function Movies() {
             <input 
               type="text" 
               placeholder="Search movies or series..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="bg-transparent border-none outline-none text-sm ml-2 w-full text-white"
             />
           </div>
-          <div className="flex gap-2">
-            <select className="bg-neutral-900 border border-neutral-800 text-white text-sm rounded-lg px-3 py-2 outline-none">
-              <option>All Types</option>
-              <option>Movies</option>
-              <option>Series</option>
+          <div className="flex flex-wrap gap-2">
+            <select 
+              value={filterList}
+              onChange={(e) => setFilterList(e.target.value)}
+              className="bg-neutral-900 border border-neutral-800 text-white text-sm rounded-lg px-3 py-2 outline-none"
+            >
+              <option value="All">All Lists</option>
+              {movieLists.map(list => (
+                <option key={list.id} value={list.name}>{list.name}</option>
+              ))}
             </select>
-            <select className="bg-neutral-900 border border-neutral-800 text-white text-sm rounded-lg px-3 py-2 outline-none">
-              <option>All Status</option>
-              <option>Published</option>
-              <option>Draft</option>
+            <select 
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="bg-neutral-900 border border-neutral-800 text-white text-sm rounded-lg px-3 py-2 outline-none"
+            >
+              <option value="All">All Types</option>
+              <option value="Movie">Movies</option>
+              <option value="Series">Series</option>
+            </select>
+            <select 
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="bg-neutral-900 border border-neutral-800 text-white text-sm rounded-lg px-3 py-2 outline-none"
+            >
+              <option value="All">All Status</option>
+              <option value="Published">Published</option>
+              <option value="Draft">Draft</option>
             </select>
           </div>
         </div>
@@ -833,7 +858,14 @@ export default function Movies() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-800">
-              {contentList.map((item) => (
+              {contentList.filter(item => {
+                const matchesSearch = item.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                     item.genre?.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesType = filterType === 'All' || item.type === filterType;
+                const matchesStatus = filterStatus === 'All' || item.status === filterStatus;
+                const matchesList = filterList === 'All' || item.list_name === filterList;
+                return matchesSearch && matchesType && matchesStatus && matchesList;
+              }).map((item) => (
                 <tr key={item.id} className="hover:bg-neutral-800/50 transition">
                   <td className="px-6 py-4 font-medium text-white">{item.title}</td>
                   <td className="px-6 py-4">
