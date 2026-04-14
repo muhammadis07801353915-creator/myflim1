@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import Providers from './providers';
 import { fetchAllData } from '@/src/lib/fetchData';
-import { Inter } from 'next/font/google';
 import '@/src/index.css';
-
-const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'myTV+',
@@ -23,7 +20,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const initialData = await fetchAllData();
 
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="en">
       <body>
         <Providers initialData={initialData}>
           <div id="root">{children}</div>
