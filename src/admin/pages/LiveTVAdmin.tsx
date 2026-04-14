@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, Tv, ArrowUp, ArrowDown } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -82,7 +83,7 @@ export default function LiveTVAdmin() {
       if (!error) {
         setChannels(channels.filter(item => item.id !== id));
       } else {
-        alert('Error deleting channel');
+        alert('Error deleting channel: ' + error.message);
       }
     }
   };
@@ -131,7 +132,9 @@ export default function LiveTVAdmin() {
       setView('list');
     } catch (err: any) {
       console.error('Supabase save error:', err);
-      setErrorMsg(`کێشەیەک هەیە: ${err.message || 'هەڵەیەکی نەزانراو'}`);
+      const msg = `کێشەیەک هەیە: ${err.message || 'هەڵەیەکی نەزانراو'}`;
+      setErrorMsg(msg);
+      alert(msg);
     } finally {
       setSaving(false);
     }

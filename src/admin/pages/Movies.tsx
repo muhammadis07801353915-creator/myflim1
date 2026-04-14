@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect } from 'react';
 import { 
   Plus, Search, Edit, Trash2, Film, Tv, DownloadCloud, 
@@ -22,6 +23,7 @@ export default function Movies() {
     is_featured: false,
     is_pro: false,
     top_rank: '',
+    status: 'Published',
     servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
     episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }] }]
   });
@@ -164,6 +166,7 @@ export default function Movies() {
       is_featured: item.is_featured || false,
       is_pro: item.is_pro || false,
       top_rank: item.top_rank?.toString() || '',
+      status: item.status || 'Published',
       servers: parsedServers,
       episodes: parsedEpisodes
     });
@@ -179,7 +182,7 @@ export default function Movies() {
       if (!error) {
         setContentList(contentList.filter(item => item.id !== id));
       } else {
-        alert('Error deleting movie');
+        alert('Error deleting movie: ' + error.message);
       }
     }
   };
@@ -206,6 +209,7 @@ export default function Movies() {
       list_name: formData.list_name,
       is_featured: formData.is_featured,
       is_pro: formData.is_pro,
+      status: formData.status,
       top_rank: formData.top_rank && !isNaN(parseInt(formData.top_rank)) ? parseInt(formData.top_rank) : null,
       video_url: formData.type === 'Series' ? JSON.stringify(formData.episodes) : JSON.stringify(formData.servers)
     };
@@ -223,7 +227,9 @@ export default function Movies() {
       setView('list');
     } catch (err: any) {
       console.error('Supabase save error:', err);
-      setErrorMsg(`کێشەیەک هەیە: ${err.message || 'هەڵەیەکی نەزانراو'}`);
+      const msg = `کێشەیەک هەیە: ${err.message || 'هەڵەیەکی نەزانراو'}`;
+      setErrorMsg(msg);
+      alert(msg);
     } finally {
       setSaving(false);
     }
@@ -343,6 +349,17 @@ export default function Movies() {
                       {movieLists.map(list => (
                         <option key={list.id} value={list.name}>{list.name}</option>
                       ))}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-300">Publish Status</label>
+                    <select 
+                      value={formData.status} 
+                      onChange={e => setFormData({...formData, status: e.target.value})}
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition"
+                    >
+                      <option value="Published">Published</option>
+                      <option value="Draft">Draft</option>
                     </select>
                   </div>
                 </div>
