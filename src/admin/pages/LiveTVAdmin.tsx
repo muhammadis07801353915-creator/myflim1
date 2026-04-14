@@ -13,7 +13,7 @@ export default function LiveTVAdmin() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   
   const [formData, setFormData] = useState({
-    name: '', category: '', status: 'Active', stream_url: '', image: ''
+    name: '', category: '', status: 'Active', stream_url: '', image: '', is_pro: false
   });
 
   useEffect(() => {
@@ -54,7 +54,8 @@ export default function LiveTVAdmin() {
       category: categories.length > 0 ? categories[0].name : 'News', 
       status: 'Active', 
       stream_url: '', 
-      image: '' 
+      image: '',
+      is_pro: false
     });
     setEditingId(null);
     setErrorMsg(null);
@@ -67,7 +68,8 @@ export default function LiveTVAdmin() {
       category: item.category || 'News',
       status: item.status || 'Active',
       stream_url: item.stream_url || '',
-      image: item.image || ''
+      image: item.image || '',
+      is_pro: item.is_pro || false
     });
     setEditingId(item.id);
     setErrorMsg(null);
@@ -108,7 +110,8 @@ export default function LiveTVAdmin() {
       category: formData.category,
       status: formData.status,
       stream_url: formData.stream_url,
-      image: formData.image
+      image: formData.image,
+      is_pro: formData.is_pro
     };
 
     if (!editingId) {
@@ -194,12 +197,26 @@ export default function LiveTVAdmin() {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-neutral-300">Status</label>
-            <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition">
-              <option>Active</option>
-              <option>Inactive</option>
-            </select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-neutral-300">Status</label>
+              <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition">
+                <option>Active</option>
+                <option>Inactive</option>
+              </select>
+            </div>
+            <div className="space-y-2 flex flex-col justify-center">
+              <label className="text-sm font-medium text-neutral-300 mb-2">Access Type</label>
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={formData.is_pro} 
+                  onChange={e => setFormData({...formData, is_pro: e.target.checked})}
+                  className="w-5 h-5 rounded border-neutral-700 text-red-600 bg-neutral-900 focus:ring-red-600 focus:ring-offset-neutral-900" 
+                />
+                <span className="text-white font-medium">PRO Channel (Requires Subscription)</span>
+              </label>
+            </div>
           </div>
         </div>
       </div>

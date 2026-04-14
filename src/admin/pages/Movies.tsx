@@ -20,6 +20,7 @@ export default function Movies() {
     title: '', type: 'Movie', genre: '', year: '', description: '', rating: '', image: '', backdrop: '', duration: '',
     list_name: '',
     is_featured: false,
+    is_pro: false,
     top_rank: '',
     servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
     episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }] }]
@@ -120,6 +121,7 @@ export default function Movies() {
       title: '', type: 'Movie', genre: '', year: '', description: '', rating: '', image: '', backdrop: '', duration: '',
       list_name: '',
       is_featured: false,
+      is_pro: false,
       top_rank: '',
       servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
       episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }] }]
@@ -160,6 +162,7 @@ export default function Movies() {
       duration: item.duration || '',
       list_name: item.list_name || '',
       is_featured: item.is_featured || false,
+      is_pro: item.is_pro || false,
       top_rank: item.top_rank?.toString() || '',
       servers: parsedServers,
       episodes: parsedEpisodes
@@ -202,6 +205,7 @@ export default function Movies() {
       backdrop: formData.backdrop,
       list_name: formData.list_name,
       is_featured: formData.is_featured,
+      is_pro: formData.is_pro,
       top_rank: formData.top_rank && !isNaN(parseInt(formData.top_rank)) ? parseInt(formData.top_rank) : null,
       video_url: formData.type === 'Series' ? JSON.stringify(formData.episodes) : JSON.stringify(formData.servers)
     };
@@ -616,11 +620,18 @@ export default function Movies() {
                       <p className="font-medium">Access Type</p>
                       <p className="text-sm text-neutral-400">Who can watch this content?</p>
                     </div>
-                    <select className="bg-[#1a1d24] border border-neutral-800 rounded-md px-3 py-2 text-sm text-white outline-none">
-                      <option>Free</option>
-                      <option>Premium Only</option>
-                      <option>Unlock with Video Ad</option>
-                    </select>
+                    <label className="flex items-center space-x-3 cursor-pointer">
+                      <span className="text-sm font-medium text-neutral-400">PRO Only</span>
+                      <div className="relative inline-flex items-center">
+                        <input 
+                          type="checkbox" 
+                          className="sr-only peer" 
+                          checked={formData.is_pro}
+                          onChange={(e) => setFormData({...formData, is_pro: e.target.checked})}
+                        />
+                        <div className="w-11 h-6 bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                      </div>
+                    </label>
                   </div>
                   
                   <div className="flex items-center justify-between p-4 bg-neutral-900 border border-neutral-800 rounded-lg">

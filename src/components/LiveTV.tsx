@@ -8,6 +8,8 @@ import ReactPlayer from 'react-player';
 import HlsPlayer from './HlsPlayer';
 import { useLanguage } from '../lib/LanguageContext';
 import { useData } from '../lib/DataContext';
+import ProSubscriptionModal from './ProSubscriptionModal';
+import { getProStatusLocal } from '../lib/pro';
 
 export default function LiveTV() {
   const { t } = useLanguage();
@@ -21,8 +23,15 @@ export default function LiveTV() {
   
   // Player State
   const [playingChannel, setPlayingChannel] = useState<any | null>(null);
+  const [showProModal, setShowProModal] = useState(false);
 
-
+  const handleChannelSelect = (channel: any) => {
+    if (channel.is_pro && !getProStatusLocal()) {
+      setShowProModal(true);
+      return;
+    }
+    setPlayingChannel(channel);
+  };
 
   // Group channels by category
   const channelsByCategory = channels.reduce((acc, channel) => {
@@ -166,7 +175,7 @@ export default function LiveTV() {
             {categoryChannels.map(channel => (
               <div 
                 key={channel.id} 
-                onClick={() => setPlayingChannel(channel)}
+                onClick={() => handleChannelSelect(channel)}
                 className="bg-[#2A2D34] border border-neutral-700/50 rounded-xl aspect-[4/3] flex flex-col items-center justify-center p-3 cursor-pointer hover:bg-[#333740] hover:border-neutral-500 transition group relative overflow-hidden"
               >
                 <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] flex items-center space-x-1 z-10">
@@ -256,7 +265,7 @@ export default function LiveTV() {
               {searchResults.map(channel => (
                 <div 
                   key={channel.id} 
-                  onClick={() => setPlayingChannel(channel)}
+                  onClick={() => handleChannelSelect(channel)}
                   className="bg-[#2A2D34] border border-neutral-700/50 rounded-xl aspect-[4/3] flex flex-col items-center justify-center p-3 cursor-pointer hover:bg-[#333740] hover:border-neutral-500 transition group relative overflow-hidden"
                 >
                   <div className="absolute top-2 right-2 rtl:right-auto rtl:left-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] flex items-center space-x-1 rtl:space-x-reverse z-10">
@@ -388,7 +397,7 @@ export default function LiveTV() {
                 {categoryChannels.slice(0, 6).map(channel => (
                   <div 
                     key={channel.id} 
-                    onClick={() => setPlayingChannel(channel)}
+                    onClick={() => handleChannelSelect(channel)}
                     className="bg-[#2A2D34] border border-neutral-700/50 rounded-xl aspect-[4/3] flex flex-col items-center justify-center p-3 cursor-pointer hover:bg-[#333740] hover:border-neutral-500 transition group relative overflow-hidden"
                   >
                     <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] flex items-center space-x-1 z-10">
@@ -487,6 +496,9 @@ export default function LiveTV() {
           </div>
         </div>
       )}
+
+      {/* Pro Modal */}
+      <ProSubscriptionModal isOpen={showProModal} onClose={() => setShowProModal(false)} />
     </div>
   );
 }

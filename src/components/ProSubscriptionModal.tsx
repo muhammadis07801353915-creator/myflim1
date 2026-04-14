@@ -107,46 +107,64 @@ export default function ProSubscriptionModal({ isOpen, onClose }: ProSubscriptio
           {step === 'benefits' && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <div className="text-4xl font-bold text-white mb-2">PRO <span className="text-lg text-neutral-400 font-normal">Access</span></div>
-                <p className="text-neutral-400 text-sm">Unlock the ultimate streaming experience.</p>
+                 <div className="bg-red-600 inline-block px-6 py-2 mb-4 font-black tracking-widest text-white text-xl">
+                    MYFILM
+                 </div>
+                 <h2 className="text-xl font-bold text-white mb-2">Subscribe to <span className="text-red-500">PRO</span></h2>
+                 <p className="text-neutral-400 text-sm px-4">
+                    Subscribe to PRO version and enjoy exclusive benefits listed below
+                 </p>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="mt-1 w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center text-red-500 shrink-0">
-                    <CheckCircle size={14} />
-                  </div>
-                  <div>
-                    <p className="font-medium text-white">Unlock all PRO sections</p>
-                    <p className="text-xs text-neutral-400">Get access to premium movies, series, and live TV channels.</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="mt-1 w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center text-red-500 shrink-0">
-                    <Server size={14} />
-                  </div>
-                  <div>
-                    <p className="font-medium text-white">Fast & Uninterrupted Servers</p>
-                    <p className="text-xs text-neutral-400">Watch in 4K without buffering on our dedicated VIP servers.</p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="mt-1 w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center text-red-500 shrink-0">
-                    <Download size={14} />
-                  </div>
-                  <div>
-                    <p className="font-medium text-white">Offline Downloads</p>
-                    <p className="text-xs text-neutral-400">Download any movie or series and watch it later without internet.</p>
-                  </div>
-                </div>
+              <div className="space-y-3 px-2">
+                 <h3 className="text-lg font-bold text-white mb-3">Why go with <span className="text-red-500">PRO?</span></h3>
+                 {[
+                   'Fully Ad free experience',
+                   'Access to all the premium tracks',
+                   'Technical support',
+                   'Cancel anytime'
+                 ].map((benefit, i) => (
+                   <div key={i} className="flex items-center space-x-3">
+                     <div className="w-5 h-5 rounded overflow-hidden bg-white flex items-center justify-center shrink-0">
+                        <CheckCircle size={14} className="text-neutral-900" />
+                     </div>
+                     <span className="text-sm font-medium text-white">{benefit}</span>
+                   </div>
+                 ))}
               </div>
+
+              <div className="space-y-3 mt-6">
+                 <div className="bg-[#111317] border border-neutral-800 rounded-2xl p-4 flex justify-between items-center relative overflow-hidden group hover:border-neutral-700 transition">
+                    <div className="relative z-10 w-2/3">
+                       <h4 className="font-bold text-white text-lg">Monthly</h4>
+                       <p className="text-[10px] text-neutral-400 mt-1 leading-tight">Access to premium content & ad-free experience for month</p>
+                    </div>
+                    <div className="relative z-10 text-right">
+                       <span className="text-red-500 font-black text-xl">3,000 <span className="text-sm">IQD</span></span>
+                    </div>
+                 </div>
+
+                 <div className="bg-[#111317] border border-red-500/50 rounded-2xl p-4 flex justify-between items-center relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-red-500/5 group-hover:bg-red-500/10 transition-colors" />
+                    <div className="relative z-10 w-2/3">
+                       <h4 className="font-bold text-white text-lg">Yearly</h4>
+                       <p className="text-[10px] text-neutral-400 mt-1 leading-tight">Enjoy all premium features for a full year and best price</p>
+                    </div>
+                    <div className="relative z-10 text-right">
+                       <span className="text-red-500 font-black text-xl">30,000 <span className="text-sm">IQD</span></span>
+                    </div>
+                 </div>
+              </div>
+
+              <p className="text-[9px] text-neutral-500 text-center px-4 leading-relaxed mt-4">
+                 After 3 day free trial, this subscription automatically renews as per the plan. Subscription will automatically renew unless cancelled within 24 hours before the end of the current period.
+              </p>
 
               <button 
                 onClick={() => setStep('activate')}
-                className="w-full py-3.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition mt-4 shadow-lg shadow-red-600/20 flex items-center justify-center space-x-2"
+                className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition mt-4 flex items-center justify-center space-x-2"
               >
-                <Key size={18} />
-                <span>Enter Activation Code</span>
+                <span>Subscribe (Enter Code)</span>
               </button>
             </div>
           )}

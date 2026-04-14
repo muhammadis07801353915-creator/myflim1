@@ -7,6 +7,8 @@ import { useHardwareBack } from '../lib/useHardwareBack';
 import { Browser } from '@capacitor/browser';
 import Image from 'next/image';
 import { supabase } from '../lib/supabase';
+import ProSubscriptionModal from './ProSubscriptionModal';
+import { getProStatusLocal } from '../lib/pro';
 
 export default function Detail({ item, onBack }: { item: any, onBack: () => void }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -15,6 +17,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(0);
   const [viewCount, setViewCount] = useState(item.views || 0);
   const [viewIncremented, setViewIncremented] = useState(false);
+  const [showProModal, setShowProModal] = useState(false);
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
 
   useEffect(() => {
@@ -89,6 +92,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   };
 
   const handlePlayClick = () => {
+    if (item.is_pro && !getProStatusLocal()) {
+       setShowProModal(true);
+       return;
+    }
     if (!isPlaying) incrementViews();
     const currentServers = servers;
     if (currentServers.length > 1) {
@@ -100,6 +107,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   };
 
   const handleEpisodeSelect = (index: number) => {
+    if (item.is_pro && !getProStatusLocal()) {
+       setShowProModal(true);
+       return;
+    }
     setCurrentEpisodeIndex(index);
     // Auto-play first server of new episode if already playing
     if (isPlaying) {
@@ -413,6 +424,9 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           </div>
         </div>
       )}
+
+      {/* Pro Modal */}
+      <ProSubscriptionModal isOpen={showProModal} onClose={() => setShowProModal(false)} />
     </div>
   );
 }
