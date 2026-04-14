@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import Providers from './providers';
 import { fetchAllData } from '@/src/lib/fetchData';
+import { Cairo } from 'next/font/google';
 import '@/src/index.css';
+
+const cairo = Cairo({ subsets: ['arabic', 'latin'], weight: ['300', '400', '500', '600', '700', '800', '900'], display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'myTV+',
@@ -20,7 +23,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const initialData = await fetchAllData();
 
   return (
-    <html lang="en">
+    <html lang="en" className={cairo.className}>
       <body>
         <Providers initialData={initialData}>
           <div id="root">{children}</div>

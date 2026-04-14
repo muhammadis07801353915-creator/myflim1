@@ -1,25 +1,17 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: 'Rudaw';
-  src: url('/fonts/rudawbold.ttf') format('truetype');
-  font-weight: bold;
-  font-style: normal;
-  font-display: swap;
-}
-
 @theme {
-  --font-sans: "Rudaw", system-ui, -apple-system, sans-serif;
+  --font-sans: "Cairo", system-ui, -apple-system, sans-serif;
 }
 
 @custom-variant light-mode (.light-mode &);
 
 :root {
-  font-family: "Rudaw", system-ui, -apple-system, sans-serif;
+  font-family: "Cairo", system-ui, -apple-system, sans-serif;
 }
 
 body {
-  font-family: "Rudaw", system-ui, -apple-system, sans-serif;
+  font-family: "Cairo", system-ui, -apple-system, sans-serif;
 }
 
 @layer utilities {
