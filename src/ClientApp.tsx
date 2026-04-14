@@ -34,6 +34,11 @@ export default function ClientApp() {
     recordVisit();
   }, []);
 
+  // Scroll to top when tab or selected item changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentTab, selectedItem]);
+
   useHardwareBack(!!selectedItem, () => setSelectedItem(null));
 
 
