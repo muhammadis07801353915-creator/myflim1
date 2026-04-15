@@ -6,6 +6,9 @@ import '@/src/index.css';
 
 const cairo = Cairo({ subsets: ['arabic', 'latin'], weight: ['300', '400', '500', '600', '700', '800', '900'], display: 'swap' });
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: 'myTV+',
   manifest: '/manifest.json',

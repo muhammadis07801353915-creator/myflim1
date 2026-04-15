@@ -78,11 +78,16 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
       .on('postgres_changes', { event: '*', schema: 'public', table: 'banners' }, () => fetchData())
       .subscribe();
 
+    const categoriesSub = supabase.channel('categories-all')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'channel_categories' }, () => fetchData())
+      .subscribe();
+
     return () => {
       supabase.removeChannel(moviesSub);
       supabase.removeChannel(channelsSub);
       supabase.removeChannel(listsSub);
       supabase.removeChannel(bannersSub);
+      supabase.removeChannel(categoriesSub);
     };
   }, [initialData, fetchData]);
 
