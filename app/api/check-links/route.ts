@@ -113,6 +113,10 @@ async function checkSingleUrl(url: string): Promise<{ accessible: boolean; reaso
 // -------------------- Main Handler --------------------
 
 export async function GET(req: NextRequest) {
+  // Security: verify cron secret or internal call
+  const authHeader = req.headers.get('authorization');
+  const cronSecret = process.env.CRON_SECRET || 'default-cron-secret';
+
   if (authHeader !== `Bearer ${cronSecret}`) {
     // Allow if called from localhost OR if it's a request from our own domain
     const host = req.headers.get('host') || '';
