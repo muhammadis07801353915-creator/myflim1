@@ -31,9 +31,11 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
   const [banners, setBanners] = useState<any[]>(initialData?.banners || []);
   const [loading, setLoading] = useState(!initialData);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent && movies.length === 0) {
+        setLoading(true);
+      }
       
       const [moviesRes, listsRes, channelsRes, categoriesRes, bannersRes] = await Promise.all([
         supabase.from('movies').select('*').order('created_at', { ascending: false }),
@@ -53,7 +55,7 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [movies.length]);
 
   useEffect(() => {
     // Initial fetch if no initial data
@@ -63,23 +65,23 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
 
     // Subscribe to realtime changes for all tables
     const moviesSub = supabase.channel('movies-all')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'movies' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'movies' }, () => fetchData(true))
       .subscribe();
       
     const channelsSub = supabase.channel('channels-all')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'channels' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'channels' }, () => fetchData(true))
       .subscribe();
 
     const listsSub = supabase.channel('lists-all')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'movie_lists' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'movie_lists' }, () => fetchData(true))
       .subscribe();
 
     const bannersSub = supabase.channel('banners-all')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'banners' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'banners' }, () => fetchData(true))
       .subscribe();
 
     const categoriesSub = supabase.channel('categories-all')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'channel_categories' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'channel_categories' }, () => fetchData(true))
       .subscribe();
 
     return () => {
