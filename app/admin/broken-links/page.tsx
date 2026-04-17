@@ -31,7 +31,10 @@ export default function BrokenLinksPage() {
       .select('id, title, video_url, image, type, is_broken')
       .eq('is_broken', true)
       .order('id', { ascending: false });
-    if (!error && data) setBrokenMovies(data);
+    if (error) {
+      console.error('Error fetching broken movies:', error);
+    }
+    if (data) setBrokenMovies(data);
     setLoading(false);
   }, []);
 
@@ -43,15 +46,57 @@ export default function BrokenLinksPage() {
     setChecking(true);
     setCheckResult(null);
     try {
-      const res = await fetch('/api/check-links', {
-        headers: { authorization: 'Bearer default-cron-secret' }
-      });
-      const data = await res.json();
-      setCheckResult(data);
-      // Refresh broken list after check
+      // Fetch all published movies with their URLs
+      const { data: movies, error } = await supabase
+        .from('movies')
+        .select('id, title, video_url, is_broken')
+        .eq('status', 'Published');
+
+      if (error) throw error;
+      if (!movies || movies.length === 0) {
+        setCheckResult({ checked: 0, newlyBroken: 0, newlyFixed: 0 });
+        return;
+      }
+
+      let newlyBroken = 0;
+      let newlyFixed = 0;
+
+      for (const movie of movies) {
+        const url = movie.video_url || '';
+        let hasValidUrl = false;
+
+        if (url && url.trim() !== '' && url !== '[]') {
+          if (url.startsWith('[')) {
+            try {
+              const servers = JSON.parse(url);
+              // Check if any server has a non-empty URL
+              hasValidUrl = servers.some((s: any) => {
+                const u = s.url || s.servers?.[0]?.url || '';
+                return u.trim() !== '';
+              });
+            } catch { hasValidUrl = false; }
+          } else {
+            hasValidUrl = true; // Has a URL string
+          }
+        }
+
+        // Mark as broken if no valid URL found
+        const shouldBeBroken = !hasValidUrl;
+        if (shouldBeBroken !== movie.is_broken) {
+          await supabase
+            .from('movies')
+            .update({ is_broken: shouldBeBroken })
+            .eq('id', movie.id);
+          if (shouldBeBroken) newlyBroken++;
+          else newlyFixed++;
+        }
+      }
+
+      setCheckResult({ checked: movies.length, newlyBroken, newlyFixed });
       await fetchBrokenMovies();
-    } catch (err) {
-      setCheckResult({ error: 'Failed to run health check' });
+    } catch (err: any) {
+      console.error('Health check error:', err);
+      setCheckResult({ error: `Failed: ${err.message || 'Unknown error'}` });
     } finally {
       setChecking(false);
     }
@@ -138,7 +183,7 @@ export default function BrokenLinksPage() {
         </div>
         <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-4">
           <p className="text-neutral-400 text-sm font-medium">Auto Check</p>
-          <p className="text-sm font-bold text-white mt-1">Every 30 minutes</p>
+          <p className="text-sm font-bold text-white mt-1">Every Day at 3AM</p>
           <p className="text-xs text-neutral-500">via Vercel Cron</p>
         </div>
         <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-4">
