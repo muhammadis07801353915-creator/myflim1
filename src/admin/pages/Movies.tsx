@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Plus, Search, Edit, Trash2, Film, Tv, DownloadCloud, 
-  Image as ImageIcon, Link as LinkIcon, Users, Settings, Type, Star
+  Image as ImageIcon, Link as LinkIcon, Users, Settings, Type, Star, AlertCircle
 } from 'lucide-react';
 import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
@@ -810,10 +810,20 @@ export default function Movies() {
     <>
       <div className="text-white space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold">Movies & Series</h1>
+        <div className="flex items-center space-x-4">
+          <h1 className="text-2xl font-bold">Movies & Series</h1>
+          {contentList.filter(m => m.is_broken).length > 0 && (
+            <div className="flex items-center bg-red-500/10 text-red-500 px-3 py-1 rounded-full border border-red-500/20 animate-pulse">
+              <AlertCircle size={14} className="mr-2" />
+              <span className="text-xs font-black uppercase tracking-wider">
+                {contentList.filter(m => m.is_broken).length} Issues Detected
+              </span>
+            </div>
+          )}
+        </div>
         <button 
           onClick={handleAddNew}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center justify-center space-x-2"
+          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center justify-center space-x-2 shadow-lg shadow-red-600/20"
         >
           <Plus size={20} />
           <span>Add New Content</span>
@@ -861,15 +871,20 @@ export default function Movies() {
               <option value="Published">Published</option>
               <option value="Draft">Draft</option>
             </select>
-            <select 
-              value={filterIssue}
-              onChange={(e) => setFilterIssue(e.target.value)}
-              className="bg-neutral-900 border border-red-500/20 text-white text-sm rounded-lg px-3 py-2 outline-none"
-            >
-              <option value="All">All Items</option>
-              <option value="NoLink">Missing Links</option>
-              <option value="Broken">Broken Links</option>
-            </select>
+            <div className="relative">
+              <select 
+                value={filterIssue}
+                onChange={(e) => setFilterIssue(e.target.value)}
+                className={`bg-neutral-900 border ${filterIssue !== 'All' ? 'border-red-500 ring-2 ring-red-500/20' : 'border-neutral-800'} text-white text-sm rounded-lg px-3 py-2 outline-none appearance-none pr-8 transition-all`}
+              >
+                <option value="All">Health: All</option>
+                <option value="NoLink">⚠️ Missing Links</option>
+                <option value="Broken">❌ Broken Links</option>
+              </select>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-500">
+                <Settings size={14} />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -905,8 +920,18 @@ export default function Movies() {
 
                 return matchesSearch && matchesType && matchesStatus && matchesList && matchesIssue;
               }).map((item) => (
-                <tr key={item.id} className="hover:bg-neutral-800/50 transition">
-                  <td className="px-6 py-4 font-medium text-white">{item.title}</td>
+                <tr key={item.id} className={`hover:bg-neutral-800/50 transition ${item.is_broken ? 'bg-red-500/5' : ''}`}>
+                  <td className="px-6 py-4 font-medium">
+                    <div className="flex items-center">
+                      <span className={item.is_broken ? 'text-red-500 font-bold' : 'text-white'}>{item.title}</span>
+                      {item.is_broken && (
+                        <div className="ml-2 px-2 py-0.5 bg-red-600 text-[10px] text-white font-black rounded uppercase flex items-center shadow-lg">
+                          <AlertCircle size={10} className="mr-1" />
+                          Broken
+                        </div>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                       item.type === 'Movie' ? 'bg-blue-500/10 text-blue-500' : 'bg-purple-500/10 text-purple-500'

@@ -230,7 +230,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
         <div className="mt-6 px-4">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-white light-mode:text-black">Top Contents</h2>
-            <button onClick={() => setViewingList({ title: 'Top Contents', items: topContents })} className="text-red-500 text-sm font-medium">{t.all}</button>
+            <button onClick={() => setViewingList({ title: 'Top Contents' })} className="text-red-500 text-sm font-medium">{t.all}</button>
           </div>
           <div className="flex space-x-4 md:space-x-8 overflow-x-auto pb-8 scrollbar-hide -mx-4 px-4">
             {topContents.slice(0, displayLimit).map((movie, index) => (
@@ -272,7 +272,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
           <div key={list.id} className="mt-8 px-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-white light-mode:text-black">{list.name}</h2>
-              <button onClick={() => setViewingList({ title: list.name, items: listMovies })} className="text-red-500 text-sm font-medium">{t.all}</button>
+              <button onClick={() => setViewingList({ title: list.name })} className="text-red-500 text-sm font-medium">{t.all}</button>
             </div>
             <div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
               {listMovies.slice(0, displayLimit).map((movie) => (
@@ -302,7 +302,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
       <div className="mt-8 px-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-white light-mode:text-black">{t.movies}</h2>
-          <button onClick={() => setViewingList({ title: t.movies, items: movies.filter(m => !m.list_name || m.list_name === '') })} className="text-red-500 text-sm font-medium">{t.all}</button>
+          <button onClick={() => setViewingList({ title: t.movies })} className="text-red-500 text-sm font-medium">{t.all}</button>
         </div>
         <div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
           {movies.filter(m => !m.list_name || m.list_name === '').slice(0, displayLimit).map((movie) => (
