@@ -128,13 +128,33 @@ export default function CommentSection({ movieId }: { movieId: string }) {
     }
   };
 
+  const [email, setEmail] = useState('');
+  const [authMsg, setAuthMsg] = useState('');
+
   const signInWithGoogle = async () => {
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.href
+        redirectTo: window.location.origin
       }
     });
+    if (error) setAuthMsg(error.message);
+  };
+
+  const signInWithEmail = async () => {
+    setAuthMsg('');
+    if (!email) return;
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.origin,
+      }
+    });
+    if (error) {
+      setAuthMsg(error.message);
+    } else {
+      setAuthMsg('Check your email for the login link!');
+    }
   };
 
   const formatTime = (dateStr: string) => {
@@ -255,15 +275,45 @@ export default function CommentSection({ movieId }: { movieId: string }) {
                 <LogIn size={32} />
               </div>
               <h3 className="text-xl font-bold mb-2">Login Required</h3>
-              <p className="text-neutral-400 text-sm mb-8">Please login to join the conversation and post comments.</p>
+              <p className="text-neutral-400 text-sm mb-6">Login to join the conversation and post comments.</p>
               
-              <button 
-                onClick={signInWithGoogle}
-                className="w-full flex items-center justify-center space-x-3 bg-white text-black py-3.5 rounded-xl font-bold hover:bg-neutral-200 transition"
-              >
-                <Mail size={20} />
-                <span>Continue with Google / Email</span>
-              </button>
+              <div className="space-y-4">
+                <button 
+                  onClick={signInWithGoogle}
+                  className="w-full flex items-center justify-center space-x-3 bg-white text-black py-3 rounded-xl font-bold hover:bg-neutral-200 transition"
+                >
+                  <Mail size={18} />
+                  <span>Sign in with Google</span>
+                </button>
+
+                <div className="flex items-center space-x-2 text-neutral-600 my-4">
+                  <div className="h-[1px] flex-1 bg-neutral-800"></div>
+                  <span className="text-xs font-bold uppercase">Or use email</span>
+                  <div className="h-[1px] flex-1 bg-neutral-800"></div>
+                </div>
+
+                <div className="space-y-2">
+                  <input 
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="w-full bg-neutral-900 border border-neutral-800 px-4 py-3 rounded-xl text-sm outline-none focus:border-red-500"
+                  />
+                  <button 
+                    onClick={signInWithEmail}
+                    className="w-full bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition"
+                  >
+                    Send Login Link
+                  </button>
+                </div>
+              </div>
+
+              {authMsg && (
+                <p className={`mt-4 text-xs font-medium ${authMsg.includes('Check') ? 'text-green-500' : 'text-red-500'}`}>
+                  {authMsg}
+                </p>
+              )}
               
               <button 
                 onClick={() => setShowLoginModal(false)}
