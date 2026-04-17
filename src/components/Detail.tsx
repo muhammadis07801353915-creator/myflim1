@@ -271,7 +271,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             
             <div className="absolute top-0 left-0 w-full p-4 pt-6 z-[100] flex justify-between items-center pointer-events-none">
               <button 
-                onClick={() => window.history.back()} 
+                onClick={onBack} 
                 className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md transition pointer-events-auto active:scale-90"
               >
                 <ArrowLeft size={20} />

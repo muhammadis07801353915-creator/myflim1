@@ -53,6 +53,7 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
     } catch (error) {
       console.error('Error fetching global data:', error);
     } finally {
+      // Only hide loading if we actually have data now
       setLoading(false);
     }
   }, [movies.length]);
