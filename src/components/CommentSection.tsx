@@ -180,10 +180,11 @@ export default function CommentSection({ movieId }: { movieId: string }) {
   const handleVerifyOtp = async () => {
     if (!otp || otp.length < 6) return;
     setAuthLoading(true);
+    setAuthMsg('');
     const { data: { user }, error } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: 'email'
+        type: 'magiclink'
     });
     setAuthLoading(false);
     if (error) {
