@@ -60,13 +60,39 @@ export default function CommentSection({ movieId }: { movieId: string }) {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
-    if (!error && data) {
+    if (error) {
+      console.error('Error fetching profile:', error);
+      return;
+    }
+
+    if (data) {
       setProfileData({
         name: data.display_name || '',
         avatar: data.avatar_url || ''
       });
+    } else {
+      // Create profile if it doesn't exist
+      const { data: { user } } = await supabase.auth.getUser();
+      const defaultName = user?.email?.split('@')[0] || 'User';
+      
+      const { data: newProfile, error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          display_name: defaultName,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (!insertError && newProfile) {
+        setProfileData({
+          name: newProfile.display_name || '',
+          avatar: newProfile.avatar_url || ''
+        });
+      }
     }
   };
 
@@ -92,8 +118,11 @@ export default function CommentSection({ movieId }: { movieId: string }) {
     const { data, error } = await supabase
       .from('comments')
       .select(`
-        *,
-        profiles:user_id (
+        id,
+        content,
+        created_at,
+        user_id,
+        profiles!comments_user_id_fkey (
           display_name,
           avatar_url
         )
@@ -101,7 +130,9 @@ export default function CommentSection({ movieId }: { movieId: string }) {
       .eq('movie_id', movieId)
       .order('created_at', { ascending: false });
 
-    if (!error && data) {
+    if (error) {
+      console.error('Error fetching comments:', error);
+    } else {
       setComments(data as any);
     }
     setLoading(false);
@@ -128,71 +159,20 @@ export default function CommentSection({ movieId }: { movieId: string }) {
     }
   };
 
-  const [email, setEmail] = useState('');
-  const [otp, setOtp] = useState('');
-  const [showOtpInput, setShowOtpInput] = useState(false);
-  const [timer, setTimer] = useState(0);
   const [authMsg, setAuthMsg] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
 
-  useEffect(() => {
-    let interval: any;
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [timer]);
-
   const signInWithGoogle = async () => {
+    setAuthLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin
       }
     });
-    if (error) setAuthMsg(error.message);
-  };
-
-  const signInWithEmail = async () => {
-    if (!email || timer > 0) return;
-    setAuthLoading(true);
-    setAuthMsg('');
-    
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: true,
-      }
-    });
-
-    setAuthLoading(false);
     if (error) {
       setAuthMsg(error.message);
-    } else {
-      setShowOtpInput(true);
-      setTimer(60);
-      setAuthMsg('Verification code sent to your email!');
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp || otp.length < 6) return;
-    setAuthLoading(true);
-    setAuthMsg('');
-    const { data: { user }, error } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: 'magiclink'
-    });
-    setAuthLoading(false);
-    if (error) {
-        setAuthMsg(error.message);
-    } else if (user) {
-        setUser(user);
-        setShowLoginModal(false);
-        fetchProfile(user.id);
+      setAuthLoading(false);
     }
   };
 
@@ -316,87 +296,32 @@ export default function CommentSection({ movieId }: { movieId: string }) {
               <h3 className="text-xl font-bold mb-2">Login Required</h3>
               <p className="text-neutral-400 text-sm mb-6">Login to join the conversation and post comments.</p>
               
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <button 
                   onClick={signInWithGoogle}
-                  className="w-full flex items-center justify-center space-x-3 bg-white text-black py-3 rounded-xl font-bold hover:bg-neutral-200 transition"
+                  disabled={authLoading}
+                  className="w-full flex items-center justify-center space-x-3 bg-white text-black py-4 rounded-2xl font-bold hover:bg-neutral-200 transition shadow-lg active:scale-95 duration-75"
                 >
-                  <Mail size={18} />
-                  <span>Sign in with Google</span>
-                </button>
-
-                <div className="flex items-center space-x-2 text-neutral-600 my-4">
-                  <div className="h-[1px] flex-1 bg-neutral-800"></div>
-                  <span className="text-xs font-bold uppercase">Or use email</span>
-                  <div className="h-[1px] flex-1 bg-neutral-800"></div>
-                </div>
-
-                <div className="space-y-4">
-                  {!showOtpInput ? (
-                    <>
-                      <input 
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        className="w-full bg-neutral-900 border border-neutral-800 px-4 py-3 rounded-xl text-sm outline-none focus:border-red-500"
-                      />
-                      <button 
-                        onClick={signInWithEmail}
-                        disabled={authLoading || timer > 0}
-                        className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center space-x-2 ${
-                          timer > 0 ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-700'
-                        }`}
-                      >
-                        {authLoading ? 'Sending...' : timer > 0 ? `Wait ${timer}s` : 'Send Login Code'}
-                      </button>
-                    </>
+                  {authLoading ? (
+                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <div className="space-y-1 text-left">
-                        <label className="text-[10px] font-bold text-neutral-500 uppercase ml-2">Verification Code</label>
-                        <input 
-                          type="text"
-                          value={otp}
-                          maxLength={6}
-                          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                          placeholder="000000"
-                          className="w-full bg-neutral-900 border border-neutral-800 px-4 py-3 rounded-xl text-center text-lg tracking-[8px] font-mono outline-none focus:border-red-500"
-                        />
-                      </div>
-                      <button 
-                        onClick={handleVerifyOtp}
-                        disabled={authLoading || otp.length < 6}
-                        className={`w-full py-3 rounded-xl font-bold transition ${
-                          otp.length < 6 ? 'bg-neutral-800 text-neutral-500' : 'bg-red-600 text-white hover:bg-red-700'
-                        }`}
-                      >
-                        {authLoading ? 'Verifying...' : 'Verify & Continue'}
-                      </button>
-                      <button 
-                        onClick={() => { setShowOtpInput(false); setAuthMsg(''); }}
-                        className="w-full text-xs text-neutral-500 font-medium py-1"
-                      >
-                        Change Email
-                      </button>
+                      <Mail size={20} />
+                      <span>Continue with Google</span>
                     </>
                   )}
-                </div>
+                </button>
               </div>
 
               {authMsg && (
-                <div className={`mt-4 p-3 rounded-xl text-xs font-medium border ${
-                  authMsg.toLowerCase().includes('sent') || authMsg.toLowerCase().includes('success') 
-                  ? 'bg-green-500/10 border-green-500/20 text-green-500' 
-                  : 'bg-red-500/10 border-red-500/20 text-red-500'
-                }`}>
+                <div className="mt-4 p-3 rounded-xl text-xs font-medium border bg-red-500/10 border-red-500/20 text-red-500">
                   {authMsg}
                 </div>
               )}
               
               <button 
                 onClick={() => setShowLoginModal(false)}
-                className="w-full mt-4 py-2 text-neutral-500 hover:text-white transition text-sm"
+                className="w-full mt-6 py-2 text-neutral-500 hover:text-white transition text-sm font-medium"
               >
                 Cancel
               </button>
