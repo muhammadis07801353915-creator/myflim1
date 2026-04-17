@@ -14,14 +14,31 @@ import {
   Menu,
   X,
   Image as ImageIcon,
-  BarChart
+  BarChart,
+  WifiOff
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/src/lib/supabase';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const navigate = useRouter();
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [brokenCount, setBrokenCount] = useState(0);
+
+  useEffect(() => {
+    const fetchBrokenCount = async () => {
+      const { count } = await supabase
+        .from('movies')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_broken', true);
+      setBrokenCount(count || 0);
+    };
+    fetchBrokenCount();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchBrokenCount, 300000);
+    return () => clearInterval(interval);
+  }, []);
 
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} /> },
@@ -81,6 +98,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span>{item.name}</span>
             </Link>
           )})}
+
+          {/* Broken Links - Special item with badge */}
+          <Link
+            href="/admin/broken-links"
+            onClick={closeSidebar}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
+              pathname?.startsWith('/admin/broken-links')
+                ? 'bg-red-500/10 text-red-500 font-medium'
+                : 'text-neutral-400 hover:bg-neutral-800 hover:text-white'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <WifiOff size={20} />
+              <span>Broken Links</span>
+            </div>
+            {brokenCount > 0 && (
+              <span className="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse min-w-[20px] text-center">
+                {brokenCount}
+              </span>
+            )}
+          </Link>
         </nav>
 
         <div className="p-4 border-t border-neutral-800 shrink-0">
