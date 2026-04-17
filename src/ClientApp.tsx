@@ -10,6 +10,7 @@ import Sidebar from './components/Sidebar';
 import { useHardwareBack } from './lib/useHardwareBack';
 import { useData } from './lib/DataContext';
 import { supabase } from './lib/supabase';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function ClientApp() {
   const [currentTab, setCurrentTab] = useState('home');
@@ -37,58 +38,66 @@ export default function ClientApp() {
   // Scroll to top when tab or selected item changes
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [currentTab, selectedItem]);
+  }, [currentTab]);
 
   useHardwareBack(!!selectedItem, () => setSelectedItem(null));
 
 
   return (
     <div className="bg-neutral-950 light-mode:bg-gray-50 text-white light-mode:text-black min-h-screen flex flex-col md:flex-row font-sans relative">
-      {!selectedItem && <Sidebar currentTab={currentTab} onChange={setCurrentTab} />}
+      <Sidebar currentTab={currentTab} onChange={setCurrentTab} />
       
       <main className="flex-1 min-h-screen relative md:overflow-y-auto">
-        <div className={`${!selectedItem ? 'max-w-7xl mx-auto w-full' : 'w-full'} transition-all duration-500`}>
-          <div className={`${selectedItem ? 'hidden' : 'block'} transition-all duration-500`}>
-            {loading ? (
-              <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-4">
-                <div className="relative">
-                  <div className="w-16 h-16 border-4 border-red-600/20 rounded-full animate-spin border-t-red-600"></div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
-                  </div>
-                </div>
-                <p className="text-neutral-500 font-bold uppercase tracking-widest text-xs animate-pulse">Loading Content...</p>
-              </div>
-            ) : (
+        <div className="max-w-7xl mx-auto w-full transition-all duration-500">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-4">
               <div className="relative">
-                <div className={currentTab === 'home' ? 'block' : 'hidden'}>
-                  <Home onSelect={setSelectedItem} />
-                </div>
-                <div className={currentTab === 'search' ? 'block' : 'hidden'}>
-                  <Search onSelect={setSelectedItem} />
-                </div>
-                <div className={currentTab === 'livetv' ? 'block' : 'hidden'}>
-                  <LiveTV />
-                </div>
-                <div className={currentTab === 'watchlist' ? 'block' : 'hidden'}>
-                  <Watchlist onSelect={setSelectedItem} />
-                </div>
-                <div className={currentTab === 'profile' ? 'block' : 'hidden'}>
-                  <Profile />
+                <div className="w-16 h-16 border-4 border-red-600/20 rounded-full animate-spin border-t-red-600"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
                 </div>
               </div>
-            )}
-          </div>
-
-          {selectedItem && (
-            <Detail item={selectedItem} onBack={() => setSelectedItem(null)} />
+              <p className="text-neutral-500 font-bold uppercase tracking-widest text-xs animate-pulse">Loading Content...</p>
+            </div>
+          ) : (
+            <div className="relative">
+              <div className={currentTab === 'home' ? 'block' : 'hidden'}>
+                <Home onSelect={setSelectedItem} />
+              </div>
+              <div className={currentTab === 'search' ? 'block' : 'hidden'}>
+                <Search onSelect={setSelectedItem} />
+              </div>
+              <div className={currentTab === 'livetv' ? 'block' : 'hidden'}>
+                <LiveTV />
+              </div>
+              <div className={currentTab === 'watchlist' ? 'block' : 'hidden'}>
+                <Watchlist onSelect={setSelectedItem} />
+              </div>
+              <div className={currentTab === 'profile' ? 'block' : 'hidden'}>
+                <Profile />
+              </div>
+            </div>
           )}
         </div>
-        {!selectedItem && (
-          <div className="md:hidden">
-            <BottomNav currentTab={currentTab} onChange={setCurrentTab} />
-          </div>
-        )}
+
+        {/* Floating Detail Overlay */}
+        <AnimatePresence>
+          {selectedItem && (
+            <motion.div 
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-0 z-[100] bg-neutral-950 overflow-y-auto"
+            >
+              <Detail item={selectedItem} onBack={() => setSelectedItem(null)} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="md:hidden">
+          <BottomNav currentTab={currentTab} onChange={setCurrentTab} />
+        </div>
       </main>
     </div>
   );
