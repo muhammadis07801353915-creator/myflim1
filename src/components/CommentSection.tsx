@@ -129,7 +129,21 @@ export default function CommentSection({ movieId }: { movieId: string }) {
   };
 
   const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [timer, setTimer] = useState(0);
   const [authMsg, setAuthMsg] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+
+  useEffect(() => {
+    let interval: any;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
 
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -142,18 +156,42 @@ export default function CommentSection({ movieId }: { movieId: string }) {
   };
 
   const signInWithEmail = async () => {
+    if (!email || timer > 0) return;
+    setAuthLoading(true);
     setAuthMsg('');
-    if (!email) return;
+    
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.origin,
+        shouldCreateUser: true,
       }
     });
+
+    setAuthLoading(false);
     if (error) {
       setAuthMsg(error.message);
     } else {
-      setAuthMsg('Check your email for the login link!');
+      setShowOtpInput(true);
+      setTimer(60);
+      setAuthMsg('Verification code sent to your email!');
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp || otp.length < 6) return;
+    setAuthLoading(true);
+    const { data: { user }, error } = await supabase.auth.verifyOtp({
+        email,
+        token: otp,
+        type: 'email'
+    });
+    setAuthLoading(false);
+    if (error) {
+        setAuthMsg(error.message);
+    } else if (user) {
+        setUser(user);
+        setShowLoginModal(false);
+        fetchProfile(user.id);
     }
   };
 
@@ -292,27 +330,67 @@ export default function CommentSection({ movieId }: { movieId: string }) {
                   <div className="h-[1px] flex-1 bg-neutral-800"></div>
                 </div>
 
-                <div className="space-y-2">
-                  <input 
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="w-full bg-neutral-900 border border-neutral-800 px-4 py-3 rounded-xl text-sm outline-none focus:border-red-500"
-                  />
-                  <button 
-                    onClick={signInWithEmail}
-                    className="w-full bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition"
-                  >
-                    Send Login Link
-                  </button>
+                <div className="space-y-4">
+                  {!showOtpInput ? (
+                    <>
+                      <input 
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="w-full bg-neutral-900 border border-neutral-800 px-4 py-3 rounded-xl text-sm outline-none focus:border-red-500"
+                      />
+                      <button 
+                        onClick={signInWithEmail}
+                        disabled={authLoading || timer > 0}
+                        className={`w-full py-3 rounded-xl font-bold transition flex items-center justify-center space-x-2 ${
+                          timer > 0 ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed' : 'bg-red-600 text-white hover:bg-red-700'
+                        }`}
+                      >
+                        {authLoading ? 'Sending...' : timer > 0 ? `Wait ${timer}s` : 'Send Login Code'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <div className="space-y-1 text-left">
+                        <label className="text-[10px] font-bold text-neutral-500 uppercase ml-2">Verification Code</label>
+                        <input 
+                          type="text"
+                          value={otp}
+                          maxLength={6}
+                          onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                          placeholder="000000"
+                          className="w-full bg-neutral-900 border border-neutral-800 px-4 py-3 rounded-xl text-center text-lg tracking-[8px] font-mono outline-none focus:border-red-500"
+                        />
+                      </div>
+                      <button 
+                        onClick={handleVerifyOtp}
+                        disabled={authLoading || otp.length < 6}
+                        className={`w-full py-3 rounded-xl font-bold transition ${
+                          otp.length < 6 ? 'bg-neutral-800 text-neutral-500' : 'bg-red-600 text-white hover:bg-red-700'
+                        }`}
+                      >
+                        {authLoading ? 'Verifying...' : 'Verify & Continue'}
+                      </button>
+                      <button 
+                        onClick={() => { setShowOtpInput(false); setAuthMsg(''); }}
+                        className="w-full text-xs text-neutral-500 font-medium py-1"
+                      >
+                        Change Email
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
 
               {authMsg && (
-                <p className={`mt-4 text-xs font-medium ${authMsg.includes('Check') ? 'text-green-500' : 'text-red-500'}`}>
+                <div className={`mt-4 p-3 rounded-xl text-xs font-medium border ${
+                  authMsg.toLowerCase().includes('sent') || authMsg.toLowerCase().includes('success') 
+                  ? 'bg-green-500/10 border-green-500/20 text-green-500' 
+                  : 'bg-red-500/10 border-red-500/20 text-red-500'
+                }`}>
                   {authMsg}
-                </p>
+                </div>
               )}
               
               <button 
