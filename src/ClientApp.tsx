@@ -88,7 +88,7 @@ export default function ClientApp() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-0 z-[100] bg-neutral-950 overflow-y-auto"
+              className="fixed inset-0 z-[100] bg-neutral-950 light-mode:bg-white overflow-y-auto"
             >
               <Detail item={selectedItem} onBack={() => setSelectedItem(null)} />
             </motion.div>
