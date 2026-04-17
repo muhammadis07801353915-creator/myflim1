@@ -9,6 +9,7 @@ import Image from 'next/image';
 import { supabase } from '../lib/supabase';
 import ProSubscriptionModal from './ProSubscriptionModal';
 import { getProStatusLocal } from '../lib/pro';
+import CommentSection from './CommentSection';
 
 export default function Detail({ item, onBack }: { item: any, onBack: () => void }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -356,6 +357,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             {item.description}
           </p>
         </div>
+
+        <CommentSection movieId={item.id} />
 
         {/* Episodes Section - Requested Design */}
         {item.type === 'Series' && episodes.length > 0 && (
