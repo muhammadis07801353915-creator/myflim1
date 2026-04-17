@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Plus, Search, Edit, Trash2, Film, Tv, DownloadCloud, 
-  Image as ImageIcon, Link as LinkIcon, Users, Settings, Type, Star, AlertCircle
+  Image as ImageIcon, Link as LinkIcon, Users, Settings, Type, Star, AlertCircle, Wrench, WifiOff
 } from 'lucide-react';
 import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
@@ -123,6 +123,22 @@ export default function Movies() {
       setContentList(data);
     }
     setLoading(false);
+  };
+
+  const toggleBroken = async (item: any) => {
+    const newBrokenState = !item.is_broken;
+    // Optimistically update local state immediately
+    setContentList(prev => prev.map(m => m.id === item.id ? { ...m, is_broken: newBrokenState } : m));
+    // Persist to Supabase
+    const { error } = await supabase
+      .from('movies')
+      .update({ is_broken: newBrokenState })
+      .eq('id', item.id);
+    if (error) {
+      console.error('Error toggling broken state:', error);
+      // Revert on error
+      setContentList(prev => prev.map(m => m.id === item.id ? { ...m, is_broken: item.is_broken } : m));
+    }
   };
 
   const handleAddNew = () => {
@@ -961,11 +977,22 @@ export default function Movies() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end space-x-3">
-                      <button onClick={() => handleEdit(item)} className="text-neutral-400 hover:text-white transition">
+                    <div className="flex items-center justify-end space-x-2">
+                      <button 
+                        onClick={() => toggleBroken(item)} 
+                        title={item.is_broken ? 'Mark as Fixed' : 'Mark as Broken'}
+                        className={`p-1.5 rounded-lg transition text-xs font-medium flex items-center gap-1 ${
+                          item.is_broken 
+                            ? 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20' 
+                            : 'bg-neutral-800 text-neutral-500 hover:bg-red-500/10 hover:text-red-500'
+                        }`}
+                      >
+                        {item.is_broken ? <Wrench size={14} /> : <WifiOff size={14} />}
+                      </button>
+                      <button onClick={() => handleEdit(item)} className="text-neutral-400 hover:text-white transition p-1.5">
                         <Edit size={18} />
                       </button>
-                      <button onClick={() => handleDelete(item.id)} className="text-neutral-400 hover:text-red-500 transition">
+                      <button onClick={() => handleDelete(item.id)} className="text-neutral-400 hover:text-red-500 transition p-1.5">
                         <Trash2 size={18} />
                       </button>
                     </div>
