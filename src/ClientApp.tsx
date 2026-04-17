@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Home from './components/Home';
 import Search from './components/Search';
 import LiveTV from './components/LiveTV';
@@ -7,23 +8,25 @@ import Profile from './components/Profile';
 import Detail from './components/Detail';
 import BottomNav from './components/BottomNav';
 import Sidebar from './components/Sidebar';
-import { useHardwareBack } from './lib/useHardwareBack';
 import { useData } from './lib/DataContext';
 import { supabase } from './lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function ClientApp() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [currentTab, setCurrentTab] = useState('home');
-  const [selectedItem, setSelectedItem] = useState<any>(null);
-  const { loading } = useData();
+  const { movies, loading } = useData();
+
+  // URL-based navigation
+  const movieId = searchParams.get('movie');
+  const selectedItem = movies.find(m => m.id.toString() === movieId);
 
   useEffect(() => {
     const recordVisit = async () => {
       try {
         const lastVisit = localStorage.getItem('last_visit_time');
         const now = new Date().getTime();
-        
-        // ئەگەر 30 خولەک (1,800,000 ملی چرکە) بەسەر کۆتا سەرداندا تێپەڕیبوو، ئەوا بە بینەرێکی نوێ هەژماری دەکەین
         if (!lastVisit || now - parseInt(lastVisit) > 1800000) {
           localStorage.setItem('last_visit_time', now.toString());
           await supabase.from('site_visits').insert([{ page: 'home' }]);
@@ -35,13 +38,19 @@ export default function ClientApp() {
     recordVisit();
   }, []);
 
-  // Scroll to top when tab or selected item changes
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [currentTab]);
 
-  useHardwareBack(!!selectedItem, () => setSelectedItem(null));
+  const handleSelectItem = (item: any) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('movie', item.id.toString());
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
 
+  const handleBack = () => {
+    router.back();
+  };
 
   return (
     <div className="bg-neutral-950 light-mode:bg-gray-50 text-white light-mode:text-black min-h-screen flex flex-col md:flex-row font-sans relative">
@@ -62,16 +71,16 @@ export default function ClientApp() {
           ) : (
             <div className="relative">
               <div className={currentTab === 'home' ? 'block' : 'hidden'}>
-                <Home onSelect={setSelectedItem} />
+                <Home onSelect={handleSelectItem} />
               </div>
               <div className={currentTab === 'search' ? 'block' : 'hidden'}>
-                <Search onSelect={setSelectedItem} />
+                <Search onSelect={handleSelectItem} />
               </div>
               <div className={currentTab === 'livetv' ? 'block' : 'hidden'}>
                 <LiveTV />
               </div>
               <div className={currentTab === 'watchlist' ? 'block' : 'hidden'}>
-                <Watchlist onSelect={setSelectedItem} />
+                <Watchlist onSelect={handleSelectItem} />
               </div>
               <div className={currentTab === 'profile' ? 'block' : 'hidden'}>
                 <Profile />
@@ -81,16 +90,17 @@ export default function ClientApp() {
         </div>
 
         {/* Floating Detail Overlay */}
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {selectedItem && (
             <motion.div 
+              key="detail-modal"
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="fixed inset-0 z-[100] bg-neutral-950 light-mode:bg-white overflow-y-auto"
             >
-              <Detail item={selectedItem} onBack={() => setSelectedItem(null)} />
+              <Detail item={selectedItem} onBack={handleBack} />
             </motion.div>
           )}
         </AnimatePresence>

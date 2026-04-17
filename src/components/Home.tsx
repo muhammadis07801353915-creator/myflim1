@@ -1,18 +1,41 @@
 import { Plus, Star, ChevronLeft, ChevronRight, Play } from 'lucide-react';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../lib/LanguageContext';
 import { motion, AnimatePresence } from 'motion/react';
-import { useHardwareBack } from '../lib/useHardwareBack';
 import { useData } from '../lib/DataContext';
 
 export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLanguage();
   const { movies, movieLists, loading } = useData();
   const [currentFeaturedIndex, setCurrentFeaturedIndex] = useState(0);
-  const [viewingList, setViewingList] = useState<{ title: string, items: any[] } | null>(null);
   const [displayLimit, setDisplayLimit] = useState(10);
+
+  // Derive viewingList from URL
+  const listName = searchParams.get('list');
+  const viewingList = useMemo(() => {
+    if (!listName) return null;
+    let items: any[] = [];
+    if (listName === 'Top Contents') {
+      items = movies.filter(m => m.top_rank).sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99));
+    } else if (listName === t.movies) {
+      items = movies.filter(m => !m.list_name || m.list_name === '');
+    } else {
+      items = movies.filter(m => m.list_name === listName);
+    }
+    return items.length > 0 ? { title: listName, items } : null;
+  }, [listName, movies, t.movies]);
+
+  const setViewingList = (list: { title: string } | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (list) params.set('list', list.title);
+    else params.delete('list');
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -22,8 +45,6 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  useHardwareBack(!!viewingList, () => setViewingList(null));
 
 
 
