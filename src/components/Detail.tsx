@@ -236,6 +236,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                   className="w-full h-full absolute inset-0 object-contain bg-black"
                   autoPlay 
                   controls 
+                  onError={handleReportBroken}
                 />
               ) : (
                 (() => {
@@ -247,6 +248,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                       height="100%" 
                       controls 
                       playing 
+                      onError={handleReportBroken}
                       className="absolute inset-0"
                     />
                   );

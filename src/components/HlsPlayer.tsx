@@ -6,9 +6,10 @@ interface HlsPlayerProps {
   className?: string;
   autoPlay?: boolean;
   controls?: boolean;
+  onError?: () => void;
 }
 
-export default function HlsPlayer({ url, className = '', autoPlay = true, controls = true }: HlsPlayerProps) {
+export default function HlsPlayer({ url, className = '', autoPlay = true, controls = true, onError }: HlsPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -34,17 +35,15 @@ export default function HlsPlayer({ url, className = '', autoPlay = true, contro
 
       hls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
+          if (onError) onError();
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              console.error("fatal network error encountered, try to recover");
               hls.startLoad();
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
-              console.error("fatal media error encountered, try to recover");
               hls.recoverMediaError();
               break;
             default:
-              console.error("fatal error, cannot recover");
               hls.destroy();
               break;
           }
@@ -53,6 +52,9 @@ export default function HlsPlayer({ url, className = '', autoPlay = true, contro
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       // For Safari
       video.src = url;
+      video.onerror = () => {
+        if (onError) onError();
+      };
       video.addEventListener('loadedmetadata', () => {
         if (autoPlay) {
           video.play().catch(e => console.log("Auto-play prevented", e));
@@ -65,7 +67,7 @@ export default function HlsPlayer({ url, className = '', autoPlay = true, contro
         hls.destroy();
       }
     };
-  }, [url, autoPlay]);
+  }, [url, autoPlay, onError]);
 
   return (
     <video
