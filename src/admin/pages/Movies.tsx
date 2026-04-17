@@ -24,6 +24,7 @@ export default function Movies() {
     is_pro: false,
     top_rank: '',
     status: 'Published',
+    is_broken: false,
     servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
     episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }] }]
   });
@@ -32,6 +33,7 @@ export default function Movies() {
   const [filterType, setFilterType] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterList, setFilterList] = useState('All');
+  const [filterIssue, setFilterIssue] = useState('All');
 
   const [showTmdbModal, setShowTmdbModal] = useState(false);
   const [tmdbSearch, setTmdbSearch] = useState('');
@@ -173,6 +175,7 @@ export default function Movies() {
       is_pro: item.is_pro || false,
       top_rank: item.top_rank?.toString() || '',
       status: item.status || 'Published',
+      is_broken: item.is_broken || false,
       servers: parsedServers,
       episodes: parsedEpisodes
     });
@@ -216,6 +219,7 @@ export default function Movies() {
       is_featured: formData.is_featured,
       is_pro: formData.is_pro,
       status: formData.status,
+      is_broken: formData.is_broken,
       top_rank: formData.top_rank && !isNaN(parseInt(formData.top_rank)) ? parseInt(formData.top_rank) : null,
       video_url: formData.type === 'Series' ? JSON.stringify(formData.episodes) : JSON.stringify(formData.servers)
     };
@@ -688,6 +692,22 @@ export default function Movies() {
                       className="w-24 bg-[#1a1d24] border border-neutral-800 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-red-500 transition"
                     />
                   </div>
+
+                  <div className="flex items-center justify-between p-4 bg-neutral-900 border border-neutral-800 rounded-lg">
+                    <div>
+                      <p className="font-medium text-red-500">Broken Link / Server Down</p>
+                      <p className="text-sm text-neutral-400">Mark if the video player is not working or links are dead</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer" 
+                        checked={formData.is_broken}
+                        onChange={(e) => setFormData({...formData, is_broken: e.target.checked})}
+                      />
+                      <div className="w-11 h-6 bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                    </label>
+                  </div>
                 </div>
               </div>
             )}
@@ -840,6 +860,15 @@ export default function Movies() {
               <option value="Published">Published</option>
               <option value="Draft">Draft</option>
             </select>
+            <select 
+              value={filterIssue}
+              onChange={(e) => setFilterIssue(e.target.value)}
+              className="bg-neutral-900 border border-red-500/20 text-white text-sm rounded-lg px-3 py-2 outline-none"
+            >
+              <option value="All">All Items</option>
+              <option value="NoLink">Missing Links</option>
+              <option value="Broken">Broken Links</option>
+            </select>
           </div>
         </div>
 
@@ -864,7 +893,16 @@ export default function Movies() {
                 const matchesType = filterType === 'All' || item.type === filterType;
                 const matchesStatus = filterStatus === 'All' || item.status === filterStatus;
                 const matchesList = filterList === 'All' || item.list_name === filterList;
-                return matchesSearch && matchesType && matchesStatus && matchesList;
+                
+                let matchesIssue = true;
+                if (filterIssue === 'NoLink') {
+                  const hasLink = item.video_url && item.video_url !== '[]' && item.video_url !== '[{"name":"Server 1","url":"","quality":"Auto"}]';
+                  matchesIssue = !hasLink;
+                } else if (filterIssue === 'Broken') {
+                  matchesIssue = !!item.is_broken;
+                }
+
+                return matchesSearch && matchesType && matchesStatus && matchesList && matchesIssue;
               }).map((item) => (
                 <tr key={item.id} className="hover:bg-neutral-800/50 transition">
                   <td className="px-6 py-4 font-medium text-white">{item.title}</td>

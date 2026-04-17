@@ -1,4 +1,4 @@
-import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye } from 'lucide-react';
+import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import HlsPlayer from './HlsPlayer';
@@ -18,6 +18,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [viewCount, setViewCount] = useState(item.views || 0);
   const [viewIncremented, setViewIncremented] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
+  const [reported, setReported] = useState(false);
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
 
   useEffect(() => {
@@ -88,6 +89,17 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       }
     } catch (e) {
       console.error("Error incrementing views", e);
+    }
+  };
+
+  const handleReportBroken = async () => {
+    if (reported || !item.id) return;
+    try {
+      await supabase.from('movies').update({ is_broken: true }).eq('id', item.id);
+      setReported(true);
+      alert('سوپاس، کێشەکە نێردرا بۆ ئەدمین');
+    } catch (e) {
+      console.error("Error reporting broken link", e);
     }
   };
 
@@ -317,6 +329,16 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
               <MonitorPlay size={20} />
             </div>
             <span className="text-xs font-medium">Trailer</span>
+          </button>
+          <button 
+            onClick={handleReportBroken}
+            disabled={reported}
+            className={`flex flex-col items-center transition group ${reported ? 'text-red-500' : 'text-neutral-400 light-mode:text-neutral-600 hover:text-white'}`}
+          >
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition ${reported ? 'bg-red-500/20' : 'bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200'}`}>
+              <AlertCircle size={20} />
+            </div>
+            <span className="text-xs font-medium">{reported ? 'Reported' : 'Report Issue'}</span>
           </button>
           <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group">
             <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200 flex items-center justify-center mb-2 transition">
