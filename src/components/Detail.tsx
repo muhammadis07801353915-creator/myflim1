@@ -96,9 +96,23 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const handleReportBroken = async () => {
     if (reported || !item.id) return;
     try {
+      // Create a formal report in the database
+      const { error } = await supabase.from('reports').insert([
+        { 
+          movie_id: item.id, 
+          movie_title: item.title,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        }
+      ]);
+      
+      // Also mark as broken in movies table for immediate badge update if needed
       await supabase.from('movies').update({ is_broken: true }).eq('id', item.id);
-      setReported(true);
-      alert('سوپاس، کێشەکە نێردرا بۆ ئەدمین');
+      
+      if (!error) {
+        setReported(true);
+        alert('سوپاس، ڕاپۆرتەکەت گەیشت، بەم زووانە چاکی دەکەین');
+      }
     } catch (e) {
       console.error("Error reporting broken link", e);
     }
