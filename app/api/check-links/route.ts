@@ -155,18 +155,47 @@ export async function GET(req: NextRequest) {
       const batch = movies.slice(i, i + batchSize);
       
       await Promise.all(batch.map(async (movie) => {
-        const { accessible, reason } = await checkUrl(movie.video_url || '');
-        const shouldBeBroken = !accessible;
+        const url = movie.video_url || '';
+        let hasAnyRealLink = false;
+
+        // Check if there is a link value at all
+        if (url && url.trim() !== '' && url !== '[]') {
+          if (url.startsWith('[')) {
+            try {
+              const servers = JSON.parse(url);
+              hasAnyRealLink = servers.some((s: any) => {
+                const u = s.url || s.servers?.[0]?.url || '';
+                return u && u.trim() !== '';
+              });
+            } catch { hasAnyRealLink = false; }
+          } else {
+            hasAnyRealLink = true;
+          }
+        }
+
+        let shouldBeBroken = false;
+        let reason = 'OK';
+
+        if (!hasAnyRealLink) {
+          // Rule: If NO link exists, it's NOT broken (just missing).
+          shouldBeBroken = false;
+          reason = 'Missing link';
+        } else {
+          // Rule: If link exists, perform network check
+          const check = await checkUrl(url);
+          shouldBeBroken = !check.accessible;
+          reason = check.reason;
+        }
 
         results.push({
           id: movie.id,
           title: movie.title,
-          url: movie.video_url || '',
-          isAccessible: accessible,
+          url: url,
+          isAccessible: !shouldBeBroken,
           reason,
         });
 
-        // Only update if status changed
+        // Only update if status specifically changed in database
         if (shouldBeBroken !== movie.is_broken) {
           await supabase
             .from('movies')

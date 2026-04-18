@@ -46,68 +46,18 @@ export default function BrokenLinksPage() {
     setChecking(true);
     setCheckResult(null);
     try {
-      // Fetch all published movies with their URLs
-      const { data: movies, error } = await supabase
-        .from('movies')
-        .select('id, title, video_url, is_broken')
-        .eq('status', 'Published');
-
-      if (error) throw error;
-      if (!movies || movies.length === 0) {
-        setCheckResult({ checked: 0, newlyBroken: 0, newlyFixed: 0 });
-        return;
-      }
-
-      let newlyBroken = 0;
-      let newlyFixed = 0;
-
-      for (const movie of movies) {
-        const url = movie.video_url || '';
-        let hasAnyRealLink = false;
-
-        if (url && url.trim() !== '' && url !== '[]') {
-          if (url.startsWith('[')) {
-            try {
-              const servers = JSON.parse(url);
-              // Check for actual URL inside servers or episodes
-              hasAnyRealLink = servers.some((s: any) => {
-                // Check direct servers
-                if (s.url && s.url.trim() !== '') return true;
-                // Check episodes
-                if (s.servers && Array.isArray(s.servers)) {
-                  return s.servers.some((srv: any) => srv.url && srv.url.trim() !== '');
-                }
-                return false;
-              });
-            } catch { hasAnyRealLink = false; }
-          } else {
-            hasAnyRealLink = true;
-          }
-        }
-
-        // 1. CLEANUP: If NO real link exists, it cannot be "broken". Reset it.
-        if (!hasAnyRealLink) {
-          if (movie.is_broken) {
-            await supabase.from('movies').update({ is_broken: false }).eq('id', movie.id);
-            newlyFixed++;
-          }
-          continue;
-        }
-
-        // 2. DETECTION: If has a link, it might be BROKEN. 
-        // For now, let's trigger the server-side checker for these items
-        // We call our internal API for these valid links
-        try {
-          // This is a more complex check, but for now we rely on the manual report button 
-          // or the periodic background cron to do the heavy network lifting.
-        } catch (e) {}
-      }
-
-      setCheckResult({ 
-        message: "Cleaned up list. Empty links are now ignored.",
-        checked: movies.length, 
-        newlyFixed 
+      // Call our internal API to run the deep health check on the server
+      const res = await fetch('/api/check-links', {
+        // We'll pass a special header that our API now recognizes from the same origin
+        headers: { 'x-admin-check': 'true' }
       });
+      
+      if (!res.ok) throw new Error('Server returned an error');
+      
+      const data = await res.json();
+      setCheckResult(data);
+      
+      // Refresh the broken list after the server finishes checking
       await fetchBrokenMovies();
     } catch (err: any) {
       console.error('Health check error:', err);
