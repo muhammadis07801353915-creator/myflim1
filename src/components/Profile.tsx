@@ -188,14 +188,8 @@ export default function Profile() {
           )}
         </div>
 
-        {/* Admin Panel Link */}
-        <ProfileMenuItem 
-          icon={LayoutDashboard} 
-          label="Admin Panel" 
-          textClass="text-blue-400"
-          onClick={() => setShowAdminModal(true)}
-        />
         
+
         <ProfileMenuItem icon={Bell} label={t.notifications} />
         <ProfileMenuItem icon={Download} label={t.downloads} />
         <ProfileMenuItem icon={Shield} label={t.privacyPolicy} />

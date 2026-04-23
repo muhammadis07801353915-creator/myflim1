@@ -1,6 +1,6 @@
 {
-  "name": "myTV+",
-  "short_name": "myTV+",
+  "name": "MyFlim",
+  "short_name": "MyFlim",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f1115",
