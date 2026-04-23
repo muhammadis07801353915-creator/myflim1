@@ -65,5 +65,5 @@ export function middleware(request: NextRequest) {
 
 // See "Matching Paths" below to learn more
 export const config = {
-  matcher: ['/api/:path*', '/portal-control-center/:path*'],
+  matcher: ['/api/:path*', '/portal-control-center', '/portal-control-center/:path*'],
 };
