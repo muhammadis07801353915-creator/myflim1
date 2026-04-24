@@ -21,19 +21,31 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
   const viewingList = useMemo(() => {
     if (!listName) return null;
     let items: any[] = [];
+    let displayTitle = listName;
+
+    // Check for "Top Contents" (Popular)
     if (listName === 'Top Contents') {
       items = movies.filter(m => m.top_rank).sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99));
-    } else if (listName === t.movies) {
+      displayTitle = t.popular || 'Top Contents';
+    } 
+    // Check for generic movies
+    else if (listName === 'Movies') {
       items = movies.filter(m => !m.list_name || m.list_name === '');
-    } else {
+      displayTitle = t.movies || 'Movies';
+    } 
+    // Check for dynamic lists
+    else {
       items = movies.filter(m => m.list_name === listName);
+      const list = movieLists.find(l => l.name === listName);
+      if (list) displayTitle = getLocalized(list, 'name', language) || list.name;
     }
-    return items.length > 0 ? { title: listName, items } : null;
-  }, [listName, movies, t.movies]);
 
-  const setViewingList = (list: { title: string } | null) => {
+    return items.length > 0 ? { title: displayTitle, rawName: listName, items } : null;
+  }, [listName, movies, movieLists, t.popular, t.movies, language]);
+
+  const setViewingList = (list: { rawName: string } | null) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (list) params.set('list', list.title);
+    if (list) params.set('list', list.rawName);
     else params.delete('list');
     router.push(`?${params.toString()}`, { scroll: false });
   };
@@ -229,7 +241,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
         <div className="mt-6 px-4">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-white light-mode:text-black">{t.popular || 'Top Contents'}</h2>
-            <button onClick={() => setViewingList({ title: t.popular || 'Top Contents' })} className="text-red-500 text-sm font-medium">{t.all}</button>
+            <button onClick={() => setViewingList({ rawName: 'Top Contents' })} className="text-red-500 text-sm font-medium">{t.all}</button>
           </div>
           <div className="flex space-x-4 md:space-x-8 overflow-x-auto pb-8 scrollbar-hide -mx-4 px-4">
             {topContents.slice(0, displayLimit).map((movie, index) => (
@@ -275,7 +287,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
               <h2 className="text-xl font-semibold text-white light-mode:text-black">
                 {getLocalized(list, 'name', language) || list.name}
               </h2>
-              <button onClick={() => setViewingList({ title: getLocalized(list, 'name', language) || list.name })} className="text-red-500 text-sm font-medium">{t.all}</button>
+              <button onClick={() => setViewingList({ rawName: list.name })} className="text-red-500 text-sm font-medium">{t.all}</button>
             </div>
             <div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
               {listMovies.slice(0, displayLimit).map((movie) => (
