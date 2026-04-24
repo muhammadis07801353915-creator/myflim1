@@ -43,18 +43,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   const navItems = [
-    { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} /> },
-    { name: 'Analytics', path: '/admin/analytics', icon: <BarChart size={20} /> },
-    { name: 'Users', path: '/admin/users', icon: <Users size={20} /> },
-    { name: 'Movies & Series', path: '/admin/movies', icon: <Film size={20} /> },
-    { name: 'Comments', path: '/admin/comments', icon: <MessageSquare size={20} /> },
-    { name: 'User Reports', path: '/admin/reports', icon: <AlertTriangle size={20} /> },
-    { name: 'Top Contents', path: '/admin/top-contents', icon: <Trophy size={20} /> },
-    { name: 'Movie Lists', path: '/admin/movie-lists', icon: <ListIcon size={20} /> },
-    { name: 'Live TV Categories', path: '/admin/livetv-categories', icon: <ListIcon size={20} /> },
-    { name: 'Live TV', path: '/admin/livetv', icon: <Tv size={20} /> },
-    { name: 'Banners & Ads', path: '/admin/banners', icon: <ImageIcon size={20} /> },
-    { name: 'Settings', path: '/admin/settings', icon: <Settings size={20} /> },
+    { name: 'Dashboard', path: '/portal-control-center', icon: <LayoutDashboard size={20} /> },
+    { name: 'Analytics', path: '/portal-control-center/analytics', icon: <BarChart size={20} /> },
+    { name: 'Users', path: '/portal-control-center/users', icon: <Users size={20} /> },
+    { name: 'Movies & Series', path: '/portal-control-center/movies', icon: <Film size={20} /> },
+    { name: 'Comments', path: '/portal-control-center/comments', icon: <MessageSquare size={20} /> },
+    { name: 'User Reports', path: '/portal-control-center/reports', icon: <AlertTriangle size={20} /> },
+    { name: 'Top Contents', path: '/portal-control-center/top-contents', icon: <Trophy size={20} /> },
+    { name: 'Movie Lists', path: '/portal-control-center/movie-lists', icon: <ListIcon size={20} /> },
+    { name: 'Live TV Categories', path: '/portal-control-center/livetv-categories', icon: <ListIcon size={20} /> },
+    { name: 'Live TV', path: '/portal-control-center/livetv', icon: <Tv size={20} /> },
+    { name: 'Banners & Ads', path: '/portal-control-center/banners', icon: <ImageIcon size={20} /> },
+    { name: 'Settings', path: '/portal-control-center/settings', icon: <Settings size={20} /> },
   ];
 
   const handleLogout = () => {
@@ -86,7 +86,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         
         <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
-            const isActive = item.path === '/admin' ? pathname === '/admin' : pathname?.startsWith(item.path);
+            const isActive = item.path === '/portal-control-center' ? pathname === '/portal-control-center' : pathname?.startsWith(item.path);
             return (
             <Link
               key={item.name}
@@ -105,10 +105,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           {/* Broken Links - Special item with badge */}
           <Link
-            href="/admin/broken-links"
+            href="/portal-control-center/broken-links"
             onClick={closeSidebar}
             className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors ${
-              pathname?.startsWith('/admin/broken-links')
+              pathname?.startsWith('/portal-control-center/broken-links')
                 ? 'bg-red-500/10 text-red-500 font-medium'
                 : 'text-neutral-400 hover:bg-neutral-800 hover:text-white'
             }`}
