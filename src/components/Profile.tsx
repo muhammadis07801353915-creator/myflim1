@@ -83,7 +83,7 @@ export default function Profile() {
     if (adminCode === '400500') {
       setShowAdminModal(false);
       setAdminCode('');
-      navigate.push('/admin');
+      navigate.push('/portal-control-center');
     } else {
       alert('Invalid Code!');
     }
