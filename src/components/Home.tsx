@@ -195,9 +195,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                 </div>
 
                 {/* Optional: Add the specific text from image if it's a fixed part of the design */}
-                <div className="absolute bottom-16 right-8 text-right opacity-60">
-                   <p className="text-[10px] text-white/30 font-medium">کوالێت و تەکنیک : هانا گەلووکی</p>
-                </div>
+
               </motion.div>
             ))
           ) : (
