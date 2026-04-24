@@ -143,7 +143,7 @@ export default function Movies() {
 
   const handleAddNew = () => {
     setFormData({ 
-      title: '', type: 'Movie', genre: '', year: '', description: '', rating: '', image: '', backdrop: '', duration: '',
+      title: '', title_ar: '', title_en: '', type: 'Movie', genre: '', year: '', description: '', description_ar: '', description_en: '', rating: '', image: '', backdrop: '', duration: '',
       list_name: '',
       is_featured: false,
       is_pro: false,
@@ -179,10 +179,14 @@ export default function Movies() {
 
     setFormData({
       title: item.title || '',
+      title_ar: item.title_ar || '',
+      title_en: item.title_en || '',
       type: item.type || 'Movie',
       genre: item.genre || '',
       year: item.year?.toString() || '',
       description: item.description || '',
+      description_ar: item.description_ar || '',
+      description_en: item.description_en || '',
       rating: item.rating?.toString() || '',
       image: item.image || '',
       backdrop: item.backdrop || '',
@@ -225,10 +229,14 @@ export default function Movies() {
     setSaving(true);
     const payload = {
       title: formData.title,
+      title_ar: formData.title_ar,
+      title_en: formData.title_en,
       type: formData.type,
       genre: formData.genre,
       year: formData.year && !isNaN(parseInt(formData.year)) ? parseInt(formData.year) : null,
       description: formData.description,
+      description_ar: formData.description_ar,
+      description_en: formData.description_en,
       rating: formData.rating && !isNaN(parseFloat(formData.rating)) ? parseFloat(formData.rating) : null,
       image: formData.image,
       backdrop: formData.backdrop,
@@ -340,23 +348,41 @@ export default function Movies() {
           <div className="flex-1 bg-[#1a1d24] border border-neutral-800 rounded-xl p-6">
             {activeTab === 'basic' && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-neutral-300">Title</label>
-                    <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="e.g. Inception" className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
+                    <label className="text-sm font-medium text-neutral-300">Title (Kurdish)</label>
+                    <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="ناوی کوردی..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
                   </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-300">Title (Arabic)</label>
+                    <input type="text" value={formData.title_ar} onChange={e => setFormData({...formData, title_ar: e.target.value})} placeholder="الاسم بالعربي..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" dir="rtl" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-300">Title (English)</label>
+                    <input type="text" value={formData.title_en} onChange={e => setFormData({...formData, title_en: e.target.value})} placeholder="English Title..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-300">Description (Kurdish)</label>
+                    <textarea rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="کورتەی کوردی..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition resize-none"></textarea>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-300">Description (Arabic)</label>
+                    <textarea rows={3} value={formData.description_ar} onChange={e => setFormData({...formData, description_ar: e.target.value})} placeholder="القصة بالعربي..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition resize-none" dir="rtl"></textarea>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-300">Description (English)</label>
+                    <textarea rows={3} value={formData.description_en} onChange={e => setFormData({...formData, description_en: e.target.value})} placeholder="English Synopsis..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition resize-none"></textarea>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-300">Release Year</label>
                     <input type="text" value={formData.year} onChange={e => setFormData({...formData, year: e.target.value})} placeholder="e.g. 2010" className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
                   </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-neutral-300">Description</label>
-                  <textarea rows={4} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Synopsis..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition resize-none"></textarea>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-300">Genre</label>
                     <input type="text" value={formData.genre} onChange={e => setFormData({...formData, genre: e.target.value})} placeholder="Action, Sci-Fi" className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
