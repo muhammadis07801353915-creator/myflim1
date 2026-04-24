@@ -4,13 +4,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../lib/LanguageContext';
+import { getLocalized } from '../lib/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../lib/DataContext';
 
 export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { movies, movieLists, loading } = useData();
   const [currentFeaturedIndex, setCurrentFeaturedIndex] = useState(0);
   const [displayLimit, setDisplayLimit] = useState(10);
@@ -155,7 +156,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent flex flex-col justify-end p-8">
                   <div className="space-y-1">
                     <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter mb-1">
-                      {movie.title}
+                      {getLocalized(movie, 'title', language)}
                     </h2>
                     <div className="flex items-center space-x-3 text-white/80 text-lg font-medium">
                       <span>{movie.year}</span>
@@ -229,8 +230,8 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
       {topContents.length > 0 && (
         <div className="mt-6 px-4">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white light-mode:text-black">Top Contents</h2>
-            <button onClick={() => setViewingList({ title: 'Top Contents' })} className="text-red-500 text-sm font-medium">{t.all}</button>
+            <h2 className="text-2xl font-bold text-white light-mode:text-black">{t.popular || 'Top Contents'}</h2>
+            <button onClick={() => setViewingList({ title: t.popular || 'Top Contents' })} className="text-red-500 text-sm font-medium">{t.all}</button>
           </div>
           <div className="flex space-x-4 md:space-x-8 overflow-x-auto pb-8 scrollbar-hide -mx-4 px-4">
             {topContents.slice(0, displayLimit).map((movie, index) => (
@@ -238,7 +239,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                 <div className="relative overflow-hidden rounded-2xl shadow-lg aspect-[2/3] border border-white/5 bg-neutral-900">
                   <Image 
                     src={movie.image} 
-                    alt={movie.title} 
+                    alt={getLocalized(movie, 'title', language)} 
                     fill
                     sizes="(max-width: 768px) 50vw, 33vw"
                     className="object-cover group-hover:scale-110 transition-transform duration-700" 
@@ -255,8 +256,11 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                       {index + 1}
                     </span>
                   </div>
+                  </div>
                 </div>
-                <h3 className="mt-4 text-sm md:text-lg font-bold truncate text-neutral-200 light-mode:text-black group-hover:text-red-500 transition-colors uppercase tracking-tight">{movie.title}</h3>
+                <h3 className="mt-4 text-sm md:text-lg font-bold truncate text-neutral-200 light-mode:text-black group-hover:text-red-500 transition-colors uppercase tracking-tight">
+                  {getLocalized(movie, 'title', language)}
+                </h3>
               </div>
             ))}
           </div>
@@ -271,8 +275,10 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
         return (
           <div key={list.id} className="mt-8 px-4">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white light-mode:text-black">{list.name}</h2>
-              <button onClick={() => setViewingList({ title: list.name })} className="text-red-500 text-sm font-medium">{t.all}</button>
+              <h2 className="text-xl font-semibold text-white light-mode:text-black">
+                {getLocalized(list, 'name', language) || list.name}
+              </h2>
+              <button onClick={() => setViewingList({ title: getLocalized(list, 'name', language) || list.name })} className="text-red-500 text-sm font-medium">{t.all}</button>
             </div>
             <div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
               {listMovies.slice(0, displayLimit).map((movie) => (
@@ -290,7 +296,9 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                       <Play size={18} className="text-white fill-white" />
                     </div>
                   </div>
-                  <h3 className="mt-3 text-xs md:text-sm font-bold truncate text-neutral-300 light-mode:text-slate-700 group-hover:text-red-600 transition-colors uppercase tracking-tight">{movie.title}</h3>
+                  <h3 className="mt-3 text-xs md:text-sm font-bold truncate text-neutral-300 light-mode:text-slate-700 group-hover:text-red-600 transition-colors uppercase tracking-tight">
+                    {getLocalized(movie, 'title', language)}
+                  </h3>
                 </div>
               ))}
             </div>
@@ -310,14 +318,16 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
               <div className="relative overflow-hidden rounded-xl shadow-lg aspect-[2/3] bg-neutral-900 border border-white/5">
                 <Image 
                   src={movie.image} 
-                  alt={movie.title} 
+                  alt={getLocalized(movie, 'title', language)} 
                   fill
                   sizes="(max-width: 768px) 33vw, 20vw"
                   className="object-cover group-hover:scale-110 transition-transform duration-500" 
                   unoptimized={true}
                 />
               </div>
-              <h3 className="mt-3 text-xs md:text-sm font-bold truncate text-neutral-300 light-mode:text-slate-700 uppercase tracking-tight">{movie.title}</h3>
+              <h3 className="mt-3 text-xs md:text-sm font-bold truncate text-neutral-300 light-mode:text-slate-700 uppercase tracking-tight">
+                {getLocalized(movie, 'title', language)}
+              </h3>
             </div>
           ))}
         </div>

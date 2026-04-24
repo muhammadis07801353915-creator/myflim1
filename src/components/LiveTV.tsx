@@ -10,9 +10,10 @@ import { useLanguage } from '../lib/LanguageContext';
 import { useData } from '../lib/DataContext';
 import ProSubscriptionModal from './ProSubscriptionModal';
 import { getProStatusLocal } from '../lib/pro';
+import { getLocalized } from '../lib/translations';
 
 export default function LiveTV() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { channels, categories, banners, loading } = useData();
   const [currentTopBannerIndex, setCurrentTopBannerIndex] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -43,8 +44,8 @@ export default function LiveTV() {
   }, {} as Record<string, any[]>);
 
   const categoriesToRender = selectedCategory === 'All' 
-    ? categories.map(c => c.name)
-    : [selectedCategory];
+    ? categories
+    : categories.filter(c => c.name === selectedCategory);
 
   const searchResults = searchQuery.trim()
     ? channels.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -379,7 +380,8 @@ export default function LiveTV() {
             <div className="text-center text-neutral-500 py-10">
               {t.noChannels}
             </div>
-        ) : categoriesToRender.map((category, index) => {
+        ) : categoriesToRender.map((catObj, index) => {
+          const category = typeof catObj === 'string' ? catObj : catObj.name;
           const categoryChannels = channelsByCategory[category] || [];
           if (categoryChannels.length === 0) return null;
  
@@ -387,7 +389,9 @@ export default function LiveTV() {
             <div key={category} className="space-y-4">
               {/* Category Header */}
               <div className="flex justify-between items-center px-1">
-                <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter">{category}</h2>
+                <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter">
+                  {getLocalized(catObj, 'name', language) || category}
+                </h2>
                 <button 
                   onClick={() => setViewAllCategory(category)}
                   className="bg-neutral-800 hover:bg-neutral-700 text-white px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center space-x-2"
@@ -469,7 +473,7 @@ export default function LiveTV() {
                   {selectedCategory === 'All' && <div className="w-2.5 h-2.5 bg-red-500 rounded-full" />}
                 </div>
                 <span className={selectedCategory === 'All' ? 'text-white font-medium' : 'text-neutral-400'}>
-                  All
+                  {language === 'ku' ? 'هەمووی' : language === 'ar' ? 'الكل' : 'All'}
                 </span>
               </button>
               {categories.map(cat => (
@@ -485,7 +489,7 @@ export default function LiveTV() {
                     {selectedCategory === cat.name && <div className="w-2.5 h-2.5 bg-red-500 rounded-full" />}
                   </div>
                   <span className={selectedCategory === cat.name ? 'text-white light-mode:text-red-500 font-medium' : 'text-neutral-400 light-mode:text-neutral-600'}>
-                    {cat.name}
+                    {getLocalized(cat, 'name', language) || cat.name}
                   </span>
                 </button>
               ))}

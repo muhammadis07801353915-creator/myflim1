@@ -10,6 +10,8 @@ import { supabase } from '../lib/supabase';
 import ProSubscriptionModal from './ProSubscriptionModal';
 import { getProStatusLocal } from '../lib/pro';
 import CommentSection from './CommentSection';
+import { useLanguage } from '../lib/LanguageContext';
+import { getLocalized } from '../lib/translations';
 
 export default function Detail({ item, onBack }: { item: any, onBack: () => void }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -21,6 +23,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [showProModal, setShowProModal] = useState(false);
   const [reported, setReported] = useState(false);
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
+  const { t, language } = useLanguage();
 
   useEffect(() => {
     // هەرکاتێک بەکارهێنەر دەگەڕێتەوە ناو فیلمەکە، ژمارە تازەکە دەهێنین
@@ -317,7 +320,9 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
       {/* Content Info */}
       <div className="px-5 -mt-8 relative z-30">
-        <h1 className="text-3xl font-bold mb-3 text-white light-mode:text-black">{item.title}</h1>
+        <h1 className="text-3xl font-bold mb-3 text-white light-mode:text-black">
+          {getLocalized(item, 'title', language)}
+        </h1>
         <div className="flex items-center space-x-4 text-sm text-neutral-400 mb-6">
           <span className="flex items-center text-yellow-500 font-medium"><Star size={16} className="mr-1 fill-current" /> {item.rating}</span>
           <span>{item.year}</span>
@@ -328,7 +333,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           onClick={handlePlayClick}
           className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl flex items-center justify-center font-semibold transition mb-8 shadow-lg shadow-red-600/20"
         >
-          <Play size={20} className="mr-2 fill-current" /> Watch Now
+          <Play size={20} className="mr-2 fill-current" /> {t.watchNow}
         </button>
 
         <div className="flex justify-around border-y border-neutral-800/60 light-mode:border-neutral-200 py-5 mb-8">
@@ -336,7 +341,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 flex items-center justify-center mb-2 transition text-red-500">
               <Eye size={20} />
             </div>
-            <span className="text-xs font-medium">{viewCount.toLocaleString()} Views</span>
+            <span className="text-xs font-medium">{viewCount.toLocaleString()} {language === 'ku' ? 'بینین' : language === 'ar' ? 'مشاهدة' : 'Views'}</span>
           </button>
           <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group">
             <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200 flex items-center justify-center mb-2 transition">
@@ -369,9 +374,11 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         </div>
 
         <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-3 text-white light-mode:text-black">Story Line</h3>
+          <h3 className="text-xl font-semibold mb-3 text-white light-mode:text-black">
+            {language === 'ku' ? 'چیرۆکی فیلم' : language === 'ar' ? 'قصة الفيلم' : 'Story Line'}
+          </h3>
           <p className="text-neutral-400 light-mode:text-neutral-600 text-sm leading-relaxed">
-            {item.description}
+            {getLocalized(item, 'description', language) || item.description}
           </p>
         </div>
 
@@ -438,8 +445,12 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           <div className="bg-[#1a1d24] light-mode:bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col max-h-[80vh] border border-neutral-800 light-mode:border-neutral-200 animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
             <div className="p-5 border-b border-neutral-800 light-mode:border-neutral-100 flex justify-between items-center bg-[#22252D] light-mode:bg-neutral-50">
               <div>
-                <h3 className="text-xl font-bold text-white light-mode:text-black">Choose Server</h3>
-                <p className="text-sm text-neutral-400 mt-1">{servers.length} servers available</p>
+                <h3 className="text-xl font-bold text-white light-mode:text-black">
+                  {language === 'ku' ? 'سێرڤەر هەڵبژێرە' : language === 'ar' ? 'اختر السيرفر' : 'Choose Server'}
+                </h3>
+                <p className="text-sm text-neutral-400 mt-1">
+                  {servers.length} {language === 'ku' ? 'سێرڤەر بەردەستە' : language === 'ar' ? 'سيرفر متاح' : 'servers available'}
+                </p>
               </div>
               <button 
                 onClick={() => setShowServersModal(false)}

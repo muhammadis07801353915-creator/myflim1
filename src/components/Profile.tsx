@@ -181,9 +181,9 @@ export default function Profile() {
           
           {showLangMenu && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1d24] border border-neutral-800 rounded-xl overflow-hidden z-50 shadow-2xl animate-in slide-in-from-top-2 duration-200">
-              <LangOption label="English" active={language === 'en'} onClick={() => { setLanguage('en'); setShowLangMenu(false); }} />
-              <LangOption label="کوردی" active={language === 'ku'} onClick={() => { setLanguage('ku'); setShowLangMenu(false); }} />
-              <LangOption label="العربية" active={language === 'ar'} onClick={() => { setLanguage('ar'); setShowLangMenu(false); }} />
+              <LangOption label="English" flag="🇬🇧" active={language === 'en'} onClick={() => { setLanguage('en'); setShowLangMenu(false); }} />
+              <LangOption label="کوردی" flag="☀️" active={language === 'ku'} onClick={() => { setLanguage('ku'); setShowLangMenu(false); }} />
+              <LangOption label="العربية" flag="🇮🇶" active={language === 'ar'} onClick={() => { setLanguage('ar'); setShowLangMenu(false); }} />
             </div>
           )}
         </div>
@@ -269,13 +269,16 @@ export default function Profile() {
   );
 }
 
-function LangOption({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) {
+function LangOption({ label, flag, active, onClick }: { label: string, flag: string, active: boolean, onClick: () => void }) {
   return (
     <button 
       onClick={onClick}
       className={`w-full text-left rtl:text-right p-4 hover:bg-neutral-800 transition flex items-center justify-between ${active ? 'text-emerald-500 bg-emerald-500/5' : 'text-neutral-300'}`}
     >
-      <span className="font-medium">{label}</span>
+      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+        <span className="text-xl">{flag}</span>
+        <span className="font-medium">{label}</span>
+      </div>
       {active && <div className="w-2 h-2 rounded-full bg-emerald-500" />}
     </button>
   );
