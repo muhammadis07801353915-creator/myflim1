@@ -257,7 +257,6 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                     </span>
                   </div>
                   </div>
-                </div>
                 <h3 className="mt-4 text-sm md:text-lg font-bold truncate text-neutral-200 light-mode:text-black group-hover:text-red-500 transition-colors uppercase tracking-tight">
                   {getLocalized(movie, 'title', language)}
                 </h3>

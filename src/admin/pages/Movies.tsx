@@ -18,7 +18,7 @@ export default function Movies() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
-    title: '', type: 'Movie', genre: '', year: '', description: '', rating: '', image: '', backdrop: '', duration: '',
+    title: '', title_ar: '', title_en: '', type: 'Movie', genre: '', year: '', description: '', description_ar: '', description_en: '', rating: '', image: '', backdrop: '', duration: '',
     list_name: '',
     is_featured: false,
     is_pro: false,
