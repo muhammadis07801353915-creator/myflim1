@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { Send, User, LogIn, X, Mail, Camera, Save } from 'lucide-react';
 import Image from 'next/image';
+import { useLanguage } from '../lib/LanguageContext';
 
 interface Comment {
   id: string;
@@ -16,6 +17,7 @@ interface Comment {
 }
 
 export default function CommentSection({ movieId }: { movieId: string }) {
+  const { t } = useLanguage();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [user, setUser] = useState<any>(null);
@@ -210,7 +212,7 @@ export default function CommentSection({ movieId }: { movieId: string }) {
           </div>
         ) : comments.length === 0 ? (
           <div className="text-center py-10 text-neutral-500">
-            No comments yet. Be the first to share your thoughts!
+            {t.noComments}
           </div>
         ) : (
           comments.map((comment) => (
@@ -227,7 +229,7 @@ export default function CommentSection({ movieId }: { movieId: string }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
                   <span className="font-bold text-sm text-white light-mode:text-black">
-                    {comment.profiles?.display_name || 'Anonymous User'}
+                    {comment.profiles?.display_name || t.anonymousUser}
                   </span>
                   <span className="text-[11px] text-neutral-500">
                     {formatTime(comment.created_at)}
@@ -239,8 +241,8 @@ export default function CommentSection({ movieId }: { movieId: string }) {
                     </p>
                 </div>
                 <div className="flex items-center space-x-4 mt-2 ml-2">
-                    <button className="text-[11px] font-bold text-neutral-500 hover:text-white transition">Like</button>
-                    <button className="text-[11px] font-bold text-neutral-500 hover:text-white transition">Reply</button>
+                    <button className="text-[11px] font-bold text-neutral-500 hover:text-white transition">{t.like}</button>
+                    <button className="text-[11px] font-bold text-neutral-500 hover:text-white transition">{t.reply}</button>
                 </div>
               </div>
             </div>
@@ -271,7 +273,7 @@ export default function CommentSection({ movieId }: { movieId: string }) {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
-              placeholder={user ? "Write a comment..." : "Login to comment..."}
+              placeholder={user ? t.writeComment : t.loginToComment}
               onClick={() => !user && setShowLoginModal(true)}
               className="w-full bg-[#1a1d24] light-mode:bg-neutral-100 border border-neutral-800 light-mode:border-neutral-200 rounded-full px-5 py-3 text-sm text-white light-mode:text-black outline-none focus:border-red-500 transition"
             />
@@ -293,8 +295,8 @@ export default function CommentSection({ movieId }: { movieId: string }) {
               <div className="w-16 h-16 bg-red-600/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <LogIn size={32} />
               </div>
-              <h3 className="text-xl font-bold mb-2">Login Required</h3>
-              <p className="text-neutral-400 text-sm mb-6">Login to join the conversation and post comments.</p>
+              <h3 className="text-xl font-bold mb-2">{t.loginRequired}</h3>
+              <p className="text-neutral-400 text-sm mb-6">{t.loginToJoin}</p>
               
               <div className="space-y-6">
                 <button 

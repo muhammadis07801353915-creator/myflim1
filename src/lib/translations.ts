@@ -40,6 +40,15 @@ export interface Translations {
   noChannels: string;
   searchResults: string;
   close: string;
+  comments: string;
+  writeComment: string;
+  loginToComment: string;
+  noComments: string;
+  loginRequired: string;
+  loginToJoin: string;
+  anonymousUser: string;
+  like: string;
+  reply: string;
 }
 
 export const getLocalized = (item: any, field: 'title' | 'description' | 'name', language: string) => {
@@ -90,6 +99,15 @@ export const translations: Record<Language, Translations> = {
     noChannels: 'No channels available',
     searchResults: 'Search Results',
     close: 'Close',
+    comments: 'Comments',
+    writeComment: 'Write a comment...',
+    loginToComment: 'Login to comment...',
+    noComments: 'No comments yet. Be the first to share your thoughts!',
+    loginRequired: 'Login Required',
+    loginToJoin: 'Login to join the conversation and post comments.',
+    anonymousUser: 'Anonymous User',
+    like: 'Like',
+    reply: 'Reply',
   },
   ku: {
     profile: 'پڕۆفایل',
@@ -131,6 +149,15 @@ export const translations: Record<Language, Translations> = {
     noChannels: 'هیچ کەناڵێک بەردەست نییە',
     searchResults: 'ئەنجامی گەڕان',
     close: 'داخستن',
+    comments: 'کۆمێنتەکان',
+    writeComment: 'کۆمێنتێک بنووسە...',
+    loginToComment: 'بۆ نووسینی کۆمێنت بچۆ ژوورەوە...',
+    noComments: 'هیچ کۆمێنتێک نییە. یەکەم کەس بە کە ڕای خۆت بڵێیت!',
+    loginRequired: 'چوونەژوورەوە پێویستە',
+    loginToJoin: 'بۆ بەشداری کردن لە گفتوگۆکە و نووسینی کۆمێنت بچۆ ژوورەوە.',
+    anonymousUser: 'بەکارهێنەری نەناسراو',
+    like: 'بەدڵبوون',
+    reply: 'وەڵامدانەوە',
   },
   ar: {
     profile: 'الملف الشخصي',
@@ -172,5 +199,14 @@ export const translations: Record<Language, Translations> = {
     noChannels: 'لا توجد قنوات متاحة',
     searchResults: 'نتائج البحث',
     close: 'إغلاق',
+    comments: 'التعليقات',
+    writeComment: 'اكتب تعليقاً...',
+    loginToComment: 'سجل الدخول للتعليق...',
+    noComments: 'لا توجد تعليقات بعد. كن أول من يشارك أفكاره!',
+    loginRequired: 'تسجيل الدخول مطلوب',
+    loginToJoin: 'سجل الدخول للانضمام إلى المحادثة ونشر التعليقات.',
+    anonymousUser: 'مستخدم مجهول',
+    like: 'إعجاب',
+    reply: 'رد',
   }
 };
