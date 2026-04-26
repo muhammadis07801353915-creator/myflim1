@@ -17,14 +17,13 @@ export function middleware(request: NextRequest) {
   
   // 1. Admin Panel Protection
   if (pathname.startsWith(ADMIN_ROUTE)) {
-    // Check IP Whitelist if configured
-    if (WHITELISTED_IPS.length > 0 && !WHITELISTED_IPS.includes(clientIP)) {
-      console.warn(`Blocked unauthorized access to admin from IP: ${clientIP}`);
-      return new NextResponse('Access Denied', { status: 403 });
-    }
+    const adminToken = request.cookies.get('admin_token')?.value;
     
-    // Additional: Redirect /admin to 404 to hide its existence
-    // (Handled by the fact we moved the folder, but good to keep in mind)
+    if (adminToken !== 'secret_admin_session_token') {
+      console.warn(`Blocked unauthorized access to admin from IP: ${clientIP} - Missing token`);
+      // Redirect to home if not authorized
+      return NextResponse.redirect(new URL('/', request.url));
+    }
   }
 
   // 2. Rate Limiting for API routes

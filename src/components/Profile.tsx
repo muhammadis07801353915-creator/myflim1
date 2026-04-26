@@ -81,6 +81,8 @@ export default function Profile() {
 
   const handleAdminSubmit = () => {
     if (adminCode === '400500') {
+      // Set a persistent cookie for admin access
+      document.cookie = "admin_token=secret_admin_session_token; path=/; max-age=604800; samesite=lax";
       setShowAdminModal(false);
       setAdminCode('');
       navigate.push('/portal-control-center');
