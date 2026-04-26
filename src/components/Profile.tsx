@@ -197,6 +197,12 @@ export default function Profile() {
         <ProfileMenuItem icon={Shield} label={t.privacyPolicy} />
         <ProfileMenuItem icon={FileText} label={t.termsConditions} />
         <ProfileMenuItem icon={Star} label={t.rateApp} />
+        <ProfileMenuItem 
+          icon={LayoutDashboard} 
+          label="Admin Panel" 
+          onClick={() => setShowAdminModal(true)} 
+          textClass="text-blue-400"
+        />
         <ProfileMenuItem icon={LogOut} label={t.logout} textClass="text-red-500" onClick={handleLogout} />
       </div>
 
