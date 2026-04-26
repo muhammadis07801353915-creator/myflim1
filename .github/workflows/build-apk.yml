@@ -39,13 +39,16 @@ jobs:
 
       - name: Build Release APK
         working-directory: ./myflim-expo/android
-        run: ./gradlew assembleRelease
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease
 
       - name: Sign APK
         working-directory: ./myflim-expo
         run: |
-          BUILD_TOOLS_DIR=$(ls -d $ANDROID_SDK_ROOT/build-tools/* | tail -1)
-          $BUILD_TOOLS_DIR/zipalign -v -p 4 android/app/build/outputs/apk/release/app-release-unsigned.apk android/app/build/outputs/apk/release/app-release-aligned.apk
+          APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | tail -1)
+          $BUILD_TOOLS_DIR/zipalign -v -p 4 $APK_PATH android/app/build/outputs/apk/release/app-release-aligned.apk
           $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-pass pass:password123 --key-pass pass:password123 --out android/app/build/outputs/apk/release/MyFlim-App.apk android/app/build/outputs/apk/release/app-release-aligned.apk
 
       - name: Upload APK
