@@ -5,7 +5,7 @@
     "scheme": "myflim",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon_backup.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "splash": {
@@ -18,9 +18,9 @@
     },
     "android": {
       "package": "com.muhamad.myflim",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon_backup.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,

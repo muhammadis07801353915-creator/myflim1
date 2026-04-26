@@ -1,0 +1,55 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install dependencies
+        working-directory: ./myflim-expo
+        run: npm install
+
+      - name: Prebuild Expo app
+        working-directory: ./myflim-expo
+        run: npx expo prebuild --platform android --clean
+
+      - name: Generate Keystore
+        working-directory: ./myflim-expo
+        run: |
+          keytool -genkey -v -keystore release.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=MyFlim, OU=MyFlim, O=MyFlim, L=City, S=State, C=US" -storepass password123 -keypass password123
+
+      - name: Build Release APK
+        working-directory: ./myflim-expo/android
+        run: ./gradlew assembleRelease
+
+      - name: Sign APK
+        working-directory: ./myflim-expo
+        run: |
+          BUILD_TOOLS_DIR=$(ls -d $ANDROID_SDK_ROOT/build-tools/* | tail -1)
+          $BUILD_TOOLS_DIR/zipalign -v -p 4 android/app/build/outputs/apk/release/app-release-unsigned.apk android/app/build/outputs/apk/release/app-release-aligned.apk
+          $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-pass pass:password123 --key-pass pass:password123 --out android/app/build/outputs/apk/release/MyFlim-App.apk android/app/build/outputs/apk/release/app-release-aligned.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: MyFlim-App-APK
+          path: myflim-expo/android/app/build/outputs/apk/release/MyFlim-App.apk
