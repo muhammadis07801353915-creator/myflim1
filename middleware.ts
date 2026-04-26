@@ -16,15 +16,7 @@ export function middleware(request: NextRequest) {
   const clientIP = request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
   
   // 1. Admin Panel Protection
-  if (pathname.startsWith(ADMIN_ROUTE)) {
-    const adminToken = request.cookies.get('admin_token')?.value;
-    
-    if (adminToken !== 'secret_admin_session_token') {
-      console.warn(`Blocked unauthorized access to admin from IP: ${clientIP} - Missing token`);
-      // Redirect to home if not authorized
-      return NextResponse.redirect(new URL('/', request.url));
-    }
-  }
+  // Moved to client-side in AdminLayout.tsx to allow direct URL access
 
   // 2. Rate Limiting for API routes
   if (pathname.startsWith('/api/')) {

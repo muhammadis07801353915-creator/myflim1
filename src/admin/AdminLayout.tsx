@@ -28,7 +28,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [brokenCount, setBrokenCount] = useState(0);
 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginCode, setLoginCode] = useState('');
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
   useEffect(() => {
+    // Check auth on mount
+    const hasToken = document.cookie.includes('admin_token=secret_admin_session_token');
+    if (hasToken) {
+      setIsAuthenticated(true);
+    }
+    setIsCheckingAuth(false);
+
     const fetchBrokenCount = async () => {
       const { count } = await supabase
         .from('movies')
@@ -41,6 +52,55 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const interval = setInterval(fetchBrokenCount, 300000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loginCode === '400500') {
+      document.cookie = "admin_token=secret_admin_session_token; path=/; max-age=604800; samesite=lax";
+      setIsAuthenticated(true);
+    } else {
+      alert('Invalid security code!');
+      setLoginCode('');
+    }
+  };
+
+  if (isCheckingAuth) {
+    return <div className="min-h-screen bg-[#0f1115] flex items-center justify-center text-white">Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#0f1115] flex items-center justify-center p-4">
+        <div className="bg-[#1a1d24] w-full max-w-md rounded-2xl p-8 border border-neutral-800 shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="text-3xl font-bold italic tracking-tighter mb-2">
+              <span className="text-red-500">my</span>TV+ <span className="text-xl text-neutral-400 not-italic font-normal">Admin</span>
+            </div>
+            <p className="text-neutral-500 text-sm">Please enter your security code to access the control center.</p>
+          </div>
+          
+          <form onSubmit={handleLoginSubmit} className="space-y-6">
+            <div>
+              <input 
+                type="password" 
+                value={loginCode}
+                onChange={(e) => setLoginCode(e.target.value)}
+                className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-5 py-4 text-white text-center text-2xl tracking-[0.5em] font-mono outline-none focus:border-red-500 transition-colors"
+                placeholder="******"
+                autoFocus
+              />
+            </div>
+            <button 
+              type="submit"
+              className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-colors"
+            >
+              Access Control Center
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   const navItems = [
     { name: 'Dashboard', path: '/portal-control-center', icon: <LayoutDashboard size={20} /> },
