@@ -53,8 +53,17 @@ jobs:
           $BUILD_TOOLS_DIR/zipalign -v -p 4 $APK_PATH android/app/build/outputs/apk/release/app-release-aligned.apk
           $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-pass pass:password123 --key-pass pass:password123 --out android/app/build/outputs/apk/release/MyFlim-App.apk android/app/build/outputs/apk/release/app-release-aligned.apk
 
-      - name: Upload APK
+      - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: MyFlim-App-APK
           path: myflim-expo/android/app/build/outputs/apk/release/MyFlim-App.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "My Flim+ Latest Release"
+          files: myflim-expo/android/app/build/outputs/apk/release/MyFlim-App.apk
+          token: ${{ secrets.GITHUB_TOKEN }}
+          make_latest: true
