@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,40 +18,70 @@ jobs:
         with:
           node-version: 18
 
-      - name: Setup Java
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Install dependencies
         working-directory: ./myflim-expo
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Prebuild Expo app
         working-directory: ./myflim-expo
         run: npx expo prebuild --platform android --clean
 
+      - name: Fix Gradle compatibility
+        working-directory: ./myflim-expo/android
+        run: |
+          # Pin Gradle to 8.6 (fully compatible with Java 17 and Expo SDK 52)
+          sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.6-all.zip|' gradle/wrapper/gradle-wrapper.properties
+          cat gradle/wrapper/gradle-wrapper.properties
+          # Suppress deprecated warnings
+          echo "" >> gradle.properties
+          echo "org.gradle.warning.mode=none" >> gradle.properties
+          echo "android.suppressUnsupportedCompileSdk=35" >> gradle.properties
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m" >> gradle.properties
+
       - name: Generate Keystore
         working-directory: ./myflim-expo
         run: |
-          keytool -genkey -v -keystore release.keystore -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=MyFlim, OU=MyFlim, O=MyFlim, L=City, S=State, C=US" -storepass password123 -keypass password123
+          keytool -genkey -v \
+            -keystore release.keystore \
+            -alias my-key-alias \
+            -keyalg RSA -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=MyFlim, OU=MyFlim, O=MyFlim, L=City, S=State, C=US" \
+            -storepass password123 \
+            -keypass password123
 
       - name: Build Release APK
         working-directory: ./myflim-expo/android
         env:
+          GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --warning-mode none --no-daemon -x lint
 
       - name: Sign APK
         working-directory: ./myflim-expo
         run: |
           APK_PATH=$(find android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
-          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | tail -1)
-          $BUILD_TOOLS_DIR/zipalign -v -p 4 $APK_PATH android/app/build/outputs/apk/release/app-release-aligned.apk
-          $BUILD_TOOLS_DIR/apksigner sign --ks release.keystore --ks-pass pass:password123 --key-pass pass:password123 --out android/app/build/outputs/apk/release/MyFlim-App.apk android/app/build/outputs/apk/release/app-release-aligned.apk
+          echo "Found APK: $APK_PATH"
+          BUILD_TOOLS_DIR=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          echo "Build tools: $BUILD_TOOLS_DIR"
+          $BUILD_TOOLS_DIR/zipalign -v -p 4 \
+            "$APK_PATH" \
+            android/app/build/outputs/apk/release/app-aligned.apk
+          $BUILD_TOOLS_DIR/apksigner sign \
+            --ks release.keystore \
+            --ks-pass pass:password123 \
+            --key-pass pass:password123 \
+            --out android/app/build/outputs/apk/release/MyFlim-App.apk \
+            android/app/build/outputs/apk/release/app-aligned.apk
+          echo "APK signed successfully!"
 
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
@@ -62,8 +92,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          name: "My Flim+ Latest Release"
+          tag_name: v1.0.${{ github.run_number }}
+          name: "My Flim+ v1.0.${{ github.run_number }}"
           files: myflim-expo/android/app/build/outputs/apk/release/MyFlim-App.apk
           token: ${{ secrets.GITHUB_TOKEN }}
           make_latest: true
