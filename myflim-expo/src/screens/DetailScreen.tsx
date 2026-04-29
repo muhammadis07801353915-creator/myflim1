@@ -15,7 +15,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, SIZES } from '../theme/theme';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, Play, Bookmark, Share2, Star, Clock, Calendar, Users, X, Server, Eye } from 'lucide-react-native';
+import { ChevronLeft, Play, Bookmark, Share2, Star, Clock, Calendar, Users, X, Server, Eye, ExternalLink } from 'lucide-react-native';
+import { Linking } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { WebView } from 'react-native-webview';
 import { useAppStore } from '../store/useAppStore';
@@ -59,7 +60,20 @@ export default function DetailScreen({ route, navigation }: any) {
     }
   }
 
-  const activeVideoUrl_original = currentVideoUrl || (item.type === 'LiveTV' ? item.stream_url : (servers.length > 0 ? (servers[selectedEpisodeIndex ?? 0].url || servers[selectedEpisodeIndex ?? 0].servers?.[0]?.url) : null));
+  const streamData = (() => {
+    if (item.type === 'LiveTV') {
+      try {
+        if (item.stream_url?.startsWith('{')) {
+          const parsed = JSON.parse(item.stream_url);
+          return { url: parsed.url, profile_link: parsed.profile_link };
+        }
+      } catch (e) {}
+      return { url: item.stream_url, profile_link: null };
+    }
+    return { url: null, profile_link: null };
+  })();
+
+  const activeVideoUrl_original = currentVideoUrl || (item.type === 'LiveTV' ? streamData.url : (servers.length > 0 ? (servers[selectedEpisodeIndex ?? 0].url || servers[selectedEpisodeIndex ?? 0].servers?.[0]?.url) : null));
   
   // Transform OK.ru links to embed if needed
   let activeVideoUrl = activeVideoUrl_original;
@@ -197,10 +211,21 @@ export default function DetailScreen({ route, navigation }: any) {
             <Text style={styles.liveCategory}>{item.category || 'News'}</Text>
           </View>
           
-          <TouchableOpacity style={styles.livePresenceButton}>
-            <Users size={16} color="#E53935" />
-            <Text style={styles.livePresenceText}>LIVE</Text>
-          </TouchableOpacity>
+          <View style={styles.liveInfoRight}>
+            {streamData.profile_link && (
+              <TouchableOpacity 
+                style={styles.liveProfileButton}
+                onPress={() => Linking.openURL(streamData.profile_link)}
+              >
+                <ExternalLink size={16} color="#4285F4" />
+                <Text style={styles.liveProfileText}>Profile</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.livePresenceButton}>
+              <Users size={16} color="#E53935" />
+              <Text style={styles.livePresenceText}>LIVE</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -525,6 +550,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    gap: 10,
+  },
+  liveInfoRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  liveProfileButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(66,133,244,0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(66,133,244,0.2)',
+  },
+  liveProfileText: {
+    color: '#4285F4',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   liveInfoLeft: {
     flex: 1,

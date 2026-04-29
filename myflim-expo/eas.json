@@ -12,8 +12,13 @@
       }
     },
     "production": {
+      "node": "18.18.0",
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "image": "latest"
+      },
+      "env": {
+        "BUILD_NUMBER": "5"
       }
     }
   },

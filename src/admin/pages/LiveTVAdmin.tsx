@@ -14,7 +14,7 @@ export default function LiveTVAdmin() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   
   const [formData, setFormData] = useState({
-    name: '', category: '', status: 'Active', stream_url: '', image: '', is_pro: false
+    name: '', category: '', status: 'Active', stream_url: '', image: '', is_pro: false, profile_link: ''
   });
 
   useEffect(() => {
@@ -56,7 +56,8 @@ export default function LiveTVAdmin() {
       status: 'Active', 
       stream_url: '', 
       image: '',
-      is_pro: false
+      is_pro: false,
+      profile_link: ''
     });
     setEditingId(null);
     setErrorMsg(null);
@@ -64,13 +65,27 @@ export default function LiveTVAdmin() {
   };
 
   const handleEdit = (item: any) => {
+    let finalStreamUrl = item.stream_url || '';
+    let profileLink = '';
+
+    try {
+      if (finalStreamUrl.startsWith('{')) {
+        const parsed = JSON.parse(finalStreamUrl);
+        finalStreamUrl = parsed.url || '';
+        profileLink = parsed.profile_link || '';
+      }
+    } catch (e) {
+      console.error("Error parsing stream_url JSON", e);
+    }
+
     setFormData({
       name: item.name || '',
       category: item.category || 'News',
       status: item.status || 'Active',
-      stream_url: item.stream_url || '',
+      stream_url: finalStreamUrl,
       image: item.image || '',
-      is_pro: item.is_pro || false
+      is_pro: item.is_pro || false,
+      profile_link: profileLink
     });
     setEditingId(item.id);
     setErrorMsg(null);
@@ -110,7 +125,9 @@ export default function LiveTVAdmin() {
       name: formData.name,
       category: formData.category,
       status: formData.status,
-      stream_url: formData.stream_url,
+      stream_url: formData.profile_link 
+        ? JSON.stringify({ url: formData.stream_url, profile_link: formData.profile_link }) 
+        : formData.stream_url,
       image: formData.image,
       is_pro: formData.is_pro
     };
@@ -187,9 +204,15 @@ export default function LiveTVAdmin() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-neutral-300">Stream URL (m3u8)</label>
-            <input type="text" value={formData.stream_url} onChange={e => setFormData({...formData, stream_url: e.target.value})} placeholder="https://..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-neutral-300">Stream URL (m3u8)</label>
+              <input type="text" value={formData.stream_url} onChange={e => setFormData({...formData, stream_url: e.target.value})} placeholder="https://..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-neutral-300">Profile / External Link (Optional)</label>
+              <input type="text" value={formData.profile_link} onChange={e => setFormData({...formData, profile_link: e.target.value})} placeholder="https://facebook.com/..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
+            </div>
           </div>
 
           <div className="space-y-2">

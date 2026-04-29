@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, CheckCircle2, ArrowLeft, Search, X, Users, Play, Tv, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, CheckCircle2, ArrowLeft, Search, X, Users, Play, Tv, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { liveCategories } from '../data/mockData';
@@ -27,11 +27,15 @@ export default function LiveTV() {
   const [showProModal, setShowProModal] = useState(false);
 
   const handleChannelSelect = (channel: any) => {
-    if (channel.is_pro && !getProStatusLocal()) {
-      setShowProModal(true);
-      return;
-    }
-    setPlayingChannel(channel);
+    const streamData = (() => {
+      try {
+        if (channel.stream_url?.startsWith('{')) {
+          return JSON.parse(channel.stream_url);
+        }
+      } catch (e) {}
+      return { url: channel.stream_url, profile_link: null };
+    })();
+    setPlayingChannel({ ...channel, stream_url: streamData.url, profile_link: streamData.profile_link });
   };
 
   // Group channels by category
@@ -145,9 +149,22 @@ export default function LiveTV() {
               <h1 className="text-xl font-bold mb-1 text-white light-mode:text-black">{playingChannel.name}</h1>
               <p className="text-sm text-neutral-400 light-mode:text-neutral-500">{playingChannel.category}</p>
             </div>
-            <div className="flex items-center space-x-1.5 text-neutral-300 light-mode:text-neutral-700 bg-neutral-800 light-mode:bg-neutral-100 px-3 py-1.5 rounded-lg">
-              <Users size={16} className="text-red-500" />
-              <span className="font-medium text-sm">LIVE</span>
+            <div className="flex items-center space-x-2">
+              {playingChannel.profile_link && (
+                <a 
+                  href={playingChannel.profile_link} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-1.5 text-neutral-300 hover:text-white bg-neutral-800 px-3 py-1.5 rounded-lg transition"
+                >
+                  <ExternalLink size={16} className="text-blue-400" />
+                  <span className="font-medium text-sm">Profile</span>
+                </a>
+              )}
+              <div className="flex items-center space-x-1.5 text-neutral-300 light-mode:text-neutral-700 bg-neutral-800 light-mode:bg-neutral-100 px-3 py-1.5 rounded-lg">
+                <Users size={16} className="text-red-500" />
+                <span className="font-medium text-sm">LIVE</span>
+              </div>
             </div>
           </div>
         </div>
