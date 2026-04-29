@@ -5,34 +5,20 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Linking,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-
-const CURRENT_VERSION = '1.0.1';
-const VERSION_URL = 'https://myflim.com/version.json';
-
-function compareVersions(v1: string, v2: string): number {
-  const parts1 = v1.split('.').map(Number);
-  const parts2 = v2.split('.').map(Number);
-  for (let i = 0; i < 3; i++) {
-    const a = parts1[i] || 0;
-    const b = parts2[i] || 0;
-    if (a > b) return 1;
-    if (a < b) return -1;
-  }
-  return 0;
-}
+import { Download } from 'lucide-react-native';
+import {
+  AppUpdateInfo,
+  checkForAvailableUpdate,
+  downloadAndInstallUpdate,
+} from '../utils/appUpdate';
 
 export default function UpdateChecker() {
   const [showModal, setShowModal] = useState(false);
-  const [updateInfo, setUpdateInfo] = useState<{
-    version: string;
-    downloadUrl: string;
-    releaseNotes: string;
-    mandatory: boolean;
-  } | null>(null);
+  const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
+  const [isInstalling, setIsInstalling] = useState(false);
 
   useEffect(() => {
     checkForUpdate();
@@ -40,13 +26,8 @@ export default function UpdateChecker() {
 
   const checkForUpdate = async () => {
     try {
-      const res = await fetch(`${VERSION_URL}?t=${Date.now()}`, {
-        cache: 'no-store',
-      });
-      if (!res.ok) return;
-      const data = await res.json();
-      
-      if (compareVersions(data.version, CURRENT_VERSION) > 0) {
+      const data = await checkForAvailableUpdate();
+      if (data) {
         setUpdateInfo(data);
         setShowModal(true);
       }
@@ -56,11 +37,18 @@ export default function UpdateChecker() {
   };
 
   const handleUpdate = async () => {
-    if (!updateInfo?.downloadUrl) return;
+    if (!updateInfo) return;
+
     try {
-      await Linking.openURL(updateInfo.downloadUrl);
+      setIsInstalling(true);
+      await downloadAndInstallUpdate(updateInfo);
     } catch (e) {
-      Alert.alert('هەڵە', 'ناتوانرێت لینکەکە بکرێتەوە');
+      Alert.alert(
+        'هەڵە',
+        'داگرتن یان دامەزراندنی نوێکردنەوە سەرکەوتوو نەبوو. دڵنیابەوە کە ڕێگەدان بە "Install unknown apps" چالاکە.'
+      );
+    } finally {
+      setIsInstalling(false);
     }
   };
 
@@ -89,7 +77,7 @@ export default function UpdateChecker() {
         <View style={styles.card}>
           {/* Icon */}
           <View style={styles.iconWrapper}>
-            <Ionicons name="download" size={36} color="#fff" />
+            <Download size={36} color="#fff" />
           </View>
 
           {/* Title */}
@@ -98,17 +86,29 @@ export default function UpdateChecker() {
 
           {/* Release Notes */}
           <View style={styles.notesBox}>
-            <Text style={styles.notes}>{updateInfo.releaseNotes}</Text>
+            <Text style={styles.notes}>
+              {updateInfo.releaseNotes || 'نوێکردنەوەی نوێ بەردەستە بۆ داگرتن و دامەزراندن.'}
+            </Text>
           </View>
 
           {/* Buttons */}
-          <TouchableOpacity style={styles.updateBtn} onPress={handleUpdate}>
-            <Ionicons name="download-outline" size={18} color="#fff" style={{ marginRight: 8 }} />
-            <Text style={styles.updateBtnText}>نوێکردنەوە</Text>
+          <TouchableOpacity
+            style={[styles.updateBtn, isInstalling && styles.updateBtnDisabled]}
+            onPress={handleUpdate}
+            disabled={isInstalling}
+          >
+            {isInstalling ? (
+              <ActivityIndicator color="#fff" style={{ marginRight: 8 }} />
+            ) : (
+              <Download size={18} color="#fff" style={{ marginRight: 8 }} />
+            )}
+            <Text style={styles.updateBtnText}>
+              {isInstalling ? 'دادەگیرێت...' : 'نوێکردنەوە'}
+            </Text>
           </TouchableOpacity>
 
           {!updateInfo.mandatory && (
-            <TouchableOpacity style={styles.laterBtn} onPress={handleLater}>
+            <TouchableOpacity style={styles.laterBtn} onPress={handleLater} disabled={isInstalling}>
               <Text style={styles.laterBtnText}>دواتر</Text>
             </TouchableOpacity>
           )}
@@ -186,6 +186,9 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     marginBottom: 10,
+  },
+  updateBtnDisabled: {
+    opacity: 0.7,
   },
   updateBtnText: {
     color: '#fff',

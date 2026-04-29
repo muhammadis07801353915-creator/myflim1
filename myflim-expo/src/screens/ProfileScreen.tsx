@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -11,12 +11,15 @@ import {
   Modal,
   Pressable,
   TextInput,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, SIZES, getColors } from '../theme/theme';
 import { useAppStore } from '../store/useAppStore';
 import { translations } from '../utils/translations';
+import { checkForAvailableUpdate, downloadAndInstallUpdate, getCurrentVersion, type AppUpdateInfo } from '../utils/appUpdate';
 import { 
   Crown, 
   Bell, 
@@ -47,6 +50,10 @@ export default function ProfileScreen() {
   const [showLangModal, setShowLangModal] = useState(false);
   const [adminCode, setAdminCode] = useState('');
   const [newName, setNewName] = useState(user.name);
+  const [availableUpdate, setAvailableUpdate] = useState<AppUpdateInfo | null>(null);
+  const [checkingUpdates, setCheckingUpdates] = useState(false);
+  const [installingUpdate, setInstallingUpdate] = useState(false);
+  const currentVersion = getCurrentVersion();
 
   // Default web admin code
 
@@ -65,6 +72,40 @@ export default function ProfileScreen() {
     if (newName.trim()) {
       updateUser({ name: newName });
       setShowNameModal(false);
+    }
+  };
+
+  const refreshUpdateStatus = useCallback(async () => {
+    try {
+      setCheckingUpdates(true);
+      const update = await checkForAvailableUpdate();
+      setAvailableUpdate(update);
+    } catch (error) {
+      console.warn('Update check failed:', error);
+    } finally {
+      setCheckingUpdates(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshUpdateStatus();
+    }, [refreshUpdateStatus])
+  );
+
+  const handleInstallUpdate = async () => {
+    if (!availableUpdate) return;
+
+    try {
+      setInstallingUpdate(true);
+      await downloadAndInstallUpdate(availableUpdate);
+    } catch (error) {
+      Alert.alert(
+        'Update failed',
+        'Could not download or install the APK. Make sure Android allows installs from this app.'
+      );
+    } finally {
+      setInstallingUpdate(false);
     }
   };
 
@@ -147,6 +188,57 @@ export default function ProfileScreen() {
           {renderMenuItem(<Shield size={22} color="#94a3b8" />, t.privacyPolicy)}
 
           {renderMenuItem(<ScrollText size={22} color="#94a3b8" />, t.termsConditions)}
+        </View>
+
+        <View style={styles.menuSection}>
+          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Updates</Text>
+          <View style={[styles.updateCard, { backgroundColor: themeColors.surface }]}>
+            <View style={styles.updateHeader}>
+              <View style={styles.updateHeaderLeft}>
+                <Download size={20} color="#E53935" />
+                <Text style={[styles.updateTitle, { color: themeColors.text }]}>App Updates</Text>
+              </View>
+              {checkingUpdates ? (
+                <ActivityIndicator color="#E53935" />
+              ) : (
+                <TouchableOpacity onPress={refreshUpdateStatus}>
+                  <Text style={styles.refreshText}>Check</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            <Text style={[styles.updateMeta, { color: themeColors.textSecondary }]}>
+              Current version: {currentVersion}
+            </Text>
+
+            {availableUpdate ? (
+              <>
+                <Text style={[styles.updateAvailableText, { color: themeColors.text }]}>
+                  New update available: {availableUpdate.version}
+                </Text>
+                {!!availableUpdate.releaseNotes && (
+                  <Text style={[styles.updateNotes, { color: themeColors.textSecondary }]}>
+                    {availableUpdate.releaseNotes}
+                  </Text>
+                )}
+                <TouchableOpacity
+                  style={[styles.updateActionButton, installingUpdate && styles.updateActionButtonDisabled]}
+                  onPress={handleInstallUpdate}
+                  disabled={installingUpdate}
+                >
+                  {installingUpdate ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.updateActionText}>New update available — Download</Text>
+                  )}
+                </TouchableOpacity>
+              </>
+            ) : (
+              <Text style={[styles.updateMeta, { color: themeColors.textSecondary }]}>
+                You are using the latest available version.
+              </Text>
+            )}
+          </View>
         </View>
 
       </ScrollView>
@@ -437,6 +529,12 @@ const styles = StyleSheet.create({
   menuSection: {
     paddingHorizontal: SPACING.md,
   },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 14,
+    marginTop: 8,
+  },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -465,6 +563,64 @@ const styles = StyleSheet.create({
     color: '#555',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  updateCard: {
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 12,
+  },
+  updateHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  updateHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  updateTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  updateMeta: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  updateAvailableText: {
+    fontSize: 15,
+    fontWeight: '700',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  updateNotes: {
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: 14,
+  },
+  refreshText: {
+    color: '#E53935',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  updateActionButton: {
+    marginTop: 8,
+    backgroundColor: '#E53935',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  updateActionButtonDisabled: {
+    opacity: 0.7,
+  },
+  updateActionText: {
+    color: '#fff',
+    fontWeight: '800',
+    fontSize: 14,
+    textAlign: 'center',
   },
 
   // Pro Modal Styles

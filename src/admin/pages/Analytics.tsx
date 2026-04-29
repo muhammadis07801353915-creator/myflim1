@@ -12,10 +12,26 @@ export default function AnalyticsAdmin() {
     year: 0,
     total: 0
   });
+  const [onlineUsers, setOnlineUsers] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchStats();
+
+    // Listen for online users
+    const channel = supabase.channel('online-users');
+    
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        // Calculate count of unique keys
+        setOnlineUsers(Object.keys(state).length);
+      })
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
   }, []);
 
   const fetchStats = async () => {
@@ -61,7 +77,22 @@ export default function AnalyticsAdmin() {
             <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-right">
+          <div className="flex flex-col gap-6">
+            {/* Real-time Online Users Card */}
+            <div className="bg-gradient-to-br from-red-600/20 to-red-900/10 border border-red-500/30 p-6 rounded-2xl flex flex-col items-center relative overflow-hidden group">
+              <div className="absolute top-2 right-2 flex items-center gap-1">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+                <span className="text-[10px] text-red-400 font-bold uppercase tracking-tighter">Live</span>
+              </div>
+              <Users className="w-8 h-8 text-red-500 mb-2 group-hover:scale-110 transition-transform" />
+              <span className="text-neutral-400 text-sm font-medium">ئێستا لەسەر وێب سایتن (Online Now)</span>
+              <span className="text-5xl font-black text-white mt-1 drop-shadow-md">{onlineUsers.toLocaleString()}</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-right">
             <div className="bg-neutral-900 border border-neutral-800 p-4 rounded-xl flex flex-col items-center">
               <span className="text-neutral-400 text-sm mb-2 font-medium">ئەمڕۆ (Today)</span>
               <span className="text-3xl font-black text-red-500">{stats.today.toLocaleString()}</span>

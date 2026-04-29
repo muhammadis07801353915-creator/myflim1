@@ -36,6 +36,28 @@ export default function ClientApp() {
       }
     };
     recordVisit();
+
+    // Online Users Tracking (Presence)
+    const channel = supabase.channel('online-users', {
+      config: {
+        presence: {
+          key: 'user-' + Math.random().toString(36).substring(7),
+        },
+      },
+    });
+
+    channel
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      channel.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {

@@ -4,9 +4,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import AppNavigator from './src/navigation/AppNavigator';
+import UpdateChecker from './src/components/UpdateChecker';
 import { useAppStore } from './src/store/useAppStore';
 import { getColors } from './src/theme/theme';
-import UpdateChecker from './src/components/UpdateChecker';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -75,10 +75,8 @@ function App(): React.JSX.Element {
           backgroundColor={themeColors.background} 
         />
         <AppNavigator />
+        <UpdateChecker />
       </NavigationContainer>
-
-      {/* Update Checker - runs silently on every startup */}
-      <UpdateChecker />
 
       {!animationDone && (
         <Animated.View style={[

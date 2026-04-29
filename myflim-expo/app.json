@@ -3,9 +3,9 @@
     "name": "My Flim+",
     "slug": "myflim-mobile",
     "scheme": "myflim",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/icon_backup.png",
+    "icon": "./assets/app-logo-new.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": false,
     "splash": {
@@ -18,9 +18,9 @@
     },
     "android": {
       "package": "com.muhamad.myflim",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon_backup.png",
+        "foregroundImage": "./assets/app-logo-new.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -30,12 +30,11 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-web-browser"
     ],
-    "owner": "myflim2",
+    "owner": "my123",
     "extra": {
       "eas": {
-        "projectId": "ae5cc4b6-0fb3-43a0-bcbc-914656b40aa9"
+        "projectId": "70324676-1be5-413d-9e15-3d59b4c6e3b1"
       }
     }
   }
