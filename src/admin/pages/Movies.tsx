@@ -7,6 +7,7 @@ import {
 import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
 import ImageUpload from '../../components/ImageUpload';
+import SubtitleUpload from '../../components/SubtitleUpload';
 
 export default function Movies() {
   const [contentList, setContentList] = useState<any[]>([]);
@@ -163,21 +164,8 @@ export default function Movies() {
 
   const handleEdit = (item: any) => {
     let parsedServers = [{ name: 'Server 1', url: item.video_url || '', quality: 'Auto' }];
-    let parsedEpisodes = [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }] }];
-
-    try {
-      if (item.video_url && item.video_url.startsWith('[')) {
-        const parsed = JSON.parse(item.video_url);
-        // Check if it's new episode format or old server format
-        if (parsed.length > 0 && parsed[0].number !== undefined) {
-          parsedEpisodes = parsed;
-        } else {
-          parsedServers = parsed;
-        }
-      }
-    } catch (e) {
-      console.error("Error parsing video_url", e);
-    }
+    let parsedSubtitles: any[] = [];
+    let parsedEpisodes = [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }];
 
     try {
       if (item.video_url && item.video_url.startsWith('{')) {
@@ -737,18 +725,15 @@ export default function Movies() {
                                   placeholder="Kurdish"
                                 />
                               </div>
-                              <div className="flex-[3] min-w-[200px] space-y-1">
-                                <label className="text-[10px] text-neutral-500 font-bold uppercase">Subtitle URL (.vtt)</label>
-                                <input 
-                                  type="text" 
+                              <div className="flex-[3] min-w-[200px]">
+                                <SubtitleUpload 
                                   value={sub.url}
-                                  onChange={(e) => {
+                                  onChange={(url) => {
                                     const newEpisodes = [...formData.episodes];
-                                    newEpisodes[epIdx].subtitles[srvIdx].url = e.target.value;
+                                    newEpisodes[epIdx].subtitles[srvIdx].url = url;
                                     setFormData({...formData, episodes: newEpisodes});
                                   }}
-                                  className="w-full bg-neutral-900 border border-neutral-800 rounded px-2 py-1.5 text-xs text-white"
-                                  placeholder="https://..."
+                                  label="Subtitle File / URL"
                                 />
                               </div>
                               <div className="flex-1 min-w-[60px] space-y-1">
@@ -829,18 +814,15 @@ export default function Movies() {
                           className="w-full bg-[#1a1d24] border border-neutral-800 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-red-500 transition" 
                         />
                       </div>
-                      <div className="flex-[3] w-full space-y-1">
-                        <label className="text-xs text-neutral-500 font-bold uppercase">Subtitle URL (.vtt or .srt)</label>
-                        <input 
-                          type="text" 
+                      <div className="flex-[3] w-full">
+                        <SubtitleUpload 
                           value={sub.url}
-                          onChange={(e) => {
+                          onChange={(url) => {
                             const newSubs = [...formData.subtitles];
-                            newSubs[idx].url = e.target.value;
+                            newSubs[idx].url = url;
                             setFormData({...formData, subtitles: newSubs});
                           }}
-                          placeholder="https://example.com/sub.vtt"
-                          className="w-full bg-[#1a1d24] border border-neutral-800 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-red-500 transition" 
+                          label="Subtitle File / URL"
                         />
                       </div>
                       <div className="flex-1 w-full space-y-1">
