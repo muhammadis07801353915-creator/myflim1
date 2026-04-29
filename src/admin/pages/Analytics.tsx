@@ -112,6 +112,7 @@ export default function AnalyticsAdmin() {
               <span className="text-neutral-400 text-sm mb-2 font-medium">ئەم ساڵ (This Year)</span>
               <span className="text-3xl font-black text-purple-500">{stats.year.toLocaleString()}</span>
             </div>
+            </div>
           </div>
         )}
 
