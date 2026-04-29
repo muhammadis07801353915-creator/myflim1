@@ -16,6 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, SPACING, SIZES } from '../theme/theme';
 import { useAppStore } from '../store/useAppStore';
 import MovieCard from '../components/MovieCard';
+import FloatingSocialButton from '../components/FloatingSocialButton';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Play, ExternalLink } from 'lucide-react-native';
 import { Linking } from 'react-native';
@@ -246,6 +247,7 @@ export default function HomeScreen({ navigation }: any) {
         })}
       </View>
       <View style={{ height: 100 }} />
+      <FloatingSocialButton />
     </ScrollView>
   );
 }

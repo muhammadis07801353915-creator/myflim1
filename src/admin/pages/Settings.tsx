@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Bell, DollarSign, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Plus, Trash2, Edit, Key } from 'lucide-react';
+import { Save, Bell, DollarSign, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Plus, Trash2, Edit, Key, Share2, Loader2, Check } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 export default function SettingsAdmin() {
@@ -14,6 +14,7 @@ export default function SettingsAdmin() {
     { id: 'ads', name: 'Ads Management', icon: <DollarSign size={18} /> },
     { id: 'pro_codes', name: 'PRO Codes', icon: <Key size={18} /> },
     { id: 'notifications', name: 'Push Notifications', icon: <Bell size={18} /> },
+    { id: 'social', name: 'Social Media', icon: <Share2 size={18} /> },
     { id: 'app', name: 'App Config', icon: <Smartphone size={18} /> },
   ];
 
@@ -21,7 +22,59 @@ export default function SettingsAdmin() {
     if (activeTab === 'pro_codes') {
       fetchCodes();
     }
+    if (activeTab === 'social') {
+      fetchSocialLinks();
+    }
   }, [activeTab]);
+
+  const [socialLinks, setSocialLinks] = useState({
+    telegram: '',
+    facebook: '',
+    instagram: '',
+    tiktok: ''
+  });
+  const [savingSocial, setSavingSocial] = useState(false);
+
+  const fetchSocialLinks = async () => {
+    const { data } = await supabase.from('settings').select('*').in('key', ['telegram_link', 'facebook_link', 'instagram_link', 'tiktok_link']);
+    if (data) {
+      const links = { telegram: '', facebook: '', instagram: '', tiktok: '' };
+      data.forEach(item => {
+        if (item.key === 'telegram_link') links.telegram = item.value;
+        if (item.key === 'facebook_link') links.facebook = item.value;
+        if (item.key === 'instagram_link') links.instagram = item.value;
+        if (item.key === 'tiktok_link') links.tiktok = item.value;
+      });
+      setSocialLinks(links);
+    }
+  };
+
+  const saveSocialLinks = async () => {
+    setSavingSocial(true);
+    const updates = [
+      { key: 'telegram_link', value: socialLinks.telegram },
+      { key: 'facebook_link', value: socialLinks.facebook },
+      { key: 'instagram_link', value: socialLinks.instagram },
+      { key: 'tiktok_link', value: socialLinks.tiktok }
+    ];
+
+    try {
+      for (const update of updates) {
+        // Upsert logic: check if exists, then update or insert
+        const { data } = await supabase.from('settings').select('id').eq('key', update.key).single();
+        if (data) {
+          await supabase.from('settings').update({ value: update.value }).eq('key', update.key);
+        } else {
+          await supabase.from('settings').insert([update]);
+        }
+      }
+      alert('Social links saved successfully!');
+    } catch (e: any) {
+      alert('Error saving social links: ' + e.message);
+    } finally {
+      setSavingSocial(false);
+    }
+  };
 
   const fetchCodes = async () => {
     setLoadingCodes(true);
@@ -258,6 +311,67 @@ export default function SettingsAdmin() {
                   </tbody>
                 </table>
               </div>
+            </div>
+          )}
+
+          {/* Social Media Tab */}
+          {activeTab === 'social' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium">Social Media Links</h3>
+                <button 
+                  onClick={saveSocialLinks}
+                  disabled={savingSocial}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center space-x-2 disabled:opacity-50"
+                >
+                  {savingSocial ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                  <span>{savingSocial ? 'Saving...' : 'Save Social Links'}</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-300">Telegram Channel</label>
+                  <input 
+                    type="text" 
+                    value={socialLinks.telegram} 
+                    onChange={e => setSocialLinks({...socialLinks, telegram: e.target.value})}
+                    placeholder="https://t.me/..." 
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-300">Facebook Page</label>
+                  <input 
+                    type="text" 
+                    value={socialLinks.facebook} 
+                    onChange={e => setSocialLinks({...socialLinks, facebook: e.target.value})}
+                    placeholder="https://facebook.com/..." 
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-300">Instagram Profile</label>
+                  <input 
+                    type="text" 
+                    value={socialLinks.instagram} 
+                    onChange={e => setSocialLinks({...socialLinks, instagram: e.target.value})}
+                    placeholder="https://instagram.com/..." 
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" 
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-300">TikTok Profile</label>
+                  <input 
+                    type="text" 
+                    value={socialLinks.tiktok} 
+                    onChange={e => setSocialLinks({...socialLinks, tiktok: e.target.value})}
+                    placeholder="https://tiktok.com/@..." 
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" 
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-neutral-500">These links will appear in the floating Telegram button on the homepage.</p>
             </div>
           )}
 

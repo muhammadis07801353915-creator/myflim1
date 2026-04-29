@@ -7,6 +7,7 @@ import { useLanguage } from '../lib/LanguageContext';
 import { getLocalized } from '../lib/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../lib/DataContext';
+import { FloatingSocialButton } from './SocialLinks';
 
 export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
   const router = useRouter();
@@ -340,6 +341,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
           ))}
         </div>
       </div>
+      <FloatingSocialButton />
     </div>
   );
 }
