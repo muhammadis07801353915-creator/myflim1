@@ -425,6 +425,7 @@ export default function Movies() {
                     >
                       <option value="Published">Published</option>
                       <option value="Draft">Draft</option>
+                      <option value="Coming Soon">Coming Soon</option>
                     </select>
                   </div>
                 </div>

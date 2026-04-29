@@ -144,6 +144,9 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   };
 
   const handlePlayClick = () => {
+    if (item.status === 'Coming Soon') {
+      return;
+    }
     if (item.is_pro && !getProStatusLocal()) {
        setShowProModal(true);
        return;
@@ -391,12 +394,19 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           <span>{item.genre}</span>
         </div>
 
-        <button 
-          onClick={handlePlayClick}
-          className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl flex items-center justify-center font-semibold transition mb-8 shadow-lg shadow-red-600/20"
-        >
-          <Play size={20} className="mr-2 fill-current" /> {t.watchNow}
-        </button>
+        {item.status === 'Coming Soon' ? (
+          <div className="w-full bg-amber-500/10 border border-amber-500/20 text-amber-500 py-4 rounded-xl flex items-center justify-center space-x-2 font-bold mb-8">
+            <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+            <span>{language === 'ku' ? 'بەمزوانە بەردەست دەبێت' : language === 'ar' ? 'سيتوفر قريباً' : 'Coming Soon'}</span>
+          </div>
+        ) : (
+          <button 
+            onClick={handlePlayClick}
+            className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl flex items-center justify-center font-semibold transition mb-8 shadow-lg shadow-red-600/20"
+          >
+            <Play size={20} className="mr-2 fill-current" /> {t.watchNow}
+          </button>
+        )}
 
         <div className="flex justify-around border-y border-neutral-800/60 light-mode:border-neutral-200 py-5 mb-8">
           <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group cursor-default">

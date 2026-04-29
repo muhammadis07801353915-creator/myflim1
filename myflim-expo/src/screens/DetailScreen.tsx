@@ -97,6 +97,7 @@ export default function DetailScreen({ route, navigation }: any) {
   `;
 
   const handleWatchNow = () => {
+    if (item.status === 'Coming Soon') return;
     if (item.type === 'Series') {
       // If no episode selected, pick the first one
       const targetIndex = selectedEpisodeIndex !== null ? selectedEpisodeIndex : 0;
@@ -306,21 +307,28 @@ export default function DetailScreen({ route, navigation }: any) {
             </View>
           </View>
 
-          <View style={styles.actionRow}>
-            <TouchableOpacity style={styles.mainPlayButton} onPress={handleWatchNow}>
-              <Play size={20} color="black" fill="black" />
-              <Text style={styles.mainPlayText}>{t.watchNow || 'Watch Now'}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-               style={styles.iconAction}
-               onPress={handleWatchlist}
-            >
-              <Bookmark size={24} color={isWatchlisted ? "#E53935" : "white"} fill={isWatchlisted ? "#E53935" : "transparent"} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconAction}>
-              <Share2 size={24} color="white" />
-            </TouchableOpacity>
-          </View>
+          {item.status === 'Coming Soon' ? (
+            <View style={styles.comingSoonBadge}>
+              <View style={styles.comingSoonDot} />
+              <Text style={styles.comingSoonText}>{language === 'ku' ? 'بەمزوانە بەردەست دەبێت' : language === 'ar' ? 'سيتوفر قريباً' : 'Coming Soon'}</Text>
+            </View>
+          ) : (
+            <View style={styles.actionRow}>
+              <TouchableOpacity style={styles.mainPlayButton} onPress={handleWatchNow}>
+                <Play size={20} color="black" fill="black" />
+                <Text style={styles.mainPlayText}>{t.watchNow || 'Watch Now'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                 style={styles.iconAction}
+                 onPress={handleWatchlist}
+              >
+                <Bookmark size={24} color={isWatchlisted ? "#E53935" : "white"} fill={isWatchlisted ? "#E53935" : "transparent"} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.iconAction}>
+                <Share2 size={24} color="white" />
+              </TouchableOpacity>
+            </View>
+          )}
 
           <View style={styles.infoSection}>
              <Text style={styles.sectionTitle}>{t.overview}</Text>
@@ -669,6 +677,29 @@ const styles = StyleSheet.create({
   metaText: {
     color: '#888',
     fontSize: 14,
+  },
+  comingSoonBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginTop: 20,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.2)',
+  },
+  comingSoonDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#fbbf24',
+  },
+  comingSoonText: {
+    color: '#fbbf24',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   actionRow: {
     flexDirection: 'row',
