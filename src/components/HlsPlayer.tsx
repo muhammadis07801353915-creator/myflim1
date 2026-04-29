@@ -7,9 +7,16 @@ interface HlsPlayerProps {
   autoPlay?: boolean;
   controls?: boolean;
   onError?: () => void;
+  tracks?: Array<{
+    kind: string;
+    src: string;
+    srcLang: string;
+    label: string;
+    default?: boolean;
+  }>;
 }
 
-export default function HlsPlayer({ url, className = '', autoPlay = true, controls = true, onError }: HlsPlayerProps) {
+export default function HlsPlayer({ url, className = '', autoPlay = true, controls = true, onError, tracks }: HlsPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -75,6 +82,17 @@ export default function HlsPlayer({ url, className = '', autoPlay = true, contro
       className={className}
       controls={controls}
       playsInline
-    />
+    >
+      {(tracks || []).map((track, i) => (
+        <track 
+          key={i}
+          kind={track.kind}
+          src={track.src}
+          srcLang={track.srcLang}
+          label={track.label}
+          default={track.default}
+        />
+      ))}
+    </video>
   );
 }

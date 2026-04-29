@@ -1,4 +1,4 @@
-import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle, Type } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import HlsPlayer from './HlsPlayer';
@@ -17,6 +17,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [isPlaying, setIsPlaying] = useState(false);
   const [showServersModal, setShowServersModal] = useState(false);
   const [selectedServerUrl, setSelectedServerUrl] = useState('');
+  const [activeSubtitle, setActiveSubtitle] = useState<string | null>(null);
+  const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(0);
   const [viewCount, setViewCount] = useState(item.views || 0);
   const [viewIncremented, setViewIncremented] = useState(false);
@@ -60,23 +62,43 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     return [];
   }, [item.type, item.video_url]);
 
-  const servers = useMemo(() => {
+  const { servers, subtitles } = useMemo(() => {
+    let parsedServers = [{ name: 'Default Server', url: item.video_url || '', quality: 'Auto' }];
+    let parsedSubtitles = [];
+
     if (item.type === 'Series' && episodes.length > 0) {
-      return episodes[currentEpisodeIndex]?.servers || [];
+      const ep = episodes[currentEpisodeIndex];
+      parsedServers = ep?.servers || [];
+      parsedSubtitles = ep?.subtitles || [];
+      return { servers: parsedServers, subtitles: parsedSubtitles };
     }
 
     try {
-      if (item.video_url && item.video_url.startsWith('[')) {
+      if (item.video_url && item.video_url.startsWith('{')) {
+        const parsed = JSON.parse(item.video_url);
+        parsedServers = parsed.servers || parsedServers;
+        parsedSubtitles = parsed.subtitles || [];
+      } else if (item.video_url && item.video_url.startsWith('[')) {
         const parsed = JSON.parse(item.video_url);
         if (parsed.length > 0 && !parsed[0].servers) {
-          return parsed;
+          parsedServers = parsed;
         }
       }
     } catch (e) {
-      console.error("Error parsing servers", e);
+      console.error("Error parsing servers/subtitles", e);
     }
-    return [{ name: 'Default Server', url: item.video_url || '', quality: 'Auto' }];
+    return { servers: parsedServers, subtitles: parsedSubtitles };
   }, [item.type, item.video_url, episodes, currentEpisodeIndex]);
+
+  const videoTracks = useMemo(() => {
+    return (subtitles || []).map((sub: any) => ({
+      kind: 'subtitles',
+      src: sub.url,
+      srcLang: sub.lang || 'en',
+      label: sub.label || 'Unknown',
+      default: sub.lang === 'ku' // Default to Kurdish if available
+    }));
+  }, [subtitles]);
 
   const incrementViews = async () => {
     if (viewIncremented || !item.id) return;
@@ -221,8 +243,41 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         {isPlaying ? (
           <div className="w-full h-full relative">
             <div className="flex absolute top-4 right-4 z-[110] space-x-2">
+              {videoTracks.length > 0 && (
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowSubtitleMenu(!showSubtitleMenu)}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center transition backdrop-blur-md ${showSubtitleMenu ? 'bg-red-600 text-white' : 'bg-black/60 hover:bg-black/80 text-white'}`}
+                  >
+                    <Type size={20} />
+                  </button>
+                  
+                  {showSubtitleMenu && (
+                    <div className="absolute top-12 right-0 bg-black/90 border border-neutral-800 rounded-xl overflow-hidden min-w-[150px] shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                      <div className="p-3 border-b border-neutral-800 text-[10px] uppercase font-black text-neutral-500 tracking-widest">
+                        Subtitles
+                      </div>
+                      <button 
+                        onClick={() => { setActiveSubtitle(null); setShowSubtitleMenu(false); }}
+                        className={`w-full text-left px-4 py-2 text-sm transition hover:bg-white/10 ${activeSubtitle === null ? 'text-red-500' : 'text-white'}`}
+                      >
+                        Off
+                      </button>
+                      {videoTracks.map((track, i) => (
+                        <button 
+                          key={i}
+                          onClick={() => { setActiveSubtitle(track.src); setShowSubtitleMenu(false); }}
+                          className={`w-full text-left px-4 py-2 text-sm transition hover:bg-white/10 ${activeSubtitle === track.src ? 'text-red-500' : 'text-white'}`}
+                        >
+                          {track.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <button 
-                onClick={() => setIsPlaying(false)} 
+                onClick={() => { setIsPlaying(false); setShowSubtitleMenu(false); }} 
                 className="w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition"
               >
                 <X size={20} />
@@ -255,6 +310,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                   autoPlay 
                   controls 
                   onError={handleReportBroken}
+                  tracks={videoTracks}
                 />
               ) : (
                 (() => {
@@ -268,6 +324,12 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                       playing 
                       onError={handleReportBroken}
                       className="absolute inset-0"
+                      config={{
+                        file: {
+                          attributes: { crossOrigin: 'anonymous' },
+                          tracks: videoTracks
+                        }
+                      }}
                     />
                   );
                 })()

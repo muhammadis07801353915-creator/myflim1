@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import * as Application from 'expo-application';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as FileSystem from 'expo-file-system';
 import * as IntentLauncher from 'expo-intent-launcher';
 import { supabase } from '../api/supabase';
 

@@ -26,7 +26,8 @@ export default function Movies() {
     status: 'Published',
     is_broken: false,
     servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
-    episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }] }]
+    subtitles: [{ label: 'Kurdish', url: '', lang: 'ku' }],
+    episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }]
   });
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -151,7 +152,8 @@ export default function Movies() {
       status: 'Published',
       is_broken: false,
       servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
-      episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }] }]
+      subtitles: [],
+      episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }]
     });
     setEditingId(null);
     setErrorMsg(null);
@@ -177,7 +179,26 @@ export default function Movies() {
       console.error("Error parsing video_url", e);
     }
 
+    try {
+      if (item.video_url && item.video_url.startsWith('{')) {
+        const parsed = JSON.parse(item.video_url);
+        parsedServers = parsed.servers || parsedServers;
+        parsedSubtitles = parsed.subtitles || [];
+      } else if (item.video_url && item.video_url.startsWith('[')) {
+        const parsed = JSON.parse(item.video_url);
+        // Check if it's new episode format or old server format
+        if (parsed.length > 0 && parsed[0].number !== undefined) {
+          parsedEpisodes = parsed;
+        } else {
+          parsedServers = parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Error parsing video_url", e);
+    }
+
     setFormData({
+      ...formData,
       title: item.title || '',
       title_ar: item.title_ar || '',
       title_en: item.title_en || '',
@@ -198,6 +219,7 @@ export default function Movies() {
       status: item.status || 'Published',
       is_broken: item.is_broken || false,
       servers: parsedServers,
+      subtitles: parsedSubtitles,
       episodes: parsedEpisodes
     });
     setEditingId(item.id);
@@ -246,7 +268,9 @@ export default function Movies() {
       status: formData.status,
       is_broken: formData.is_broken,
       top_rank: formData.top_rank && !isNaN(parseInt(formData.top_rank)) ? parseInt(formData.top_rank) : null,
-      video_url: formData.type === 'Series' ? JSON.stringify(formData.episodes) : JSON.stringify(formData.servers)
+      video_url: formData.type === 'Series' 
+        ? JSON.stringify(formData.episodes) 
+        : JSON.stringify({ servers: formData.servers, subtitles: formData.subtitles })
     };
 
     try {
@@ -594,7 +618,7 @@ export default function Movies() {
                       </div>
 
                       {/* Episode Servers */}
-                      <div className="ml-0 md:ml-12 space-y-4">
+                      <div className="ml-0 md:ml-12 space-y-4 mb-8">
                         <div className="flex items-center justify-between">
                           <h4 className="text-sm font-bold text-neutral-400 uppercase">Servers for Episode {episode.number}</h4>
                           <button 
@@ -677,6 +701,172 @@ export default function Movies() {
                           ))}
                         </div>
                       </div>
+
+                      {/* Episode Subtitles */}
+                      <div className="ml-0 md:ml-12 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-bold text-neutral-400 uppercase">Subtitles for Episode {episode.number}</h4>
+                          <button 
+                            onClick={() => {
+                              const newEpisodes = [...formData.episodes];
+                              if (!newEpisodes[epIdx].subtitles) newEpisodes[epIdx].subtitles = [];
+                              newEpisodes[epIdx].subtitles.push({ label: '', url: '', lang: '' });
+                              setFormData({...formData, episodes: newEpisodes});
+                            }}
+                            className="text-xs bg-neutral-800 hover:bg-neutral-700 px-2 py-1 rounded transition flex items-center space-x-1"
+                          >
+                            <Plus size={12} />
+                            <span>Add Subtitle</span>
+                          </button>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 gap-3">
+                          {(episode.subtitles || []).map((sub, srvIdx) => (
+                            <div key={srvIdx} className="bg-[#1a1d24] border border-neutral-800 rounded-lg p-3 flex flex-wrap gap-3 items-end border-l-4 border-l-red-500">
+                              <div className="flex-1 min-w-[120px] space-y-1">
+                                <label className="text-[10px] text-neutral-500 font-bold uppercase">Language</label>
+                                <input 
+                                  type="text" 
+                                  value={sub.label}
+                                  onChange={(e) => {
+                                    const newEpisodes = [...formData.episodes];
+                                    newEpisodes[epIdx].subtitles[srvIdx].label = e.target.value;
+                                    setFormData({...formData, episodes: newEpisodes});
+                                  }}
+                                  className="w-full bg-neutral-900 border border-neutral-800 rounded px-2 py-1.5 text-xs text-white"
+                                  placeholder="Kurdish"
+                                />
+                              </div>
+                              <div className="flex-[3] min-w-[200px] space-y-1">
+                                <label className="text-[10px] text-neutral-500 font-bold uppercase">Subtitle URL (.vtt)</label>
+                                <input 
+                                  type="text" 
+                                  value={sub.url}
+                                  onChange={(e) => {
+                                    const newEpisodes = [...formData.episodes];
+                                    newEpisodes[epIdx].subtitles[srvIdx].url = e.target.value;
+                                    setFormData({...formData, episodes: newEpisodes});
+                                  }}
+                                  className="w-full bg-neutral-900 border border-neutral-800 rounded px-2 py-1.5 text-xs text-white"
+                                  placeholder="https://..."
+                                />
+                              </div>
+                              <div className="flex-1 min-w-[60px] space-y-1">
+                                <label className="text-[10px] text-neutral-500 font-bold uppercase">Lang Code</label>
+                                <input 
+                                  type="text" 
+                                  value={sub.lang}
+                                  onChange={(e) => {
+                                    const newEpisodes = [...formData.episodes];
+                                    newEpisodes[epIdx].subtitles[srvIdx].lang = e.target.value;
+                                    setFormData({...formData, episodes: newEpisodes});
+                                  }}
+                                  className="w-full bg-neutral-900 border border-neutral-800 rounded px-2 py-1.5 text-xs text-white"
+                                  placeholder="ku"
+                                />
+                              </div>
+                              <button 
+                                onClick={() => {
+                                  const newEpisodes = [...formData.episodes];
+                                  newEpisodes[epIdx].subtitles.splice(srvIdx, 1);
+                                  setFormData({...formData, episodes: newEpisodes});
+                                }}
+                                className="mb-1 text-neutral-600 hover:text-red-500 p-1"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          ))}
+                          {(episode.subtitles || []).length === 0 && (
+                            <div className="text-[10px] text-neutral-600 italic">No subtitles for this episode.</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'subtitles' && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-medium">Manage Subtitles</h3>
+                    <p className="text-sm text-neutral-400">Add subtitle files (.vtt, .srt) for this movie</p>
+                  </div>
+                  <button 
+                    onClick={() => setFormData({
+                      ...formData, 
+                      subtitles: [...formData.subtitles, { label: '', url: '', lang: '' }]
+                    })}
+                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition flex items-center space-x-1"
+                  >
+                    <Plus size={16} />
+                    <span>Add Subtitle</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {formData.subtitles.length === 0 && (
+                    <div className="text-center py-10 border-2 border-dashed border-neutral-800 rounded-xl text-neutral-500">
+                      No subtitles added yet.
+                    </div>
+                  )}
+                  {formData.subtitles.map((sub, idx) => (
+                    <div key={idx} className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex flex-col md:flex-row gap-4 items-end">
+                      <div className="flex-1 w-full space-y-1">
+                        <label className="text-xs text-neutral-500 font-bold uppercase">Language / Label</label>
+                        <input 
+                          type="text" 
+                          value={sub.label}
+                          onChange={(e) => {
+                            const newSubs = [...formData.subtitles];
+                            newSubs[idx].label = e.target.value;
+                            setFormData({...formData, subtitles: newSubs});
+                          }}
+                          placeholder="e.g. Kurdish, English"
+                          className="w-full bg-[#1a1d24] border border-neutral-800 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-red-500 transition" 
+                        />
+                      </div>
+                      <div className="flex-[3] w-full space-y-1">
+                        <label className="text-xs text-neutral-500 font-bold uppercase">Subtitle URL (.vtt or .srt)</label>
+                        <input 
+                          type="text" 
+                          value={sub.url}
+                          onChange={(e) => {
+                            const newSubs = [...formData.subtitles];
+                            newSubs[idx].url = e.target.value;
+                            setFormData({...formData, subtitles: newSubs});
+                          }}
+                          placeholder="https://example.com/sub.vtt"
+                          className="w-full bg-[#1a1d24] border border-neutral-800 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-red-500 transition" 
+                        />
+                      </div>
+                      <div className="flex-1 w-full space-y-1">
+                        <label className="text-xs text-neutral-500 font-bold uppercase">Lang Code</label>
+                        <input 
+                          type="text" 
+                          value={sub.lang}
+                          onChange={(e) => {
+                            const newSubs = [...formData.subtitles];
+                            newSubs[idx].lang = e.target.value;
+                            setFormData({...formData, subtitles: newSubs});
+                          }}
+                          placeholder="ku, en, ar"
+                          className="w-full bg-[#1a1d24] border border-neutral-800 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-red-500 transition" 
+                        />
+                      </div>
+                      <button 
+                        onClick={() => {
+                          const newSubs = [...formData.subtitles];
+                          newSubs.splice(idx, 1);
+                          setFormData({...formData, subtitles: newSubs});
+                        }}
+                        className="mb-1 text-neutral-500 hover:text-red-500 p-2 bg-[#1a1d24] border border-neutral-800 rounded-md"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -755,8 +945,7 @@ export default function Movies() {
               </div>
             )}
 
-            {/* Placeholders for other tabs */}
-            {(activeTab === 'subtitles' || activeTab === 'cast') && (
+            {activeTab === 'cast' && (
               <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
                 <p>This section will allow managing {activeTab}.</p>
                 <p className="text-sm mt-2">UI coming in next iterations.</p>
