@@ -53,10 +53,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     try {
       if (item.video_url && item.video_url.startsWith('[')) {
         const parsed = JSON.parse(item.video_url);
-        // Only return if it looks like episode format
-        if (parsed.length > 0 && parsed[0].servers) {
-          return parsed;
-        }
+        if (parsed.length > 0 && parsed[0].servers) return parsed;
+      } else if (item.video_url && item.video_url.startsWith('{')) {
+        const parsed = JSON.parse(item.video_url);
+        if (parsed.episodes) return parsed.episodes;
       }
     } catch (e) {
       console.error("Error parsing episodes", e);
@@ -235,8 +235,15 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const handleDownload = () => {
     if (isDownloading) return;
     
-    // Check if download_url exists
-    const downloadUrl = item.download_url;
+    // Get download_url from item or from parsed video_url
+    let downloadUrl = item.download_url;
+    if (!downloadUrl && item.video_url && item.video_url.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(item.video_url);
+        downloadUrl = parsed.download_url;
+      } catch (e) {}
+    }
+    
     if (!downloadUrl) {
       alert(language === 'ku' ? 'لینکی داوڵۆند بەردەست نییە بۆ ئەم فیلمە' : 'Download link not available for this movie');
       return;

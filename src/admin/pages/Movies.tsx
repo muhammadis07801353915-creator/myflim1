@@ -168,15 +168,17 @@ export default function Movies() {
     let parsedServers = [{ name: 'Server 1', url: item.video_url || '', quality: 'Auto' }];
     let parsedSubtitles: any[] = [];
     let parsedEpisodes = [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }];
+    let extractedDownloadUrl = '';
 
     try {
       if (item.video_url && item.video_url.startsWith('{')) {
         const parsed = JSON.parse(item.video_url);
         parsedServers = parsed.servers || parsedServers;
         parsedSubtitles = parsed.subtitles || [];
+        extractedDownloadUrl = parsed.download_url || '';
+        if (parsed.episodes) parsedEpisodes = parsed.episodes;
       } else if (item.video_url && item.video_url.startsWith('[')) {
         const parsed = JSON.parse(item.video_url);
-        // Check if it's new episode format or old server format
         if (parsed.length > 0 && parsed[0].number !== undefined) {
           parsedEpisodes = parsed;
         } else {
@@ -208,7 +210,7 @@ export default function Movies() {
       top_rank: item.top_rank?.toString() || '',
       status: item.status || 'Published',
       is_broken: item.is_broken || false,
-      download_url: item.download_url || '',
+      download_url: extractedDownloadUrl,
       servers: parsedServers,
       subtitles: parsedSubtitles,
       episodes: parsedEpisodes
@@ -258,11 +260,10 @@ export default function Movies() {
       is_pro: formData.is_pro,
       status: formData.status,
       is_broken: formData.is_broken,
-      download_url: formData.download_url,
       top_rank: formData.top_rank && !isNaN(parseInt(formData.top_rank)) ? parseInt(formData.top_rank) : null,
       video_url: formData.type === 'Series' 
-        ? JSON.stringify(formData.episodes) 
-        : JSON.stringify({ servers: formData.servers, subtitles: formData.subtitles })
+        ? JSON.stringify({ episodes: formData.episodes, download_url: formData.download_url }) 
+        : JSON.stringify({ servers: formData.servers, subtitles: formData.subtitles, download_url: formData.download_url })
     };
 
     try {
