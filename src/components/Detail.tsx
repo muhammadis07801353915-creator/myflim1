@@ -1,7 +1,7 @@
 import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle, Type } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import ReactPlayer from 'react-player';
-import HlsPlayer from './HlsPlayer';
+import PremiumPlayer from './PremiumPlayer';
 import { useWatchlist } from '../lib/useWatchlist';
 import { useHardwareBack } from '../lib/useHardwareBack';
 import { Browser } from '@capacitor/browser';
@@ -367,36 +367,14 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                     referrerPolicy="no-referrer"
                   ></iframe>
                 </div>
-              ) : isM3u8 ? (
-                <HlsPlayer 
+              ) : (
+                <PremiumPlayer 
                   url={selectedServerUrl} 
-                  className="w-full h-full absolute inset-0 object-contain bg-black"
-                  autoPlay 
-                  controls 
+                  title={getLocalized(item, 'title', language)}
+                  onBack={() => setIsPlaying(false)}
                   onError={handleReportBroken}
                   tracks={videoTracks}
                 />
-              ) : (
-                (() => {
-                  const Player = ReactPlayer as any;
-                  return (
-                    <Player 
-                      url={selectedServerUrl} 
-                      width="100%" 
-                      height="100%" 
-                      controls 
-                      playing 
-                      onError={handleReportBroken}
-                      className="absolute inset-0"
-                      config={{
-                        file: {
-                          attributes: { crossOrigin: 'anonymous' },
-                          tracks: videoTracks
-                        }
-                      }}
-                    />
-                  );
-                })()
               );
             })()}
           </div>
