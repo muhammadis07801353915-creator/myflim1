@@ -180,9 +180,14 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     setIsPlaying(true);
   };
 
-  const isDirectVideo = selectedServerUrl?.toLowerCase().split('?')[0].endsWith('.mp4') || 
-                        selectedServerUrl?.toLowerCase().includes('.m3u8');
-  const isIframeLink = !isDirectVideo;
+  const isEmbedUrl = (url: string) => {
+    if (!url) return false;
+    const lowerUrl = url.toLowerCase().split('?')[0];
+    const isDirect = lowerUrl.endsWith('.mp4') || lowerUrl.includes('.m3u8');
+    return !isDirect;
+  };
+
+  const isIframeLink = isEmbedUrl(selectedServerUrl);
   
   // Convert standard links to embed links if needed
   const getEmbedUrl = (url: string) => {
