@@ -260,6 +260,11 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                       <div className="p-3 border-b border-neutral-800 text-[10px] uppercase font-black text-neutral-500 tracking-widest">
                         Subtitles
                       </div>
+                      {isIframeLink && (
+                        <div className="p-3 text-[10px] text-amber-500 bg-amber-500/10 leading-tight border-b border-neutral-800">
+                          ژێرنووس لەگەڵ ئەم جۆرە لینکە (Ok.ru/Embed) کار ناکات. تکایە لینکی ڕاستەوخۆ بەکاربهێنە.
+                        </div>
+                      )}
                       <button 
                         onClick={() => { setActiveSubtitle(null); setShowSubtitleMenu(false); }}
                         className={`w-full text-left px-4 py-2 text-sm transition hover:bg-white/10 ${activeSubtitle === null ? 'text-red-500' : 'text-white'}`}

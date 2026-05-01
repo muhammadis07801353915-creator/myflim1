@@ -17,15 +17,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, SPACING, SIZES } from '../theme/theme';
 import { useAppStore } from '../store/useAppStore';
-import { Search, ChevronDown, Check, X, ExternalLink } from 'lucide-react-native';
-import { Linking } from 'react-native';
+import { Search, ChevronDown, Check, X } from 'lucide-react-native';
 import { translations } from '../utils/translations';
 
 const { width } = Dimensions.get('window');
 
 export default function LiveTVScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { liveTv, channelCategories, banners, loading, fetchInitialData, language } = useAppStore();
+  const { liveTv, channelCategories, loading, fetchInitialData, language } = useAppStore();
   const t = translations[language];
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -142,20 +141,13 @@ export default function LiveTVScreen({ navigation }: any) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Real Banners */}
-        {banners.filter(b => b.type === 'top' || b.type === 'interspersed').map((banner) => (
-          <TouchableOpacity 
-            key={banner.id}
-            style={styles.promoContainer}
-            onPress={() => banner.link && Linking.openURL(banner.link)}
-          >
-            <Image 
-              source={{ uri: banner.image }} 
-              style={styles.promoImage} 
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-        ))}
+        {/* Mock Promo Banner */}
+        <View style={styles.promoContainer}>
+          <Image 
+            source={{ uri: 'https://images.unsplash.com/photo-1595769816263-9b910be24d5f?q=80&w=800&auto=format&fit=crop' }} 
+            style={styles.promoImage} 
+          />
+        </View>
 
         {channelCategories.map(renderCategory)}
       </ScrollView>

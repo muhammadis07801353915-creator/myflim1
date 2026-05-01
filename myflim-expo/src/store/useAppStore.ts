@@ -10,7 +10,6 @@ interface AppState {
   liveTv: any[];
   channelCategories: any[];
   watchlist: any[];
-  banners: any[];
   user: {
     name: string;
     image: string;
@@ -45,7 +44,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   liveTv: [],
   channelCategories: [],
   watchlist: [],
-  banners: [],
   user: DEFAULT_USER,
   theme: 'dark',
   language: 'ku', // Default language is Kurdish
@@ -60,21 +58,18 @@ export const useAppStore = create<AppState>((set, get) => ({
         { data: allMovies, error: moviesError },
         { data: movieLists, error: listsError },
         { data: channels, error: channelsError },
-        { data: channelCats, error: catError },
-        { data: banners, error: bannersError }
+        { data: channelCats, error: catError }
       ] = await Promise.all([
         supabase.from('movies').select('*').order('id', { ascending: false }),
         supabase.from('movie_lists').select('*').order('order_index', { ascending: true }),
         supabase.from('channels').select('*').order('order_index', { ascending: true }),
-        supabase.from('channel_categories').select('*').order('order_index', { ascending: true }),
-        supabase.from('banners').select('*').order('order_index', { ascending: true })
+        supabase.from('channel_categories').select('*').order('order_index', { ascending: true })
       ]);
 
       if (moviesError) throw moviesError;
       if (listsError) throw listsError;
       if (channelsError) throw channelsError;
       if (catError) throw catError;
-      if (bannersError) throw bannersError;
 
       // Type-based filtering for main content
       const movies = allMovies?.filter(item => item.type === 'Movie') || [];
@@ -118,7 +113,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         liveTv: channels || [],
         channelCategories: channelCats || [],
         watchlist: storedWatchlist,
-        banners: banners || [],
         user: storedUser,
         theme: storedTheme,
         language: storedLanguage,

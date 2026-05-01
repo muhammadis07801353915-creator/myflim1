@@ -16,10 +16,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, SPACING, SIZES } from '../theme/theme';
 import { useAppStore } from '../store/useAppStore';
 import MovieCard from '../components/MovieCard';
-import FloatingSocialButton from '../components/FloatingSocialButton';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Play, ExternalLink } from 'lucide-react-native';
-import { Linking } from 'react-native';
+import { Play } from 'lucide-react-native';
 import { translations } from '../utils/translations';
 import { getLocalized } from '../utils/localization';
 
@@ -32,7 +30,6 @@ export default function HomeScreen({ navigation }: any) {
     series, 
     anime, 
     categories, 
-    banners,
     loading, 
     error,
     fetchInitialData,
@@ -162,27 +159,6 @@ export default function HomeScreen({ navigation }: any) {
         <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={COLORS.primary} />
       }
     >
-      {/* Banners & Ads from Database */}
-      {banners.length > 0 && (
-        <View style={styles.bannerContainer}>
-          <FlatList
-            data={banners.filter(b => b.type === 'top')}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity 
-                onPress={() => item.link && Linking.openURL(item.link)}
-                activeOpacity={0.9}
-              >
-                <Image source={{ uri: item.image }} style={styles.bannerImage} />
-              </TouchableOpacity>
-            )}
-            keyExtractor={item => item.id.toString()}
-          />
-        </View>
-      )}
-
       {/* Featured Header / Billboard */}
       {featured.length > 0 && (
         <View style={[styles.billboardContainer, { paddingTop: insets.top + 10 }]}>
@@ -247,7 +223,6 @@ export default function HomeScreen({ navigation }: any) {
         })}
       </View>
       <View style={{ height: 100 }} />
-      <FloatingSocialButton />
     </ScrollView>
   );
 }
@@ -262,16 +237,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#0F0F13',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  bannerContainer: {
-    width: width,
-    height: 180,
-    marginBottom: 20,
-  },
-  bannerImage: {
-    width: width,
-    height: '100%',
-    resizeMode: 'cover',
   },
   billboardContainer: {
     width: width,

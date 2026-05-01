@@ -12,13 +12,8 @@
       }
     },
     "production": {
-      "node": "20.9.0",
       "android": {
-        "buildType": "apk",
-        "image": "latest"
-      },
-      "env": {
-        "BUILD_NUMBER": "5"
+        "buildType": "apk"
       }
     }
   },

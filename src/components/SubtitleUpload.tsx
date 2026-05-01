@@ -24,7 +24,7 @@ export default function SubtitleUpload({ value, onChange, label = "Subtitle File
 
       // Try to upload to 'subtitles' bucket. If it doesn't exist, this might fail.
       const { data, error } = await supabase.storage
-        .from('movies') // Using 'movies' bucket as it likely exists and has RLS for uploads
+        .from('subtitles')
         .upload(filePath, file);
 
       if (error) {
@@ -33,7 +33,7 @@ export default function SubtitleUpload({ value, onChange, label = "Subtitle File
       }
 
       const { data: { publicUrl } } = supabase.storage
-        .from('movies')
+        .from('subtitles')
         .getPublicUrl(filePath);
 
       onChange(publicUrl);
@@ -88,11 +88,16 @@ export default function SubtitleUpload({ value, onChange, label = "Subtitle File
             type="file" 
             ref={fileInputRef}
             onChange={handleUpload}
-            accept=".vtt,.srt"
+            accept=".vtt,.srt,.zip,.rar,.zr"
             className="hidden" 
           />
         </div>
-        <p className="text-[10px] text-neutral-500">Upload a .vtt or .srt file or paste a direct link.</p>
+        <p className="text-[10px] text-neutral-500">
+          Upload a .vtt or .srt file. You can also upload .zip/.rar but they won't work in the player directly.
+        </p>
+        <div className="bg-amber-500/10 border border-amber-500/20 p-2 rounded text-[10px] text-amber-500 mt-2">
+          تێبینی: ژێرنووسی دەرەکی تەنها لەگەڵ لینکی ڕاستەوخۆ (MP4/M3U8) کار دەکات، نەک لەگەڵ Ok.ru یان YouTube.
+        </div>
       </div>
     </div>
   );

@@ -15,8 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, SIZES } from '../theme/theme';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, Play, Bookmark, Share2, Star, Clock, Calendar, Users, X, Server, Eye, ExternalLink } from 'lucide-react-native';
-import { Linking } from 'react-native';
+import { ChevronLeft, Play, Bookmark, Share2, Star, Clock, Calendar, Users, X, Server, Eye } from 'lucide-react-native';
 import { Video, ResizeMode } from 'expo-av';
 import { WebView } from 'react-native-webview';
 import { useAppStore } from '../store/useAppStore';
@@ -60,20 +59,7 @@ export default function DetailScreen({ route, navigation }: any) {
     }
   }
 
-  const streamData = (() => {
-    if (item.type === 'LiveTV') {
-      try {
-        if (item.stream_url?.startsWith('{')) {
-          const parsed = JSON.parse(item.stream_url);
-          return { url: parsed.url, profile_link: parsed.profile_link };
-        }
-      } catch (e) {}
-      return { url: item.stream_url, profile_link: null };
-    }
-    return { url: null, profile_link: null };
-  })();
-
-  const activeVideoUrl_original = currentVideoUrl || (item.type === 'LiveTV' ? streamData.url : (servers.length > 0 ? (servers[selectedEpisodeIndex ?? 0].url || servers[selectedEpisodeIndex ?? 0].servers?.[0]?.url) : null));
+  const activeVideoUrl_original = currentVideoUrl || (item.type === 'LiveTV' ? item.stream_url : (servers.length > 0 ? (servers[selectedEpisodeIndex ?? 0].url || servers[selectedEpisodeIndex ?? 0].servers?.[0]?.url) : null));
   
   // Transform OK.ru links to embed if needed
   let activeVideoUrl = activeVideoUrl_original;
@@ -97,7 +83,6 @@ export default function DetailScreen({ route, navigation }: any) {
   `;
 
   const handleWatchNow = () => {
-    if (item.status === 'Coming Soon') return;
     if (item.type === 'Series') {
       // If no episode selected, pick the first one
       const targetIndex = selectedEpisodeIndex !== null ? selectedEpisodeIndex : 0;
@@ -212,21 +197,10 @@ export default function DetailScreen({ route, navigation }: any) {
             <Text style={styles.liveCategory}>{item.category || 'News'}</Text>
           </View>
           
-          <View style={styles.liveInfoRight}>
-            {streamData.profile_link && (
-              <TouchableOpacity 
-                style={styles.liveProfileButton}
-                onPress={() => Linking.openURL(streamData.profile_link)}
-              >
-                <ExternalLink size={16} color="#4285F4" />
-                <Text style={styles.liveProfileText}>Profile</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={styles.livePresenceButton}>
-              <Users size={16} color="#E53935" />
-              <Text style={styles.livePresenceText}>LIVE</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity style={styles.livePresenceButton}>
+            <Users size={16} color="#E53935" />
+            <Text style={styles.livePresenceText}>LIVE</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -307,28 +281,21 @@ export default function DetailScreen({ route, navigation }: any) {
             </View>
           </View>
 
-          {item.status === 'Coming Soon' ? (
-            <View style={styles.comingSoonBadge}>
-              <View style={styles.comingSoonDot} />
-              <Text style={styles.comingSoonText}>{language === 'ku' ? 'بەمزوانە بەردەست دەبێت' : language === 'ar' ? 'سيتوفر قريباً' : 'Coming Soon'}</Text>
-            </View>
-          ) : (
-            <View style={styles.actionRow}>
-              <TouchableOpacity style={styles.mainPlayButton} onPress={handleWatchNow}>
-                <Play size={20} color="black" fill="black" />
-                <Text style={styles.mainPlayText}>{t.watchNow || 'Watch Now'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                 style={styles.iconAction}
-                 onPress={handleWatchlist}
-              >
-                <Bookmark size={24} color={isWatchlisted ? "#E53935" : "white"} fill={isWatchlisted ? "#E53935" : "transparent"} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconAction}>
-                <Share2 size={24} color="white" />
-              </TouchableOpacity>
-            </View>
-          )}
+          <View style={styles.actionRow}>
+            <TouchableOpacity style={styles.mainPlayButton} onPress={handleWatchNow}>
+              <Play size={20} color="black" fill="black" />
+              <Text style={styles.mainPlayText}>{t.watchNow || 'Watch Now'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+               style={styles.iconAction}
+               onPress={handleWatchlist}
+            >
+              <Bookmark size={24} color={isWatchlisted ? "#E53935" : "white"} fill={isWatchlisted ? "#E53935" : "transparent"} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconAction}>
+              <Share2 size={24} color="white" />
+            </TouchableOpacity>
+          </View>
 
           <View style={styles.infoSection}>
              <Text style={styles.sectionTitle}>{t.overview}</Text>
@@ -558,28 +525,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    gap: 10,
-  },
-  liveInfoRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  liveProfileButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(66,133,244,0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(66,133,244,0.2)',
-  },
-  liveProfileText: {
-    color: '#4285F4',
-    fontSize: 12,
-    fontWeight: 'bold',
   },
   liveInfoLeft: {
     flex: 1,
@@ -677,29 +622,6 @@ const styles = StyleSheet.create({
   metaText: {
     color: '#888',
     fontSize: 14,
-  },
-  comingSoonBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(251, 191, 36, 0.1)',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginTop: 20,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.2)',
-  },
-  comingSoonDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#fbbf24',
-  },
-  comingSoonText: {
-    color: '#fbbf24',
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   actionRow: {
     flexDirection: 'row',
