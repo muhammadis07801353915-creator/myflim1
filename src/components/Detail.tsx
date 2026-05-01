@@ -296,54 +296,18 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   };
 
   return (
-    <div className={`bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black ${isPlaying ? 'overflow-hidden' : 'pb-24'}`}>
+    <div className="bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black pb-24">
       {/* Header / Backdrop or Player */}
-      <div className={`relative w-full bg-black transition-all duration-500 ${isPlaying ? 'fixed inset-0 z-[500] flex items-center justify-center' : 'aspect-video md:h-[70vh]'}`}>
+      <div className={`relative w-full bg-black aspect-video md:h-[70vh] md:aspect-auto`}>
         {isPlaying ? (
-          <div className="w-full h-full relative flex items-center justify-center bg-black">
-            {/* Top Bar for Full Screen Player */}
-            <div className="flex absolute top-6 left-6 right-6 z-[600] justify-between items-center opacity-0 hover:opacity-100 transition-opacity duration-300">
-               <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                  <button 
-                    onClick={() => { setIsPlaying(false); setShowSubtitleMenu(false); }} 
-                    className="w-12 h-12 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center text-white backdrop-blur-md transition"
-                  >
-                    <ArrowLeft size={24} />
-                  </button>
-                  <h2 className="text-lg font-bold text-white drop-shadow-md">{getLocalized(item, 'title', language)}</h2>
-               </div>
-               
-               <div className="flex space-x-3">
-                {videoTracks.length > 0 && (
-                  <div className="relative">
-                    <button 
-                      onClick={() => setShowSubtitleMenu(!showSubtitleMenu)}
-                      className={`w-12 h-12 rounded-full flex items-center justify-center transition backdrop-blur-md ${showSubtitleMenu ? 'bg-red-600 text-white' : 'bg-black/40 hover:bg-black/60 text-white'}`}
-                    >
-                      <Type size={24} />
-                    </button>
-                    
-                    {showSubtitleMenu && (
-                      <div className="absolute top-14 right-0 bg-black/90 border border-neutral-800 rounded-xl overflow-hidden min-w-[180px] shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-[700]">
-                        <div className="p-3 border-b border-neutral-800 text-[10px] uppercase font-black text-neutral-500 tracking-widest">Subtitles</div>
-                        <button 
-                          onClick={() => { setActiveSubtitle(null); setShowSubtitleMenu(false); }}
-                          className={`w-full text-left px-4 py-3 text-sm transition hover:bg-white/10 ${activeSubtitle === null ? 'text-red-500' : 'text-white'}`}
-                        >Off</button>
-                        {videoTracks.map((track, i) => (
-                          <button 
-                            key={i}
-                            onClick={() => { setActiveSubtitle(track.src); setShowSubtitleMenu(false); }}
-                            className={`w-full text-left px-4 py-3 text-sm transition hover:bg-white/10 ${activeSubtitle === track.src ? 'text-red-500' : 'text-white'}`}
-                          >
-                            {track.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-               </div>
+          <div className="w-full h-full relative bg-black flex items-center justify-center">
+            <div className="flex absolute top-4 right-4 z-[110] space-x-2">
+              <button 
+                onClick={() => { setIsPlaying(false); setShowSubtitleMenu(false); }} 
+                className="w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition"
+              >
+                <X size={20} />
+              </button>
             </div>
             
             {(() => {
@@ -357,11 +321,11 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                 <div className="w-full h-full relative bg-black flex items-center justify-center">
                   <iframe 
                     src={getEmbedUrl(selectedServerUrl)} 
-                    className="w-full h-full border-0"
+                    className="w-full h-full border-0 absolute inset-0 z-50"
                     allowFullScreen
                     webkitallowfullscreen="true"
                     mozallowfullscreen="true"
-                    allow="autoplay; fullscreen; picture-in-picture; encrypted-media; accelerometer; gyroscope"
+                    allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write"
                     referrerPolicy="no-referrer"
                   ></iframe>
                 </div>
