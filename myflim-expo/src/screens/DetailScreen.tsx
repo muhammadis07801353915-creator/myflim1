@@ -61,11 +61,17 @@ export default function DetailScreen({ route, navigation }: any) {
 
   const activeVideoUrl_original = currentVideoUrl || (item.type === 'LiveTV' ? item.stream_url : (servers.length > 0 ? (servers[selectedEpisodeIndex ?? 0].url || servers[selectedEpisodeIndex ?? 0].servers?.[0]?.url) : null));
   
-  // Transform OK.ru links to embed if needed
+  // Transform links to embed if needed
   let activeVideoUrl = activeVideoUrl_original;
   if (activeVideoUrl?.includes('ok.ru/video/')) {
     activeVideoUrl = activeVideoUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
   }
+  if (activeVideoUrl?.includes('dailymotion.com/video/')) {
+    activeVideoUrl = activeVideoUrl.replace('dailymotion.com/video/', 'dailymotion.com/embed/video/');
+  }
+
+  const isDirectVideo = activeVideoUrl?.toLowerCase().split('?')[0].endsWith('.mp4') || 
+                        activeVideoUrl?.toLowerCase().includes('.m3u8');
 
   const injectedJS = `
     (function() {
@@ -213,26 +219,36 @@ export default function DetailScreen({ route, navigation }: any) {
       <ScrollView ref={scrollRef} bounces={false}>
         <View style={styles.headerContainer}>
           {isPlaying && activeVideoUrl ? (
-            <WebView
-              key={activeVideoUrl}
-              source={{ uri: activeVideoUrl }}
-              style={StyleSheet.absoluteFillObject}
-              allowsInlineMediaPlayback={true}
-              mediaPlaybackRequiresUserAction={false}
-              javaScriptEnabled={true}
-              domStorageEnabled={true}
-              injectedJavaScript={injectedJS}
-              userAgent="Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.181 Mobile Safari/537.36"
-              originWhitelist={['*']}
-              allowsFullscreenVideo={true}
-              androidLayerType="hardware"
-              startInLoadingState={true}
-              renderLoading={() => (
-                <View style={[StyleSheet.absoluteFill, { backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }]}>
-                  <ActivityIndicator color="#E53935" size="large" />
-                </View>
-              )}
-            />
+            isDirectVideo ? (
+              <Video
+                source={{ uri: activeVideoUrl }}
+                style={StyleSheet.absoluteFillObject}
+                resizeMode={ResizeMode.CONTAIN}
+                shouldPlay
+                useNativeControls
+              />
+            ) : (
+              <WebView
+                key={activeVideoUrl}
+                source={{ uri: activeVideoUrl }}
+                style={StyleSheet.absoluteFillObject}
+                allowsInlineMediaPlayback={true}
+                mediaPlaybackRequiresUserAction={false}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                injectedJavaScript={injectedJS}
+                userAgent="Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.181 Mobile Safari/537.36"
+                originWhitelist={['*']}
+                allowsFullscreenVideo={true}
+                androidLayerType="hardware"
+                startInLoadingState={true}
+                renderLoading={() => (
+                  <View style={[StyleSheet.absoluteFill, { backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }]}>
+                    <ActivityIndicator color="#E53935" size="large" />
+                  </View>
+                )}
+              />
+            )
           ) : (
             <Image 
               source={{ uri: item.backdrop || item.image }} 

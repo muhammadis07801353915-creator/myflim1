@@ -180,17 +180,9 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     setIsPlaying(true);
   };
 
-  const isIframeLink = selectedServerUrl?.includes('t.me') || 
-                       selectedServerUrl?.includes('telegram.me') || 
-                       selectedServerUrl?.includes('ok.ru') ||
-                       selectedServerUrl?.includes('vk.com') ||
-                       selectedServerUrl?.includes('drive.google.com') ||
-                       selectedServerUrl?.includes('docs.google.com') ||
-                       servers.find(s => s.url === selectedServerUrl)?.name === 'ok' ||
-                       servers.find(s => s.url === selectedServerUrl)?.name === 'VK' ||
-                       servers.find(s => s.url === selectedServerUrl)?.name === 'embed' ||
-                       servers.find(s => s.url === selectedServerUrl)?.name === 'google' ||
-                       servers.find(s => s.url === selectedServerUrl)?.name === 'telegram';
+  const isDirectVideo = selectedServerUrl?.toLowerCase().split('?')[0].endsWith('.mp4') || 
+                        selectedServerUrl?.toLowerCase().includes('.m3u8');
+  const isIframeLink = !isDirectVideo;
   
   // Convert standard links to embed links if needed
   const getEmbedUrl = (url: string) => {
@@ -223,6 +215,9 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     }
     if (finalUrl.includes('ok.ru/video/')) {
       return finalUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
+    }
+    if (finalUrl.includes('dailymotion.com/video/')) {
+      return finalUrl.replace('dailymotion.com/video/', 'dailymotion.com/embed/video/');
     }
     if (finalUrl.includes('vk.com/video')) {
       return finalUrl; 
