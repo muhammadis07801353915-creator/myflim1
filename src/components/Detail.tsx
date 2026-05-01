@@ -298,7 +298,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   return (
     <div className="bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black pb-24">
       {/* Header / Backdrop or Player */}
-      <div className="relative w-full bg-black aspect-video md:h-[70vh] md:aspect-auto">
+      <div className={`relative w-full bg-black transition-all duration-500 ${isPlaying ? 'h-[45vh] md:h-[85vh]' : 'aspect-video md:h-[70vh]'}`}>
         {isPlaying ? (
           <div className="w-full h-full relative">
             <div className="flex absolute top-4 right-4 z-[110] space-x-2">
@@ -361,11 +361,11 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                     src={getEmbedUrl(selectedServerUrl)} 
                     className="w-full h-full border-0 absolute inset-0 z-50"
                     allowFullScreen
+                    webkitallowfullscreen="true"
+                    mozallowfullscreen="true"
                     allow="autoplay; fullscreen; picture-in-picture; encrypted-media; accelerometer; gyroscope"
                     referrerPolicy="no-referrer"
                   ></iframe>
-                  
-
                 </div>
               ) : isM3u8 ? (
                 <HlsPlayer 
