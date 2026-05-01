@@ -1,4 +1,4 @@
-import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle, Type } from 'lucide-react';
+import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle, Type, Maximize2 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import PremiumPlayer from './PremiumPlayer';
@@ -192,6 +192,19 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const isIframeLink = isEmbedUrl(selectedServerUrl);
   
   // Convert standard links to embed links if needed
+  const handleFullScreen = () => {
+    const playerElement = document.getElementById('player-container');
+    if (playerElement) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        if (playerElement.requestFullscreen) playerElement.requestFullscreen();
+        else if ((playerElement as any).webkitRequestFullscreen) (playerElement as any).webkitRequestFullscreen();
+        else if ((playerElement as any).msRequestFullscreen) (playerElement as any).msRequestFullscreen();
+      }
+    }
+  };
+
   const getEmbedUrl = (url: string) => {
     if (!url) return '';
     
@@ -298,7 +311,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   return (
     <div className="bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black pb-24">
       {/* Header / Backdrop or Player */}
-      <div className={`relative w-full bg-black aspect-video md:h-[70vh] md:aspect-auto`}>
+      <div id="player-container" className={`relative w-full bg-black aspect-video md:h-[70vh] md:aspect-auto`}>
         {isPlaying ? (
           <div className="w-full h-full relative bg-black flex items-center justify-center">
             <div className="flex absolute top-4 right-4 z-[110] space-x-2">
@@ -435,6 +448,15 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
               )}
             </div>
             <span className="text-xs font-medium">{isDownloading ? (language === 'ku' ? 'دادەبەزێت...' : 'Downloading...') : 'Download'}</span>
+          </button>
+          <button 
+            onClick={handleFullScreen}
+            className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group"
+          >
+            <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200 flex items-center justify-center mb-2 transition">
+              <Maximize2 size={20} />
+            </div>
+            <span className="text-xs font-medium">{language === 'ku' ? 'گەورەکردن' : 'Full Screen'}</span>
           </button>
           <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group">
             <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200 flex items-center justify-center mb-2 transition">
