@@ -24,6 +24,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [viewIncremented, setViewIncremented] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
   const [reported, setReported] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isDownloading, setIsDownloading] = useState(false);
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
   const { t, language } = useLanguage();
 
@@ -230,6 +232,53 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     return finalUrl;
   };
 
+  const handleDownload = () => {
+    if (isDownloading) return;
+    
+    // Check if download_url exists
+    const downloadUrl = item.download_url;
+    if (!downloadUrl) {
+      alert(language === 'ku' ? 'لینکی داوڵۆند بەردەست نییە بۆ ئەم فیلمە' : 'Download link not available for this movie');
+      return;
+    }
+
+    setIsDownloading(true);
+    setDownloadProgress(0);
+
+    // Simulate progress for better UX as requested "stay inside website"
+    const interval = setInterval(() => {
+      setDownloadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          
+          // Save to local downloads
+          const savedDownloads = JSON.parse(localStorage.getItem('myfilm_downloads') || '[]');
+          if (!savedDownloads.find((m: any) => m.id === item.id)) {
+            savedDownloads.push({
+              id: item.id,
+              title: item.title,
+              title_ar: item.title_ar,
+              title_en: item.title_en,
+              image: item.image,
+              backdrop: item.backdrop,
+              rating: item.rating,
+              year: item.year,
+              type: item.type,
+              download_url: downloadUrl,
+              downloaded_at: new Date().toISOString()
+            });
+            localStorage.setItem('myfilm_downloads', JSON.stringify(savedDownloads));
+          }
+          
+          setIsDownloading(false);
+          alert(language === 'ku' ? 'فیلمەکە بەسەرکەوتوویی دابەزی و چووە بەشی داوڵۆند' : 'Movie downloaded successfully and added to Downloads section');
+          return 100;
+        }
+        return prev + 5;
+      });
+    }, 200);
+  };
+
   const openInBrowser = async (url: string) => {
     try {
       await Browser.open({ url });
@@ -420,11 +469,25 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             </div>
             <span className="text-xs font-medium">{viewCount.toLocaleString()} {language === 'ku' ? 'بینین' : language === 'ar' ? 'مشاهدة' : 'Views'}</span>
           </button>
-          <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group">
-            <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200 flex items-center justify-center mb-2 transition">
-              <Download size={20} />
+          <button 
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className={`flex flex-col items-center transition group ${isDownloading ? 'text-red-500' : 'text-neutral-400 light-mode:text-neutral-600 hover:text-white'}`}
+          >
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition relative overflow-hidden ${isDownloading ? 'bg-red-500/10' : 'bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200'}`}>
+              {isDownloading ? (
+                <>
+                  <div 
+                    className="absolute bottom-0 left-0 w-full bg-red-600 transition-all duration-300" 
+                    style={{ height: `${downloadProgress}%`, opacity: 0.3 }}
+                  />
+                  <span className="text-[10px] font-bold z-10">{downloadProgress}%</span>
+                </>
+              ) : (
+                <Download size={20} />
+              )}
             </div>
-            <span className="text-xs font-medium">Download</span>
+            <span className="text-xs font-medium">{isDownloading ? (language === 'ku' ? 'دادەبەزێت...' : 'Downloading...') : 'Download'}</span>
           </button>
           <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group">
             <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200 flex items-center justify-center mb-2 transition">

@@ -26,6 +26,7 @@ export default function Movies() {
     top_rank: '',
     status: 'Published',
     is_broken: false,
+    download_url: '',
     servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
     subtitles: [{ label: 'Kurdish', url: '', lang: 'ku' }],
     episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }]
@@ -152,6 +153,7 @@ export default function Movies() {
       top_rank: '',
       status: 'Published',
       is_broken: false,
+      download_url: '',
       servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
       subtitles: [],
       episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }]
@@ -206,6 +208,7 @@ export default function Movies() {
       top_rank: item.top_rank?.toString() || '',
       status: item.status || 'Published',
       is_broken: item.is_broken || false,
+      download_url: item.download_url || '',
       servers: parsedServers,
       subtitles: parsedSubtitles,
       episodes: parsedEpisodes
@@ -255,6 +258,7 @@ export default function Movies() {
       is_pro: formData.is_pro,
       status: formData.status,
       is_broken: formData.is_broken,
+      download_url: formData.download_url,
       top_rank: formData.top_rank && !isNaN(parseInt(formData.top_rank)) ? parseInt(formData.top_rank) : null,
       video_url: formData.type === 'Series' 
         ? JSON.stringify(formData.episodes) 
@@ -442,6 +446,23 @@ export default function Movies() {
                       label="Backdrop Image (Horizontal)" 
                       value={formData.backdrop} 
                       onChange={(val) => setFormData({...formData, backdrop: val})} 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-6 border-t border-neutral-800/50">
+                  <div className="flex items-center space-x-2">
+                    <DownloadCloud size={18} className="text-red-500" />
+                    <h3 className="text-sm font-medium text-neutral-300 uppercase tracking-wider">Download Settings</h3>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-neutral-400">Main Download Link (Supports Direct, Drive, Embeds, etc.)</label>
+                    <input 
+                      type="text" 
+                      value={formData.download_url} 
+                      onChange={e => setFormData({...formData, download_url: e.target.value})} 
+                      placeholder="https://..." 
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" 
                     />
                   </div>
                 </div>

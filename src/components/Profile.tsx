@@ -15,6 +15,8 @@ export default function Profile() {
   const [isPro, setIsPro] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
+  const [showDownloads, setShowDownloads] = useState(false);
+  const [downloadedMovies, setDownloadedMovies] = useState<any[]>([]);
   
   const [userName, setUserName] = useState(() => {
     if (typeof window !== 'undefined') return localStorage.getItem('user_name') || 'User Name';
@@ -36,6 +38,10 @@ export default function Profile() {
     
     // Check PRO status
     setIsPro(getProStatusLocal());
+
+    // Load downloads
+    const saved = JSON.parse(localStorage.getItem('myfilm_downloads') || '[]');
+    setDownloadedMovies(saved);
   }, []);
 
   const toggleTheme = () => {
@@ -90,6 +96,76 @@ export default function Profile() {
       alert('Invalid Code!');
     }
   };
+
+  const removeDownload = (id: number) => {
+    const updated = downloadedMovies.filter(m => m.id !== id);
+    setDownloadedMovies(updated);
+    localStorage.setItem('myfilm_downloads', JSON.stringify(updated));
+  };
+
+  if (showDownloads) {
+    return (
+      <div className="p-4 pt-8 pb-24 text-white light-mode:text-black min-h-screen">
+        <div className="flex items-center space-x-4 rtl:space-x-reverse mb-8">
+          <button 
+            onClick={() => setShowDownloads(false)}
+            className="w-10 h-10 bg-neutral-900 light-mode:bg-neutral-100 rounded-full flex items-center justify-center hover:bg-neutral-800 transition"
+          >
+            <ChevronRight size={24} className="rotate-180 rtl:rotate-0" />
+          </button>
+          <h2 className="text-2xl font-bold">{t.downloads || 'Downloads'}</h2>
+        </div>
+
+        {downloadedMovies.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-neutral-500">
+            <div className="w-20 h-20 bg-neutral-900 light-mode:bg-neutral-100 rounded-full flex items-center justify-center mb-4">
+              <Download size={32} />
+            </div>
+            <p>{language === 'ku' ? 'هیچ فیلمێک دانەبەزیوە' : 'No movies downloaded yet'}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {downloadedMovies.map((movie) => (
+              <div key={movie.id} className="bg-neutral-900/40 light-mode:bg-neutral-100 border border-neutral-800/50 light-mode:border-neutral-200 rounded-2xl overflow-hidden flex h-32 group">
+                <div className="w-24 relative flex-none">
+                  <Image src={movie.image} alt={movie.title} fill className="object-cover" unoptimized />
+                </div>
+                <div className="flex-1 p-4 flex flex-col justify-between">
+                  <div>
+                    <h4 className="font-bold text-white light-mode:text-black line-clamp-1">
+                      {language === 'ku' ? (movie.title || movie.title_ku) : language === 'ar' ? (movie.title_ar || movie.title) : (movie.title_en || movie.title)}
+                    </h4>
+                    <div className="flex items-center space-x-2 text-xs text-neutral-500 mt-1">
+                      <span className="flex items-center text-yellow-500"><Star size={12} className="mr-1 fill-current" /> {movie.rating}</span>
+                      <span>•</span>
+                      <span>{movie.year}</span>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2 rtl:space-x-reverse">
+                    <button 
+                      onClick={() => {
+                        // In a real app, this would navigate to the detail page or play directly
+                        alert(language === 'ku' ? 'بۆ سەیرکردن، بڕۆوە سەر لاپەڕەی سەرەکی و فیلمەکە هەڵبژێرە' : 'To watch, go to the main page and select the movie');
+                      }}
+                      className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 transition"
+                    >
+                      Watch Now
+                    </button>
+                    <button 
+                      onClick={() => removeDownload(movie.id)}
+                      className="px-4 py-1.5 bg-neutral-800 light-mode:bg-neutral-200 text-white light-mode:text-black rounded-lg text-xs font-bold hover:bg-neutral-700 transition"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 pt-8 pb-24 text-white light-mode:text-black">
@@ -193,7 +269,7 @@ export default function Profile() {
         
 
         <ProfileMenuItem icon={Bell} label={t.notifications} />
-        <ProfileMenuItem icon={Download} label={t.downloads} />
+        <ProfileMenuItem icon={Download} label={t.downloads} onClick={() => setShowDownloads(true)} />
         <ProfileMenuItem icon={Shield} label={t.privacyPolicy} />
         <ProfileMenuItem icon={FileText} label={t.termsConditions} />
         <ProfileMenuItem icon={Star} label={t.rateApp} />
