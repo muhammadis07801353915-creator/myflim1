@@ -43,6 +43,7 @@ export default function Movies() {
   const [tmdbSearch, setTmdbSearch] = useState('');
   const [tmdbResults, setTmdbResults] = useState<any[]>([]);
   const [tmdbLoading, setTmdbLoading] = useState(false);
+  const [tmdbSearchType, setTmdbSearchType] = useState('multi'); // 'multi', 'movie', 'tv'
 
   const TMDB_API_KEY = 'c2607383b5fe48c445465d4e8b1ded29';
 
@@ -50,7 +51,7 @@ export default function Movies() {
     if (!tmdbSearch) return;
     setTmdbLoading(true);
     try {
-      const resp = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(tmdbSearch)}`, {
+      const resp = await fetch(`https://api.themoviedb.org/3/search/${tmdbSearchType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(tmdbSearch)}`, {
         next: { revalidate: 86400 }, // Cache TMDB search results
         cache: 'force-cache'
       });
@@ -1060,6 +1061,29 @@ export default function Movies() {
                 >
                   {tmdbLoading ? (tmdbResults.length > 0 ? 'Fetching Episodes...' : 'Searching...') : 'Search'}
                 </button>
+              </div>
+
+              <div className="flex space-x-2 pb-2">
+                {[
+                  { id: 'multi', name: 'All' },
+                  { id: 'movie', name: 'Movies' },
+                  { id: 'tv', name: 'Series (TV)' }
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => {
+                      setTmdbSearchType(t.id);
+                      if (tmdbSearch) searchTmdb();
+                    }}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition ${
+                      tmdbSearchType === t.id 
+                        ? 'bg-red-600 text-white' 
+                        : 'bg-neutral-800 text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    {t.name}
+                  </button>
+                ))}
               </div>
 
               <div className="overflow-y-auto flex-1 space-y-3 pr-2 min-h-[300px] max-h-[50vh]">
