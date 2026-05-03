@@ -26,6 +26,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [reported, setReported] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [selectedSeason, setSelectedSeason] = useState(1);
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
   const { t, language } = useLanguage();
 
@@ -48,7 +49,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
   const isBookmarked = isInWatchlist(item.id);
 
-  const episodes = useMemo(() => {
+  const allEpisodes = useMemo(() => {
     if (item.type !== 'Series') return [];
     try {
       if (item.video_url && item.video_url.startsWith('[')) {
@@ -63,6 +64,22 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     }
     return [];
   }, [item.type, item.video_url]);
+
+  const seasons = useMemo(() => {
+    const s = new Set<number>();
+    allEpisodes.forEach((ep: any) => s.add(ep.season || 1));
+    return Array.from(s).sort((a, b) => a - b);
+  }, [allEpisodes]);
+
+  const episodes = useMemo(() => {
+    return allEpisodes.filter((ep: any) => (ep.season || 1) === selectedSeason);
+  }, [allEpisodes, selectedSeason]);
+
+  useEffect(() => {
+    if (seasons.length > 0 && !seasons.includes(selectedSeason)) {
+      setSelectedSeason(seasons[0]);
+    }
+  }, [seasons]);
 
   const { servers, subtitles } = useMemo(() => {
     let parsedServers = [{ name: 'Default Server', url: item.video_url || '', quality: 'Auto' }];
@@ -88,7 +105,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     // Auto-add VidSrc if TMDB ID is present
     if (tmdbId) {
       const vidsrcUrl = item.type === 'Series' 
-        ? `vidsrc://tv/${tmdbId}/${(episodes[currentEpisodeIndex]?.number || 1)}`
+        ? `vidsrc://tv/${tmdbId}/${selectedSeason}/${(episodes[currentEpisodeIndex]?.number || 1)}`
         : `vidsrc://movie/${tmdbId}`;
       
       const serverName = 'Server My flim';
@@ -110,7 +127,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       if (tmdbId) {
         const serverName = 'Server My flim';
         if (!epServers.find((s: any) => s.name === serverName)) {
-          const vidsrcUrl = `vidsrc://tv/${tmdbId}/${ep?.number || 1}`;
+          const vidsrcUrl = `vidsrc://tv/${tmdbId}/${ep?.season || selectedSeason}/${ep?.number || 1}`;
           epServers = [{ name: serverName, url: vidsrcUrl, quality: 'Multi' }, ...epServers];
         }
       }
@@ -256,8 +273,9 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       if (type === 'movie') {
         return `https://vidsrc-embed.ru/embed/movie?tmdb=${id}`;
       } else {
-        const ep = parts[2] || '1';
-        return `https://vidsrc-embed.ru/embed/tv?tmdb=${id}&season=1&episode=${ep}`;
+        const season = parts[2] || '1';
+        const ep = parts[3] || '1';
+        return `https://vidsrc-embed.ru/embed/tv?tmdb=${id}&season=${season}&episode=${ep}`;
       }
     }
 
@@ -539,8 +557,29 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         <CommentSection movieId={item.id} />
 
         {/* Episodes Section - Requested Design */}
-        {item.type === 'Series' && episodes.length > 0 && (
+        {item.type === 'Series' && allEpisodes.length > 0 && (
           <div className="mt-8">
+             <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-black tracking-tighter">وەررزەکان</h3>
+                <span className="text-neutral-500 text-sm font-bold uppercase tracking-widest">{seasons.length} Seasons</span>
+             </div>
+             
+             <div className="flex space-x-3 overflow-x-auto pb-4 scrollbar-hide -mx-5 px-5 mb-6">
+                {seasons.map((season) => (
+                   <button 
+                      key={season}
+                      onClick={() => setSelectedSeason(season)}
+                      className={`px-6 py-2.5 rounded-full border font-bold transition-all duration-300 flex-none ${
+                        selectedSeason === season 
+                          ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-600/30' 
+                          : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
+                      }`}
+                   >
+                      Season {season}
+                   </button>
+                ))}
+             </div>
+
              <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-black tracking-tighter">ئەڵقەکان</h3>
                 <span className="text-neutral-500 text-sm font-bold uppercase tracking-widest">{episodes.length} Episodes</span>

@@ -30,7 +30,7 @@ export default function Movies() {
     tmdb_id: '',
     servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
     subtitles: [{ label: 'Kurdish', url: '', lang: 'ku' }],
-    episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }]
+    episodes: [{ number: 1, season: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }]
   });
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -73,6 +73,43 @@ export default function Movies() {
       });
       const details = await resp.json();
       
+      let allEpisodes: any[] = [];
+      if (type === 'tv' && details.seasons) {
+        setTmdbLoading(true);
+        try {
+          // Fetch all seasons
+          for (const season of details.seasons) {
+            // Skip "Specials" (Season 0) if you want, or include them
+            if (season.season_number === 0) continue;
+            
+            const sResp = await fetch(`https://api.themoviedb.org/3/tv/${item.id}/season/${season.season_number}?api_key=${TMDB_API_KEY}`, {
+               cache: 'force-cache'
+            });
+            const sDetails = await sResp.json();
+            
+            if (sDetails.episodes) {
+              const seasonEpisodes = sDetails.episodes.map((ep: any) => ({
+                number: ep.episode_number,
+                season: season.season_number,
+                title: ep.name || '',
+                servers: [
+                  { 
+                    name: 'Server My flim', 
+                    url: `vidsrc://tv/${item.id}/${season.season_number}/${ep.episode_number}`, 
+                    quality: 'Multi' 
+                  }
+                ],
+                subtitles: []
+              }));
+              allEpisodes = [...allEpisodes, ...seasonEpisodes];
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching seasons", err);
+        }
+        setTmdbLoading(false);
+      }
+
       setFormData({
         ...formData,
         title: details.title || details.name || '',
@@ -83,7 +120,8 @@ export default function Movies() {
         genre: (details.genres || []).map((g: any) => g.name).join(', '),
         image: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : '',
         backdrop: details.backdrop_path ? `https://image.tmdb.org/t/p/original${details.backdrop_path}` : '',
-        tmdb_id: details.id?.toString() || ''
+        tmdb_id: details.id?.toString() || '',
+        episodes: allEpisodes.length > 0 ? allEpisodes : formData.episodes
       });
       setShowTmdbModal(false);
       setTmdbResults([]);
@@ -614,19 +652,32 @@ export default function Movies() {
                           {episode.number}
                         </div>
                         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-1">
-                            <label className="text-xs text-neutral-400 uppercase font-bold">Episode Number</label>
-                            <input 
-                              type="number" 
-                              value={episode.number} 
-                              onChange={(e) => {
-                                const newEpisodes = [...formData.episodes];
-                                newEpisodes[epIdx].number = parseInt(e.target.value);
-                                setFormData({...formData, episodes: newEpisodes});
-                              }}
-                              className="w-full bg-[#1a1d24] border border-neutral-800 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-red-500 transition" 
-                            />
-                          </div>
+                              <div className="flex-1 min-w-[150px] space-y-1">
+                                <label className="text-[10px] text-neutral-500 font-bold uppercase">Season</label>
+                                <input 
+                                  type="number" 
+                                  value={episode.season || 1} 
+                                  onChange={(e) => {
+                                    const newEpisodes = [...formData.episodes];
+                                    newEpisodes[epIdx].season = parseInt(e.target.value);
+                                    setFormData({...formData, episodes: newEpisodes});
+                                  }}
+                                  className="w-full bg-[#1a1d24] border border-neutral-800 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-red-500 transition" 
+                                />
+                              </div>
+                              <div className="flex-1 min-w-[150px] space-y-1">
+                                <label className="text-xs text-neutral-400 uppercase font-bold">Episode Number</label>
+                                <input 
+                                  type="number" 
+                                  value={episode.number} 
+                                  onChange={(e) => {
+                                    const newEpisodes = [...formData.episodes];
+                                    newEpisodes[epIdx].number = parseInt(e.target.value);
+                                    setFormData({...formData, episodes: newEpisodes});
+                                  }}
+                                  className="w-full bg-[#1a1d24] border border-neutral-800 rounded-md px-3 py-2 text-sm text-white outline-none focus:border-red-500 transition" 
+                                />
+                              </div>
                           <div className="space-y-1">
                             <label className="text-xs text-neutral-400 uppercase font-bold">Episode Title (Optional)</label>
                             <input 
