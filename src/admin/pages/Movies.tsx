@@ -27,6 +27,7 @@ export default function Movies() {
     status: 'Published',
     is_broken: false,
     download_url: '',
+    tmdb_id: '',
     servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
     subtitles: [{ label: 'Kurdish', url: '', lang: 'ku' }],
     episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }]
@@ -81,7 +82,8 @@ export default function Movies() {
         rating: details.vote_average?.toFixed(1) || '',
         genre: (details.genres || []).map((g: any) => g.name).join(', '),
         image: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : '',
-        backdrop: details.backdrop_path ? `https://image.tmdb.org/t/p/original${details.backdrop_path}` : ''
+        backdrop: details.backdrop_path ? `https://image.tmdb.org/t/p/original${details.backdrop_path}` : '',
+        tmdb_id: details.id?.toString() || ''
       });
       setShowTmdbModal(false);
       setTmdbResults([]);
@@ -154,6 +156,7 @@ export default function Movies() {
       status: 'Published',
       is_broken: false,
       download_url: '',
+      tmdb_id: '',
       servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
       subtitles: [],
       episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }]
@@ -169,6 +172,7 @@ export default function Movies() {
     let parsedSubtitles: any[] = [];
     let parsedEpisodes = [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }];
     let extractedDownloadUrl = '';
+    let extractedTmdbId = '';
 
     try {
       if (item.video_url && item.video_url.startsWith('{')) {
@@ -176,6 +180,7 @@ export default function Movies() {
         parsedServers = parsed.servers || parsedServers;
         parsedSubtitles = parsed.subtitles || [];
         extractedDownloadUrl = parsed.download_url || '';
+        extractedTmdbId = parsed.tmdb_id || '';
         if (parsed.episodes) parsedEpisodes = parsed.episodes;
       } else if (item.video_url && item.video_url.startsWith('[')) {
         const parsed = JSON.parse(item.video_url);
@@ -211,6 +216,7 @@ export default function Movies() {
       status: item.status || 'Published',
       is_broken: item.is_broken || false,
       download_url: extractedDownloadUrl,
+      tmdb_id: extractedTmdbId,
       servers: parsedServers,
       subtitles: parsedSubtitles,
       episodes: parsedEpisodes
@@ -262,8 +268,8 @@ export default function Movies() {
       is_broken: formData.is_broken,
       top_rank: formData.top_rank && !isNaN(parseInt(formData.top_rank)) ? parseInt(formData.top_rank) : null,
       video_url: formData.type === 'Series' 
-        ? JSON.stringify({ episodes: formData.episodes, download_url: formData.download_url }) 
-        : JSON.stringify({ servers: formData.servers, subtitles: formData.subtitles, download_url: formData.download_url })
+        ? JSON.stringify({ episodes: formData.episodes, download_url: formData.download_url, tmdb_id: formData.tmdb_id }) 
+        : JSON.stringify({ servers: formData.servers, subtitles: formData.subtitles, download_url: formData.download_url, tmdb_id: formData.tmdb_id })
     };
 
     try {
@@ -463,6 +469,16 @@ export default function Movies() {
                       value={formData.download_url} 
                       onChange={e => setFormData({...formData, download_url: e.target.value})} 
                       placeholder="https://..." 
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-neutral-400">TMDB ID (For Auto-Embedding like VidSrc)</label>
+                    <input 
+                      type="text" 
+                      value={formData.tmdb_id} 
+                      onChange={e => setFormData({...formData, tmdb_id: e.target.value})} 
+                      placeholder="e.g. 550" 
                       className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" 
                     />
                   </div>

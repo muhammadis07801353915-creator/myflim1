@@ -67,19 +67,26 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const { servers, subtitles } = useMemo(() => {
     let parsedServers = [{ name: 'Default Server', url: item.video_url || '', quality: 'Auto' }];
     let parsedSubtitles = [];
-
-    if (item.type === 'Series' && episodes.length > 0) {
-      const ep = episodes[currentEpisodeIndex];
-      parsedServers = ep?.servers || [];
-      parsedSubtitles = ep?.subtitles || [];
-      return { servers: parsedServers, subtitles: parsedSubtitles };
-    }
+    let tmdbId = '';
 
     try {
       if (item.video_url && item.video_url.startsWith('{')) {
         const parsed = JSON.parse(item.video_url);
         parsedServers = parsed.servers || parsedServers;
         parsedSubtitles = parsed.subtitles || [];
+        tmdbId = parsed.tmdb_id || '';
+        
+        // Auto-add VidSrc if TMDB ID is present
+        if (tmdbId && !parsedServers.find((s: any) => s.name === 'VidSrc')) {
+          const vidsrcUrl = item.type === 'Series' 
+            ? `vidsrc://tv/${tmdbId}/${(episodes[currentEpisodeIndex]?.number || 1)}`
+            : `vidsrc://movie/${tmdbId}`;
+          
+          parsedServers = [
+            { name: 'VidSrc', url: vidsrcUrl, quality: 'Multi' },
+            ...parsedServers
+          ];
+        }
       } else if (item.video_url && item.video_url.startsWith('[')) {
         const parsed = JSON.parse(item.video_url);
         if (parsed.length > 0 && !parsed[0].servers) {
@@ -89,6 +96,19 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     } catch (e) {
       console.error("Error parsing servers/subtitles", e);
     }
+
+    if (item.type === 'Series' && episodes.length > 0) {
+      const ep = episodes[currentEpisodeIndex];
+      // For series, we might have servers at the episode level
+      // If we added VidSrc above, it was at the movie level, but we want it for episodes too
+      let epServers = ep?.servers || [];
+      if (tmdbId && !epServers.find((s: any) => s.name === 'VidSrc')) {
+        const vidsrcUrl = `vidsrc://tv/${tmdbId}/${ep?.number || 1}`;
+        epServers = [{ name: 'VidSrc', url: vidsrcUrl, quality: 'Multi' }, ...epServers];
+      }
+      return { servers: epServers, subtitles: ep?.subtitles || [] };
+    }
+
     return { servers: parsedServers, subtitles: parsedSubtitles };
   }, [item.type, item.video_url, episodes, currentEpisodeIndex]);
 
@@ -212,8 +232,20 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     finalUrl = finalUrl.replace(/^\/+/, ''); // Remove any accidental leading slashes
     
     // Ensure URL has protocol to prevent relative path routing errors (like Vercel 500 errors)
-    if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+    if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://') && !finalUrl.startsWith('vidsrc://')) {
       finalUrl = 'https://' + finalUrl;
+    }
+
+    if (finalUrl.startsWith('vidsrc://')) {
+      const parts = finalUrl.replace('vidsrc://', '').split('/');
+      const type = parts[0]; // movie or tv
+      const id = parts[1];
+      if (type === 'movie') {
+        return `https://vidsrc-embed.ru/embed/movie?tmdb=${id}`;
+      } else {
+        const ep = parts[2] || '1';
+        return `https://vidsrc-embed.ru/embed/tv?tmdb=${id}&season=1&episode=${ep}`;
+      }
     }
 
     if (finalUrl.includes('drive.google.com') || finalUrl.includes('docs.google.com')) {
