@@ -332,8 +332,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     if (!downloadUrl && tmdbId) {
        // If no direct download link, use VidSrc download mirror
        const downloadMirror = item.type === 'Series'
-         ? `https://vidsrc.me/download/tv?tmdb=${tmdbId}&season=${selectedSeason}&episode=${(episodes[currentEpisodeIndex]?.number || 1)}`
-         : `https://vidsrc.me/download/movie?tmdb=${tmdbId}`;
+         ? `https://vidsrc.xyz/download/tv?tmdb=${tmdbId}&season=${selectedSeason}&episode=${(episodes[currentEpisodeIndex]?.number || 1)}`
+         : `https://vidsrc.xyz/download/movie?tmdb=${tmdbId}`;
 
        openInBrowser(downloadMirror);
        
