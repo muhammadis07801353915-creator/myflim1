@@ -75,7 +75,16 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         parsedServers = parsed.servers || parsedServers;
         parsedSubtitles = parsed.subtitles || [];
         tmdbId = parsed.tmdb_id || '';
-        
+      } else if (item.video_url && item.video_url.startsWith('[')) {
+        const parsed = JSON.parse(item.video_url);
+        if (parsed.length > 0 && !parsed[0].servers) {
+          parsedServers = parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Error parsing servers/subtitles", e);
+    }
+
     // Auto-add VidSrc if TMDB ID is present
     if (tmdbId) {
       const vidsrcUrl = item.type === 'Series' 
@@ -84,7 +93,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       
       const serverName = 'Server My flim';
       
-      // If we are in series mode, we handle epServers later
       if (item.type !== 'Series') {
         if (!parsedServers.find((s: any) => s.name === serverName)) {
           parsedServers = [
@@ -92,8 +100,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             ...parsedServers
           ];
         }
-      } else {
-        // We'll add it to epServers below
       }
     }
 
