@@ -76,40 +76,47 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         parsedSubtitles = parsed.subtitles || [];
         tmdbId = parsed.tmdb_id || '';
         
-        // Auto-add VidSrc if TMDB ID is present
-        if (tmdbId && !parsedServers.find((s: any) => s.name === 'VidSrc')) {
-          const vidsrcUrl = item.type === 'Series' 
-            ? `vidsrc://tv/${tmdbId}/${(episodes[currentEpisodeIndex]?.number || 1)}`
-            : `vidsrc://movie/${tmdbId}`;
-          
+    // Auto-add VidSrc if TMDB ID is present
+    if (tmdbId) {
+      const vidsrcUrl = item.type === 'Series' 
+        ? `vidsrc://tv/${tmdbId}/${(episodes[currentEpisodeIndex]?.number || 1)}`
+        : `vidsrc://movie/${tmdbId}`;
+      
+      const serverName = 'Server My flim';
+      
+      // If we are in series mode, we handle epServers later
+      if (item.type !== 'Series') {
+        if (!parsedServers.find((s: any) => s.name === serverName)) {
           parsedServers = [
-            { name: 'VidSrc', url: vidsrcUrl, quality: 'Multi' },
+            { name: serverName, url: vidsrcUrl, quality: 'Multi' },
             ...parsedServers
           ];
         }
-      } else if (item.video_url && item.video_url.startsWith('[')) {
-        const parsed = JSON.parse(item.video_url);
-        if (parsed.length > 0 && !parsed[0].servers) {
-          parsedServers = parsed;
-        }
+      } else {
+        // We'll add it to epServers below
       }
-    } catch (e) {
-      console.error("Error parsing servers/subtitles", e);
     }
 
     if (item.type === 'Series' && episodes.length > 0) {
       const ep = episodes[currentEpisodeIndex];
-      // For series, we might have servers at the episode level
-      // If we added VidSrc above, it was at the movie level, but we want it for episodes too
       let epServers = ep?.servers || [];
-      if (tmdbId && !epServers.find((s: any) => s.name === 'VidSrc')) {
-        const vidsrcUrl = `vidsrc://tv/${tmdbId}/${ep?.number || 1}`;
-        epServers = [{ name: 'VidSrc', url: vidsrcUrl, quality: 'Multi' }, ...epServers];
+      
+      if (tmdbId) {
+        const serverName = 'Server My flim';
+        if (!epServers.find((s: any) => s.name === serverName)) {
+          const vidsrcUrl = `vidsrc://tv/${tmdbId}/${ep?.number || 1}`;
+          epServers = [{ name: serverName, url: vidsrcUrl, quality: 'Multi' }, ...epServers];
+        }
       }
-      return { servers: epServers, subtitles: ep?.subtitles || [] };
+      
+      // Filter out empty servers
+      const filteredEpServers = epServers.filter((s: any) => s.url && s.url.trim() !== '');
+      return { servers: filteredEpServers, subtitles: ep?.subtitles || [] };
     }
 
-    return { servers: parsedServers, subtitles: parsedSubtitles };
+    // Filter out empty servers for movies
+    const filteredServers = parsedServers.filter((s: any) => s.url && s.url.trim() !== '');
+    return { servers: filteredServers, subtitles: parsedSubtitles };
   }, [item.type, item.video_url, episodes, currentEpisodeIndex]);
 
   const videoTracks = useMemo(() => {
