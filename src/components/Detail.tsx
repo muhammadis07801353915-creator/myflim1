@@ -308,6 +308,18 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     return finalUrl;
   };
 
+  const handleDownload = () => {
+    if (isDownloading) return;
+    
+    // Get download_url from item or from parsed video_url
+    let downloadUrl = item.download_url;
+    if (!downloadUrl && item.video_url && item.video_url.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(item.video_url);
+        downloadUrl = parsed.download_url;
+      } catch (e) {}
+    }
+
     const tmdbId = (() => {
       try {
         if (item.video_url && item.video_url.startsWith('{')) {
@@ -319,13 +331,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
     if (!downloadUrl && tmdbId) {
        // If no direct download link, use VidSrc download mirror
-       const vidsrcDownloadUrl = item.type === 'Series'
-         ? `https://vidsrc.xyz/embed/tv?tmdb=${tmdbId}&season=${selectedSeason}&episode=${(episodes[currentEpisodeIndex]?.number || 1)}`
-         : `https://vidsrc.xyz/embed/movie?tmdb=${tmdbId}`;
-       
-       // Note: Most VidSrc players have a download button inside or we can redirect to a mirror
-       // For now, we will open the VidSrc page where they can use the player's download button if available
-       // or we can use a known download mirror like vidsrc.me/download
        const downloadMirror = item.type === 'Series'
          ? `https://vidsrc.me/download/tv?tmdb=${tmdbId}&season=${selectedSeason}&episode=${(episodes[currentEpisodeIndex]?.number || 1)}`
          : `https://vidsrc.me/download/movie?tmdb=${tmdbId}`;
