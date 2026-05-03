@@ -309,6 +309,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   };
 
   const handleDownload = () => {
+    alert(language === 'ku' ? 'بەشی داوڵۆند بەمزووانە کارا دەبێت' : 'Download feature will be available soon');
+    return;
     if (isDownloading) return;
     
     // Get download_url from item or from parsed video_url
