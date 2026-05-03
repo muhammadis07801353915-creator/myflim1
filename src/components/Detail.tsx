@@ -271,11 +271,11 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       const type = parts[0]; // movie or tv
       const id = parts[1];
       if (type === 'movie') {
-        return `https://vidsrc-embed.ru/embed/movie?tmdb=${id}`;
+        return `https://vidsrc.xyz/embed/movie?tmdb=${id}`;
       } else {
         const season = parts[2] || '1';
         const ep = parts[3] || '1';
-        return `https://vidsrc-embed.ru/embed/tv?tmdb=${id}&season=${season}&episode=${ep}`;
+        return `https://vidsrc.xyz/embed/tv?tmdb=${id}&season=${season}&episode=${ep}`;
       }
     }
 
