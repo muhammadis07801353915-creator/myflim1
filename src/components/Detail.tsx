@@ -271,11 +271,11 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       const type = parts[0]; // movie or tv
       const id = parts[1];
       if (type === 'movie') {
-        return `https://vidsrc.xyz/embed/movie?tmdb=${id}`;
+        return `https://vidsrc.to/embed/movie/${id}`;
       } else {
         const season = parts[2] || '1';
         const ep = parts[3] || '1';
-        return `https://vidsrc.xyz/embed/tv?tmdb=${id}&season=${season}&episode=${ep}`;
+        return `https://vidsrc.to/embed/tv/${id}/${season}/${ep}`;
       }
     }
 
@@ -331,9 +331,9 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
     if (!downloadUrl && tmdbId) {
        // If no direct download link, use VidSrc download mirror
-       const downloadMirror = item.type === 'Series'
-         ? `https://vidsrc.xyz/download/tv?tmdb=${tmdbId}&season=${selectedSeason}&episode=${(episodes[currentEpisodeIndex]?.number || 1)}`
-         : `https://vidsrc.xyz/download/movie?tmdb=${tmdbId}`;
+        const downloadMirror = item.type === 'Series'
+         ? `https://vidsrc.to/embed/tv/${tmdbId}/${selectedSeason}/${(episodes[currentEpisodeIndex]?.number || 1)}`
+         : `https://vidsrc.to/embed/movie/${tmdbId}`;
 
        openInBrowser(downloadMirror);
        
