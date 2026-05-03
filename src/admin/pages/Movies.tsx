@@ -77,25 +77,27 @@ export default function Movies() {
       if (type === 'tv' && details.seasons) {
         setTmdbLoading(true);
         try {
-          // Fetch all seasons
-          for (const season of details.seasons) {
-            // Skip "Specials" (Season 0) if you want, or include them
-            if (season.season_number === 0) continue;
-            
-            const sResp = await fetch(`https://api.themoviedb.org/3/tv/${item.id}/season/${season.season_number}?api_key=${TMDB_API_KEY}`, {
+          // Fetch all seasons in parallel
+          const validSeasons = details.seasons.filter((s: any) => s.season_number > 0);
+          
+          const seasonPromises = validSeasons.map((season: any) => 
+            fetch(`https://api.themoviedb.org/3/tv/${item.id}/season/${season.season_number}?api_key=${TMDB_API_KEY}`, {
                cache: 'force-cache'
-            });
-            const sDetails = await sResp.json();
-            
+            }).then(r => r.json())
+          );
+          
+          const seasonsData = await Promise.all(seasonPromises);
+          
+          seasonsData.forEach((sDetails: any) => {
             if (sDetails.episodes) {
               const seasonEpisodes = sDetails.episodes.map((ep: any) => ({
                 number: ep.episode_number,
-                season: season.season_number,
+                season: sDetails.season_number,
                 title: ep.name || '',
                 servers: [
                   { 
                     name: 'Server My flim', 
-                    url: `vidsrc://tv/${item.id}/${season.season_number}/${ep.episode_number}`, 
+                    url: `vidsrc://tv/${item.id}/${sDetails.season_number}/${ep.episode_number}`, 
                     quality: 'Multi' 
                   }
                 ],
@@ -103,7 +105,7 @@ export default function Movies() {
               }));
               allEpisodes = [...allEpisodes, ...seasonEpisodes];
             }
-          }
+          });
         } catch (err) {
           console.error("Error fetching seasons", err);
         }
@@ -1054,7 +1056,7 @@ export default function Movies() {
                   disabled={tmdbLoading}
                   className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition disabled:opacity-50"
                 >
-                  {tmdbLoading ? 'Searching...' : 'Search'}
+                  {tmdbLoading ? (tmdbResults.length > 0 ? 'Fetching Episodes...' : 'Searching...') : 'Search'}
                 </button>
               </div>
 
