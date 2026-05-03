@@ -112,8 +112,8 @@ export default function Movies() {
         setTmdbLoading(false);
       }
 
-      setFormData({
-        ...formData,
+      setFormData(prev => ({
+        ...prev,
         title: details.title || details.name || '',
         type: type === 'tv' ? 'Series' : 'Movie',
         description: details.overview || '',
@@ -123,14 +123,16 @@ export default function Movies() {
         image: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : '',
         backdrop: details.backdrop_path ? `https://image.tmdb.org/t/p/original${details.backdrop_path}` : '',
         tmdb_id: details.id?.toString() || '',
-        episodes: allEpisodes.length > 0 ? allEpisodes : formData.episodes
-      });
+        episodes: allEpisodes.length > 0 ? allEpisodes : prev.episodes
+      }));
       setShowTmdbModal(false);
       setTmdbResults([]);
       setTmdbSearch('');
     } catch (e) {
       console.error(e);
       alert('Error fetching details from TMDB');
+    } finally {
+      setTmdbLoading(false);
     }
   };
 
