@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { 
   Plus, Search, Edit, Trash2, Film, Tv, DownloadCloud, 
   Image as ImageIcon, Link as LinkIcon, Users, Settings, Type, Star, AlertCircle, Wrench, WifiOff,
-  Zap, X, Check
+  Zap, X, Check, Eye, Play
 } from 'lucide-react';
 import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
@@ -52,9 +52,12 @@ export default function Movies() {
   const [quickAddConfig, setQuickAddConfig] = useState({
     type: 'movie' as 'movie' | 'tv',
     category: 'IN_hi', // code_lang
-    targetList: 'تازە زیادکراوەکان',
     year: ''
   });
+
+  const [showStagingView, setShowStagingView] = useState(false);
+  const [stagedItems, setStagedItems] = useState<any[]>([]);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const TMDB_API_KEY = 'c2607383b5fe48c445465d4e8b1ded29';
 
@@ -275,26 +278,70 @@ export default function Movies() {
         });
       }
 
-      // Bulk insert into Supabase
-      const { error } = await supabase.from('movies').insert(newItems);
+      // Bulk insert into Supabase and get back the IDs
+      const { data: insertedData, error } = await supabase.from('movies').insert(newItems).select();
       
       if (error) throw error;
       
-      let message = `${newItems.length} بەرهەم بە سەرکەوتوویی زیادکرا وەک Draft (بۆ پێداچوونەوە)`;
-      if (skippedCount > 0) {
-        message += `\n(${skippedCount} بەرهەم زیاد نەکرا چونکە هێشتا لە سێرڤەر بەردەست نییە)`;
-      }
-      message += '\n\nتکایە لە لیستی فیلمەکان "Drafts" هەڵبژێرە بۆ بڵاوکردنەوەیان.';
-      alert(message);
+      setStagedItems(insertedData || []);
+      setShowStagingView(true);
       setShowQuickAddModal(false);
-      fetchMovies(); // Use the correct fetch function
-      if (typeof fetchContent === 'function') fetchContent();
+      fetchMovies();
     } catch (e) {
       console.error(e);
       alert('Error during quick add process');
     } finally {
       setQuickAddLoading(false);
     }
+  };
+
+  const getEmbedUrl = (url: string) => {
+    if (!url) return '';
+    let finalUrl = url.trim();
+    if (finalUrl.startsWith('vidsrc://')) {
+      const parts = finalUrl.replace('vidsrc://', '').split('/');
+      const type = parts[0];
+      const id = parts[1];
+      if (type === 'movie') {
+        return `https://vidsrc.pm/embed/movie/${id}`;
+      } else {
+        const season = parts[2] || '1';
+        const ep = parts[3] || '1';
+        return `https://vidsrc.pm/embed/tv/${id}/${season}/${ep}`;
+      }
+    }
+    return finalUrl;
+  };
+
+  const handlePublishStaged = async (id: number) => {
+    const { error } = await supabase.from('movies').update({ status: 'Published' }).eq('id', id);
+    if (!error) {
+      setStagedItems(prev => prev.filter(item => item.id !== id));
+      setContentList(prev => prev.map(m => m.id === id ? { ...m, status: 'Published' } : m));
+    }
+  };
+
+  const handleDeleteStaged = async (id: number) => {
+    const { error } = await supabase.from('movies').delete().eq('id', id);
+    if (!error) {
+      setStagedItems(prev => prev.filter(item => item.id !== id));
+      setContentList(prev => prev.filter(m => m.id !== id));
+    }
+  };
+
+  const handlePreviewStaged = (item: any) => {
+    let url = '';
+    try {
+      const videoObj = JSON.parse(item.video_url);
+      if (item.type === 'Series') {
+        url = videoObj.episodes?.[0]?.servers?.[0]?.url || '';
+      } else {
+        url = videoObj.servers?.[0]?.url || '';
+      }
+    } catch (e) {
+      url = item.video_url;
+    }
+    setPreviewUrl(getEmbedUrl(url));
   };
 
   const tabs = [
@@ -545,9 +592,8 @@ export default function Movies() {
     }
   };
 
-  if (view === 'form') {
-    return (
-      <>
+  const formView = (
+    <>
         <div className="text-white space-y-6 pb-10">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1239,115 +1285,12 @@ export default function Movies() {
             )}
           </div>
         </div>
-      {/* TMDB Search Modal */}
-      {showTmdbModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#1a1d24] w-full max-w-2xl rounded-2xl border border-neutral-800 flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
-            <div className="p-5 border-b border-neutral-800 flex justify-between items-center">
-              <h3 className="text-xl font-bold">Search TMDB</h3>
-              <button onClick={() => setShowTmdbModal(false)} className="text-neutral-500 hover:text-white transition">
-                <Trash2 size={20} />
-              </button>
-            </div>
-            
-            <div className="p-5 space-y-4">
-              <div className="flex space-x-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" size={18} />
-                  <input 
-                    type="text" 
-                    value={tmdbSearch}
-                    onChange={(e) => setTmdbSearch(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && searchTmdb()}
-                    placeholder="Enter movie or show title..."
-                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg pl-10 pr-4 py-2.5 outline-none focus:border-red-500 transition"
-                  />
-                </div>
-                <button 
-                  onClick={searchTmdb}
-                  disabled={tmdbLoading}
-                  className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition disabled:opacity-50"
-                >
-                  {tmdbLoading ? (tmdbResults.length > 0 ? 'Fetching Episodes...' : 'Searching...') : 'Search'}
-                </button>
-              </div>
-
-              <div className="flex space-x-2 pb-2">
-                {[
-                  { id: 'multi', name: 'All' },
-                  { id: 'movie', name: 'Movies' },
-                  { id: 'tv', name: 'Series (TV)' }
-                ].map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => {
-                      setTmdbSearchType(t.id);
-                      if (tmdbSearch) searchTmdb();
-                    }}
-                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition ${
-                      tmdbSearchType === t.id 
-                        ? 'bg-red-600 text-white' 
-                        : 'bg-neutral-800 text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    {t.name}
-                  </button>
-                ))}
-              </div>
-
-              <div className="overflow-y-auto flex-1 space-y-3 pr-2 min-h-[300px] max-h-[50vh]">
-                {tmdbResults.length === 0 && !tmdbLoading && (
-                  <div className="h-full flex flex-col items-center justify-center text-neutral-500 pt-10">
-                    <Film size={48} className="mb-4 opacity-10" />
-                    <p>Enter a title to search for content</p>
-                  </div>
-                )}
-                
-                {tmdbResults.map((result) => (
-                  <button
-                    key={result.id}
-                    onClick={() => selectTmdbItem(result)}
-                    className="w-full flex items-center space-x-4 p-3 rounded-xl bg-neutral-900/50 hover:bg-neutral-800 border border-neutral-800 hover:border-red-500/50 transition group text-left"
-                  >
-                    <div className="w-16 h-24 bg-neutral-800 rounded-lg overflow-hidden shrink-0">
-                      {result.poster_path ? (
-                        <div className="relative w-full h-full">
-                          <Image src={`https://image.tmdb.org/t/p/w200${result.poster_path}`} alt="" fill sizes="64px" className="object-cover" />
-                        </div>
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center"><Film size={20} className="text-neutral-700" /></div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-white truncate group-hover:text-red-500 transition">{result.title || result.name}</h4>
-                      <p className="text-sm text-neutral-500 mt-1 line-clamp-2">{result.overview}</p>
-                      <div className="flex items-center space-x-3 mt-2 text-xs text-neutral-400">
-                        <span className="flex items-center"><Star size={12} className="mr-1 text-yellow-500 fill-current" /> {result.vote_average?.toFixed(1)}</span>
-                        <span>{(result.release_date || result.first_air_date || '').split('-')[0]}</span>
-                        <span className="bg-neutral-800 px-2 py-0.5 rounded uppercase tracking-wider text-[10px]">{result.media_type || (result.first_air_date ? 'tv' : 'movie')}</span>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="p-5 border-t border-neutral-800 bg-neutral-900/50 rounded-b-2xl">
-              <button onClick={() => setShowTmdbModal(false)} className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg font-medium transition">
-                Close
-              </button>
-            </div>
-          </div>
         </div>
-      )}
-    </div>
     </>
-    );
-  }
+  );
 
-  // List View
-  return (
-    <>
-      <div className="text-white space-y-6">
+  const listView = (
+    <div className="text-white space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
           <h1 className="text-2xl font-bold">Movies & Series</h1>
@@ -1554,6 +1497,154 @@ export default function Movies() {
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  const stagingView = (
+    <div className="text-white space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center">
+            <Zap size={22} className="text-yellow-500 fill-current" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Review Imported Content</h1>
+            <p className="text-neutral-400 text-sm">Preview and publish or delete {stagedItems.length} new items</p>
+          </div>
+        </div>
+        <button 
+          onClick={() => {
+            setShowStagingView(false);
+            setStagedItems([]);
+          }}
+          className="px-6 py-2 bg-white text-black font-bold rounded-lg hover:bg-neutral-200 transition"
+        >
+          Done / Finish
+        </button>
+      </div>
+
+      <div className="bg-[#1a1d24] border border-neutral-800 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-neutral-900/50 text-neutral-400">
+              <tr>
+                <th className="px-6 py-4 font-medium">Poster</th>
+                <th className="px-6 py-4 font-medium">Title & Info</th>
+                <th className="px-6 py-4 font-medium">Rating</th>
+                <th className="px-6 py-4 font-medium">Year</th>
+                <th className="px-6 py-4 font-medium text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-neutral-800">
+              {stagedItems.map((item) => (
+                <tr key={item.id} className="hover:bg-neutral-800/30 transition">
+                  <td className="px-6 py-4">
+                    <div className="w-12 h-16 relative rounded overflow-hidden bg-neutral-800">
+                      {item.image && (
+                        <Image src={item.image} alt="" fill className="object-cover" unoptimized />
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="font-bold text-white">{item.title}</div>
+                    <div className="text-xs text-neutral-500 mt-1">{item.genre}</div>
+                    <div className="flex items-center mt-1">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.type === 'Movie' ? 'bg-blue-500/10 text-blue-500' : 'bg-purple-500/10 text-purple-500'}`}>
+                        {item.type}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-yellow-500 font-bold">
+                    <div className="flex items-center"><Star size={14} className="mr-1 fill-current" /> {item.rating}</div>
+                  </td>
+                  <td className="px-6 py-4 text-neutral-400">{item.year}</td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end space-x-3">
+                      <button 
+                        onClick={() => handlePreviewStaged(item)}
+                        className="flex items-center space-x-1 px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition text-xs font-medium"
+                      >
+                        <Play size={14} className="fill-current" />
+                        <span>Preview</span>
+                      </button>
+                      <button 
+                        onClick={() => handlePublishStaged(item.id)}
+                        className="p-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white rounded-lg transition"
+                        title="Publish"
+                      >
+                        <Check size={18} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteStaged(item.id)}
+                        className="p-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition"
+                        title="Delete"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {stagedItems.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center text-neutral-500">
+                    <div className="flex flex-col items-center">
+                      <Check size={48} className="mb-4 opacity-20" />
+                      <p className="text-lg font-bold text-white">All items reviewed!</p>
+                      <p className="mt-1">You've published or deleted all imported content.</p>
+                      <button 
+                        onClick={() => setShowStagingView(false)}
+                        className="mt-6 px-6 py-2 bg-red-600 text-white rounded-lg font-bold"
+                      >
+                        Back to Movies List
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {showStagingView ? stagingView : (view === 'form' ? formView : listView)}
+      
+      {/* Preview Modal */}
+      {previewUrl && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
+          <div className="bg-[#1a1d24] w-full max-w-4xl rounded-2xl border border-neutral-800 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 shadow-2xl">
+            <div className="p-4 border-b border-neutral-800 flex justify-between items-center bg-neutral-900/50">
+              <h3 className="font-bold flex items-center space-x-2">
+                <Play size={18} className="text-red-500" />
+                <span>Testing Video Player</span>
+              </h3>
+              <button onClick={() => setPreviewUrl(null)} className="text-neutral-500 hover:text-white transition">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="aspect-video w-full bg-black">
+              <iframe 
+                src={previewUrl}
+                className="w-full h-full border-0"
+                allowFullScreen
+                allow="autoplay; fullscreen"
+              />
+            </div>
+            <div className="p-4 bg-neutral-900/50 text-center">
+              <button 
+                onClick={() => setPreviewUrl(null)}
+                className="px-8 py-2 bg-white text-black font-bold rounded-lg hover:bg-neutral-200 transition"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* TMDB Search Modal */}
       {showTmdbModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -1769,5 +1860,5 @@ export default function Movies() {
         </div>
       )}
     </>
-    );
+  );
 }
