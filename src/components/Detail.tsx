@@ -24,8 +24,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [viewIncremented, setViewIncremented] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
   const [reported, setReported] = useState(false);
-  const [imdbId, setImdbId] = useState<string | null>(null);
-  const [activeServer, setActiveServer] = useState(1);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState(1);
@@ -77,17 +75,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     } catch (e) {}
     return null;
   }, [item.video_url]);
-
-  useEffect(() => {
-    if (tmdbId) {
-      fetch(`https://api.themoviedb.org/3/${item.type === 'Series' ? 'tv' : 'movie'}/${tmdbId}/external_ids?api_key=c2607383b5fe48c445465d4e8b1ded29`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.imdb_id) setImdbId(data.imdb_id);
-        })
-        .catch(console.error);
-    }
-  }, [tmdbId, item.type]);
 
   const seasons = useMemo(() => {
     const s = new Set<number>();
@@ -283,19 +270,11 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       const parts = finalUrl.replace('vidsrc://', '').split('/');
       const type = parts[0];
       const id = parts[1];
-      const season = parts[2] || '1';
-      const ep = parts[3] || '1';
-
-      if (activeServer === 2) {
-        return `https://multiembed.mov/?video_id=${id}&tmdb=1${type === 'tv' ? `&s=${season}&e=${ep}` : ''}`;
-      }
-      if (activeServer === 3 && imdbId) {
-        return `https://godriveplayer.com/player.php?imdb=${imdbId}${type === 'tv' ? `&season=${season}&episode=${ep}` : ''}`;
-      }
-
       if (type === 'movie') {
         return `https://vidsrc.pm/embed/movie/${id}`;
       } else {
+        const season = parts[2] || '1';
+        const ep = parts[3] || '1';
         return `https://vidsrc.pm/embed/tv/${id}/${season}/${ep}`;
       }
     }
@@ -447,31 +426,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
               </div>
               <span className="text-xl uppercase tracking-widest">{language === 'ku' ? 'ئێستا ببینە' : 'Watch Now'}</span>
             </button>
-
-            {tmdbId && (
-              <div className="mt-4 flex flex-wrap gap-2 justify-center">
-                <button 
-                  onClick={() => { setActiveServer(1); if (!isPlaying) setIsPlaying(true); }}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold transition border ${activeServer === 1 ? 'bg-red-600 border-red-500 text-white' : 'bg-neutral-900 border-neutral-800 text-neutral-400'}`}
-                >
-                  Server My Flim
-                </button>
-                <button 
-                  onClick={() => { setActiveServer(2); if (!isPlaying) setIsPlaying(true); }}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold transition border ${activeServer === 2 ? 'bg-red-600 border-red-500 text-white' : 'bg-neutral-900 border-neutral-800 text-neutral-400'}`}
-                >
-                  Server 2
-                </button>
-                {imdbId && (
-                  <button 
-                    onClick={() => { setActiveServer(3); if (!isPlaying) setIsPlaying(true); }}
-                    className={`px-4 py-2 rounded-lg text-xs font-bold transition border ${activeServer === 3 ? 'bg-red-600 border-red-500 text-white' : 'bg-neutral-900 border-neutral-800 text-neutral-400'}`}
-                  >
-                    Server 3
-                  </button>
-                )}
-              </div>
-            )}
           </div>
         )}
 
