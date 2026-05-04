@@ -451,21 +451,35 @@ export default function Movies() {
 
     setSaving(true);
 
-    // Step 1: Validate VidSrc link if TMDB ID is provided
+    // Step 1: Validate VidSrc link
+    const itemsToValidate: any[] = [];
     if (formData.tmdb_id) {
+      itemsToValidate.push({ tmdbId: formData.tmdb_id, type: formData.type === 'Series' ? 'tv' : 'movie' });
+    }
+    
+    // Also check server URLs for VidSrc patterns
+    formData.servers.forEach((s: any) => {
+      if (s.url && s.url.toLowerCase().includes('vidsrc')) {
+        const match = s.url.match(/\/(movie|tv)\/(\d+)/);
+        if (match) {
+          itemsToValidate.push({ tmdbId: match[2], type: match[1] });
+        } else if (s.url.startsWith('vidsrc://')) {
+          const parts = s.url.replace('vidsrc://', '').split('/');
+          if (parts[1]) itemsToValidate.push({ tmdbId: parts[1], type: parts[0] });
+        }
+      }
+    });
+
+    if (itemsToValidate.length > 0) {
       try {
         const valResp = await fetch('/api/validate-vidsrc', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            items: [{ 
-              tmdbId: formData.tmdb_id, 
-              type: formData.type === 'Series' ? 'tv' : 'movie' 
-            }] 
-          })
+          body: JSON.stringify({ items: itemsToValidate })
         });
         const valData = await valResp.json();
-        if (valData.results && valData.results[0] && !valData.results[0].valid) {
+        const invalidItem = valData.results?.find((r: any) => !r.valid);
+        if (invalidItem) {
           setErrorMsg('ئەم بەرهەمە هێشتا لە سێرڤەر بەردەست نییە (404 Not Found)، تکایە دواتر هەوڵ بدەرەوە یان بەرهەمێکی تر هەڵبژێرە');
           setSaving(false);
           return;

@@ -27,13 +27,16 @@ export async function POST(req: NextRequest) {
         });
 
         // Some embed sites return 200 but the body contains "not found"
-        // But VidSrc.pm usually returns 404 for invalid IDs
+        // vidsrc.pm redirects to its homepage if the content is not found
         if (resp.status === 404) {
           return { tmdbId, valid: false, reason: '404 Not Found' };
         }
 
-        // If it's a 200, we assume it's valid for now
-        // To be even safer, we could check the content-length or body, but that's expensive
+        const finalUrl = resp.url.split('?')[0].replace(/\/$/, '');
+        if (finalUrl === 'https://vidsrc.pm' || finalUrl === 'https://vidsrc.me' || finalUrl === 'https://vidsrc.to') {
+          return { tmdbId, valid: false, reason: 'Redirected to homepage (Content not found)' };
+        }
+
         return { tmdbId, valid: resp.ok, reason: resp.ok ? 'OK' : `Status ${resp.status}` };
       } catch (err: any) {
         return { tmdbId, valid: false, reason: err.message || 'Timeout' };
