@@ -1,34 +1,53 @@
-'use client';
+import { Metadata, ResolvingMetadata } from 'next';
+import { supabase } from '@/src/lib/supabase';
+import MovieDetailPageClient from '@/src/components/MovieDetailPageClient';
 
-import { useData } from '@/src/lib/DataContext';
-import Detail from '@/src/components/Detail';
-import { useParams, useRouter } from 'next/navigation';
-import { useMemo } from 'react';
+interface Props {
+  params: Promise<{ id: string }>;
+}
 
-export default function MovieDetailPage() {
-  const { id } = useParams();
-  const router = useRouter();
-  const { movies, loading } = useData();
+export async function generateMetadata(
+  { params }: Props,
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { id } = await params;
 
-  const movie = useMemo(() => {
-    return movies.find(m => m.id.toString() === id);
-  }, [movies, id]);
-
-  if (loading) return null; // Let the layout handle the loading state
+  const { data: movie } = await supabase
+    .from('movies')
+    .select('*')
+    .eq('id', id)
+    .single();
 
   if (!movie) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
-        <p className="text-neutral-500">ماتڵب دەست نەکەوت</p>
-        <button 
-          onClick={() => router.push('/')}
-          className="px-6 py-2 bg-red-600 rounded-full font-bold"
-        >
-          گەڕانەوە بۆ سەرەتا
-        </button>
-      </div>
-    );
+    return {
+      title: 'فیلم دەست نەکەوت | MyFlim',
+    };
   }
 
-  return <Detail item={movie} onBack={() => router.back()} />;
+  const title = `${movie.title || ''} ${movie.title_ar ? `| ${movie.title_ar}` : ''} ${movie.title_en ? `| ${movie.title_en}` : ''}`.trim();
+  const description = movie.description || movie.description_ar || movie.description_en || 'بینەری ئەم فیلمە بن لە MyFlim';
+  const imageUrl = movie.image || movie.backdrop || '';
+
+  return {
+    title: `${title} - MyFlim`,
+    description: description,
+    openGraph: {
+      title: title,
+      description: description,
+      images: [imageUrl],
+      type: 'video.movie',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: title,
+      description: description,
+      images: [imageUrl],
+    },
+  };
+}
+
+export default async function MovieDetailPage({ params }: Props) {
+  const { id } = await params;
+  
+  return <MovieDetailPageClient id={id} />;
 }
