@@ -1331,7 +1331,6 @@ export default function Movies() {
                 ))}
               </div>
             </div>
-            
             <div className="p-5 border-t border-neutral-800 bg-neutral-900/50 rounded-b-2xl">
               <button onClick={() => setShowTmdbModal(false)} className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg font-medium transition">
                 Close
