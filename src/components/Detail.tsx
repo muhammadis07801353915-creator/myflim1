@@ -413,12 +413,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         {isPlaying ? (
           <div className="w-full h-full relative bg-black flex items-center justify-center">
             <div className="flex absolute top-4 right-4 z-[110] space-x-2">
-              <button 
-                onClick={() => { setIsPlaying(false); setShowSubtitleMenu(false); }} 
-                className="w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition"
-              >
-                <X size={20} />
-              </button>
             </div>
             
             {(() => {
