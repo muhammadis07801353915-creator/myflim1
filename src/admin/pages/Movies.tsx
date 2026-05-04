@@ -177,13 +177,40 @@ export default function Movies() {
       const data = await resp.json();
       const results = (data.results || []).slice(0, 20);
       
+      if (results.length === 0) {
+        alert('هیچ بەرهەمێک نەدۆزرایەوە');
+        setQuickAddLoading(false);
+        return;
+      }
+
       setQuickAddProgress({ current: 0, total: results.length });
 
+      // Step 2: Validate VidSrc links before processing
+      const validationItems = results.map((r: any) => ({
+        tmdbId: r.id,
+        type: quickAddConfig.type
+      }));
+
+      const valResp = await fetch('/api/validate-vidsrc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: validationItems })
+      });
+      const valData = await valResp.json();
+      const validMap = new Map((valData.results || []).map((r: any) => [r.tmdbId, r.valid]));
+
       const newItems = [];
+      let skippedCount = 0;
 
       for (let i = 0; i < results.length; i++) {
         const item = results[i];
         setQuickAddProgress({ current: i + 1, total: results.length });
+
+        // Skip if link is invalid
+        if (!validMap.get(item.id)) {
+          skippedCount++;
+          continue;
+        }
 
         // Fetch full details
         const detailsResp = await fetch(`https://api.themoviedb.org/3/${quickAddConfig.type}/${item.id}?api_key=${TMDB_API_KEY}`);
@@ -253,9 +280,14 @@ export default function Movies() {
       
       if (error) throw error;
       
-      alert(`بەسەرکەوتوویی ${newItems.length} بەرهەم زیادکرا بۆ ${quickAddConfig.targetList}`);
+      let message = `بەسەرکەوتوویی ${newItems.length} بەرهەم زیادکرا بۆ ${quickAddConfig.targetList}`;
+      if (skippedCount > 0) {
+        message += `\n(${skippedCount} بەرهەم زیاد نەکرا چونکە هێشتا لە سێرڤەر بەردەست نییە)`;
+      }
+      alert(message);
       setShowQuickAddModal(false);
-      fetchContent();
+      fetchMovies(); // Use the correct fetch function
+      if (typeof fetchContent === 'function') fetchContent();
     } catch (e) {
       console.error(e);
       alert('Error during quick add process');
