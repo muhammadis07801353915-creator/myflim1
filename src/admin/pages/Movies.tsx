@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { 
   Plus, Search, Edit, Trash2, Film, Tv, DownloadCloud, 
   Image as ImageIcon, Link as LinkIcon, Users, Settings, Type, Star, AlertCircle, Wrench, WifiOff,
-  Zap, X
+  Zap, X, Check
 } from 'lucide-react';
 import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
@@ -270,7 +270,7 @@ export default function Movies() {
           backdrop: details.backdrop_path ? `https://image.tmdb.org/t/p/original${details.backdrop_path}` : '',
           list_name: quickAddConfig.targetList,
           video_url: JSON.stringify(videoUrlObj),
-          status: 'Published',
+          status: 'Draft',
           views: 0
         });
       }
@@ -280,10 +280,11 @@ export default function Movies() {
       
       if (error) throw error;
       
-      let message = `بەسەرکەوتوویی ${newItems.length} بەرهەم زیادکرا بۆ ${quickAddConfig.targetList}`;
+      let message = `${newItems.length} بەرهەم بە سەرکەوتوویی زیادکرا وەک Draft (بۆ پێداچوونەوە)`;
       if (skippedCount > 0) {
         message += `\n(${skippedCount} بەرهەم زیاد نەکرا چونکە هێشتا لە سێرڤەر بەردەست نییە)`;
       }
+      message += '\n\nتکایە لە لیستی فیلمەکان "Drafts" هەڵبژێرە بۆ بڵاوکردنەوەیان.';
       alert(message);
       setShowQuickAddModal(false);
       fetchMovies(); // Use the correct fetch function
@@ -345,6 +346,16 @@ export default function Movies() {
       console.error('Error toggling broken state:', error);
       // Revert on error
       setContentList(prev => prev.map(m => m.id === item.id ? { ...m, is_broken: item.is_broken } : m));
+    }
+    }
+  };
+
+  const handleApprove = async (id: number) => {
+    const { error } = await supabase.from('movies').update({ status: 'Published' }).eq('id', id);
+    if (!error) {
+      setContentList(prev => prev.map(m => m.id === id ? { ...m, status: 'Published' } : m));
+    } else {
+      alert('Error approving content: ' + error.message);
     }
   };
 
@@ -1399,6 +1410,7 @@ export default function Movies() {
               <option value="All">All Types</option>
               <option value="Movie">Movies</option>
               <option value="Series">Series</option>
+              <option value="Draft">Drafts (Pending Review)</option>
             </select>
             <select 
               value={filterStatus}
@@ -1500,6 +1512,15 @@ export default function Movies() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end space-x-2">
+                      {item.status === 'Draft' && (
+                        <button 
+                          onClick={() => handleApprove(item.id)}
+                          title="Approve & Publish"
+                          className="p-1.5 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 rounded-lg transition"
+                        >
+                          <Check size={18} />
+                        </button>
+                      )}
                       <button 
                         onClick={() => toggleBroken(item)} 
                         title={item.is_broken ? 'Mark as Fixed' : 'Mark as Broken'}
