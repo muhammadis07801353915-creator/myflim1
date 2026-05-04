@@ -189,11 +189,39 @@ export default function Movies() {
 
       setQuickAddProgress({ current: 0, total: results.length });
 
+      // Step 1.5: Check for duplicates in Supabase
+      const tmdbIds = results.map((r: any) => r.id.toString());
+      // We use a trick with ilike or we can fetch all and filter if the list is small.
+      // But for 20 items, we can check them individually or use a clever query.
+      // Let's fetch all movies that might contain these IDs in their video_url
+      const { data: existingItems } = await supabase
+        .from('movies')
+        .select('video_url')
+        .or(tmdbIds.map((id: string) => `video_url.ilike.%"tmdb_id":"${id}"%`).join(','));
+      
+      const existingIds = new Set();
+      if (existingItems) {
+        existingItems.forEach(item => {
+          try {
+            const parsed = JSON.parse(item.video_url);
+            if (parsed.tmdb_id) existingIds.add(parsed.tmdb_id.toString());
+          } catch (e) {}
+        });
+      }
+
       // Step 2: Validate VidSrc links before processing
-      const validationItems = results.map((r: any) => ({
-        tmdbId: r.id,
-        type: quickAddConfig.type
-      }));
+      const validationItems = results
+        .filter((r: any) => !existingIds.has(r.id.toString()))
+        .map((r: any) => ({
+          tmdbId: r.id,
+          type: quickAddConfig.type
+        }));
+
+      if (validationItems.length === 0) {
+        alert('هەموو ئەم بەرهەمانە پێشتر تۆمارکراون');
+        setQuickAddLoading(false);
+        return;
+      }
 
       const valResp = await fetch('/api/validate-vidsrc', {
         method: 'POST',
@@ -208,6 +236,12 @@ export default function Movies() {
 
       for (let i = 0; i < results.length; i++) {
         const item = results[i];
+        
+        // Skip if already exists
+        if (existingIds.has(item.id.toString())) {
+          continue;
+        }
+
         setQuickAddProgress({ current: i + 1, total: results.length });
 
         // Skip if link is invalid
@@ -576,6 +610,23 @@ export default function Movies() {
         const { error } = await supabase.from('movies').update(payload).eq('id', editingId);
         if (error) throw error;
       } else {
+        // Duplicate check for manual add
+        if (formData.tmdb_id) {
+          const { data: existing } = await supabase
+            .from('movies')
+            .select('id')
+            .ilike('video_url', `%"tmdb_id":"${formData.tmdb_id}"%`)
+            .maybeSingle();
+          
+          if (existing) {
+            const msg = 'ئەم بەرهەمە پێشتر تۆمارکراوە (Duplicate TMDB ID)';
+            setErrorMsg(msg);
+            alert(msg);
+            setSaving(false);
+            return;
+          }
+        }
+
         const { error } = await supabase.from('movies').insert([payload]);
         if (error) throw error;
       }
