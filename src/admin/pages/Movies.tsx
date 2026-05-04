@@ -450,6 +450,31 @@ export default function Movies() {
     }
 
     setSaving(true);
+
+    // Step 1: Validate VidSrc link if TMDB ID is provided
+    if (formData.tmdb_id) {
+      try {
+        const valResp = await fetch('/api/validate-vidsrc', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            items: [{ 
+              tmdbId: formData.tmdb_id, 
+              type: formData.type === 'Series' ? 'tv' : 'movie' 
+            }] 
+          })
+        });
+        const valData = await valResp.json();
+        if (valData.results && valData.results[0] && !valData.results[0].valid) {
+          setErrorMsg('ئەم بەرهەمە هێشتا لە سێرڤەر بەردەست نییە (404 Not Found)، تکایە دواتر هەوڵ بدەرەوە یان بەرهەمێکی تر هەڵبژێرە');
+          setSaving(false);
+          return;
+        }
+      } catch (e) {
+        console.warn("Validation skipped due to error", e);
+      }
+    }
+
     const payload = {
       title: formData.title,
       title_ar: formData.title_ar,
