@@ -50,9 +50,10 @@ export default function Movies() {
   const [quickAddLoading, setQuickAddLoading] = useState(false);
   const [quickAddProgress, setQuickAddProgress] = useState({ current: 0, total: 0 });
   const [quickAddConfig, setQuickAddConfig] = useState({
-    type: 'movie',
+    type: 'movie' as 'movie' | 'tv',
     category: 'IN_hi', // code_lang
-    targetList: 'تازە زیادکراوەکان'
+    targetList: 'تازە زیادکراوەکان',
+    year: ''
   });
 
   const TMDB_API_KEY = 'c2607383b5fe48c445465d4e8b1ded29';
@@ -158,6 +159,12 @@ export default function Movies() {
       if (countryCode) url += `&with_origin_country=${countryCode}`;
       if (langCode) url += `&with_original_language=${langCode}`;
       if (quickAddConfig.category === 'animation') url += `&with_genres=16`;
+      
+      if (quickAddConfig.year) {
+        url += quickAddConfig.type === 'movie' 
+          ? `&primary_release_year=${quickAddConfig.year}` 
+          : `&first_air_date_year=${quickAddConfig.year}`;
+      }
 
       const resp = await fetch(url);
       const data = await resp.json();
@@ -1609,6 +1616,20 @@ export default function Movies() {
                           </button>
                         ))}
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2 block">Year (Optional)</label>
+                      <select
+                        value={quickAddConfig.year}
+                        onChange={(e) => setQuickAddConfig({ ...quickAddConfig, year: e.target.value })}
+                        className="w-full bg-neutral-900 border border-neutral-800 text-white text-sm rounded-xl px-4 py-2.5 outline-none focus:border-red-500 transition"
+                      >
+                        <option value="">Any Year / Popular</option>
+                        {Array.from({ length: 2026 - 1990 + 1 }, (_, i) => 2026 - i).map(year => (
+                          <option key={year} value={year.toString()}>{year}</option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>
