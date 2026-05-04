@@ -24,6 +24,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [viewIncremented, setViewIncremented] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
   const [reported, setReported] = useState(false);
+  const [imdbId, setImdbId] = useState<string | null>(null);
+  const [activeServer, setActiveServer] = useState(1);
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState(1);
@@ -65,6 +67,26 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     return [];
   }, [item.type, item.video_url]);
 
+  const tmdbId = useMemo(() => {
+    try {
+      if (item.video_url && item.video_url.startsWith('{')) {
+        return JSON.parse(item.video_url).tmdb_id;
+      }
+    } catch (e) {}
+    return null;
+  }, [item.video_url]);
+
+  useEffect(() => {
+    if (tmdbId) {
+      fetch(`https://api.themoviedb.org/3/${item.type === 'Series' ? 'tv' : 'movie'}/${tmdbId}/external_ids?api_key=c2607383b5fe48c445465d4e8b1ded29`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.imdb_id) setImdbId(data.imdb_id);
+        })
+        .catch(console.error);
+    }
+  }, [tmdbId, item.type]);
+
   const seasons = useMemo(() => {
     const s = new Set<number>();
     allEpisodes.forEach((ep: any) => s.add(ep.season || 1));
@@ -84,14 +106,12 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const { servers, subtitles } = useMemo(() => {
     let parsedServers = [{ name: 'Default Server', url: item.video_url || '', quality: 'Auto' }];
     let parsedSubtitles = [];
-    let tmdbId = '';
 
     try {
       if (item.video_url && item.video_url.startsWith('{')) {
         const parsed = JSON.parse(item.video_url);
         parsedServers = parsed.servers || parsedServers;
         parsedSubtitles = parsed.subtitles || [];
-        tmdbId = parsed.tmdb_id || '';
       } else if (item.video_url && item.video_url.startsWith('[')) {
         const parsed = JSON.parse(item.video_url);
         if (parsed.length > 0 && !parsed[0].servers) {
@@ -102,7 +122,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       console.error("Error parsing servers/subtitles", e);
     }
 
-    // Auto-add VidSrc if TMDB ID is present
     if (tmdbId) {
       const vidsrcUrl = item.type === 'Series' 
         ? `vidsrc://tv/${tmdbId}/${selectedSeason}/${(episodes[currentEpisodeIndex]?.number || 1)}`
@@ -132,15 +151,13 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         }
       }
       
-      // Filter out empty servers
       const filteredEpServers = epServers.filter((s: any) => s.url && s.url.trim() !== '');
       return { servers: filteredEpServers, subtitles: ep?.subtitles || [] };
     }
 
-    // Filter out empty servers for movies
     const filteredServers = parsedServers.filter((s: any) => s.url && s.url.trim() !== '');
     return { servers: filteredServers, subtitles: parsedSubtitles };
-  }, [item.type, item.video_url, episodes, currentEpisodeIndex]);
+  }, [item.type, item.video_url, episodes, currentEpisodeIndex, tmdbId, selectedSeason]);
 
   const videoTracks = useMemo(() => {
     return (subtitles || []).map((sub: any) => ({
@@ -148,7 +165,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       src: sub.url,
       srcLang: sub.lang || 'en',
       label: sub.label || 'Unknown',
-      default: sub.lang === 'ku' // Default to Kurdish if available
+      default: sub.lang === 'ku'
     }));
   }, [subtitles]);
 
@@ -162,7 +179,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       if (!error && data) {
         await supabase.from('movies').update({ views: (data.views || 0) + 1 }).eq('id', item.id);
       } else {
-        // Fallback for first view if views is null/undefined
         await supabase.from('movies').update({ views: 1 }).eq('id', item.id);
       }
     } catch (e) {
@@ -173,7 +189,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const handleReportBroken = async () => {
     if (reported || !item.id) return;
     try {
-      // Create a formal report in the database
       const { error } = await supabase.from('reports').insert([
         { 
           movie_id: item.id, 
@@ -183,7 +198,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         }
       ]);
       
-      // Also mark as broken in movies table for immediate badge update if needed
       await supabase.from('movies').update({ is_broken: true }).eq('id', item.id);
       
       if (!error) {
@@ -219,7 +233,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
        return;
     }
     setCurrentEpisodeIndex(index);
-    // Auto-play first server of new episode if already playing
     if (isPlaying) {
       const firstServer = episodes[index]?.servers[0];
       if (firstServer) setSelectedServerUrl(firstServer.url);
@@ -241,7 +254,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
   const isIframeLink = isEmbedUrl(selectedServerUrl);
   
-  // Convert standard links to embed links if needed
   const handleFullScreen = () => {
     const playerElement = document.getElementById('player-container');
     if (playerElement) {
@@ -259,28 +271,34 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     if (!url) return '';
     
     let finalUrl = url.trim();
-    finalUrl = finalUrl.replace(/^\/+/, ''); // Remove any accidental leading slashes
+    finalUrl = finalUrl.replace(/^\/+/, ''); 
     
-    // Ensure URL has protocol to prevent relative path routing errors (like Vercel 500 errors)
     if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://') && !finalUrl.startsWith('vidsrc://')) {
       finalUrl = 'https://' + finalUrl;
     }
 
     if (finalUrl.startsWith('vidsrc://')) {
       const parts = finalUrl.replace('vidsrc://', '').split('/');
-      const type = parts[0]; // movie or tv
+      const type = parts[0];
       const id = parts[1];
+      const season = parts[2] || '1';
+      const ep = parts[3] || '1';
+
+      if (activeServer === 2) {
+        return `https://multiembed.mov/?video_id=${id}&tmdb=1${type === 'tv' ? `&s=${season}&e=${ep}` : ''}`;
+      }
+      if (activeServer === 3 && imdbId) {
+        return `https://godriveplayer.com/player.php?imdb=${imdbId}${type === 'tv' ? `&season=${season}&episode=${ep}` : ''}`;
+      }
+
       if (type === 'movie') {
         return `https://vidsrc.pm/embed/movie/${id}`;
       } else {
-        const season = parts[2] || '1';
-        const ep = parts[3] || '1';
         return `https://vidsrc.pm/embed/tv/${id}/${season}/${ep}`;
       }
     }
 
     if (finalUrl.includes('drive.google.com') || finalUrl.includes('docs.google.com')) {
-      // Convert /view or /edit to /preview for embedding
       if (finalUrl.includes('/view')) return finalUrl.replace('/view', '/preview');
       if (finalUrl.includes('/edit')) return finalUrl.replace('/edit', '/preview');
       if (!finalUrl.endsWith('/preview')) {
@@ -311,104 +329,18 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const handleDownload = () => {
     alert(language === 'ku' ? 'بەشی داوڵۆند بەمزووانە کارا دەبێت' : 'Download feature will be available soon');
     return;
-    if (isDownloading) return;
-    
-    // Get download_url from item or from parsed video_url
-    let downloadUrl = item.download_url;
-    if (!downloadUrl && item.video_url && item.video_url.startsWith('{')) {
-      try {
-        const parsed = JSON.parse(item.video_url);
-        downloadUrl = parsed.download_url;
-      } catch (e) {}
-    }
-
-    const tmdbId = (() => {
-      try {
-        if (item.video_url && item.video_url.startsWith('{')) {
-          return JSON.parse(item.video_url).tmdb_id;
-        }
-      } catch (e) {}
-      return null;
-    })();
-
-    if (!downloadUrl && tmdbId) {
-       // If no direct download link, use VidSrc download mirror
-        const downloadMirror = item.type === 'Series'
-         ? `https://vidsrc.pm/download/tv/${tmdbId}/${selectedSeason}/${(episodes[currentEpisodeIndex]?.number || 1)}`
-         : `https://vidsrc.pm/download/movie/${tmdbId}`;
-
-       openInBrowser(downloadMirror);
-       
-       // Still add to local list for "Downloads" section tracking
-       const savedDownloads = JSON.parse(localStorage.getItem('myfilm_downloads') || '[]');
-       if (!savedDownloads.find((m: any) => m.id === item.id)) {
-         savedDownloads.push({
-           id: item.id,
-           title: item.title,
-           image: item.image,
-           type: item.type,
-           download_url: downloadMirror,
-           downloaded_at: new Date().toISOString()
-         });
-         localStorage.setItem('myfilm_downloads', JSON.stringify(savedDownloads));
-       }
-       return;
-    }
-    
-    if (!downloadUrl) {
-      alert(language === 'ku' ? 'لینکی داوڵۆند بەردەست نییە بۆ ئەم فیلمە' : 'Download link not available for this movie');
-      return;
-    }
-
-    setIsDownloading(true);
-    setDownloadProgress(0);
-
-    // Simulate progress for better UX as requested "stay inside website"
-    const interval = setInterval(() => {
-      setDownloadProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          
-          // Save to local downloads
-          const savedDownloads = JSON.parse(localStorage.getItem('myfilm_downloads') || '[]');
-          if (!savedDownloads.find((m: any) => m.id === item.id)) {
-            savedDownloads.push({
-              id: item.id,
-              title: item.title,
-              title_ar: item.title_ar,
-              title_en: item.title_en,
-              image: item.image,
-              backdrop: item.backdrop,
-              rating: item.rating,
-              year: item.year,
-              type: item.type,
-              download_url: downloadUrl,
-              downloaded_at: new Date().toISOString()
-            });
-            localStorage.setItem('myfilm_downloads', JSON.stringify(savedDownloads));
-          }
-          
-          setIsDownloading(false);
-          alert(language === 'ku' ? 'فیلمەکە بەسەرکەوتوویی دابەزی و چووە بەشی داوڵۆند' : 'Movie downloaded successfully and added to Downloads section');
-          return 100;
-        }
-        return prev + 5;
-      });
-    }, 200);
   };
 
   const openInBrowser = async (url: string) => {
     try {
       await Browser.open({ url });
     } catch (e) {
-      // Fallback if Capacitor is not available (e.g. in normal web view)
       window.open(url, '_blank');
     }
   };
 
   return (
     <div className="bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black pb-24">
-      {/* Header / Backdrop or Player */}
       <div id="player-container" className={`relative w-full bg-black aspect-video md:h-[70vh] md:aspect-auto`}>
         {isPlaying ? (
           <div className="w-full h-full relative bg-black flex items-center justify-center">
@@ -416,8 +348,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             </div>
             
             {(() => {
-              const isM3u8 = selectedServerUrl?.toLowerCase().includes('.m3u8');
-
               return !selectedServerUrl ? (
                 <div className="w-full h-full flex items-center justify-center bg-neutral-900 text-neutral-400 absolute inset-0">
                   No video source available
@@ -489,7 +419,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         )}
       </div>
 
-      {/* Content Info */}
       <div className="px-5 -mt-8 relative z-30">
         <h1 className="text-3xl font-bold mb-3 text-white light-mode:text-black">
           {getLocalized(item, 'title', language)}
@@ -506,12 +435,42 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             <span>{language === 'ku' ? 'بەمزوانە بەردەست دەبێت' : language === 'ar' ? 'سيتوفر قريباً' : 'Coming Soon'}</span>
           </div>
         ) : (
-          <button 
-            onClick={handlePlayClick}
-            className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl flex items-center justify-center font-semibold transition mb-8 shadow-lg shadow-red-600/20"
-          >
-            <Play size={20} className="mr-2 fill-current" /> {t.watchNow}
-          </button>
+          <div className="mb-8">
+            <button 
+              onClick={() => setIsPlaying(true)}
+              className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl transition flex items-center justify-center space-x-3 shadow-xl shadow-red-600/30 group active:scale-95"
+            >
+              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition">
+                <Plus size={20} className="rotate-45" />
+              </div>
+              <span className="text-xl uppercase tracking-widest">{language === 'ku' ? 'ئێستا ببینە' : 'Watch Now'}</span>
+            </button>
+
+            {tmdbId && (
+              <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                <button 
+                  onClick={() => { setActiveServer(1); if (!isPlaying) setIsPlaying(true); }}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition border ${activeServer === 1 ? 'bg-red-600 border-red-500 text-white' : 'bg-neutral-900 border-neutral-800 text-neutral-400'}`}
+                >
+                  Server My Flim
+                </button>
+                <button 
+                  onClick={() => { setActiveServer(2); if (!isPlaying) setIsPlaying(true); }}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition border ${activeServer === 2 ? 'bg-red-600 border-red-500 text-white' : 'bg-neutral-900 border-neutral-800 text-neutral-400'}`}
+                >
+                  Server 2
+                </button>
+                {imdbId && (
+                  <button 
+                    onClick={() => { setActiveServer(3); if (!isPlaying) setIsPlaying(true); }}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold transition border ${activeServer === 3 ? 'bg-red-600 border-red-500 text-white' : 'bg-neutral-900 border-neutral-800 text-neutral-400'}`}
+                  >
+                    Server 3
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         <div className="flex justify-around border-y border-neutral-800/60 light-mode:border-neutral-200 py-5 mb-8">
