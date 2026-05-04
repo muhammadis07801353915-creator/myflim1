@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react';
 import { 
   Plus, Search, Edit, Trash2, Film, Tv, DownloadCloud, 
-  Image as ImageIcon, Link as LinkIcon, Users, Settings, Type, Star, AlertCircle, Wrench, WifiOff
+  Image as ImageIcon, Link as LinkIcon, Users, Settings, Type, Star, AlertCircle, Wrench, WifiOff,
+  Zap, X
 } from 'lucide-react';
 import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
@@ -44,6 +45,15 @@ export default function Movies() {
   const [tmdbResults, setTmdbResults] = useState<any[]>([]);
   const [tmdbLoading, setTmdbLoading] = useState(false);
   const [tmdbSearchType, setTmdbSearchType] = useState('multi'); // 'multi', 'movie', 'tv'
+
+  const [showQuickAddModal, setShowQuickAddModal] = useState(false);
+  const [quickAddLoading, setQuickAddLoading] = useState(false);
+  const [quickAddProgress, setQuickAddProgress] = useState({ current: 0, total: 0 });
+  const [quickAddConfig, setQuickAddConfig] = useState({
+    type: 'movie',
+    category: 'IN_hi', // code_lang
+    targetList: 'تازە زیادکراوەکان'
+  });
 
   const TMDB_API_KEY = 'c2607383b5fe48c445465d4e8b1ded29';
 
@@ -134,6 +144,104 @@ export default function Movies() {
       alert('Error fetching details from TMDB');
     } finally {
       setTmdbLoading(false);
+    }
+  };
+
+  const handleQuickAdd = async () => {
+    setQuickAddLoading(true);
+    setQuickAddProgress({ current: 0, total: 20 });
+    
+    try {
+      const [countryCode, langCode] = quickAddConfig.category.split('_');
+      let url = `https://api.themoviedb.org/3/discover/${quickAddConfig.type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=1`;
+      
+      if (countryCode) url += `&with_origin_country=${countryCode}`;
+      if (langCode) url += `&with_original_language=${langCode}`;
+      if (quickAddConfig.category === 'animation') url += `&with_genres=16`;
+
+      const resp = await fetch(url);
+      const data = await resp.json();
+      const results = (data.results || []).slice(0, 20);
+      
+      setQuickAddProgress({ current: 0, total: results.length });
+
+      const newItems = [];
+
+      for (let i = 0; i < results.length; i++) {
+        const item = results[i];
+        setQuickAddProgress({ current: i + 1, total: results.length });
+
+        // Fetch full details
+        const detailsResp = await fetch(`https://api.themoviedb.org/3/${quickAddConfig.type}/${item.id}?api_key=${TMDB_API_KEY}`);
+        const details = await detailsResp.json();
+
+        let videoUrlObj: any = {};
+        
+        if (quickAddConfig.type === 'movie') {
+          videoUrlObj = {
+            servers: [{ name: 'Server My flim', url: `vidsrc://movie/${item.id}`, quality: 'Auto' }],
+            download_url: '',
+            tmdb_id: item.id.toString()
+          };
+        } else {
+          // Fetch TV seasons
+          let allEpisodes: any[] = [];
+          if (details.seasons) {
+            const validSeasons = details.seasons.filter((s: any) => s.season_number > 0);
+            const seasonPromises = validSeasons.map((season: any) => 
+              fetch(`https://api.themoviedb.org/3/tv/${item.id}/season/${season.season_number}?api_key=${TMDB_API_KEY}`).then(r => r.json())
+            );
+            const seasonsData = await Promise.all(seasonPromises);
+            
+            seasonsData.forEach((sDetails: any) => {
+              if (sDetails.episodes) {
+                const seasonEpisodes = sDetails.episodes.map((ep: any) => ({
+                  number: ep.episode_number,
+                  season: sDetails.season_number,
+                  title: ep.name || '',
+                  servers: [{ name: 'Server My flim', url: `vidsrc://tv/${item.id}/${sDetails.season_number}/${ep.episode_number}`, quality: 'Auto' }],
+                  subtitles: []
+                }));
+                allEpisodes = [...allEpisodes, ...seasonEpisodes];
+              }
+            });
+          }
+          videoUrlObj = {
+            episodes: allEpisodes.length > 0 ? allEpisodes : [{ number: 1, season: 1, title: '', servers: [{ name: 'Server My flim', url: `vidsrc://tv/${item.id}/1/1`, quality: 'Auto' }], subtitles: [] }],
+            download_url: '',
+            tmdb_id: item.id.toString()
+          };
+        }
+
+        newItems.push({
+          title: details.title || details.name || '',
+          type: quickAddConfig.type === 'tv' ? 'Series' : 'Movie',
+          description: details.overview || '',
+          year: (details.release_date || details.first_air_date || '').split('-')[0],
+          rating: details.vote_average?.toFixed(1) || '0',
+          genre: (details.genres || []).map((g: any) => g.name).join(', '),
+          image: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : '',
+          backdrop: details.backdrop_path ? `https://image.tmdb.org/t/p/original${details.backdrop_path}` : '',
+          list_name: quickAddConfig.targetList,
+          video_url: JSON.stringify(videoUrlObj),
+          status: 'Published',
+          views: 0
+        });
+      }
+
+      // Bulk insert into Supabase
+      const { error } = await supabase.from('movies').insert(newItems);
+      
+      if (error) throw error;
+      
+      alert(`بەسەرکەوتوویی ${newItems.length} بەرهەم زیادکرا بۆ ${quickAddConfig.targetList}`);
+      setShowQuickAddModal(false);
+      fetchContent();
+    } catch (e) {
+      console.error(e);
+      alert('Error during quick add process');
+    } finally {
+      setQuickAddLoading(false);
     }
   };
 
@@ -1152,13 +1260,22 @@ export default function Movies() {
             </div>
           )}
         </div>
-        <button 
-          onClick={handleAddNew}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center justify-center space-x-2 shadow-lg shadow-red-600/20"
-        >
-          <Plus size={20} />
-          <span>Add New Content</span>
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button 
+            onClick={() => setShowQuickAddModal(true)}
+            className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition flex items-center justify-center space-x-2 border border-neutral-700"
+          >
+            <Zap size={20} className="text-yellow-500 fill-current" />
+            <span>Quick Add</span>
+          </button>
+          <button 
+            onClick={handleAddNew}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center justify-center space-x-2 shadow-lg shadow-red-600/20"
+          >
+            <Plus size={20} />
+            <span>Add New Content</span>
+          </button>
+        </div>
       </div>
 
       <div className="bg-[#1a1d24] border border-neutral-800 rounded-xl overflow-hidden">
@@ -1401,6 +1518,127 @@ export default function Movies() {
               <button onClick={() => setShowTmdbModal(false)} className="w-full py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg font-medium transition">
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      {showQuickAddModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#1a1d24] w-full max-w-md rounded-2xl border border-neutral-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-neutral-800 flex justify-between items-center bg-neutral-900/50">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center">
+                  <Zap size={22} className="text-yellow-500 fill-current" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Quick Add Content</h2>
+                  <p className="text-xs text-neutral-500">Bulk import 20 items from TMDB</p>
+                </div>
+              </div>
+              <button onClick={() => !quickAddLoading && setShowQuickAddModal(false)} className="text-neutral-500 hover:text-white transition">
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-5">
+              {quickAddLoading ? (
+                <div className="py-8 space-y-6">
+                  <div className="flex flex-col items-center justify-center space-y-4">
+                    <div className="relative w-20 h-20">
+                      <div className="absolute inset-0 border-4 border-yellow-500/10 rounded-full" />
+                      <div className="absolute inset-0 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-sm font-bold text-yellow-500">{Math.round((quickAddProgress.current / quickAddProgress.total) * 100)}%</span>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-white font-medium">Importing Content...</p>
+                      <p className="text-xs text-neutral-500 mt-1">Processing item {quickAddProgress.current} of {quickAddProgress.total}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-yellow-500 h-full transition-all duration-300" 
+                      style={{ width: `${(quickAddProgress.current / quickAddProgress.total) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2 block">Content Type</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['movie', 'tv'].map((t) => (
+                          <button
+                            key={t}
+                            onClick={() => setQuickAddConfig({ ...quickAddConfig, type: t as any })}
+                            className={`py-2.5 rounded-xl text-sm font-bold transition border ${
+                              quickAddConfig.type === t 
+                                ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-600/20' 
+                                : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                            }`}
+                          >
+                            {t === 'movie' ? 'Movies' : 'Series (TV)'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2 block">Category / Country</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { name: 'Hindi', id: 'IN_hi' },
+                          { name: 'Korean', id: 'KR_ko' },
+                          { name: 'Turkish', id: 'TR_tr' },
+                          { name: 'Hollywood', id: 'US_en' },
+                          { name: 'Arabic', id: '_ar' },
+                          { name: 'Animation', id: 'animation' }
+                        ].map((c) => (
+                          <button
+                            key={c.id}
+                            onClick={() => setQuickAddConfig({ ...quickAddConfig, category: c.id })}
+                            className={`py-2 rounded-lg text-xs font-medium transition border ${
+                              quickAddConfig.category === c.id 
+                                ? 'bg-neutral-700 border-neutral-600 text-white' 
+                                : 'bg-neutral-900 border-neutral-800 text-neutral-500 hover:text-white'
+                            }`}
+                          >
+                            {c.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2 block">Target List</label>
+                      <select
+                        value={quickAddConfig.targetList}
+                        onChange={(e) => setQuickAddConfig({ ...quickAddConfig, targetList: e.target.value })}
+                        className="w-full bg-neutral-900 border border-neutral-800 text-white text-sm rounded-xl px-4 py-3 outline-none focus:border-red-500 transition"
+                      >
+                        {movieLists.map(list => (
+                          <option key={list.id} value={list.name}>{list.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="pt-4">
+                    <button 
+                      onClick={handleQuickAdd}
+                      className="w-full py-4 bg-yellow-500 hover:bg-yellow-600 text-black font-black rounded-xl transition shadow-lg shadow-yellow-500/20 flex items-center justify-center space-x-2 active:scale-[0.98]"
+                    >
+                      <Zap size={20} className="fill-current" />
+                      <span>IMPORT 20 ITEMS NOW</span>
+                    </button>
+                    <p className="text-[10px] text-neutral-500 text-center mt-3 uppercase tracking-widest">
+                      Content will be automatically published with VidSrc links
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
