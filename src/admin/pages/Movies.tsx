@@ -154,8 +154,15 @@ export default function Movies() {
     
     try {
       const [countryCode, langCode] = quickAddConfig.category.split('_');
+      const today = new Date().toISOString().split('T')[0];
       let url = `https://api.themoviedb.org/3/discover/${quickAddConfig.type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=1`;
       
+      if (quickAddConfig.type === 'movie') {
+        url += `&release_date.lte=${today}`;
+      } else {
+        url += `&first_air_date.lte=${today}`;
+      }
+
       if (countryCode) url += `&with_origin_country=${countryCode}`;
       if (langCode) url += `&with_original_language=${langCode}`;
       if (quickAddConfig.category === 'animation') url += `&with_genres=16`;
@@ -181,6 +188,11 @@ export default function Movies() {
         // Fetch full details
         const detailsResp = await fetch(`https://api.themoviedb.org/3/${quickAddConfig.type}/${item.id}?api_key=${TMDB_API_KEY}`);
         const details = await detailsResp.json();
+
+        // Skip if not released
+        if (details.status !== 'Released' && details.status !== 'Returning Series' && details.status !== 'Ended') {
+          continue;
+        }
 
         let videoUrlObj: any = {};
         
