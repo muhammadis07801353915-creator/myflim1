@@ -1528,6 +1528,7 @@ export default function Movies() {
             </div>
           </div>
         </div>
+      )}
       {showQuickAddModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-[#1a1d24] w-full max-w-md rounded-2xl border border-neutral-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
