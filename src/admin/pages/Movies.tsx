@@ -1769,7 +1769,6 @@ export default function Movies() {
           </div>
         </div>
       )}
-    </div>
     </>
     );
 }
