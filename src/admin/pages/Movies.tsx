@@ -52,6 +52,7 @@ export default function Movies() {
   const [quickAddConfig, setQuickAddConfig] = useState({
     type: 'movie' as 'movie' | 'tv',
     category: 'IN_hi', // code_lang
+    targetList: 'تازە زیادکراوەکان',
     year: ''
   });
 
@@ -394,7 +395,6 @@ export default function Movies() {
       // Revert on error
       setContentList(prev => prev.map(m => m.id === item.id ? { ...m, is_broken: item.is_broken } : m));
     }
-    }
   };
 
   const handleApprove = async (id: number) => {
@@ -419,7 +419,7 @@ export default function Movies() {
       tmdb_id: '',
       servers: [{ name: 'Server 1', url: '', quality: 'Auto' }],
       subtitles: [],
-      episodes: [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }]
+      episodes: [{ number: 1, season: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }]
     });
     setEditingId(null);
     setErrorMsg(null);
@@ -430,7 +430,7 @@ export default function Movies() {
   const handleEdit = (item: any) => {
     let parsedServers = [{ name: 'Server 1', url: item.video_url || '', quality: 'Auto' }];
     let parsedSubtitles: any[] = [];
-    let parsedEpisodes = [{ number: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }];
+    let parsedEpisodes = [{ number: 1, season: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }];
     let extractedDownloadUrl = '';
     let extractedTmdbId = '';
 
@@ -884,7 +884,7 @@ export default function Movies() {
                   <button 
                     onClick={() => setFormData({
                       ...formData, 
-                      episodes: [...formData.episodes, { number: formData.episodes.length + 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }] }]
+                      episodes: [...formData.episodes, { number: formData.episodes.length + 1, season: 1, title: '', servers: [{ name: 'Server 1', url: '', quality: 'Auto' }], subtitles: [] }]
                     })}
                     className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition flex items-center space-x-1"
                   >
@@ -1591,7 +1591,7 @@ export default function Movies() {
                     <div className="flex flex-col items-center">
                       <Check size={48} className="mb-4 opacity-20" />
                       <p className="text-lg font-bold text-white">All items reviewed!</p>
-                      <p className="mt-1">You've published or deleted all imported content.</p>
+                      <p className="mt-1">You&apos;ve published or deleted all imported content.</p>
                       <button 
                         onClick={() => setShowStagingView(false)}
                         className="mt-6 px-6 py-2 bg-red-600 text-white rounded-lg font-bold"

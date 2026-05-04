@@ -339,8 +339,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                     src={getEmbedUrl(selectedServerUrl)} 
                     className="w-full h-full border-0 absolute inset-0 z-50"
                     allowFullScreen
-                    webkitallowfullscreen="true"
-                    mozallowfullscreen="true"
                     allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write"
                     referrerPolicy="no-referrer"
                   ></iframe>
