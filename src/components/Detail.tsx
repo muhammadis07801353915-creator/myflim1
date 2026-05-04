@@ -1,4 +1,4 @@
-import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle, Type, Maximize2 } from 'lucide-react';
+import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle, Type, Maximize2, Plus } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import PremiumPlayer from './PremiumPlayer';
@@ -20,7 +20,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [activeSubtitle, setActiveSubtitle] = useState<string | null>(null);
   const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(0);
-  const [viewCount, setViewCount] = useState(item.views || 0);
+  const [viewCount, setViewCount] = useState(item?.views || 0);
   const [viewIncremented, setViewIncremented] = useState(false);
   const [showProModal, setShowProModal] = useState(false);
   const [reported, setReported] = useState(false);
@@ -48,6 +48,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     setIsPlaying(false);
     setShowServersModal(false);
   });
+
+  if (!item) return null;
 
   const isBookmarked = isInWatchlist(item.id);
 
@@ -437,7 +439,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         ) : (
           <div className="mb-8">
             <button 
-              onClick={() => setIsPlaying(true)}
+              onClick={handlePlayClick}
               className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl transition flex items-center justify-center space-x-3 shadow-xl shadow-red-600/30 group active:scale-95"
             >
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition">
