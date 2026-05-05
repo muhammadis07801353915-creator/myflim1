@@ -186,7 +186,7 @@ export default function LiveTV() {
           >
             <ArrowLeft size={24} className="rtl:rotate-180" />
           </button>
-          <h1 className="text-xl font-bold">{viewAllCategory}</h1>
+          <h1 className="text-xl font-bold">{getLocalized(viewAllCategory, 'name', language)}</h1>
         </div>
         
         {/* Grid of all channels in category */}
@@ -492,7 +492,7 @@ export default function LiveTV() {
                   {selectedCategory === 'All' && <div className="w-2.5 h-2.5 bg-red-500 rounded-full" />}
                 </div>
                 <span className={selectedCategory === 'All' ? 'text-white font-medium' : 'text-neutral-400'}>
-                  {language === 'ku' ? 'هەمووی' : language === 'ar' ? 'الكل' : 'All'}
+                  {getLocalized('All', 'name', language)}
                 </span>
               </button>
               {categories.map(cat => (

@@ -4,9 +4,10 @@ import Image from 'next/image';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../lib/LanguageContext';
 import { useData } from '../lib/DataContext';
+import { getLocalized } from '../lib/translations';
 
 export default function Search({ onSelect }: { onSelect: (item: any) => void }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { movies, loading } = useData();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('All');
@@ -16,7 +17,15 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
   const filteredMovies = movies.filter(m => {
     if (filter === t.movies && m.type !== 'Movie') return false;
     if (filter === t.series && m.type !== 'Series') return false;
-    if (query && !m.title.toLowerCase().includes(query.toLowerCase())) return false;
+    if (query) {
+      const q = query.toLowerCase();
+      const match = 
+        (m.title || '').toLowerCase().includes(q) ||
+        (m.title_ar || '').toLowerCase().includes(q) ||
+        (m.title_en || '').toLowerCase().includes(q) ||
+        (m.title_hi || '').toLowerCase().includes(q);
+      if (!match) return false;
+    }
     return true;
   });
 
@@ -63,7 +72,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
                 <Image src={movie.image} alt={movie.title} fill sizes="96px" className="object-cover" unoptimized />
               </div>
               <div className="flex-1 py-2">
-                <h3 className="font-semibold text-lg text-white light-mode:text-black">{movie.title}</h3>
+                <h3 className="font-semibold text-lg text-white light-mode:text-black">{getLocalized(movie, 'title', language)}</h3>
                 <div className="flex items-center text-sm text-neutral-400 mt-1 mb-2">
                   <span className="flex items-center text-yellow-500 mr-3 rtl:mr-0 rtl:ml-3"><Star size={14} className="mr-1 rtl:mr-0 rtl:ml-1 fill-current" /> {movie.rating}</span>
                   <span>{movie.year}</span>

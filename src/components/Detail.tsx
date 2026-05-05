@@ -511,7 +511,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
         <div className="mb-8">
           <h3 className="text-xl font-semibold mb-3 text-white light-mode:text-black">
-            {language === 'ku' ? 'چیرۆکی فیلم' : language === 'ar' ? 'قصة الفيلم' : 'Story Line'}
+            {t.storyLine}
           </h3>
           <p className="text-neutral-400 light-mode:text-neutral-600 text-sm leading-relaxed">
             {getLocalized(item, 'description', language) || item.description}
@@ -524,8 +524,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         {item.type === 'Series' && allEpisodes.length > 0 && (
           <div className="mt-8">
              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-black tracking-tighter">وەررزەکان</h3>
-                <span className="text-neutral-500 text-sm font-bold uppercase tracking-widest">{seasons.length} Seasons</span>
+                <h3 className="text-2xl font-black tracking-tighter">{t.seasons}</h3>
+                <span className="text-neutral-500 text-sm font-bold uppercase tracking-widest">{seasons.length} {t.seasons}</span>
              </div>
              
              <div className="flex space-x-3 overflow-x-auto pb-4 scrollbar-hide -mx-5 px-5 mb-6">
@@ -545,8 +545,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
              </div>
 
              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-black tracking-tighter">ئەڵقەکان</h3>
-                <span className="text-neutral-500 text-sm font-bold uppercase tracking-widest">{episodes.length} Episodes</span>
+                <h3 className="text-2xl font-black tracking-tighter">{t.episodesTitle}</h3>
+                <span className="text-neutral-500 text-sm font-bold uppercase tracking-widest">{episodes.length} {t.episodesTitle}</span>
              </div>
              
              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4">
@@ -561,7 +561,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                       }`}
                    >
                       <span className={`text-[10px] uppercase font-black tracking-tighter mb-1 ${currentEpisodeIndex === index ? 'text-blue-100' : 'text-neutral-400'}`}>
-                         ئەڵقەی
+                         {t.episode}
                       </span>
                       <span className={`text-xl font-black leading-none ${currentEpisodeIndex === index ? 'text-white' : 'text-neutral-200'}`}>
                          {episode.number || index + 1}
@@ -581,7 +581,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         {socialLinks.length > 0 && (
           <div className="mt-12">
             <h3 className="text-xl font-semibold mb-4 text-white light-mode:text-black">
-              {language === 'ku' ? 'سۆشیاڵ میدیا' : language === 'ar' ? 'وسائل التواصل الاجتماعي' : 'Social Media'}
+              {t.socialMedia}
             </h3>
             <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide -mx-5 px-5">
               {socialLinks.map((link, i) => (

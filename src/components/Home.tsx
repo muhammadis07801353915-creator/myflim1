@@ -22,7 +22,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
   const viewingList = useMemo(() => {
     if (!listName) return null;
     let items: any[] = [];
-    let displayTitle = listName;
+    let displayTitle = listName ? getLocalized(listName, 'name', language) : '';
 
     // Check for "Top Contents" (Popular)
     if (listName === 'Top Contents') {

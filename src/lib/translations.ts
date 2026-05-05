@@ -49,10 +49,44 @@ export interface Translations {
   anonymousUser: string;
   like: string;
   reply: string;
+  storyLine: string;
+  seasons: string;
+  episodesTitle: string;
+  episode: string;
+  socialMedia: string;
 }
+
+const commonNameTranslations: Record<string, Record<Language, string>> = {
+  'All': { en: 'All', ku: 'هەمووی', ar: 'الكل', hi: 'सभी' },
+  'News': { en: 'News', ku: 'هەواڵ', ar: 'الأخبار', hi: 'समाचार' },
+  'Entertainment': { en: 'Entertainment', ku: 'بەکات بەسەربردن', ar: 'ترفيه', hi: 'मनोरंजन' },
+  'Kids': { en: 'Kids', ku: 'مناڵان', ar: 'أطفال', hi: 'बच्चे' },
+  'Sports': { en: 'Sports', ku: 'وەرزش', ar: 'رياضة', hi: 'खेल' },
+  'Movies': { en: 'Movies', ku: 'فیلمەکان', ar: 'أفلام', hi: 'फिल्में' },
+  'Series': { en: 'Series', ku: 'زنجیرەکان', ar: 'مسلسلات', hi: 'सीरीज़' },
+  'Newest Added': { en: 'Newest Added', ku: 'نوێترین زیادکراو', ar: 'أحدث الإضافات', hi: 'नया जोड़ा गया' },
+  'نوێترین زیادکراو': { en: 'Newest Added', ku: 'نوێترین زیادکراو', ar: 'أحدث الإضافات', hi: 'नया जोड़ा गया' },
+  'فلیمی کوردی دۆبلاژ': { en: 'Kurdish Dubbed', ku: 'فلیمی کوردی دۆبلاژ', ar: 'مدبلج كردي', hi: 'कुर्दिश डब' },
+  'Popular': { en: 'Popular', ku: 'ناودار', ar: 'شعبية', hi: 'लोकप्रिय' },
+  'Top Contents': { en: 'Top Contents', ku: 'بەناوبانگترین', ar: 'الأكثر شهرة', hi: 'शीर्ष सामग्री' },
+};
 
 export const getLocalized = (item: any, field: 'title' | 'description' | 'name', language: string) => {
   if (!item) return '';
+  
+  // If item is a string, treat it as the value to be translated
+  if (typeof item === 'string') {
+    if (commonNameTranslations[item]) {
+      return commonNameTranslations[item][language as Language] || item;
+    }
+    return item;
+  }
+  
+  const val = item[field] || '';
+  if (val && commonNameTranslations[val]) {
+    return commonNameTranslations[val][language as Language] || val;
+  }
+
   if (language === 'ku') return item[field] || '';
   const localizedField = `${field}_${language}`;
   return item[localizedField] || item[field] || '';
@@ -108,6 +142,11 @@ export const translations: Record<Language, Translations> = {
     anonymousUser: 'Anonymous User',
     like: 'Like',
     reply: 'Reply',
+    storyLine: 'Story Line',
+    seasons: 'Seasons',
+    episodesTitle: 'Episodes',
+    episode: 'Episode',
+    socialMedia: 'Social Media',
   },
   ku: {
     profile: 'پڕۆفایل',
@@ -158,6 +197,11 @@ export const translations: Record<Language, Translations> = {
     anonymousUser: 'بەکارهێنەری نەناسراو',
     like: 'بەدڵبوون',
     reply: 'وەڵامدانەوە',
+    storyLine: 'چیرۆکی فیلم',
+    seasons: 'وەرزەکان',
+    episodesTitle: 'ئەڵقەکان',
+    episode: 'ئەڵقەی',
+    socialMedia: 'سۆشیاڵ میدیا',
   },
   ar: {
     profile: 'الملف الشخصي',
@@ -208,6 +252,11 @@ export const translations: Record<Language, Translations> = {
     anonymousUser: 'مستخدم مجهول',
     like: 'إعجاب',
     reply: 'رد',
+    storyLine: 'قصة الفيلم',
+    seasons: 'مواسم',
+    episodesTitle: 'حلقات',
+    episode: 'حلقة',
+    socialMedia: 'سۆشیاڵ میدیا',
   },
   hi: {
     profile: 'प्रोफ़ाइल',
@@ -258,5 +307,10 @@ export const translations: Record<Language, Translations> = {
     anonymousUser: 'अज्ञात उपयोगकर्ता',
     like: 'पसंद करें',
     reply: 'जवाब दें',
-  }
+    storyLine: 'कहानी',
+    seasons: 'सीज़न',
+    episodesTitle: 'एपिसोड',
+    episode: 'एपिसोड',
+    socialMedia: 'सोशल मीडिया',
+  },
 };
