@@ -19,8 +19,8 @@ export default function Movies() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   
-  const [formData, setFormData] = useState({
-    title: '', title_ar: '', title_en: '', type: 'Movie', genre: '', year: '', description: '', description_ar: '', description_en: '', rating: '', image: '', backdrop: '', duration: '',
+  const [formData, setFormData] = useState<any>({ 
+    title: '', title_ar: '', title_en: '', title_hi: '', type: 'Movie', genre: '', year: '', description: '', description_ar: '', description_en: '', description_hi: '', rating: '', image: '', backdrop: '', duration: '',
     list_name: '',
     is_featured: false,
     is_pro: false,
@@ -83,7 +83,7 @@ export default function Movies() {
   const selectTmdbItem = async (item: any) => {
     const type = (item.media_type === 'tv' || item.first_air_date) ? 'tv' : 'movie';
     try {
-      const resp = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}?api_key=${TMDB_API_KEY}`, {
+      const resp = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}?api_key=${TMDB_API_KEY}&append_to_response=translations`, {
         next: { revalidate: 86400 }, // Cache individual TMDB details
         cache: 'force-cache'
       });
@@ -128,11 +128,35 @@ export default function Movies() {
         setTmdbLoading(false);
       }
 
+      const trans = details.translations?.translations || [];
+      const getTrans = (iso: string) => trans.find((t: any) => t.iso_639_1 === iso)?.data || {};
+      const arTrans = getTrans('ar');
+      const hiTrans = getTrans('hi');
+      const kuTrans = getTrans('ku');
+      
+      const title_en = details.title || details.name || '';
+      const desc_en = details.overview || '';
+      
+      const title_ar = arTrans.title || arTrans.name || title_en;
+      const desc_ar = arTrans.overview || desc_en;
+      
+      const title_hi = hiTrans.title || hiTrans.name || title_en;
+      const desc_hi = hiTrans.overview || desc_en;
+      
+      const title_ku = kuTrans.title || kuTrans.name || title_en;
+      const desc_ku = kuTrans.overview || desc_en;
+
       setFormData(prev => ({
         ...prev,
-        title: details.title || details.name || '',
+        title: title_ku,
+        title_ar: title_ar,
+        title_en: title_en,
+        title_hi: title_hi,
         type: type === 'tv' ? 'Series' : 'Movie',
-        description: details.overview || '',
+        description: desc_ku,
+        description_ar: desc_ar,
+        description_en: desc_en,
+        description_hi: desc_hi,
         year: (details.release_date || details.first_air_date || '').split('-')[0],
         rating: details.vote_average?.toFixed(1) || '',
         genre: (details.genres || []).map((g: any) => g.name).join(', '),
@@ -250,9 +274,29 @@ export default function Movies() {
           continue;
         }
 
-        // Fetch full details
-        const detailsResp = await fetch(`https://api.themoviedb.org/3/${quickAddConfig.type}/${item.id}?api_key=${TMDB_API_KEY}`);
+        // Fetch full details with translations
+        const detailsResp = await fetch(`https://api.themoviedb.org/3/${quickAddConfig.type}/${item.id}?api_key=${TMDB_API_KEY}&append_to_response=translations`);
         const details = await detailsResp.json();
+
+        // Extract translations
+        const trans = details.translations?.translations || [];
+        const getTrans = (iso: string) => trans.find((t: any) => t.iso_639_1 === iso)?.data || {};
+        
+        const arTrans = getTrans('ar');
+        const hiTrans = getTrans('hi');
+        const kuTrans = getTrans('ku');
+        
+        const title_en = details.title || details.name || '';
+        const desc_en = details.overview || '';
+        
+        const title_ar = arTrans.title || arTrans.name || title_en;
+        const desc_ar = arTrans.overview || desc_en;
+        
+        const title_hi = hiTrans.title || hiTrans.name || title_en;
+        const desc_hi = hiTrans.overview || desc_en;
+        
+        const title_ku = kuTrans.title || kuTrans.name || title_en;
+        const desc_ku = kuTrans.overview || desc_en;
 
         // Skip if not released
         if (details.status !== 'Released' && details.status !== 'Returning Series' && details.status !== 'Ended') {
@@ -298,9 +342,15 @@ export default function Movies() {
         }
 
         newItems.push({
-          title: details.title || details.name || '',
+          title: title_ku,
+          title_ar: title_ar,
+          title_en: title_en,
+          title_hi: title_hi,
           type: quickAddConfig.type === 'tv' ? 'Series' : 'Movie',
-          description: details.overview || '',
+          description: desc_ku,
+          description_ar: desc_ar,
+          description_en: desc_en,
+          description_hi: desc_hi,
           year: (details.release_date || details.first_air_date || '').split('-')[0],
           rating: details.vote_average?.toFixed(1) || '0',
           genre: (details.genres || []).map((g: any) => g.name).join(', '),
@@ -442,7 +492,7 @@ export default function Movies() {
 
   const handleAddNew = () => {
     setFormData({ 
-      title: '', title_ar: '', title_en: '', type: 'Movie', genre: '', year: '', description: '', description_ar: '', description_en: '', rating: '', image: '', backdrop: '', duration: '',
+      title: '', title_ar: '', title_en: '', title_hi: '', type: 'Movie', genre: '', year: '', description: '', description_ar: '', description_en: '', description_hi: '', rating: '', image: '', backdrop: '', duration: '',
       list_name: '',
       is_featured: false,
       is_pro: false,
@@ -493,12 +543,14 @@ export default function Movies() {
       title: item.title || '',
       title_ar: item.title_ar || '',
       title_en: item.title_en || '',
+      title_hi: item.title_hi || '',
       type: item.type || 'Movie',
       genre: item.genre || '',
       year: item.year?.toString() || '',
       description: item.description || '',
       description_ar: item.description_ar || '',
       description_en: item.description_en || '',
+      description_hi: item.description_hi || '',
       rating: item.rating?.toString() || '',
       image: item.image || '',
       backdrop: item.backdrop || '',
@@ -585,12 +637,14 @@ export default function Movies() {
       title: formData.title,
       title_ar: formData.title_ar,
       title_en: formData.title_en,
+      title_hi: formData.title_hi,
       type: formData.type,
       genre: formData.genre,
       year: formData.year && !isNaN(parseInt(formData.year)) ? parseInt(formData.year) : null,
       description: formData.description,
       description_ar: formData.description_ar,
       description_en: formData.description_en,
+      description_hi: formData.description_hi,
       rating: formData.rating && !isNaN(parseFloat(formData.rating)) ? parseFloat(formData.rating) : null,
       image: formData.image,
       backdrop: formData.backdrop,
@@ -720,7 +774,7 @@ export default function Movies() {
           <div className="flex-1 bg-[#1a1d24] border border-neutral-800 rounded-xl p-6">
             {activeTab === 'basic' && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-300">Title (Kurdish)</label>
                     <input type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="ناوی کوردی..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
@@ -733,9 +787,13 @@ export default function Movies() {
                     <label className="text-sm font-medium text-neutral-300">Title (English)</label>
                     <input type="text" value={formData.title_en} onChange={e => setFormData({...formData, title_en: e.target.value})} placeholder="English Title..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
                   </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-300">Title (Hindi)</label>
+                    <input type="text" value={formData.title_hi} onChange={e => setFormData({...formData, title_hi: e.target.value})} placeholder="हिंदी शीर्षक..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-300">Description (Kurdish)</label>
                     <textarea rows={3} value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="کورتەی کوردی..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition resize-none"></textarea>
@@ -747,6 +805,10 @@ export default function Movies() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-300">Description (English)</label>
                     <textarea rows={3} value={formData.description_en} onChange={e => setFormData({...formData, description_en: e.target.value})} placeholder="English Synopsis..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition resize-none"></textarea>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-300">Description (Hindi)</label>
+                    <textarea rows={3} value={formData.description_hi} onChange={e => setFormData({...formData, description_hi: e.target.value})} placeholder="हिंदी सारांश..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition resize-none"></textarea>
                   </div>
                 </div>
 

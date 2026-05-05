@@ -262,6 +262,7 @@ export default function Profile() {
               <LangOption label="English" flag="🇬🇧" active={language === 'en'} onClick={() => { setLanguage('en'); setShowLangMenu(false); }} />
               <LangOption label="کوردی" flag="☀️" active={language === 'ku'} onClick={() => { setLanguage('ku'); setShowLangMenu(false); }} />
               <LangOption label="العربية" flag="🇮🇶" active={language === 'ar'} onClick={() => { setLanguage('ar'); setShowLangMenu(false); }} />
+              <LangOption label="हिन्दी" flag="🇮🇳" active={language === 'hi'} onClick={() => { setLanguage('hi'); setShowLangMenu(false); }} />
             </div>
           )}
         </div>
