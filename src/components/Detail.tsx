@@ -1,4 +1,4 @@
-import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle, Type, Maximize2, Plus } from 'lucide-react';
+import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle, Type, Maximize2, Plus, Send, Facebook, Instagram, Music2 } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import PremiumPlayer from './PremiumPlayer';
@@ -29,6 +29,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [selectedSeason, setSelectedSeason] = useState(1);
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
   const { t, language } = useLanguage();
+  const [socialLinks, setSocialLinks] = useState<any[]>([]);
 
   useEffect(() => {
     // هەرکاتێک بەکارهێنەر دەگەڕێتەوە ناو فیلمەکە، ژمارە تازەکە دەهێنین
@@ -41,6 +42,27 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         });
     }
   }, [item?.id]);
+
+  useEffect(() => {
+    async function fetchSocialLinks() {
+      const { data } = await supabase.from('settings').select('*').in('key', ['telegram_link', 'facebook_link', 'instagram_link', 'tiktok_link']);
+      if (data) {
+        const links = [];
+        const telegram = data.find(i => i.key === 'telegram_link')?.value;
+        const facebook = data.find(i => i.key === 'facebook_link')?.value;
+        const instagram = data.find(i => i.key === 'instagram_link')?.value;
+        const tiktok = data.find(i => i.key === 'tiktok_link')?.value;
+
+        if (telegram) links.push({ name: 'تێلیگرام', url: telegram, icon: <Send size={20} fill="currentColor" />, color: 'bg-[#24A1DE]' });
+        if (facebook) links.push({ name: 'فەیسبووک', url: facebook, icon: <Facebook size={20} fill="currentColor" />, color: 'bg-[#1877F2]' });
+        if (instagram) links.push({ name: 'ئینستاگرام', url: instagram, icon: <Instagram size={20} />, color: 'bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]' });
+        if (tiktok) links.push({ name: 'تیک تۆک', url: tiktok, icon: <Music2 size={20} />, color: 'bg-black' });
+        
+        setSocialLinks(links);
+      }
+    }
+    fetchSocialLinks();
+  }, []);
 
   useHardwareBack(isPlaying || showServersModal, () => {
     setIsPlaying(false);
@@ -556,22 +578,32 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           </div>
         )}
 
-        <div className="mt-12">
-          <h3 className="text-xl font-semibold mb-4 text-white light-mode:text-black">Star cast</h3>
-          <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide -mx-5 px-5">
-            {[1,2,3,4].map(i => (
-              <div key={i} className="flex items-center space-x-3 bg-neutral-900/50 light-mode:bg-neutral-100 pr-5 p-2 rounded-full border border-neutral-800/50 light-mode:border-neutral-200 flex-none">
-                <div className="w-12 h-12 relative overflow-hidden rounded-full shrink-0">
-                  <Image src={`https://i.pravatar.cc/150?img=${i+10}`} alt="Actor" fill className="object-cover" sizes="48px" unoptimized />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-white light-mode:text-black">Actor Name</p>
-                  <p className="text-xs text-neutral-500 light-mode:text-neutral-600">Character</p>
-                </div>
-              </div>
-            ))}
+        {socialLinks.length > 0 && (
+          <div className="mt-12">
+            <h3 className="text-xl font-semibold mb-4 text-white light-mode:text-black">
+              {language === 'ku' ? 'سۆشیاڵ میدیا' : language === 'ar' ? 'وسائل التواصل الاجتماعي' : 'Social Media'}
+            </h3>
+            <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide -mx-5 px-5">
+              {socialLinks.map((link, i) => (
+                <a 
+                  key={i} 
+                  href={link.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="flex items-center space-x-3 bg-neutral-900/50 light-mode:bg-neutral-100 pr-5 p-2 rounded-full border border-neutral-800/50 light-mode:border-neutral-200 flex-none hover:bg-neutral-800 transition active:scale-95"
+                >
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${link.color} shrink-0 shadow-lg`}>
+                    {link.icon}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white light-mode:text-black">{link.name}</p>
+                    <p className="text-[10px] text-neutral-500 light-mode:text-neutral-600 uppercase tracking-widest font-bold">Follow us</p>
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Servers Modal */}
