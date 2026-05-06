@@ -34,24 +34,34 @@ export default function MovieLists() {
     }
     setSaving(true);
     
-    const nextOrder = lists.length > 0 ? Math.max(...lists.map(l => l.order_index || 0)) + 1 : 0;
-    
-    const { error } = await supabase
-      .from('movie_lists')
-      .insert([{ 
-        name: newName.ku, 
-        name_ar: newName.ar, 
-        name_en: newName.en, 
-        order_index: nextOrder 
-      }]);
-    
-    if (!error) {
-      setNewName({ ku: '', ar: '', en: '' });
-      fetchLists();
-    } else {
-      alert('Error creating list.');
+    try {
+      // Fetch max ID to fix out-of-sync sequence issue
+      const { data: maxData } = await supabase.from('movie_lists').select('id').order('id', { ascending: false }).limit(1);
+      const nextId = (maxData?.[0]?.id || 0) + 1;
+      
+      const nextOrder = lists.length > 0 ? Math.max(...lists.map(l => l.order_index || 0)) + 1 : 0;
+      
+      const { error } = await supabase
+        .from('movie_lists')
+        .insert([{ 
+          id: nextId,
+          name: newName.ku, 
+          name_ar: newName.ar, 
+          name_en: newName.en, 
+          order_index: nextOrder 
+        }]);
+      
+      if (!error) {
+        setNewName({ ku: '', ar: '', en: '' });
+        fetchLists();
+      } else {
+        alert('Error creating list: ' + error.message);
+      }
+    } catch (err: any) {
+      alert('An unexpected error occurred: ' + err.message);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleUpdateName = async (id: number, oldName: string) => {

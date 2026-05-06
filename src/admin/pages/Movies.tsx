@@ -178,32 +178,49 @@ export default function Movies() {
 
   const handleQuickAdd = async () => {
     setQuickAddLoading(true);
-    setQuickAddProgress({ current: 0, total: 20 });
+    setQuickAddProgress({ current: 0, total: 0 });
     
     try {
       const [countryCode, langCode] = quickAddConfig.category.split('_');
       const today = new Date().toISOString().split('T')[0];
-      let url = `https://api.themoviedb.org/3/discover/${quickAddConfig.type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc&page=1`;
+      let baseUrl = `https://api.themoviedb.org/3/discover/${quickAddConfig.type}?api_key=${TMDB_API_KEY}&sort_by=popularity.desc`;
       
       if (quickAddConfig.type === 'movie') {
-        url += `&release_date.lte=${today}`;
+        baseUrl += `&release_date.lte=${today}`;
       } else {
-        url += `&first_air_date.lte=${today}`;
+        baseUrl += `&first_air_date.lte=${today}`;
       }
 
-      if (countryCode) url += `&with_origin_country=${countryCode}`;
-      if (langCode) url += `&with_original_language=${langCode}`;
-      if (quickAddConfig.category === 'animation') url += `&with_genres=16`;
+      if (countryCode) baseUrl += `&with_origin_country=${countryCode}`;
+      if (langCode) baseUrl += `&with_original_language=${langCode}`;
+      if (quickAddConfig.category === 'animation') baseUrl += `&with_genres=16`;
       
       if (quickAddConfig.year) {
-        url += quickAddConfig.type === 'movie' 
+        baseUrl += quickAddConfig.type === 'movie' 
           ? `&primary_release_year=${quickAddConfig.year}` 
           : `&first_air_date_year=${quickAddConfig.year}`;
       }
 
-      const resp = await fetch(url);
-      const data = await resp.json();
-      const results = (data.results || []).slice(0, 20);
+      // Fetch all pages (up to 25 pages / 500 items for safety)
+      let results: any[] = [];
+      const firstResp = await fetch(`${baseUrl}&page=1`);
+      const firstData = await firstResp.json();
+      results = firstData.results || [];
+      const totalPages = Math.min(firstData.total_pages || 1, 25); 
+
+      if (totalPages > 1) {
+        for (let p = 2; p <= totalPages; p++) {
+          try {
+            const nextResp = await fetch(`${baseUrl}&page=${p}`);
+            const nextData = await nextResp.json();
+            if (nextData.results) {
+              results = [...results, ...nextData.results];
+            }
+          } catch (err) {
+            console.error(`Error fetching page ${p}`, err);
+          }
+        }
+      }
       
       if (results.length === 0) {
         alert('هیچ بەرهەمێک نەدۆزرایەوە');
@@ -247,13 +264,27 @@ export default function Movies() {
         return;
       }
 
-      const valResp = await fetch('/api/validate-vidsrc', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: validationItems })
-      });
-      const valData = await valResp.json();
-      const validMap = new Map((valData.results || []).map((r: any) => [r.tmdbId, r.valid]));
+      // Step 2: Validate VidSrc links before processing (in chunks of 50)
+      let allValResults: any[] = [];
+      const chunkSize = 50;
+      for (let i = 0; i < validationItems.length; i += chunkSize) {
+        const chunk = validationItems.slice(i, i + chunkSize);
+        try {
+          const valResp = await fetch('/api/validate-vidsrc', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: chunk })
+          });
+          const valData = await valResp.json();
+          if (valData.results) {
+            allValResults = [...allValResults, ...valData.results];
+          }
+        } catch (e) {
+          console.error("Validation chunk error", e);
+        }
+      }
+      
+      const validMap = new Map((allValResults || []).map((r: any) => [r.tmdbId, r.valid]));
 
       const newItems = [];
       let skippedCount = 0;
@@ -1846,7 +1877,7 @@ export default function Movies() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">Quick Add Content</h2>
-                  <p className="text-xs text-neutral-500">Bulk import 20 items from TMDB</p>
+                  <p className="text-xs text-neutral-500">Bulk import all items from TMDB</p>
                 </div>
               </div>
               <button onClick={() => !quickAddLoading && setShowQuickAddModal(false)} className="text-neutral-500 hover:text-white transition">
@@ -1960,7 +1991,7 @@ export default function Movies() {
                       className="w-full py-4 bg-yellow-500 hover:bg-yellow-600 text-black font-black rounded-xl transition shadow-lg shadow-yellow-500/20 flex items-center justify-center space-x-2 active:scale-[0.98]"
                     >
                       <Zap size={20} className="fill-current" />
-                      <span>IMPORT 20 ITEMS NOW</span>
+                      <span>IMPORT ALL ITEMS NOW</span>
                     </button>
                     <p className="text-[10px] text-neutral-500 text-center mt-3 uppercase tracking-widest">
                       Content will be automatically published with VidSrc links
