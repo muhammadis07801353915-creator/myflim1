@@ -152,7 +152,10 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                   <Play size={20} className="text-white fill-white" />
                 </div>
               </div>
-              <h3 className="mt-3 text-sm font-semibold truncate text-neutral-200 light-mode:text-black group-hover:text-red-500 transition-colors uppercase tracking-tight">{movie.title}</h3>
+              <h3 className="mt-3 text-sm font-semibold truncate text-neutral-200 light-mode:text-black group-hover:text-red-500 transition-colors uppercase tracking-tight">
+                {getLocalized(movie, 'title', language)}
+              </h3>
+              <p className="text-[10px] text-neutral-500 font-medium">{movie.year}</p>
             </div>
           ))}
         </div>
@@ -341,6 +344,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                   <h3 className="mt-3 text-xs md:text-sm font-bold truncate text-neutral-300 light-mode:text-slate-700 group-hover:text-red-600 transition-colors uppercase tracking-tight">
                     {getLocalized(movie, 'title', language)}
                   </h3>
+                  <p className="text-[10px] text-neutral-500 mt-0.5">{movie.year}</p>
                 </div>
               ))}
             </div>
