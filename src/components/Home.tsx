@@ -216,8 +216,8 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
 
                   {/* My Film Branding Style */}
                   <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
-                    <div className="flex items-center space-x-2">
-                       <div className="flex items-center">
+                    <div className="flex items-center">
+                       <div className="flex items-center" dir="ltr">
                           {/* Styled Logo Icon mimicking the image */}
                           <div className="relative flex items-center mr-3">
                             <div className="w-9 h-7 bg-white rounded-md flex items-center justify-center relative">
@@ -230,9 +230,9 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                           </div>
                           <div className="flex items-baseline leading-none">
                             <span className="text-2xl font-black text-white tracking-tighter">MY</span>
-                            <span className="text-2xl font-medium text-white ml-1.5 relative">
-                              Film
-                              <span className="absolute -top-1 right-5 w-2 h-2 bg-red-600 rounded-full"></span>
+                            <span className="text-2xl font-black text-white ml-1.5 relative italic">
+                              FLIM
+                              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full"></span>
                             </span>
                           </div>
                        </div>
