@@ -31,10 +31,6 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
       displayTitle = t.popular || 'Top Contents';
     } 
     // Check for generic movies
-    else if (listName === 'Movies') {
-      items = movies.filter(m => !m.list_name || m.list_name === '');
-      displayTitle = t.movies || 'Movies';
-    } 
     // Check for dynamic lists
     else {
       items = movies.filter(m => m.list_name === listName);
@@ -352,31 +348,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
         );
       })}
 
-      <div className="mt-8 px-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-white light-mode:text-black">{t.movies}</h2>
-          <button onClick={() => setViewingList({ rawName: 'Movies' })} className="text-red-500 text-sm font-medium">{t.all}</button>
-        </div>
-        <div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
-          {movies.filter(m => !m.list_name || m.list_name === '').slice(0, displayLimit).map((movie) => (
-            <div key={movie.id} className="flex-none w-32 md:w-48 cursor-pointer group" onClick={() => onSelect(movie)}>
-              <div className="relative overflow-hidden rounded-xl shadow-lg aspect-[2/3] bg-neutral-900 border border-white/5">
-                <Image 
-                  src={movie.image} 
-                  alt={getLocalized(movie, 'title', language)} 
-                  fill
-                  sizes="(max-width: 768px) 33vw, 20vw"
-                  className="object-cover group-hover:scale-110 transition-transform duration-500" 
-                  unoptimized={true}
-                />
-              </div>
-              <h3 className="mt-3 text-xs md:text-sm font-bold truncate text-neutral-300 light-mode:text-slate-700 uppercase tracking-tight">
-                {getLocalized(movie, 'title', language)}
-              </h3>
-            </div>
-          ))}
-        </div>
-      </div>
+
       <FloatingSocialButton />
     </div>
   );
