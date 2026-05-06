@@ -16,6 +16,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
   const { movies, movieLists, loading } = useData();
   const [currentFeaturedIndex, setCurrentFeaturedIndex] = useState(0);
   const [displayLimit, setDisplayLimit] = useState(10);
+  const [filterType, setFilterType] = useState<'all' | 'Movie' | 'Series'>('all');
 
   // Derive viewingList from URL
   const listName = searchParams.get('list');
@@ -59,6 +60,10 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    setFilterType('all');
+  }, [listName]);
 
 
 
@@ -104,8 +109,39 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
           <h1 className="text-2xl font-bold">{viewingList.title}</h1>
         </div>
         
+        {/* Type Filter Bar */}
+        {(() => {
+          const hasMovies = viewingList.items.some(m => m.type === 'Movie');
+          const hasSeries = viewingList.items.some(m => m.type === 'Series');
+          if (!hasMovies || !hasSeries) return null;
+
+          return (
+            <div className="flex items-center space-x-2 rtl:space-x-reverse mb-8 overflow-x-auto pb-2 scrollbar-hide">
+              {[
+                { id: 'all', label: language === 'ku' ? 'گشتی' : t.all },
+                { id: 'Movie', label: language === 'ku' ? 'فیلم' : t.movies },
+                { id: 'Series', label: language === 'ku' ? 'زنجیرە' : t.series }
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setFilterType(f.id as any)}
+                  className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-300 whitespace-nowrap ${
+                    filterType === f.id 
+                      ? 'bg-red-600 text-white shadow-lg shadow-red-600/40 ring-2 ring-red-600/20' 
+                      : 'bg-neutral-900 light-mode:bg-neutral-100 text-neutral-400 light-mode:text-neutral-500 hover:text-white light-mode:hover:text-black border border-white/5 light-mode:border-neutral-200'
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          );
+        })()}
+
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 md:gap-6">
-          {viewingList.items.map((movie) => (
+          {viewingList.items
+            .filter(m => filterType === 'all' ? true : m.type === filterType)
+            .map((movie) => (
             <div key={movie.id} className="cursor-pointer group flex flex-col" onClick={() => onSelect(movie)}>
               <div className="relative overflow-hidden rounded-xl shadow-lg aspect-[2/3] border border-white/5 bg-neutral-900">
                 <Image 
