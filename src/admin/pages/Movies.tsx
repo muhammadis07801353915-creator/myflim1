@@ -59,6 +59,7 @@ export default function Movies() {
   const [showStagingView, setShowStagingView] = useState(false);
   const [stagedItems, setStagedItems] = useState<any[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [top250Loading, setTop250Loading] = useState(false);
 
   const TMDB_API_KEY = 'c2607383b5fe48c445465d4e8b1ded29';
 
@@ -408,6 +409,112 @@ export default function Movies() {
       alert('Error during quick add process');
     } finally {
       setQuickAddLoading(false);
+    }
+  };
+
+  const handleImportTop250 = async () => {
+    if (!window.confirm("This will import/update the TOP 250 movies from TMDB and assign them rankings. Continue?")) return;
+    
+    setTop250Loading(true);
+    setQuickAddProgress({ current: 0, total: 250 });
+    
+    try {
+      let allResults: any[] = [];
+      // Fetch pages 1 to 13 (20 items per page = 260 items)
+      for (let p = 1; p <= 13; p++) {
+        const resp = await fetch(`https://api.themoviedb.org/3/movie/top_rated?api_key=${TMDB_API_KEY}&page=${p}`);
+        const data = await resp.json();
+        if (data.results) allResults = [...allResults, ...data.results];
+      }
+      
+      const top250 = allResults.slice(0, 250);
+      const tmdbIds = top250.map((r: any) => r.id.toString());
+      
+      // Find existing movies with these TMDB IDs
+      const { data: existingItems } = await supabase
+        .from('movies')
+        .select('id, video_url')
+        .or(tmdbIds.map((id: string) => `video_url.ilike.%"tmdb_id":"${id}"%`).join(','));
+      
+      const existingIdMap = new Map();
+      if (existingItems) {
+        existingItems.forEach(item => {
+          try {
+            const parsed = JSON.parse(item.video_url);
+            if (parsed.tmdb_id) existingIdMap.set(parsed.tmdb_id.toString(), item.id);
+          } catch (e) {}
+        });
+      }
+
+      const itemsToInsert = [];
+      const itemsToUpdate = [];
+
+      for (let i = 0; i < top250.length; i++) {
+        const item = top250[i];
+        const rank = i + 1;
+        setQuickAddProgress({ current: rank, total: 250 });
+
+        const tmdbIdStr = item.id.toString();
+        const existingId = existingIdMap.get(tmdbIdStr);
+
+        if (existingId) {
+          itemsToUpdate.push({ id: existingId, top_rank: rank });
+          continue;
+        }
+
+        // Fetch full details for new items
+        const detailsResp = await fetch(`https://api.themoviedb.org/3/movie/${item.id}?api_key=${TMDB_API_KEY}&append_to_response=translations`);
+        const details = await detailsResp.json();
+        
+        const trans = details.translations?.translations || [];
+        const getTrans = (iso: string) => trans.find((t: any) => t.iso_639_1 === iso)?.data || {};
+        const arTrans = getTrans('ar');
+        const hiTrans = getTrans('hi');
+        const kuTrans = getTrans('ku');
+        
+        const title_en = details.title || '';
+        const desc_en = details.overview || '';
+        
+        itemsToInsert.push({
+          title: kuTrans.title || kuTrans.name || title_en,
+          title_ar: arTrans.title || arTrans.name || title_en,
+          title_en: title_en,
+          title_hi: hiTrans.title || hiTrans.name || title_en,
+          type: 'Movie',
+          description: kuTrans.overview || desc_en,
+          description_ar: arTrans.overview || desc_en,
+          description_en: desc_en,
+          description_hi: hiTrans.overview || desc_en,
+          year: (details.release_date || '').split('-')[0],
+          rating: details.vote_average?.toFixed(1) || '0',
+          genre: (details.genres || []).map((g: any) => g.name).join(', '),
+          image: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : '',
+          backdrop: details.backdrop_path ? `https://image.tmdb.org/t/p/original${details.backdrop_path}` : '',
+          top_rank: rank,
+          video_url: JSON.stringify({
+            servers: [{ name: 'Server My flim', url: `vidsrc://movie/${item.id}`, quality: 'Auto' }],
+            download_url: '',
+            tmdb_id: tmdbIdStr
+          }),
+          status: 'Published',
+          views: 0
+        });
+      }
+
+      if (itemsToUpdate.length > 0) {
+        // Upsert by ID to update top_rank
+        await supabase.from('movies').upsert(itemsToUpdate);
+      }
+      if (itemsToInsert.length > 0) {
+        await supabase.from('movies').insert(itemsToInsert);
+      }
+
+      alert('TOP 250 list successfully updated!');
+      fetchMovies();
+    } catch (err: any) {
+      alert('Error importing TOP 250: ' + err.message);
+    } finally {
+      setTop250Loading(false);
     }
   };
 
@@ -1448,6 +1555,14 @@ export default function Movies() {
           )}
         </div>
         <div className="flex flex-col sm:flex-row gap-3">
+          <button 
+            onClick={handleImportTop250}
+            disabled={top250Loading}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center justify-center space-x-2 disabled:opacity-50 border border-blue-500 shadow-lg shadow-blue-600/20"
+          >
+            <Star size={20} className={top250Loading ? "animate-spin" : "fill-current"} />
+            <span>{top250Loading ? `Importing (${quickAddProgress.current}/250)...` : 'Import TOP 250'}</span>
+          </button>
           <button 
             onClick={() => setShowQuickAddModal(true)}
             className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition flex items-center justify-center space-x-2 border border-neutral-700"
