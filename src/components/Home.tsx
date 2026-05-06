@@ -34,6 +34,9 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
     // Check for dynamic lists
     else {
       items = movies.filter(m => m.list_name === listName);
+      // Sort by rating descending
+      items.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      
       const list = movieLists.find(l => l.name === listName);
       if (list) displayTitle = getLocalized(list, 'name', language) || list.name;
     }
