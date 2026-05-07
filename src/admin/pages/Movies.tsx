@@ -6,7 +6,7 @@ import {
   Zap, X, Check, Eye, Play
 } from 'lucide-react';
 import Image from 'next/image';
-import { supabase } from '../../lib/supabase';
+import { supabase, fetchAllRows } from '../../lib/supabase';
 import ImageUpload from '../../components/ImageUpload';
 import SubtitleUpload from '../../components/SubtitleUpload';
 
@@ -596,20 +596,15 @@ export default function Movies() {
 
   const fetchMovies = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('movies')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(10000);
-    
-    if (error) {
-      console.error("Error fetching movies:", error);
-      setErrorMsg(`Error loading movies: ${error.message}`);
-    }
-    if (data) {
+    try {
+      const data = await fetchAllRows(supabase, 'movies', 'created_at');
       setContentList(data);
+    } catch (err: any) {
+      console.error("Error fetching movies:", err);
+      setErrorMsg(`Error loading movies: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const toggleBroken = async (item: any) => {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from './supabase';
+import { supabase, fetchAllRows } from './supabase';
 
 interface DataContextType {
   movies: any[];
@@ -37,15 +37,16 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
         setLoading(true);
       }
       
-      const [moviesRes, listsRes, channelsRes, categoriesRes, bannersRes] = await Promise.all([
-        supabase.from('movies').select('*').order('created_at', { ascending: false }).limit(10000),
+      const moviesData = await fetchAllRows(supabase, 'movies', 'created_at');
+      
+      const [listsRes, channelsRes, categoriesRes, bannersRes] = await Promise.all([
         supabase.from('movie_lists').select('*').order('order_index', { ascending: true }),
         supabase.from('channels').select('*').order('order_index', { ascending: true }),
         supabase.from('channel_categories').select('*').order('order_index', { ascending: true }),
         supabase.from('banners').select('*').order('order_index', { ascending: true })
       ]);
 
-      if (moviesRes.data) setMovies(moviesRes.data);
+      setMovies(moviesData);
       if (listsRes.data) setMovieLists(listsRes.data);
       if (channelsRes.data) setChannels(channelsRes.data);
       if (categoriesRes.data) setCategories(categoriesRes.data);
