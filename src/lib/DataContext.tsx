@@ -38,7 +38,7 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
       }
       
       const [moviesRes, listsRes, channelsRes, categoriesRes, bannersRes] = await Promise.all([
-        supabase.from('movies').select('*').order('created_at', { ascending: false }).limit(5000),
+        supabase.from('movies').select('*').order('created_at', { ascending: false }).limit(10000),
         supabase.from('movie_lists').select('*').order('order_index', { ascending: true }),
         supabase.from('channels').select('*').order('order_index', { ascending: true }),
         supabase.from('channel_categories').select('*').order('order_index', { ascending: true }),

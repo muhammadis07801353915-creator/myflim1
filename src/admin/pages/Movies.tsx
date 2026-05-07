@@ -600,7 +600,7 @@ export default function Movies() {
       .from('movies')
       .select('*')
       .order('id', { ascending: false })
-      .limit(5000);
+      .limit(10000);
     
     if (error) {
       console.error("Error fetching movies:", error);
