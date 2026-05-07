@@ -247,10 +247,23 @@ export default function Movies() {
       // Step 1.5: Check for duplicates in Supabase using the new tmdb_id column
       const tmdbIds = results.map((r: any) => r.id.toString());
       
-      const { data: existingItems } = await supabase
+      const { data: existingItems, error: dbError } = await supabase
         .from('movies')
         .select('tmdb_id')
         .in('tmdb_id', tmdbIds);
+      
+      if (dbError) {
+        console.error("Database Error:", dbError);
+        if (dbError.message.includes('column "tmdb_id" does not exist')) {
+          alert('تکایە سەرەتا ستوونی tmdb_id لە داتابەیس زیاد بکە (SQL Code ڕەن بکە لە ناو Supabase)');
+        } else {
+          alert('کێشەیەک لە داتابەیس هەیە: ' + dbError.message);
+        }
+        setQuickAddLoading(false);
+        return;
+      }
+      
+      const existingIds = new Set(existingItems?.map(i => i.tmdb_id) || []);
       
       // Step 1.5: Filter out duplicates and items that are not released
       const filteredResults = results.filter(r => !existingIds.has(r.id.toString()));
