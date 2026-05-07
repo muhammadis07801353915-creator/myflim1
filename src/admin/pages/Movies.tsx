@@ -84,6 +84,19 @@ export default function Movies() {
   const selectTmdbItem = async (item: any) => {
     const type = (item.media_type === 'tv' || item.first_air_date) ? 'tv' : 'movie';
     try {
+      // Check if already exists in database using new tmdb_id column
+      const { data: existing } = await supabase
+        .from('movies')
+        .select('id, title')
+        .eq('tmdb_id', item.id.toString())
+        .maybeSingle();
+
+      if (existing) {
+        if (!window.confirm(`ئەم بەرهەمە پێشتر بە ناوی "${existing.title}" زیادکراوە. ئایا دەتەوێت دووبارە زانیارییەکان دابنێیتەوە؟`)) {
+          return;
+        }
+      }
+
       const resp = await fetch(`https://api.themoviedb.org/3/${type}/${item.id}?api_key=${TMDB_API_KEY}&append_to_response=translations`, {
         next: { revalidate: 86400 }, // Cache individual TMDB details
         cache: 'force-cache'
@@ -231,39 +244,28 @@ export default function Movies() {
 
       setQuickAddProgress({ current: 0, total: results.length });
 
-      // Step 1.5: Check for duplicates in Supabase
+      // Step 1.5: Check for duplicates in Supabase using the new tmdb_id column
       const tmdbIds = results.map((r: any) => r.id.toString());
-      // We use a trick with ilike or we can fetch all and filter if the list is small.
-      // But for 20 items, we can check them individually or use a clever query.
-      // Let's fetch all movies that might contain these IDs in their video_url
+      
       const { data: existingItems } = await supabase
         .from('movies')
-        .select('video_url')
-        .or(tmdbIds.map((id: string) => `video_url.ilike.%"tmdb_id":"${id}"%`).join(','));
+        .select('tmdb_id')
+        .in('tmdb_id', tmdbIds);
       
-      const existingIds = new Set();
-      if (existingItems) {
-        existingItems.forEach(item => {
-          try {
-            const parsed = JSON.parse(item.video_url);
-            if (parsed.tmdb_id) existingIds.add(parsed.tmdb_id.toString());
-          } catch (e) {}
-        });
-      }
-
-      // Step 2: Validate VidSrc links before processing
-      const validationItems = results
-        .filter((r: any) => !existingIds.has(r.id.toString()))
-        .map((r: any) => ({
-          tmdbId: r.id,
-          type: quickAddConfig.type
-        }));
-
-      if (validationItems.length === 0) {
+      // Step 1.5: Filter out duplicates and items that are not released
+      const filteredResults = results.filter(r => !existingIds.has(r.id.toString()));
+      
+      if (filteredResults.length === 0) {
         alert('هەموو ئەم بەرهەمانە پێشتر تۆمارکراون');
         setQuickAddLoading(false);
         return;
       }
+
+      // Step 2: Validate VidSrc links before processing
+      const validationItems = filteredResults.map((r: any) => ({
+        tmdbId: r.id,
+        type: quickAddConfig.type
+      }));
 
       // Step 2: Validate VidSrc links before processing (in chunks of 50)
       let allValResults: any[] = [];
@@ -290,15 +292,10 @@ export default function Movies() {
       const newItems = [];
       let skippedCount = 0;
 
-      for (let i = 0; i < results.length; i++) {
-        const item = results[i];
+      for (let i = 0; i < filteredResults.length; i++) {
+        const item = filteredResults[i];
         
-        // Skip if already exists
-        if (existingIds.has(item.id.toString())) {
-          continue;
-        }
-
-        setQuickAddProgress({ current: i + 1, total: results.length });
+        setQuickAddProgress({ current: i + 1, total: filteredResults.length });
 
         // Skip if link is invalid
         if (!validMap.get(item.id)) {
@@ -390,6 +387,7 @@ export default function Movies() {
           backdrop: details.backdrop_path ? `https://image.tmdb.org/t/p/original${details.backdrop_path}` : '',
           list_name: quickAddConfig.targetList,
           video_url: JSON.stringify(videoUrlObj),
+          tmdb_id: item.id.toString(),
           status: 'Draft',
           views: 0
         });
@@ -430,19 +428,16 @@ export default function Movies() {
       const top250 = allResults.slice(0, 250);
       const tmdbIds = top250.map((r: any) => r.id.toString());
       
-      // Find existing movies with these TMDB IDs
+      // Find existing movies with these TMDB IDs using the new column
       const { data: existingItems } = await supabase
         .from('movies')
-        .select('id, video_url')
-        .or(tmdbIds.map((id: string) => `video_url.ilike.%"tmdb_id":"${id}"%`).join(','));
+        .select('id, tmdb_id')
+        .in('tmdb_id', tmdbIds);
       
       const existingIdMap = new Map();
       if (existingItems) {
         existingItems.forEach(item => {
-          try {
-            const parsed = JSON.parse(item.video_url);
-            if (parsed.tmdb_id) existingIdMap.set(parsed.tmdb_id.toString(), item.id);
-          } catch (e) {}
+          existingIdMap.set(item.tmdb_id, item.id);
         });
       }
 
