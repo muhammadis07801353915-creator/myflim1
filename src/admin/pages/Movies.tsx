@@ -599,7 +599,7 @@ export default function Movies() {
     const { data, error } = await supabase
       .from('movies')
       .select('*')
-      .order('id', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(10000);
     
     if (error) {
