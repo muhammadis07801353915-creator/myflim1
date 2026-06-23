@@ -133,6 +133,7 @@ export default {
     loginCreateAccount: "تسجيل الدخول / إنشاء حساب",
     language: "اللغة",
     languageSelect: "اختر اللغة",
+    exchangeRates: "أسعار العملات",
     cancel: "إلغاء",
   },
   header: {

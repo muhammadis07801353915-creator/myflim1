@@ -21,7 +21,8 @@ import {
   Building,
   ChevronLeft,
   Globe,
-  Check
+  Check,
+  DollarSign
 } from 'lucide-react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -319,6 +320,7 @@ export default function ProfileScreen() {
           <Text className="text-right text-[18px] font-black text-gray-400 mb-2">Settings & About</Text>
           <View className="bg-white rounded-3xl">
              <ListMenuItem icon={Globe} title={t('settings.language')} onPress={openModal} />
+             <ListMenuItem icon={DollarSign} title={t('settings.exchangeRates')} onPress={() => router.push('/settings/currency-rates')} />
              <ListMenuItem icon={Phone} title={t('settings.contactUs')} onPress={() => {}} />
              <ListMenuItem icon={MessageCircle} title={t('settings.feedback')} onPress={handleSupportChat} />
              <ListMenuItem icon={UserPlus} title={t('settings.inviteFriends')} onPress={() => {}} />

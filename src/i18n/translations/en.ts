@@ -134,6 +134,7 @@ export default {
     loginCreateAccount: "Log in / Create Account",
     language: "Language",
     languageSelect: "Select Language",
+    exchangeRates: "Exchange Rates",
     cancel: "Cancel",
   },
   header: {

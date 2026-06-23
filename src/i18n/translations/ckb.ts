@@ -133,6 +133,7 @@ export default {
     loginCreateAccount: "چوونەژوورەوە / دروستکردنی ئەکاونت",
     language: "زمان",
     languageSelect: "هەڵبژاردنی زمان",
+    exchangeRates: "نرخی دراوەکان",
     cancel: "لابردن",
   },
   header: {

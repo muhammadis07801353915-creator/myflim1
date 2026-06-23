@@ -49,16 +49,23 @@ export default function CarDetailsScreen() {
       if (!carData) return;
       setCar(carData);
 
-      // Track post view
+      // Track post view for showroom analytics
       if (carData.showroom_id) {
         supabase.rpc('increment_view', {
           p_showroom_id: carData.showroom_id,
           p_type: 'post',
           p_car_id: carData.id
         }).then(({ error }) => {
-          if (error) console.warn('View tracking:', error.message);
+          if (error) console.warn('Showroom View tracking:', error.message);
         });
       }
+
+      // Track total post views on the car itself
+      supabase.rpc('increment_car_view', {
+        car_id: carData.id
+      }).then(({ error }) => {
+        if (error) console.warn('Car View tracking:', error.message);
+      });
 
       if (carData.showroom_id) {
         const { data: s } = await supabase.from('showrooms').select('*').eq('id', carData.showroom_id).single();
