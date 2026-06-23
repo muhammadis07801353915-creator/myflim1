@@ -8,6 +8,10 @@ import { LocationProvider } from '../src/context/LocationContext';
 import { LanguageProvider } from '../src/i18n/LanguageContext';
 import * as NavigationBar from 'expo-navigation-bar';
 import * as SplashScreen from 'expo-splash-screen';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '../src/lib/supabase';
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,6 +29,40 @@ export default function RootLayout() {
       NavigationBar.setBackgroundColorAsync('#000000');
       NavigationBar.setButtonStyleAsync('light');
     }
+
+    // Track app visit (once per day per device)
+    const trackVisit = async () => {
+      try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const storageKey = `app_visited_${todayStr}`;
+        const alreadyVisited = await AsyncStorage.getItem(storageKey);
+        
+        if (!alreadyVisited) {
+          // Get or create device ID
+          let deviceId = await AsyncStorage.getItem('device_id');
+          if (!deviceId) {
+            deviceId = uuidv4();
+            await AsyncStorage.setItem('device_id', deviceId);
+          }
+
+          // Get current user (if logged in)
+          const { data: { user } } = await supabase.auth.getUser();
+
+          await supabase.from('app_visits').insert({
+            device_id: deviceId,
+            user_id: user?.id || null,
+            visited_at: new Date().toISOString(),
+          });
+
+          await AsyncStorage.setItem(storageKey, '1');
+        }
+      } catch (e) {
+        // Silently fail - don't disrupt the user
+        console.warn('Visit tracking failed:', e);
+      }
+    };
+
+    trackVisit();
 
     // Show custom splash for 3 seconds, then fade out
     const timer = setTimeout(() => {
