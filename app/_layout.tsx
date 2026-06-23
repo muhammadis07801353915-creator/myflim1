@@ -10,8 +10,16 @@ import * as NavigationBar from 'expo-navigation-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../src/lib/supabase';
-import 'react-native-get-random-values';
-import { v4 as uuidv4 } from 'uuid';
+
+// Simple UUID generator that works in React Native without the uuid package
+function generateUUID(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
 
 SplashScreen.preventAutoHideAsync();
 
@@ -41,7 +49,7 @@ export default function RootLayout() {
           // Get or create device ID
           let deviceId = await AsyncStorage.getItem('device_id');
           if (!deviceId) {
-            deviceId = uuidv4();
+            deviceId = generateUUID();
             await AsyncStorage.setItem('device_id', deviceId);
           }
 
