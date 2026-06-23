@@ -61,6 +61,7 @@ export default {
     "whatsapp": "وەتسئاپ (WhatsApp)",
     "whatsappMsg": "ناردنی پەیام لە ڕێگەی ئەپی وەتسئاپەوە",
     "images": "وێنەکان",
+    "description": "تێبینی و زانیاری زیاتر",
   },
 
   companies: {
