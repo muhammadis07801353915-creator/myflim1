@@ -36,7 +36,7 @@ export default {
     "saveSuccess": "سەیارەکە بە سەرکەوتوویی پاشەکەوت کرا",
     "noConnection": "پەیوەندی نییە",
     "linkCopied": "لینکی پۆستەکە کۆپی کرا",
-    "callSeller": "Call Seller",
+    "callSeller": "پەیوەندی بکە",
     "engine": "مەکینە",
     "cylinder": "سلیندەر",
     "transmission": "گێڕ",

@@ -230,27 +230,59 @@ export default function CarDetailsScreen() {
 
           {/* Seller Card */}
           {seller && (
-            <View className="bg-slate-50/50 rounded-[35px] p-6 border border-slate-100 mb-10">
-               <View className="flex-row items-center mb-6">
-                  <View className="w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-sm bg-white mr-4">
-                     <Image source={{ uri: seller.image || 'https://ui-avatars.com/api/?name=' + seller.name }} className="w-full h-full" />
-                  </View>
-                     <View className="flex-1">
-                     <View className="flex-row items-center">
-                        <Text className="text-lg font-black text-slate-900 mr-2">{seller.name}</Text>
-                        {seller.isVerified && <BadgeCheck size={18} color="#1d9bf0" />}
-                     </View>
-                     <Text className="text-slate-400 text-xs font-bold">{seller.isVerified ? t('carDetails.verifiedCompany') : t('carDetails.verifiedUser')}</Text>
-                  </View>
-               </View>
-               <View className="flex-row" style={{ gap: 10 }}>
-                  <TouchableOpacity onPress={() => Linking.openURL(`tel:${car.phone || car.phone2 || seller.phone || '07500000000'}`)} className="flex-1 bg-[#CC222F] h-14 rounded-2xl flex-row items-center justify-center shadow-lg shadow-red-500/20">
-                     <Phone size={18} color="white" />
-                     <Text className="text-white font-black text-md ml-2">{t('carDetails.callSeller')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => setContactModalVisible(true)} className="w-14 h-14 bg-[#2dbb4e] rounded-2xl items-center justify-center shadow-lg shadow-green-500/20">
-                     <MessageCircle size={22} color="white" />
-                  </TouchableOpacity>
+            <View className="mb-10 pt-4">
+               {/* Seller Title */}
+               <Text className="text-2xl font-black text-slate-800 text-right mb-4">فرۆشیار</Text>
+               
+               <View className="bg-white rounded-[35px] border border-slate-100 p-5 shadow-sm">
+                 <View className="flex-row-reverse items-center mb-6 justify-between">
+                    
+                    {/* Avatar on Right */}
+                    <View className="w-[100px] h-[100px] rounded-full overflow-hidden border-4 border-slate-50 bg-white ml-4 shadow-sm">
+                       <Image source={{ uri: seller.image || 'https://ui-avatars.com/api/?name=' + seller.name }} className="w-full h-full" resizeMode="cover" />
+                    </View>
+
+                    {/* Info on Left (Right aligned text) */}
+                    <View className="flex-1 items-end pr-2">
+                       <View className="flex-row-reverse items-center mb-1">
+                          <Text className="text-xl font-black text-slate-900 ml-1">{seller.name}</Text>
+                          {seller.isVerified && <BadgeCheck size={20} color="#1d9bf0" />}
+                       </View>
+                       
+                       <Text className="text-slate-500 font-bold text-[13px] mb-2 text-right">
+                         {seller.isVerified ? t('carDetails.verifiedCompany') : t('carDetails.verifiedUser')}
+                       </Text>
+                       
+                       <View className="flex-row-reverse items-center mb-1">
+                          <MapPin size={12} color="#64748b" className="ml-1" />
+                          <Text className="text-slate-500 font-bold text-xs">
+                             {car.city ? `${car.governorate ? `${getTranslatedName(car.governorate, 'locations')} - ` : ''}${getTranslatedName(car.city, 'locations')}` : getTranslatedName(car.governorate || car.city || 'Erbil', 'locations')}
+                          </Text>
+                       </View>
+
+                       {seller.type === 'showroom' && (
+                         <Text className="text-slate-600 font-bold text-[11px] text-right mt-1 bg-slate-50 px-2 py-1 rounded-md">بۆ بازرگانی ئۆتۆمبێل</Text>
+                       )}
+                    </View>
+                 </View>
+
+                 {/* Action Buttons */}
+                 <View className="flex-row" style={{ gap: 12 }}>
+                    <TouchableOpacity 
+                      onPress={() => Linking.openURL(`tel:${car.phone || car.phone2 || seller.phone || '07500000000'}`)} 
+                      className="flex-1 bg-[#4b4b4b] h-[55px] rounded-[18px] flex-row items-center justify-center"
+                    >
+                       <Phone size={22} color="white" />
+                       <Text className="text-white font-black text-lg ml-3 mr-1">{t('carDetails.callSeller')}</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                      onPress={() => setContactModalVisible(true)} 
+                      className="w-[85px] h-[55px] bg-[#4ade80] rounded-[18px] items-center justify-center"
+                    >
+                       <MessageCircle size={28} color="white" />
+                    </TouchableOpacity>
+                 </View>
                </View>
             </View>
           )}
