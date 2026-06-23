@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, ArrowUpRight, ArrowDownRight, Activity, DollarSign, Euro, PoundSterling } from 'lucide-react-native';
+import { ChevronLeft, ArrowUpRight, ArrowDownRight, Activity, DollarSign, Euro, PoundSterling, Coins } from 'lucide-react-native';
 import { useLanguage } from '../../src/i18n/LanguageContext';
 
 type CurrencyData = {
@@ -13,6 +13,7 @@ type CurrencyData = {
   change: number;
   isUp: boolean;
   color: string;
+  suffix: string;
 };
 
 type GoldData = {
@@ -27,11 +28,11 @@ export default function CurrencyRatesScreen() {
   const { t } = useLanguage();
 
   const initialRates: CurrencyData[] = [
-    { id: 'USD', name: 'دۆلاری ئەمریکی (١٠٠ دۆلار)', symbol: DollarSign, baseRate: 156000, currentRate: 156000, change: 0, isUp: true, color: '#10b981' },
-    { id: 'EUR', name: 'یۆرۆ (١٠٠ یۆرۆ)', symbol: Euro, baseRate: 168000, currentRate: 168000, change: 0, isUp: true, color: '#3b82f6' },
-    { id: 'GBP', name: 'پاوەندی بەریتانی (١٠٠ پاوەند)', symbol: PoundSterling, baseRate: 198000, currentRate: 198000, change: 0, isUp: true, color: '#8b5cf6' },
-    { id: 'TRY', name: 'لیرەی تورکی (١٠٠ لیرە)', symbol: DollarSign, baseRate: 4600, currentRate: 4600, change: 0, isUp: true, color: '#ef4444' },
-    { id: 'IRR', name: 'تومەنی ئێرانی (١ ملیۆن)', symbol: DollarSign, baseRate: 2550, currentRate: 2550, change: 0, isUp: true, color: '#f59e0b' },
+    { id: 'USD', name: 'دۆلاری ئەمریکی (١٠٠ دۆلار)', symbol: DollarSign, baseRate: 156000, currentRate: 156000, change: 0, isUp: true, color: '#10b981', suffix: 'IQD' },
+    { id: 'EUR', name: 'یۆرۆ (١٠٠ یۆرۆ)', symbol: Euro, baseRate: 168000, currentRate: 168000, change: 0, isUp: true, color: '#3b82f6', suffix: 'IQD' },
+    { id: 'GBP', name: 'پاوەندی بەریتانی (١٠٠ پاوەند)', symbol: PoundSterling, baseRate: 198000, currentRate: 198000, change: 0, isUp: true, color: '#8b5cf6', suffix: 'IQD' },
+    { id: 'TRY', name: 'لیرەی تورکی بەرامبەر ١٠٠ دۆلار', symbol: DollarSign, baseRate: 3250, currentRate: 3250, change: 0, isUp: true, color: '#ef4444', suffix: 'لیرە' },
+    { id: 'IRR', name: 'تومەنی ئێرانی بەرامبەر ١٠٠ دۆلار', symbol: DollarSign, baseRate: 6050000, currentRate: 6050000, change: 0, isUp: true, color: '#f59e0b', suffix: 'تومەن' },
   ];
 
   const initialGoldRates: GoldData[] = [
@@ -88,12 +89,11 @@ export default function CurrencyRatesScreen() {
           if (c.id === 'USD') {
             newRate = usdPrice;
           } else if (apiRates && c.id === 'EUR') {
-            // EUR is roughly 0.87 to USD, so 1 EUR = (1/0.87) USD. We want price for 100 EUR.
             newRate = Math.round((100 / apiRates.EUR) * (usdPrice / 100));
           } else if (apiRates && c.id === 'GBP') {
             newRate = Math.round((100 / apiRates.GBP) * (usdPrice / 100));
           } else if (apiRates && c.id === 'TRY') {
-            newRate = Math.round((100 / apiRates.TRY) * (usdPrice / 100));
+            newRate = Math.round(apiRates.TRY * 100);
           }
           // IRR stays simulated as it's a parallel market
 
@@ -160,7 +160,7 @@ export default function CurrencyRatesScreen() {
         currentRates.map(currency => {
           if (currency.id !== 'IRR') return currency; // Only simulate IRR now
 
-          const volatility = 5;
+          const volatility = 20000; // Tomans volatility
           const randomChange = Math.floor(Math.random() * (volatility * 2 + 1)) - volatility;
           
           let newRate = currency.baseRate + randomChange;
@@ -230,7 +230,7 @@ export default function CurrencyRatesScreen() {
                 {/* Price & Change */}
                 <View className="items-end">
                   <Text className="text-white font-black text-[22px] mb-1">
-                    {currency.currentRate.toLocaleString()} <Text className="text-[12px] text-gray-400 font-normal">IQD</Text>
+                    {currency.currentRate.toLocaleString()} <Text className="text-[12px] text-gray-400 font-normal">{currency.suffix}</Text>
                   </Text>
                   
                   <View className={`flex-row items-center px-2 py-1 rounded-lg ${currency.isUp ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
@@ -270,7 +270,7 @@ export default function CurrencyRatesScreen() {
                   className="w-14 h-14 rounded-2xl items-center justify-center mr-4"
                   style={{ backgroundColor: `${gold.color}20` }}
                 >
-                  <View className="w-6 h-6 rounded-full" style={{ backgroundColor: gold.color }} />
+                  <Coins size={28} color={gold.color} />
                 </View>
 
                 <View className="flex-1">
