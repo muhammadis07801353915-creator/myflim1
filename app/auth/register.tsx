@@ -25,7 +25,7 @@ export default function RegisterScreen() {
     return () => clearTimeout(timer);
   }, [countdown, step]);
 
-  const OTPIQ_KEY = 'sk_live_3c2cce85267eb321a50dae7afa9815c8d4b8f7ae';
+  const OTPIQ_KEY = 'YOUR_OTPIQ_KEY_HERE'; // Replace with actual key or use env variables
 
   const handleSendOtp = async (provider: 'sms' | 'whatsapp' = 'sms') => {
     if (!name || name.trim().length < 2) {
