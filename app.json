@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "TabanMain",
+    "name": "Taban Cars",
     "slug": "TabanMain",
-    "version": "1.0.0",
+    "scheme": "tabanmain",
+    "version": "2.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,7 +17,8 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.muhamad1.tabanmain",
+      "package": "tabancars.com",
+      "versionCode": 11,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -29,14 +31,22 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#CC222F",
+          "defaultChannel": "default"
+        }
+      ]
     ],
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "8728e110-e27d-4566-9f3d-9af0ee20323e"
+        "projectId": "9497733e-433f-47d1-83f5-22098b6319d1"
       }
     },
-    "owner": "my123"
+    "owner": "taban1"
   }
 }

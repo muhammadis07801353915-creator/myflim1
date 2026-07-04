@@ -45,19 +45,20 @@ export default function PostsScreen() {
     fetchMyCars();
   }, [fetchMyCars]);
 
-  const updatePostStatus = async (postId: string, newStatus: string) => {
+  const updatePostStatus = async (id: number, status: PostStatus) => {
     try {
-      const { error } = await supabase
-        .from('cars')
-        .update({ status: newStatus })
-        .eq('id', postId);
-
-      if (error) throw error;
+      const updateData: any = { status };
+      if (status === 'sold') {
+        updateData.sold_at = new Date().toISOString();
+      }
       
-      Alert.alert('سەرکەوتوو بوو', 'باری پۆستەکە گۆڕدرا');
-      fetchMyCars();
-    } catch (error: any) {
-      Alert.alert('هەڵە', 'نەتوانرا بارەکە بگۆڕدرێت');
+      const { error } = await supabase.from('cars').update(updateData).eq('id', id);
+      if (error) throw error;
+      setCars(cars.map(p => p.id === id ? { ...p, ...updateData } : p));
+      Alert.alert(t('common.success'), t('posts.status_updated'));
+    } catch (error) {
+      console.error('Error updating status:', error);
+      Alert.alert(t('common.error'), t('posts.error_updating_status'));
     }
   };
 

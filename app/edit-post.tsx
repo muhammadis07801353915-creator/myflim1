@@ -125,7 +125,7 @@ export default function EditPostScreen() {
         data = cities || [];
       }
     } else if (type === 'year') {
-      for (let y = 2025; y >= 1990; y--) data.push({ id: y.toString(), name: y.toString() });
+      for (let y = 2026; y >= 1990; y--) data.push({ id: y.toString(), name: y.toString() });
     } else if (type === 'transmission') {
       data = ['ئۆتۆماتیک', 'گێڕ ئاسایی'].map(n => ({ id: n, name: n }));
     } else if (type === 'fuel_type') {
@@ -185,7 +185,7 @@ export default function EditPostScreen() {
       import_country: importCountry,
       plate_type: plateType,
       paint_status: paintStatus,
-      cylinders: cylinders ? `${cylinders} سیلیندر` : '',
+      cylinders: cylinders ? `${cylinders} پستۆن` : '',
       governorate: governorate ? getTranslatedName(governorate, 'locations') : '',
       city: city ? getTranslatedName(city, 'locations') : '',
     };
@@ -372,7 +372,7 @@ export default function EditPostScreen() {
           <DropdownField label="جۆری سووتەمەنی" type="fuel_type" placeholder="هەڵبژێرە" />
           <DropdownField label="بارودۆخی ئۆتۆمبێل" type="condition" placeholder="هەڵبژێرە" />
           <DropdownField label="وڵاتی وارد" type="import_country" placeholder="هەڵبژێرە" />
-          <DropdownField label="سیلیندر" type="cylinders" placeholder="هەڵبژێرە" />
+          <DropdownField label="پستۆن" type="cylinders" placeholder="هەڵبژێرە" />
           <InputField label="قەبارەی مۆتەر (cc)" value={engineSize} onChangeText={setEngineSize} placeholder="بۆ نموونە: 2000" keyboardType="numeric" />
           <DropdownField label="جۆری پلەیت" type="plate_type" placeholder="هەڵبژێرە" />
           <DropdownField label="باری ڕووکێش" type="paint_status" placeholder="هەڵبژێرە" />

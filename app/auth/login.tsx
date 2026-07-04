@@ -3,9 +3,11 @@ import { View, Text, SafeAreaView, TextInput, TouchableOpacity, ActivityIndicato
 import { useRouter } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { ChevronLeft, Phone, ShieldCheck, ArrowRight } from 'lucide-react-native';
+import { useLanguage } from '../../src/i18n/LanguageContext';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
@@ -142,9 +144,9 @@ export default function LoginScreen() {
             <TouchableOpacity onPress={() => router.back()} className="bg-gray-50 w-12 h-12 rounded-full items-center justify-center mb-10">
               <ChevronLeft size={28} color="#000" />
             </TouchableOpacity>
-            <Text className="text-3xl font-black text-gray-900 text-right mb-2">چوونەژوورەوە</Text>
+            <Text className="text-3xl font-black text-gray-900 text-right mb-2">{t('auth.login')}</Text>
             <Text className="text-gray-500 text-lg font-bold text-right mb-12">
-              {step === 1 ? 'تکایە ژمارەی مۆبایلەکەت بنووسە' : 'کۆدی دڵنیایی کە بۆت هاتووە لێرە بنووسە'}
+              {step === 1 ? t('auth.enterPhone') : t('auth.enterCode')}
             </Text>
 
             {step === 1 ? (
@@ -161,14 +163,14 @@ export default function LoginScreen() {
                   // Just go to step 2 without sending, user will choose there
                   setStep(2);
                 }} className="bg-[#CC222F] h-16 rounded-2xl items-center justify-center shadow-lg shadow-red-500/30 mt-6">
-                  <Text className="text-white font-black text-lg">بەردەوامبوون</Text>
+                  <Text className="text-white font-black text-lg">{t('auth.continue')}</Text>
                 </TouchableOpacity>
 
                 <View className="mt-8 items-center flex-row justify-center space-x-2">
                   <TouchableOpacity onPress={() => router.push('/auth/register')}>
-                    <Text className="text-[#CC222F] font-bold text-[16px]">دروستکردنی ئەکاونت</Text>
+                    <Text className="text-[#CC222F] font-bold text-[16px]">{t('auth.createAccount')}</Text>
                   </TouchableOpacity>
-                  <Text className="text-gray-500 font-bold text-[16px]">ئەکاونتت نییە؟</Text>
+                  <Text className="text-gray-500 font-bold text-[16px]">{t('auth.noAccount')}</Text>
                 </View>
               </View>
             ) : (
@@ -178,12 +180,12 @@ export default function LoginScreen() {
                   <TextInput placeholder="XXXXXX" placeholderTextColor="#9ca3af" keyboardType="number-pad" maxLength={6} className="flex-1 mr-4 text-right text-lg font-bold tracking-[10px]" value={code} onChangeText={setCode} />
                 </View>
                 <TouchableOpacity onPress={handleVerifyOtp} disabled={loading} className="bg-[#CC222F] h-16 rounded-2xl items-center justify-center shadow-lg shadow-red-500/30 mt-6">
-                  {loading ? <ActivityIndicator color="white" /> : <Text className="text-white font-black text-lg">پشتڕاستکردنەوە</Text>}
+                  {loading ? <ActivityIndicator color="white" /> : <Text className="text-white font-black text-lg">{t('auth.verify')}</Text>}
                 </TouchableOpacity>
                 <View className="flex-col mt-4 space-y-4">
                   <View className="flex-row items-center justify-between">
                     <TouchableOpacity onPress={() => setStep(1)}>
-                      <Text className="text-gray-400 font-bold">گۆڕینی ژمارەی مۆبایل</Text>
+                      <Text className="text-gray-400 font-bold">{t('auth.changePhone')}</Text>
                     </TouchableOpacity>
                   </View>
                   

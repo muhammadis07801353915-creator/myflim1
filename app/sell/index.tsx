@@ -74,8 +74,16 @@ export default function SellCarScreen() {
     description: '', currency: '$ (Dollar)', price: '', phone: '', phone2: '', mileage_unit: 'km',
     plan: 'free',
     paymentMethod: '', paymentType: '', paymentImages: [], paymentNote: '',
-    images: Array(8).fill(null)
+    images: Array(8).fill(null),
+    features: [] as string[]
   });
+
+  const FEATURES_LIST = [
+    'door_shift', 'panorama', 'abs', 'seat_cooling', 'seat_heating',
+    'electric_seats', 'smart_key', 'hill_holder', 'four_screens',
+    'electric_trunk', 'camera_360', 'four_way_radar', 'lane_assist',
+    'led_lights', 'three_drive_modes', 'remote_start', 'rain_sensor', 'wireless_charger'
+  ];
 
   const nextStep = () => setStep(s => {
     let next = s + 1;
@@ -514,7 +522,7 @@ export default function SellCarScreen() {
       data = s || [];
     }
     if (type === 'year') {
-      for (let i = 2025; i >= 1990; i--) data.push({ id: i.toString(), name: i.toString() });
+      for (let i = 2026; i >= 1990; i--) data.push({ id: i.toString(), name: i.toString() });
     }
     if (type === 'mileage_unit') data = ['km', 'Mil'].map(n => ({id: n, name: n}));
     if (type === 'currency') data = ['$ (Dollar)', 'IQD (Dinar)'].map(n => ({id: n, name: n}));
@@ -630,6 +638,7 @@ export default function SellCarScreen() {
         payment_note: sellData.paymentNote || null,
         payment_phone: sellData.phone,
         payment_method: sellData.paymentMethod,
+        features: sellData.features || [],
       });
 
       if (error) {
@@ -729,6 +738,7 @@ export default function SellCarScreen() {
         images: imageUrls,
         status: 'pending',
         user_id: user?.id || null,
+        features: sellData.features || [],
       });
 
       if (error) throw error;
@@ -780,7 +790,7 @@ export default function SellCarScreen() {
           </View>
         </View>
       );
-      case 5: return <View className="flex-1 px-6"><Text className={`text-slate-500 font-bold mb-4 ${isRTL ? 'text-right mr-2' : 'text-left ml-2'} text-lg`}>{t('sell.interiorType')}</Text><View className={`flex-row${isRTL ? '' : '-reverse'} gap-3 mb-8`}>{(t('sell.interiors') as string[]).map(type => (<OptionButton key={type} label={type} selected={sellData.interior_type === type} onPress={() => setSellData({...sellData, interior_type: type})} />))}</View><Text className={`text-slate-500 font-bold mb-4 ${isRTL ? 'text-right mr-2' : 'text-left ml-2'} text-lg`}>{t('sell.seats')}</Text><View className={`flex-row${isRTL ? '' : '-reverse'} gap-3 mb-8`}>{['2', '4', '5', '7'].map(s => (<OptionButton key={s} label={s} selected={sellData.seats === s} onPress={() => setSellData({...sellData, seats: s})} />))}</View><Text className={`text-slate-500 font-bold mb-4 ${isRTL ? 'text-right mr-2' : 'text-left ml-2'} text-lg`}>{t('sell.engineSize')}</Text><View className={`flex-row${isRTL ? '' : '-reverse'} gap-3`}>{['2.0', '2.4', '3.0', '3.5'].map(e => (<OptionButton key={e} label={e} selected={sellData.engine_size === e} onPress={() => setSellData({...sellData, engine_size: e})} />))}</View></View>;
+      case 5: return <View className="flex-1 px-6"><Text className={`text-slate-500 font-bold mb-4 ${isRTL ? 'text-right mr-2' : 'text-left ml-2'} text-lg`}>{t('sell.interiorType')}</Text><View className={`flex-row${isRTL ? '' : '-reverse'} gap-3 mb-8`}>{(t('sell.interiors') as string[]).map(type => (<OptionButton key={type} label={type} selected={sellData.interior_type === type} onPress={() => setSellData({...sellData, interior_type: type})} />))}</View><Text className={`text-slate-500 font-bold mb-4 ${isRTL ? 'text-right mr-2' : 'text-left ml-2'} text-lg`}>{t('sell.seats')}</Text><View className={`flex-row${isRTL ? '' : '-reverse'} gap-3 mb-8`}>{['2', '4', '5', '7'].map(s => (<OptionButton key={s} label={s} selected={sellData.seats === s} onPress={() => setSellData({...sellData, seats: s})} />))}</View><Text className={`text-slate-500 font-bold mb-4 ${isRTL ? 'text-right mr-2' : 'text-left ml-2'} text-lg`}>{t('sell.engineSize')}</Text><View className={`bg-white border border-slate-100 h-16 rounded-[25px] flex-row${isRTL ? '' : '-reverse'} items-center px-6`}><TextInput placeholder="0.0" className={`flex-1 text-xl font-black ${isRTL ? 'text-right' : 'text-left'}`} keyboardType="numeric" value={sellData.engine_size} onChangeText={t => setSellData({...sellData, engine_size: t})} /></View></View>;
       case 6: return (
         <View className="flex-1 px-6">
           {/* Mileage */}
@@ -872,15 +882,43 @@ export default function SellCarScreen() {
       );
       case 13: return (
         <View className="flex-1 px-6">
-          <View className="bg-white border border-slate-100 rounded-[40px] p-10 shadow-sm">
-            <Text className={`text-3xl font-black text-[#1A1A1A] mb-8 ${isRTL ? 'text-right' : 'text-left'}`}>{t('sell.review')}</Text>
-            {[{l: t('sell.car'), v: `${getTranslatedName(sellData.brand) || '---'} ${sellData.model || ''}`}, {l: t('sell.year'), v: sellData.year || '---'}, {l: t('sell.price'), v: `${sellData.price || '---'} ${sellData.currency}`}, {l: t('sell.phone1'), v: sellData.phone || '---'}].map((item, i) => (
-               <View key={i} className={`flex-row${isRTL ? '' : '-reverse'} justify-between py-6 border-b border-slate-50`}>
-                  <Text className="text-2xl font-black text-[#1A1A1A]">{item.v as string}</Text>
-                  <Text className="text-xl font-bold text-slate-300">{item.l as string}</Text>
-               </View>
-            ))}
+          <View className={`flex-row${isRTL ? '' : '-reverse'} flex-wrap gap-3`}>
+            {FEATURES_LIST.map((featureId) => {
+              const isSelected = sellData.features.includes(featureId);
+              const label = (t('sell.featuresList') as any)?.[featureId] || featureId;
+              return (
+                <TouchableOpacity
+                  key={featureId}
+                  onPress={() => {
+                    const newFeatures = isSelected
+                      ? sellData.features.filter((f: string) => f !== featureId)
+                      : [...sellData.features, featureId];
+                    setSellData({ ...sellData, features: newFeatures });
+                  }}
+                  className={`flex-row items-center px-4 py-3 rounded-full border-2 ${
+                    isSelected
+                      ? 'border-[#CC222F] bg-[#CC222F]'
+                      : 'border-slate-200 bg-white'
+                  }`}
+                  style={{ marginBottom: 4 }}
+                >
+                  {isSelected && <Check size={14} color="white" style={{ marginRight: isRTL ? 0 : 6, marginLeft: isRTL ? 6 : 0 }} />}
+                  <Text className={`text-sm font-black ${
+                    isSelected ? 'text-white' : 'text-slate-700'
+                  }`}>{label}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
+          {sellData.features.length === 0 && (
+            <View className="mt-6 py-6 items-center">
+              <Text className={`text-slate-400 font-bold text-base ${
+                isRTL ? 'text-right' : 'text-left'
+              }`}>
+                {isRTL ? 'هیچ مواسەفاتێک هەڵنەبژێردراوە' : 'No features selected'}
+              </Text>
+            </View>
+          )}
         </View>
       );
       case 14: return (
@@ -905,7 +943,8 @@ export default function SellCarScreen() {
             </View>
             <View className="mt-2 border-t border-slate-100 pt-4">
               <Text className={`text-slate-600 font-bold text-lg ${isRTL ? 'text-right' : 'text-left'} mb-2`}>• {t('sell.freeFeature1')}</Text>
-              <Text className={`text-slate-600 font-bold text-lg ${isRTL ? 'text-right' : 'text-left'}`}>• {t('sell.freeFeature2')}</Text>
+              <Text className={`text-slate-600 font-bold text-lg ${isRTL ? 'text-right' : 'text-left'} mb-2`}>• {t('sell.freeFeature2')}</Text>
+              <Text className={`text-slate-600 font-bold text-lg ${isRTL ? 'text-right' : 'text-left'}`}>• {t('sell.freeFeature3')}</Text>
             </View>
           </TouchableOpacity>
 
@@ -929,7 +968,8 @@ export default function SellCarScreen() {
               <View className="mt-2 border-t border-slate-100 pt-4">
                 <Text className={`text-slate-600 font-bold text-lg ${isRTL ? 'text-right' : 'text-left'} mb-2`}>• {t('sell.vipFeature1')}</Text>
                 <Text className={`text-slate-600 font-bold text-lg ${isRTL ? 'text-right' : 'text-left'} mb-2`}>• {t('sell.vipFeature2')}</Text>
-                <Text className={`text-slate-600 font-bold text-lg ${isRTL ? 'text-right' : 'text-left'}`}>• {t('sell.vipFeature3')}</Text>
+                <Text className={`text-slate-600 font-bold text-lg ${isRTL ? 'text-right' : 'text-left'} mb-2`}>• {t('sell.vipFeature3')}</Text>
+                <Text className={`text-slate-600 font-bold text-lg ${isRTL ? 'text-right' : 'text-left'}`}>• {t('sell.vipFeature4')}</Text>
               </View>
             </TouchableOpacity>
           )}

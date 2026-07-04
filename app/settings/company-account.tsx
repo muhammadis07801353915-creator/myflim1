@@ -16,6 +16,7 @@ import {
 import { ChevronLeft, Camera, Building, MapPin, Clock, CheckCircle2, ChevronDown, Search, Check, X } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import { useLanguage } from '../../src/i18n/LanguageContext';
 import { supabase } from '../../src/lib/supabase';
 import { uploadToR2 } from '../../src/lib/r2';
 import * as Linking from 'expo-linking';
@@ -25,6 +26,7 @@ const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 44 : Platform.OS === 'android' 
 
 export default function CompanyAccountScreen() {
   const router = useRouter();
+  const { t, language, getTranslatedName } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState('07500000000');
@@ -140,7 +142,7 @@ export default function CompanyAccountScreen() {
 
   const handleSubmit = async () => {
     if (!form.name || !form.address) {
-      Alert.alert('هەڵە', 'تکایە ناوی کۆمپانیا و ناونیشان پڕبکەوە');
+      Alert.alert(t('companyAccount.errorTitle'), t('companyAccount.fillNameAndAddress'));
       return;
     }
 
@@ -174,7 +176,7 @@ export default function CompanyAccountScreen() {
 
       const phoneToUse = profile?.phone || user.user_metadata?.phone || (user.email ? user.email.replace('@taban.com', '') : null);
       if (!phoneToUse) {
-        Alert.alert('هەڵە', 'ژمارە مۆبایل نەدۆزرایەوە! پێویستە ژمارەی مۆبایل لە پرۆفایلەکەت هەبێت بۆ دروستکردنی پێشانگا.');
+        Alert.alert(t('companyAccount.errorTitle'), t('companyAccount.noPhoneFound'));
         setSubmitting(false);
         return;
       }
@@ -198,7 +200,7 @@ export default function CompanyAccountScreen() {
       setAccountState(1);
     } catch (e: any) {
       console.error(e);
-      Alert.alert('هەڵە ڕوویدا', 'نەتوانرا ئەکاونت دروست بکرێت. تکایە دووبارە هەوڵبدەوە.');
+      Alert.alert(t('companyAccount.errorTitle'), t('companyAccount.createError'));
     } finally {
       setSubmitting(false);
     }
@@ -209,15 +211,15 @@ export default function CompanyAccountScreen() {
   };
 
   const calculateDays = () => {
-    if (!showroomData) return { passed: 0, remaining: 30 };
+    if (!showroomData) return { passed: 0, remaining: 30, total: 30 };
     
     let end = new Date();
+    let start = showroomData.created_at ? new Date(showroomData.created_at) : new Date();
+
     if (showroomData.verified_until) {
       end = new Date(showroomData.verified_until);
-    } else if (showroomData.created_at) {
-      end = new Date(showroomData.created_at);
-      end.setDate(end.getDate() + 30);
     } else {
+      end = new Date(start);
       end.setDate(end.getDate() + 30);
     }
 
@@ -227,12 +229,19 @@ export default function CompanyAccountScreen() {
     
     if (remainingDays < 0) remainingDays = 0;
     
-    let passedDays = 30 - remainingDays;
-    if (passedDays < 0) passedDays = 0;
-    if (passedDays > 30) passedDays = 30;
-    if (remainingDays > 30) remainingDays = 30;
+    let totalDays = 30;
+    if (showroomData.verified_until) {
+       const totalMs = end.getTime() - start.getTime();
+       totalDays = Math.round(totalMs / (1000 * 60 * 60 * 24));
+       if (totalDays <= 0) totalDays = 30;
+    }
     
-    return { passed: passedDays, remaining: remainingDays };
+    let passedDays = totalDays - remainingDays;
+    if (passedDays < 0) passedDays = 0;
+    if (passedDays > totalDays) passedDays = totalDays;
+    if (remainingDays > totalDays) remainingDays = totalDays;
+    
+    return { passed: passedDays, remaining: remainingDays, total: totalDays };
   };
 
   if (loading) {
@@ -256,7 +265,7 @@ export default function CompanyAccountScreen() {
         >
           <ChevronLeft size={24} color="#1f2937" />
         </TouchableOpacity>
-        <Text className="text-xl font-black text-gray-900">ئەکاونتی کۆمپانیا</Text>
+        <Text className="text-xl font-black text-gray-900">{t('companyAccount.title')}</Text>
         <View className="w-10" />
       </View>
 
@@ -273,11 +282,11 @@ export default function CompanyAccountScreen() {
           {accountState === 0 && (
             <View className="p-5 pt-8">
               <Text className="text-right text-gray-500 font-bold mb-8 text-[15px] leading-6">
-                لێرە دەتوانیت زانیارییەکانی پێشانگاکەت پڕبکەیتەوە و داواکاری بنێریت بۆ ئەوەی ببیتە بەشێک لە تابان کارس.
+                {t('companyAccount.description')}
               </Text>
 
               {/* Cover Image Pick */}
-              <Text className="text-right font-black text-gray-700 mb-2">وێنەی کەڤەر</Text>
+              <Text className="text-right font-black text-gray-700 mb-2">{t('companyAccount.coverImage')}</Text>
               <TouchableOpacity 
                 className="w-full h-40 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 items-center justify-center mb-6 overflow-hidden"
                 onPress={() => pickImage('cover_image')}
@@ -287,13 +296,13 @@ export default function CompanyAccountScreen() {
                 ) : (
                   <View className="items-center">
                     <Camera size={32} color="#94a3b8" />
-                    <Text className="text-gray-400 font-bold mt-2">دانانی وێنە</Text>
+                    <Text className="text-gray-400 font-bold mt-2">{t('companyAccount.addImage')}</Text>
                   </View>
                 )}
               </TouchableOpacity>
 
               {/* Profile Image Pick */}
-              <Text className="text-right font-black text-gray-700 mb-2">لۆگۆی پێشانگا</Text>
+              <Text className="text-right font-black text-gray-700 mb-2">{t('companyAccount.showroomLogo')}</Text>
               <View className="items-end mb-6">
                 <TouchableOpacity 
                   className="w-24 h-24 bg-gray-50 rounded-full border-2 border-dashed border-gray-200 items-center justify-center overflow-hidden"
@@ -310,12 +319,12 @@ export default function CompanyAccountScreen() {
               {/* Form Fields */}
               <View className="space-y-4 mb-8">
                 <View>
-                  <Text className="text-right font-black text-gray-700 mb-2">ناوی کۆمپانیا/پێشانگا *</Text>
+                  <Text className="text-right font-black text-gray-700 mb-2">{t('companyAccount.companyName')}</Text>
                   <View className="flex-row items-center bg-gray-50 px-4 py-4 rounded-2xl border border-gray-100">
                     <Building size={20} color="#94a3b8" />
                     <TextInput 
                       className="flex-1 ml-3 text-right font-bold text-gray-800"
-                      placeholder="ناوەکە بنووسە..."
+                      placeholder={t('companyAccount.namePlaceholder')}
                       placeholderTextColor="#94a3b8"
                       value={form.name}
                       onChangeText={(t) => setForm({...form, name: t})}
@@ -325,7 +334,7 @@ export default function CompanyAccountScreen() {
 
                 {/* Governorate & City */}
                 <View className="mt-4">
-                  <Text className="text-right font-black text-gray-700 mb-2">پارێزگا و شار</Text>
+                  <Text className="text-right font-black text-gray-700 mb-2">{t('companyAccount.govAndCity')}</Text>
                   <View className="flex-row gap-3">
                     <TouchableOpacity
                       className="flex-1 flex-row items-center justify-between bg-gray-50 px-4 py-4 rounded-2xl border border-gray-100"
@@ -333,7 +342,7 @@ export default function CompanyAccountScreen() {
                     >
                       <ChevronDown size={16} color="#94a3b8" />
                       <Text className={`font-bold ${form.city ? 'text-gray-800' : 'text-gray-300'}`}>
-                        {form.city || 'شار'}
+                        {form.city ? getTranslatedName(form.city, 'locations') : t('companyAccount.city')}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -342,19 +351,19 @@ export default function CompanyAccountScreen() {
                     >
                       <ChevronDown size={16} color="#94a3b8" />
                       <Text className={`font-bold ${form.governorate ? 'text-gray-800' : 'text-gray-300'}`}>
-                        {form.governorate || 'پارێزگا'}
+                        {form.governorate ? getTranslatedName(form.governorate, 'locations') : t('companyAccount.governorate')}
                       </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
 
                 <View className="mt-4">
-                  <Text className="text-right font-black text-gray-700 mb-2">ناونیشان *</Text>
+                  <Text className="text-right font-black text-gray-700 mb-2">{t('companyAccount.address')}</Text>
                   <View className="flex-row items-center bg-gray-50 px-4 py-4 rounded-2xl border border-gray-100">
                     <MapPin size={20} color="#94a3b8" />
                     <TextInput 
                       className="flex-1 ml-3 text-right font-bold text-gray-800"
-                      placeholder="نموونە: هەولێر، شەقامی 100 مەتری..."
+                      placeholder={t('companyAccount.addressExample')}
                       placeholderTextColor="#94a3b8"
                       value={form.address}
                       onChangeText={(t) => setForm({...form, address: t})}
@@ -363,12 +372,12 @@ export default function CompanyAccountScreen() {
                 </View>
 
                 <View className="mt-4">
-                  <Text className="text-right font-black text-gray-700 mb-2">لۆکەیشن (ئارەزوومەندانە)</Text>
+                  <Text className="text-right font-black text-gray-700 mb-2">{t('companyAccount.locationOptional')}</Text>
                   <View className="flex-row items-center bg-gray-50 px-4 py-4 rounded-2xl border border-gray-100">
                     <MapPin size={20} color="#94a3b8" />
                     <TextInput 
                       className="flex-1 ml-3 text-right font-bold text-gray-800"
-                      placeholder="لینکی گووگڵ ماپ..."
+                      placeholder={t('companyAccount.locationPlaceholder')}
                       placeholderTextColor="#94a3b8"
                       value={form.location}
                       onChangeText={(t) => setForm({...form, location: t})}
@@ -377,12 +386,12 @@ export default function CompanyAccountScreen() {
                 </View>
 
                 <View className="mt-4">
-                  <Text className="text-right font-black text-gray-700 mb-2">کاتی کرانەوە (ئارەزوومەندانە)</Text>
+                  <Text className="text-right font-black text-gray-700 mb-2">{t('companyAccount.workingHours')}</Text>
                   <View className="flex-row items-center bg-gray-50 px-4 py-4 rounded-2xl border border-gray-100">
                     <Clock size={20} color="#94a3b8" />
                     <TextInput 
                       className="flex-1 ml-3 text-right font-bold text-gray-800"
-                      placeholder="نموونە: 8:00 بەیانی تا 5:00 ئێوارە"
+                      placeholder={t('companyAccount.workingHoursExample')}
                       placeholderTextColor="#94a3b8"
                       value={form.working_hours}
                       onChangeText={(t) => setForm({...form, working_hours: t})}
@@ -399,7 +408,7 @@ export default function CompanyAccountScreen() {
                 {submitting ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text className="text-white font-black text-[18px]">دروستکردنی ئەکاونت</Text>
+                  <Text className="text-white font-black text-[18px]">{t('companyAccount.createAccount')}</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -410,15 +419,15 @@ export default function CompanyAccountScreen() {
               <View className="w-24 h-24 bg-orange-100 rounded-full items-center justify-center mb-6">
                 <Clock size={40} color="#f97316" />
               </View>
-              <Text className="text-2xl font-black text-gray-900 mb-4 text-center">چاوەڕوانی پشتڕاستکردنەوە</Text>
+              <Text className="text-2xl font-black text-gray-900 mb-4 text-center">{t('companyAccount.waitingVerification')}</Text>
               <Text className="text-center font-bold text-gray-500 text-[16px] leading-8">
-                لەماوەی 10 خولەک بۆ 24 سەعات ئەکاونتەکەت پشتراست دەکرێتەوە لەلایەن کارمەندانی تابان کارس
+                {t('companyAccount.waitingDesc')}
               </Text>
             </View>
           )}
 
           {accountState === 2 && (() => {
-            const { remaining, passed } = calculateDays();
+            const { remaining, passed, total } = calculateDays();
             const isExpired = remaining === 0;
             return (
               <View className="flex-1 items-center justify-center p-8 min-h-[500px]">
@@ -428,14 +437,14 @@ export default function CompanyAccountScreen() {
                 </View>
 
                 <Text className="text-3xl font-black text-gray-900 mb-4 text-center">
-                  {isExpired ? 'بەشداریەکەت کۆتایی هاتووە' : 'پیرۆزە!'}
+                  {isExpired ? t('companyAccount.subEnded') : t('companyAccount.congrats')}
                 </Text>
 
                 {/* Expiry Warning */}
                 {isExpired ? (
                   <View className="bg-red-50 border border-red-100 rounded-3xl p-5 mb-6 w-full">
                     <Text className="text-center font-bold text-gray-700 text-[15px] leading-8 mb-4">
-                      بەرێزەکەم بەشداری مانگاکەت کۆتایی هاتووە تکایە بۆ بەشداری کردنی ئەکاونتی جالاکی مانگانە و پشتراستکراوە تکایە پەیوەندی بکەن بە وەتسئاپی ئەم ژمارەیە
+                      {t('companyAccount.subEndedDesc')}
                     </Text>
                     <TouchableOpacity
                       className="bg-[#25D366] py-4 rounded-2xl items-center justify-center flex-row gap-2"
@@ -446,7 +455,7 @@ export default function CompanyAccountScreen() {
                   </View>
                 ) : (
                   <Text className="text-center font-bold text-gray-500 text-[16px] leading-8 mb-6">
-                    بۆ ماوەی 30 ڕۆژ بە خۆڕایی بەشداریکردنت وەرگرت. ئێستا دەتوانیت بچیتە ناو ئەپی پێشانگا.
+                    {t('companyAccount.subActiveDesc').replace('30', total.toString())}
                   </Text>
                 )}
 
@@ -454,12 +463,12 @@ export default function CompanyAccountScreen() {
                 <View className="flex-row items-center justify-between bg-slate-50 w-full p-4 rounded-2xl mb-6 border border-slate-100">
                   <View className="items-center flex-1">
                     <Text className={`text-2xl font-black ${isExpired ? 'text-[#CC222F]' : 'text-[#CC222F]'}`}>{remaining}</Text>
-                    <Text className="text-gray-500 font-bold text-[13px] mt-1">ڕۆژی ماوە</Text>
+                    <Text className="text-gray-500 font-bold text-[13px] mt-1">{t('companyAccount.daysRemaining')}</Text>
                   </View>
                   <View className="w-[1px] h-10 bg-slate-200" />
                   <View className="items-center flex-1">
                     <Text className="text-2xl font-black text-gray-800">{passed}</Text>
-                    <Text className="text-gray-500 font-bold text-[13px] mt-1">ڕۆژی ڕۆیشتوو</Text>
+                    <Text className="text-gray-500 font-bold text-[13px] mt-1">{t('companyAccount.daysPassed')}</Text>
                   </View>
                 </View>
 
@@ -468,7 +477,7 @@ export default function CompanyAccountScreen() {
                   className="w-full bg-slate-900 py-5 rounded-2xl items-center justify-center flex-row shadow-xl shadow-slate-900/30"
                   onPress={openShowroomApp}
                 >
-                  <Text className="text-white font-black text-[18px]">چوونە ناو داشبۆردی پێشانگا</Text>
+                  <Text className="text-white font-black text-[18px]">{t('companyAccount.goToDashboard')}</Text>
                 </TouchableOpacity>
               </View>
             );
@@ -486,7 +495,7 @@ export default function CompanyAccountScreen() {
                 <X size={22} color="#94a3b8" />
               </TouchableOpacity>
               <Text className="text-lg font-black text-gray-900">
-                {modalType === 'governorate' ? 'پارێزگا هەڵبژێرە' : 'شار هەڵبژێرە'}
+                {modalType === 'governorate' ? t('companyAccount.chooseGov') : t('companyAccount.chooseCity')}
               </Text>
               <View className="w-6" />
             </View>
@@ -494,7 +503,7 @@ export default function CompanyAccountScreen() {
             <View className="flex-row-reverse items-center bg-slate-50 px-4 py-3 rounded-2xl border border-slate-100 mb-4">
               <Search size={16} color="#94a3b8" />
               <TextInput
-                placeholder="گەڕان..."
+                placeholder={t('companyAccount.search')}
                 className="flex-1 mr-3 font-bold text-right"
                 value={searchQuery}
                 onChangeText={setSearchQuery}
@@ -502,10 +511,11 @@ export default function CompanyAccountScreen() {
             </View>
 
             <FlatList
-              data={modalData.filter(i => i.name.includes(searchQuery))}
+              data={modalData.filter(i => getTranslatedName(i.name, 'locations').includes(searchQuery) || i.name.includes(searchQuery))}
               keyExtractor={(item) => item.id.toString()}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
+                const translatedName = getTranslatedName(item.name, 'locations');
                 const isSelected =
                   modalType === 'governorate'
                     ? form.governorate === item.name
@@ -526,7 +536,7 @@ export default function CompanyAccountScreen() {
                       {isSelected && <Check size={12} color="white" strokeWidth={4} />}
                     </View>
                     <Text className={`text-base font-bold ${isSelected ? 'text-[#CC222F]' : 'text-slate-600'}`}>
-                      {item.name}
+                      {translatedName}
                     </Text>
                   </TouchableOpacity>
                 );

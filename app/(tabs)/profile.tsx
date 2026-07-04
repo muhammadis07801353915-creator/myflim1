@@ -35,8 +35,11 @@ export default function ProfileScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [recentChats, setRecentChats] = useState<any[]>([]);
   const [totalUnread, setTotalUnread] = useState(0);
+  const [adminUnread, setAdminUnread] = useState(0);
   const { t, language, setLanguage } = useLanguage();
   const [langModalVisible, setLangModalVisible] = useState(false);
+  const adminChatRealtimeRef = useRef<any>(null);
+  const chatsRealtimeRef = useRef<any>(null);
 
   const slideAnim = useRef(new Animated.Value(400)).current;
   const backdropAnim = useRef(new Animated.Value(0)).current;
@@ -95,20 +98,114 @@ export default function ProfileScreen() {
 
   const fetchRecentChats = async () => {
     try {
+      // First try from Supabase for accurate unread count
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: chatsData } = await supabase
+          .from('chats')
+          .select('buyer_id, buyer_unread, seller_unread')
+          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
+        const { data: showroomChatsData } = await supabase
+          .from('showroom_chats')
+          .select('buyer_unread')
+          .eq('buyer_id', user.id);
+        
+        let unread = 0;
+        if (chatsData) {
+          unread += chatsData.reduce((sum: number, c: any) => {
+            return sum + (c.buyer_id === user.id ? c.buyer_unread || 0 : c.seller_unread || 0);
+          }, 0);
+        }
+        if (showroomChatsData) {
+          unread += showroomChatsData.reduce((sum: number, c: any) => sum + (c.buyer_unread || 0), 0);
+        }
+        setTotalUnread(unread);
+      }
+      // Fallback to AsyncStorage
       const saved = await AsyncStorage.getItem('@taban_chats_v2');
       if (saved) {
         const parsed = JSON.parse(saved);
         setRecentChats(parsed.slice(0, 3));
-        const unread = parsed.reduce((sum: number, c: any) => sum + (c.myUnread || 0), 0);
-        setTotalUnread(unread);
       }
+    } catch (e) {
+      // Fallback to AsyncStorage on error
+      try {
+        const saved = await AsyncStorage.getItem('@taban_chats_v2');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setRecentChats(parsed.slice(0, 3));
+          const unread = parsed.reduce((sum: number, c: any) => sum + (c.myUnread || 0), 0);
+          setTotalUnread(unread);
+        }
+      } catch {}
+    }
+  };
+
+  const subscribeChats = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    if (chatsRealtimeRef.current) supabase.removeChannel(chatsRealtimeRef.current);
+    chatsRealtimeRef.current = supabase
+      .channel('profile_chats_unread')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chats', filter: `buyer_id=eq.${user.id}` },
+        () => fetchRecentChats()
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chats', filter: `seller_id=eq.${user.id}` },
+        () => fetchRecentChats()
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'showroom_chats', filter: `buyer_id=eq.${user.id}` },
+        () => fetchRecentChats()
+      )
+      .subscribe();
+  };
+
+  const fetchAdminUnread = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('support_chats')
+        .select('user_unread')
+        .eq('user_id', user.id)
+        .single();
+      if (data) setAdminUnread(data.user_unread || 0);
     } catch (e) {}
+  };
+
+  const subscribeAdminChat = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    // Clean up old subscription
+    if (adminChatRealtimeRef.current) {
+      supabase.removeChannel(adminChatRealtimeRef.current);
+    }
+    adminChatRealtimeRef.current = supabase
+      .channel('support_chats_user')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'support_chats', filter: `user_id=eq.${user.id}` },
+        (payload: any) => {
+          setAdminUnread(payload.new.user_unread || 0);
+        }
+      )
+      .subscribe();
   };
 
   useFocusEffect(
     useCallback(() => {
       fetchProfile();
       fetchRecentChats();
+      fetchAdminUnread();
+      subscribeAdminChat();
+      subscribeChats();
+      return () => {
+        if (adminChatRealtimeRef.current) {
+          supabase.removeChannel(adminChatRealtimeRef.current);
+        }
+        if (chatsRealtimeRef.current) {
+          supabase.removeChannel(chatsRealtimeRef.current);
+        }
+      };
     }, [])
   );
 
@@ -190,7 +287,7 @@ export default function ProfileScreen() {
     );
   }
 
-  const ListMenuItem = ({ icon: Icon, title, onPress, isLast = false, color = "#1f2937" }: any) => (
+  const ListMenuItem = ({ icon: Icon, title, onPress, isLast = false, color = "#1f2937", badge = 0 }: any) => (
     <TouchableOpacity 
       onPress={onPress}
       className={`flex-row items-center py-5 ${!isLast ? 'border-b border-gray-50' : ''}`}
@@ -198,7 +295,14 @@ export default function ProfileScreen() {
       <ChevronRight size={18} color="#CBD5E1" />
       <View className="flex-1" />
       <Text className={`mr-4 font-bold text-[16px]`} style={{ color }}>{title}</Text>
-      <Icon size={22} color={color} />
+      <View className="relative">
+        <Icon size={22} color={color} />
+        {badge > 0 && (
+          <View style={{ position: 'absolute', top: -6, right: -6, backgroundColor: '#CC222F', minWidth: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 }}>
+            <Text style={{ color: 'white', fontSize: 9, fontWeight: '900' }}>{badge > 99 ? '99+' : badge}</Text>
+          </View>
+        )}
+      </View>
     </TouchableOpacity>
   );
 
@@ -287,13 +391,35 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity 
-          className="w-full h-32 bg-white border border-gray-100 rounded-[30px] flex-row items-center justify-end px-8 mb-10 shadow-sm"
-          onPress={() => router.push('/favorites')}
-        >
-          <Text className="text-[20px] font-black text-gray-800 mr-5">{t('settings.favoriteCars')}</Text>
-          <Heart size={36} color="#FF5A5F" fill="#FF5A5F" />
-        </TouchableOpacity>
+        {/* Second row: Favorites, Currency, Language */}
+        <View className="flex-row justify-between mb-8">
+          {/* Favorites */}
+          <TouchableOpacity
+            className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
+            onPress={() => router.push('/favorites')}
+          >
+            <Heart size={32} color="#FF5A5F" fill="#FF5A5F" />
+            <Text className="mt-3 font-black text-gray-700 text-[13px]">دڵخوازەکان</Text>
+          </TouchableOpacity>
+
+          {/* Currency Rates */}
+          <TouchableOpacity
+            className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
+            onPress={() => router.push('/settings/currency-rates')}
+          >
+            <DollarSign size={32} color="#1f2937" />
+            <Text className="mt-3 font-black text-gray-700 text-[13px]" numberOfLines={1}>نرخی دراوە</Text>
+          </TouchableOpacity>
+
+          {/* Language */}
+          <TouchableOpacity
+            className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
+            onPress={openModal}
+          >
+            <Globe size={32} color="#1f2937" />
+            <Text className="mt-3 font-black text-gray-700 text-[13px]">زمان</Text>
+          </TouchableOpacity>
+        </View>
 
         <View className="flex-row justify-between items-center mb-10">
           <View className="flex-row bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
@@ -319,10 +445,8 @@ export default function ProfileScreen() {
         <View className="mt-4">
           <Text className="text-right text-[18px] font-black text-gray-400 mb-2">Settings & About</Text>
           <View className="bg-white rounded-3xl">
-             <ListMenuItem icon={Globe} title={t('settings.language')} onPress={openModal} />
-             <ListMenuItem icon={DollarSign} title={t('settings.exchangeRates')} onPress={() => router.push('/settings/currency-rates')} />
              <ListMenuItem icon={Phone} title={t('settings.contactUs')} onPress={() => {}} />
-             <ListMenuItem icon={MessageCircle} title={t('settings.feedback')} onPress={handleSupportChat} />
+             <ListMenuItem icon={MessageCircle} title={t('settings.feedback')} onPress={handleSupportChat} badge={adminUnread} />
              <ListMenuItem icon={UserPlus} title={t('settings.inviteFriends')} onPress={() => {}} />
              <ListMenuItem icon={Building} title={t('settings.companyAccount')} onPress={() => router.push('/settings/company-account')} />
              {profile ? (

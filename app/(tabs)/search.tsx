@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Image, TextInput, Modal, FlatList, ActivityIndicator, Dimensions } from 'react-native';
-import { ChevronDown, ArrowRight, Search, X, Check, Car, MapPin, ChevronLeft } from 'lucide-react-native';
+import { ChevronDown, ArrowRight, Search, X, Check, Car, MapPin, ChevronLeft, CheckCircle2 } from 'lucide-react-native';
 import { supabase } from '../../src/lib/supabase';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useLanguage } from '../../src/i18n/LanguageContext';
@@ -88,7 +88,13 @@ export default function SearchScreen() {
 
   const updateCarCount = async () => {
     try {
-      let query = supabase.from('cars').select('id', { count: 'exact', head: true }).eq('status', 'active');
+      const { data: settings } = await supabase.from('app_settings').select('sold_retention_days').eq('id', 1).single();
+      const retentionDays = settings?.sold_retention_days || 7;
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+      const cutoffIso = cutoffDate.toISOString();
+
+      let query = supabase.from('cars').select('id', { count: 'exact', head: true }).or(`status.eq.active,and(status.eq.sold,sold_at.gte.${cutoffIso})`);
       if (filters.brand) query = query.eq('brand', filters.brand);
       if (filters.model) query = query.eq('model', filters.model);
       if (filters.condition !== 'All') query = query.eq('condition', filters.condition);
@@ -110,7 +116,13 @@ export default function SearchScreen() {
     setSearchLoading(true);
     setResultsModalVisible(true);
     try {
-      let query = supabase.from('cars').select('*').eq('status', 'active');
+      const { data: settings } = await supabase.from('app_settings').select('sold_retention_days').eq('id', 1).single();
+      const retentionDays = settings?.sold_retention_days || 7;
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+      const cutoffIso = cutoffDate.toISOString();
+
+      let query = supabase.from('cars').select('*').or(`status.eq.active,and(status.eq.sold,sold_at.gte.${cutoffIso})`);
       if (filters.brand) query = query.eq('brand', filters.brand);
       if (filters.model) query = query.eq('model', filters.model);
       if (filters.fromYear) query = query.gte('year', filters.fromYear);
@@ -343,6 +355,12 @@ export default function SearchScreen() {
                     {item.vip_plan && (
                       <View className="absolute top-0 left-0 bg-[#FF5A5F] px-5 py-2 rounded-br-2xl rotate-[-5deg] mt-[-3px] ml-[-3px] shadow-sm shadow-red-500/50">
                         <Text className="text-white font-black text-[15px] tracking-widest">VIP</Text>
+                      </View>
+                    )}
+                    {item.status === 'sold' && (
+                      <View style={{ position: 'absolute', top: 12, right: 12, backgroundColor: '#CC222F', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 }}>
+                        <CheckCircle2 size={16} color="white" style={{ marginRight: 6 }} />
+                        <Text style={{ color: 'white', fontWeight: '900', fontSize: 15 }}>فرۆشرا</Text>
                       </View>
                     )}
                   </View>

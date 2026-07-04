@@ -77,11 +77,11 @@ export default function CompaniesScreen() {
               {/* Content Overlay */}
               <View className="p-6 flex-row items-center justify-between mt-auto">
                 {/* Left Side: Logo */}
-                <View className="w-16 h-16 bg-white rounded-2xl items-center justify-center border-2 border-white/20 shadow-xl overflow-hidden">
+                <View className="w-16 h-16 bg-white rounded-full items-center justify-center border-2 border-white/30 shadow-xl overflow-hidden">
                   <Image 
                     source={{ uri: item.logo_url || 'https://via.placeholder.com/100' }} 
-                    className="w-12 h-12" 
-                    resizeMode="contain" 
+                    className="w-full h-full" 
+                    resizeMode="cover" 
                   />
                 </View>
 

@@ -1,0 +1,78 @@
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
+import { Platform } from 'react-native';
+import { supabase } from './supabase';
+
+// Configure how notifications are presented when app is in foreground
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
+export async function registerForPushNotificationsAsync(): Promise<string | null> {
+  if (Platform.OS === 'web') return null;
+
+  // Must be a physical device
+  if (!Device.isDevice) {
+    console.log('Must use physical device for Push Notifications');
+    return null;
+  }
+
+  // Check existing permissions
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+
+  // Request if not granted
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+
+  if (finalStatus !== 'granted') {
+    console.log('Failed to get push token - permission denied');
+    return null;
+  }
+
+  // Android notification channel
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Taban Cars',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#CC222F',
+    });
+  }
+
+  try {
+    // Get Expo push token using the EAS project ID
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: '99bd4d99-b0b2-4a34-ac23-13e021f7848a',
+    });
+    return tokenData.data;
+  } catch (e) {
+    console.error('Error getting push token:', e);
+    return null;
+  }
+}
+
+export async function savePushToken(token: string) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Save to push_tokens table
+    await supabase.from('push_tokens').upsert(
+      {
+        token,
+        user_id: user?.id || null,
+        platform: Platform.OS,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'token' }
+    );
+  } catch (e) {
+    console.error('Error saving push token:', e);
+  }
+}

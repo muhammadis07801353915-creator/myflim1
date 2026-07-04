@@ -160,9 +160,10 @@ export default function ShowroomDataScreen() {
     setIsMenuVisible(false);
     try {
       setLoading(true);
-      const { error } = await supabase.from('cars').update({ status: 'sold' }).eq('id', selectedCar.id);
+      const updateData: any = { status: 'sold', sold_at: new Date().toISOString() };
+      const { error } = await supabase.from('cars').update(updateData).eq('id', selectedCar.id);
       if (error) throw error;
-      setCars(cars.map(c => c.id === selectedCar.id ? { ...c, status: 'sold' } : c));
+      setCars(cars.map(c => c.id === selectedCar.id ? { ...c, ...updateData } : c));
     } catch (error) {
       Alert.alert("هەڵە", "نەتوانرا گۆڕانکاری بکرێت");
     } finally {

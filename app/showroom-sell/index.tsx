@@ -523,7 +523,7 @@ export default function SellCarScreen() {
       data = s || [];
     }
     if (type === 'year') {
-      for (let i = 2025; i >= 1990; i--) data.push({ id: i.toString(), name: i.toString() });
+      for (let i = 2026; i >= 1990; i--) data.push({ id: i.toString(), name: i.toString() });
     }
     if (type === 'mileage_unit') data = ['km', 'Mil'].map(n => ({id: n, name: n}));
     if (type === 'currency') data = ['$ (Dollar)', 'IQD (Dinar)'].map(n => ({id: n, name: n}));
@@ -672,15 +672,15 @@ export default function SellCarScreen() {
             <OptionButton label="گێڕ ئاسایی" selected={sellData.transmission === 'گێڕ ئاسایی'} onPress={() => setSellData({...sellData, transmission: 'گێڕ ئاسایی'})} />
             <OptionButton label="ئۆتۆماتیک" selected={sellData.transmission === 'ئۆتۆماتیک'} onPress={() => setSellData({...sellData, transmission: 'ئۆتۆماتیک'})} />
           </View>
-          <Text className="text-slate-500 font-bold mb-4 text-right mr-2 text-lg">ژمارەی سلیندەر</Text>
+          <Text className="text-slate-500 font-bold mb-4 text-right mr-2 text-lg">ژمارەی پستۆن</Text>
           <View className="flex-row gap-3">
-            {['٤ سلیندەر', '٦ سلیندەر', '٨ سلیندەر'].map(c => (
+            {['3 پستۆن', '4 پستۆن', '6 پستۆن', '8 پستۆن'].map(c => (
               <OptionButton key={c} label={c} selected={sellData.cylinders === c} onPress={() => setSellData({...sellData, cylinders: c})} />
             ))}
           </View>
         </View>
       );
-      case 5: return <View className="flex-1 px-6"><Text className="text-slate-500 font-bold mb-4 text-right mr-2 text-lg">جۆری کوشن</Text><View className="flex-row gap-3 mb-8">{['پارچە', 'چەرم', 'ئەلکانتارا'].map(t => (<OptionButton key={t} label={t} selected={sellData.interior_type === t} onPress={() => setSellData({...sellData, interior_type: t})} />))}</View><Text className="text-slate-500 font-bold mb-4 text-right mr-2 text-lg">ژمارەی کورسی</Text><View className="flex-row gap-3 mb-8">{['2', '4', '5', '7'].map(s => (<OptionButton key={s} label={s} selected={sellData.seats === s} onPress={() => setSellData({...sellData, seats: s})} />))}</View><Text className="text-slate-500 font-bold mb-4 text-right mr-2 text-lg">قەبارەی مەکینە</Text><View className="flex-row gap-3">{['2.0', '2.4', '3.0', '3.5'].map(e => (<OptionButton key={e} label={e} selected={sellData.engine_size === e} onPress={() => setSellData({...sellData, engine_size: e})} />))}</View></View>;
+      case 5: return <View className="flex-1 px-6"><Text className="text-slate-500 font-bold mb-4 text-right mr-2 text-lg">جۆری کوشن</Text><View className="flex-row gap-3 mb-8">{['پارچە', 'چەرم', 'ئەلکانتارا'].map(t => (<OptionButton key={t} label={t} selected={sellData.interior_type === t} onPress={() => setSellData({...sellData, interior_type: t})} />))}</View><Text className="text-slate-500 font-bold mb-4 text-right mr-2 text-lg">ژمارەی کورسی</Text><View className="flex-row gap-3 mb-8">{['2', '4', '5', '7'].map(s => (<OptionButton key={s} label={s} selected={sellData.seats === s} onPress={() => setSellData({...sellData, seats: s})} />))}</View><Text className="text-slate-500 font-bold mb-4 text-right mr-2 text-lg">قەبارەی مەکینە</Text><View className="bg-white border border-slate-100 h-20 rounded-[35px] flex-row items-center px-8"><TextInput placeholder="0.0" className="flex-1 text-2xl font-black text-right" keyboardType="numeric" value={sellData.engine_size} onChangeText={t => setSellData({...sellData, engine_size: t})} /></View></View>;
       case 6: return (
         <View className="flex-1 px-6">
           <Text className="text-slate-500 font-bold mb-2 text-right mr-2 text-lg">کیلۆمەتر</Text>

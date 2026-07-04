@@ -28,18 +28,18 @@ export default function CurrencyRatesScreen() {
   const { t } = useLanguage();
 
   const initialRates: CurrencyData[] = [
-    { id: 'USD', name: 'دۆلاری ئەمریکی (١٠٠ دۆلار)', symbol: DollarSign, baseRate: 156000, currentRate: 156000, change: 0, isUp: true, color: '#10b981', suffix: 'IQD' },
-    { id: 'EUR', name: 'یۆرۆ (١٠٠ یۆرۆ)', symbol: Euro, baseRate: 168000, currentRate: 168000, change: 0, isUp: true, color: '#3b82f6', suffix: 'IQD' },
-    { id: 'GBP', name: 'پاوەندی بەریتانی (١٠٠ پاوەند)', symbol: PoundSterling, baseRate: 198000, currentRate: 198000, change: 0, isUp: true, color: '#8b5cf6', suffix: 'IQD' },
-    { id: 'TRY', name: 'لیرەی تورکی بەرامبەر ١٠٠ دۆلار', symbol: DollarSign, baseRate: 3250, currentRate: 3250, change: 0, isUp: true, color: '#ef4444', suffix: 'لیرە' },
-    { id: 'IRR', name: 'تومەنی ئێرانی بەرامبەر ١٠٠ دۆلار', symbol: DollarSign, baseRate: 6050000, currentRate: 6050000, change: 0, isUp: true, color: '#f59e0b', suffix: 'تومەن' },
+    { id: 'USD', name: t('currencyRates.usdName'), symbol: DollarSign, baseRate: 156000, currentRate: 156000, change: 0, isUp: true, color: '#10b981', suffix: t('currencyRates.iqdSuffix') },
+    { id: 'EUR', name: t('currencyRates.eurName'), symbol: Euro, baseRate: 168000, currentRate: 168000, change: 0, isUp: true, color: '#3b82f6', suffix: t('currencyRates.iqdSuffix') },
+    { id: 'GBP', name: t('currencyRates.gbpName'), symbol: PoundSterling, baseRate: 198000, currentRate: 198000, change: 0, isUp: true, color: '#8b5cf6', suffix: t('currencyRates.iqdSuffix') },
+    { id: 'TRY', name: t('currencyRates.tryName'), symbol: DollarSign, baseRate: 3250, currentRate: 3250, change: 0, isUp: true, color: '#ef4444', suffix: t('currencyRates.trySuffix') },
+    { id: 'IRR', name: t('currencyRates.irrName'), symbol: DollarSign, baseRate: 6050000, currentRate: 6050000, change: 0, isUp: true, color: '#f59e0b', suffix: t('currencyRates.irrSuffix') },
   ];
 
   const initialGoldRates: GoldData[] = [
-    { id: '24K', name: 'زێڕی عەیار ٢٤', price: 0, color: '#fbbf24' },
-    { id: '22K', name: 'زێڕی عەیار ٢٢', price: 0, color: '#f59e0b' },
-    { id: '21K', name: 'زێڕی عەیار ٢١', price: 0, color: '#d97706' },
-    { id: '18K', name: 'زێڕی عەیار ١٨', price: 0, color: '#b45309' },
+    { id: '24K', name: t('currencyRates.gold24'), price: 0, color: '#fbbf24' },
+    { id: '22K', name: t('currencyRates.gold22'), price: 0, color: '#f59e0b' },
+    { id: '21K', name: t('currencyRates.gold21'), price: 0, color: '#d97706' },
+    { id: '18K', name: t('currencyRates.gold18'), price: 0, color: '#b45309' },
   ];
 
   const [rates, setRates] = useState<CurrencyData[]>(initialRates);
@@ -132,10 +132,10 @@ export default function CurrencyRatesScreen() {
 
         if (g21 > 0) {
           setGoldRates([
-            { id: '24K', name: 'زێڕی عەیار ٢٤', price: g24, color: '#fbbf24' },
-            { id: '22K', name: 'زێڕی عەیار ٢٢', price: g22, color: '#f59e0b' },
-            { id: '21K', name: 'زێڕی عەیار ٢١', price: g21, color: '#d97706' },
-            { id: '18K', name: 'زێڕی عەیار ١٨', price: g18, color: '#b45309' },
+            { id: '24K', name: t('currencyRates.gold24'), price: g24, color: '#fbbf24' },
+            { id: '22K', name: t('currencyRates.gold22'), price: g22, color: '#f59e0b' },
+            { id: '21K', name: t('currencyRates.gold21'), price: g21, color: '#d97706' },
+            { id: '18K', name: t('currencyRates.gold18'), price: g18, color: '#b45309' },
           ]);
           setGoldUpdated(new Date().toLocaleTimeString('ku-IQ'));
         }
@@ -198,10 +198,10 @@ export default function CurrencyRatesScreen() {
 
       <ScrollView className="flex-1 px-5 pt-6" showsVerticalScrollIndicator={false}>
         <View className="mb-6 items-center">
-          <Text className="text-gray-400 font-bold mb-2">نرخی دراوەکان بەرامبەر بە دیناری عێراقی</Text>
+          <Text className="text-gray-400 font-bold mb-2">{t('currencyRates.exchangeRatesTitle')}</Text>
           <View className="flex-row items-center bg-green-500/10 px-4 py-2 rounded-full border border-green-500/20">
              <View className="w-2 h-2 rounded-full bg-green-500 mr-2" />
-             <Text className="text-green-500 font-bold text-xs">ڕاستەوخۆ لە بۆرسەی عێراقەوە {lastUpdated ? `(نوێکراوەتەوە: ${lastUpdated})` : ''}</Text>
+             <Text className="text-green-500 font-bold text-xs">{t('currencyRates.liveFromBorsa')} {lastUpdated ? `(${t('currencyRates.updatedAt')} ${lastUpdated})` : ''}</Text>
           </View>
         </View>
 
@@ -251,10 +251,10 @@ export default function CurrencyRatesScreen() {
 
         {/* Gold Section */}
         <View className="mb-6 items-center">
-          <Text className="text-gray-400 font-bold mb-2">نرخی زێڕ لە بازاڕەکانی عێراق</Text>
+          <Text className="text-gray-400 font-bold mb-2">{t('currencyRates.goldPricesTitle')}</Text>
           <View className="flex-row items-center bg-yellow-500/10 px-4 py-2 rounded-full border border-yellow-500/20">
              <View className="w-2 h-2 rounded-full bg-yellow-500 mr-2" />
-             <Text className="text-yellow-500 font-bold text-xs">ڕاستەوخۆ لە زێڕینگری ئازورا {goldUpdated ? `(نوێکراوەتەوە: ${goldUpdated})` : ''}</Text>
+             <Text className="text-yellow-500 font-bold text-xs">{t('currencyRates.liveFromAzura')} {goldUpdated ? `(${t('currencyRates.updatedAt')} ${goldUpdated})` : ''}</Text>
           </View>
         </View>
 

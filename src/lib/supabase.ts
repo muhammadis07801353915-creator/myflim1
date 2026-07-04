@@ -13,3 +13,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: false,
   },
 });
+
+// کاتێک توکێنی نوێکردنەوە بومەتەوە، خۆکار دەرفکرێت
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'TOKEN_REFRESHED' && !session) {
+    supabase.auth.signOut();
+  }
+});

@@ -10,6 +10,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../src/lib/supabase';
+import { registerForPushNotificationsAsync, savePushToken } from '../src/lib/notifications';
 
 // Simple UUID generator that works in React Native without the uuid package
 function generateUUID(): string {
@@ -71,6 +72,11 @@ export default function RootLayout() {
     };
 
     trackVisit();
+
+    // Register for push notifications
+    registerForPushNotificationsAsync().then(token => {
+      if (token) savePushToken(token);
+    });
 
     // Show custom splash for 3 seconds, then fade out
     const timer = setTimeout(() => {

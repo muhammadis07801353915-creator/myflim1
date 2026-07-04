@@ -196,7 +196,10 @@ export default function ShowroomDetailsScreen() {
             <View>
               {/* Contact Info */}
               <TouchableOpacity 
-                onPress={() => Linking.openURL(`tel:${showroom.phone}`)}
+                onPress={() => {
+                  const cleanPhone = (showroom.phone || '').replace(/[^0-9+]/g, '');
+                  Linking.openURL(`tel:${cleanPhone}`);
+                }}
                 className="flex-row items-center bg-slate-50 p-5 rounded-[25px] mb-4 border border-slate-100"
               >
                 <View className="bg-green-500 p-3 rounded-2xl shadow-sm shadow-green-200">

@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, SafeAreaView, FlatList, RefreshControl, ActivityIndicator, TouchableOpacity, Image, Dimensions, ScrollView } from 'react-native';
+import { View, Text, SafeAreaView, FlatList, RefreshControl, ActivityIndicator, TouchableOpacity, Image, Dimensions, ScrollView, Linking } from 'react-native';
 import { supabase } from '../../src/lib/supabase';
 import { ShowroomHeader } from '../../src/components/Common/ShowroomHeader';
 import { CategoryList } from '../../src/components/Home/CategoryList';
 import { useViewMode } from '../../src/context/ViewModeContext';
 import { useRouter } from 'expo-router';
-import { MapPin, Heart } from 'lucide-react-native';
+import { MapPin, Heart, CheckCircle2 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -26,13 +26,24 @@ export default function HomeScreen() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const { data: carsData } = await supabase.from('cars').select('*').eq('status', 'active').order('vip_plan', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
+      const { data: settings } = await supabase.from('app_settings').select('sold_retention_days').eq('id', 1).single();
+      const retentionDays = settings?.sold_retention_days || 7;
+      const cutoffDate = new Date();
+      cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+      const cutoffIso = cutoffDate.toISOString();
+
+      const { data: carsData } = await supabase
+        .from('cars')
+        .select('*')
+        .or(`status.eq.active,and(status.eq.sold,sold_at.gte.${cutoffIso})`)
+        .order('vip_plan', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false });
       setCars(carsData || []);
       
       const { data: showroomCars } = await supabase
         .from('cars')
         .select('*')
-        .eq('status', 'active')
+        .or(`status.eq.active,and(status.eq.sold,sold_at.gte.${cutoffIso})`)
         .not('showroom_id', 'is', null)
         .order('vip_plan', { ascending: false, nullsFirst: false })
         .order('created_at', { ascending: false })
@@ -105,7 +116,13 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           onMomentumScrollEnd={(e) => setActiveSlide(Math.round(e.nativeEvent.contentOffset.x / width))}
           renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => item.car_id ? router.push(`/car/${item.car_id}`) : null}>
+            <TouchableOpacity activeOpacity={item.link ? 0.8 : 1} onPress={() => {
+              if (item.link) {
+                Linking.openURL(item.link).catch(err => console.error("Couldn't load page", err));
+              } else if (item.car_id) {
+                router.push(`/car/${item.car_id}`);
+              }
+            }}>
               <Image 
                 source={{ uri: item.image_url || item.images?.[0] || item.image_urls?.[0] }} 
                 style={{ width, height: 250 }} 
@@ -141,6 +158,12 @@ export default function HomeScreen() {
                   <Text className="text-white font-black text-[15px] tracking-widest">VIP</Text>
                </View>
             )}
+            {item.status === 'sold' && (
+              <View style={{ position: 'absolute', top: 12, right: 12, backgroundColor: '#CC222F', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 4, elevation: 3 }}>
+                <CheckCircle2 size={16} color="white" style={{ marginRight: 6 }} />
+                <Text style={{ color: 'white', fontWeight: '900', fontSize: 15 }}>فرۆشرا</Text>
+              </View>
+            )}
           </View>
           <View className="p-4">
             <Text className="text-gray-800 font-black text-xl" numberOfLines={1}>{item.brand} {item.model}</Text>
@@ -168,6 +191,12 @@ export default function HomeScreen() {
                 <Text className="text-white font-black text-[11px] tracking-widest">VIP</Text>
              </View>
           )}
+          {item.status === 'sold' && (
+            <View style={{ position: 'absolute', top: 10, right: 10, backgroundColor: '#CC222F', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 3, elevation: 2 }}>
+              <CheckCircle2 size={12} color="white" style={{ marginRight: 4 }} />
+              <Text style={{ color: 'white', fontWeight: '900', fontSize: 12 }}>فرۆشرا</Text>
+            </View>
+          )}
         </View>
         <View className="mt-2 px-1">
           <Text className="text-gray-900 font-black text-[14px]" numberOfLines={1}>{item.brand} {item.model}</Text>
@@ -189,7 +218,15 @@ export default function HomeScreen() {
     if (banners.length > 0) {
       const banner = banners[Math.floor(Math.random() * banners.length)];
       return (
-        <TouchableOpacity className="my-2 overflow-hidden shadow-sm border-y border-slate-100">
+        <TouchableOpacity 
+          className="my-2 overflow-hidden shadow-sm border-y border-slate-100"
+          activeOpacity={banner.link ? 0.8 : 1}
+          onPress={() => {
+            if (banner.link) {
+              Linking.openURL(banner.link).catch(err => console.error("Couldn't load page", err));
+            }
+          }}
+        >
           <Image 
             source={{ uri: banner.image_url }} 
             className="w-full h-28" 
@@ -240,6 +277,12 @@ export default function HomeScreen() {
                 {car.vip_plan && (
                   <View className="absolute top-0 left-0 bg-[#FF5A5F] px-4 py-1.5 rounded-br-2xl rotate-[-5deg] mt-[-2px] ml-[-2px] shadow-sm shadow-red-500/50">
                     <Text className="text-white font-black text-[11px] tracking-widest">VIP</Text>
+                  </View>
+                )}
+                {car.status === 'sold' && (
+                  <View style={{ position: 'absolute', top: 10, right: 10, backgroundColor: '#CC222F', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 3, elevation: 2 }}>
+                    <CheckCircle2 size={12} color="white" style={{ marginRight: 4 }} />
+                    <Text style={{ color: 'white', fontWeight: '900', fontSize: 12 }}>فرۆشرا</Text>
                   </View>
                 )}
                 <TouchableOpacity className="absolute top-2 right-2 bg-black/10 p-1 rounded-full">

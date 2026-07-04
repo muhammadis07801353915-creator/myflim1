@@ -29,6 +29,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../src/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const STATUSBAR_HEIGHT =
   Platform.OS === 'ios'
@@ -42,6 +43,7 @@ const getStorageKey = (uid: string | null) => `@taban_chats_v2_${uid || 'guest'}
 export default function ShowroomChatScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isUserLoaded, setIsUserLoaded] = useState(false);
@@ -510,13 +512,13 @@ export default function ShowroomChatScreen() {
 
   // ── RENDER ────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
       <View
         className="flex-row items-center justify-between px-5 pb-3 border-b border-slate-100"
-        style={{ paddingTop: STATUSBAR_HEIGHT + 10 }}
+        style={{ paddingTop: 10 }}
       >
         <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
           <ArrowLeft size={24} color="#1e293b" />
@@ -627,7 +629,7 @@ export default function ShowroomChatScreen() {
       {/* ── Conversation Modal ── */}
       {selectedChat && (
         <Modal visible={isModalVisible} animationType="slide" transparent={false} onRequestClose={closeConversation}>
-          <SafeAreaView className="flex-1 bg-slate-50">
+          <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: 0 }}>
 
             {/* Modal Header */}
             <View className="flex-row-reverse items-center justify-between px-4 py-3 bg-white border-b border-slate-100">
@@ -737,10 +739,13 @@ export default function ShowroomChatScreen() {
 
             {/* Input */}
             <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
             >
-              <View className="bg-white border-t border-slate-100 px-4 py-3 flex-row-reverse items-end gap-2">
+              <View
+                className="bg-white border-t border-slate-100 px-4 flex-row-reverse items-end gap-2"
+                style={{ paddingTop: 10, paddingBottom: insets.bottom + 10 }}
+              >
                 <View className="flex-1 bg-slate-50 flex-row-reverse items-center px-4 py-2 rounded-3xl border border-slate-200 min-h-[44px]">
                   <TextInput
                     placeholder="پەیامێک بنووسە..."
@@ -766,9 +771,9 @@ export default function ShowroomChatScreen() {
                 </TouchableOpacity>
               </View>
             </KeyboardAvoidingView>
-          </SafeAreaView>
+          </View>
         </Modal>
       )}
-    </SafeAreaView>
+    </View>
   );
 }

@@ -38,6 +38,7 @@ export default function CarDetailsScreen() {
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [contactModalVisible, setContactModalVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [featuresModalVisible, setFeaturesModalVisible] = useState(false);
   
   useEffect(() => {
     fetchData();
@@ -180,15 +181,28 @@ export default function CarDetailsScreen() {
           </View>
 
           {/* Top Action Buttons (Call / WhatsApp) */}
-          <View className="flex-row mb-8" style={{ gap: 10 }}>
-             <TouchableOpacity onPress={() => Linking.openURL(`tel:${car.phone || car.phone2 || seller?.phone || '07500000000'}`)} className="flex-1 bg-[#CC222F] h-14 rounded-2xl flex-row items-center justify-center shadow-lg shadow-red-500/20">
-                <Phone size={18} color="white" />
-                <Text className="text-white font-black text-md ml-2">{t('carDetails.callSeller')}</Text>
-             </TouchableOpacity>
-             <TouchableOpacity onPress={() => setContactModalVisible(true)} className="w-14 h-14 bg-[#2dbb4e] rounded-2xl items-center justify-center shadow-lg shadow-green-500/20">
-                <MessageCircle size={22} color="white" />
-             </TouchableOpacity>
-          </View>
+          {car.status === 'sold' ? (
+            <View className="bg-slate-900 h-14 rounded-2xl flex-row items-center justify-center shadow-lg shadow-slate-500/20 mb-8">
+              <Text className="text-white font-black text-lg">ئەم ئۆتۆمبێلە فرۆشراوە</Text>
+            </View>
+          ) : (
+            <View className="flex-row mb-8" style={{ gap: 10 }}>
+               <TouchableOpacity 
+                  onPress={() => {
+                    const phoneStr = car.phone || car.phone2 || seller?.phone || '07500000000';
+                    const cleanPhone = phoneStr.replace(/[^0-9+]/g, '');
+                    Linking.openURL(`tel:${cleanPhone}`);
+                  }} 
+                  className="flex-1 bg-[#CC222F] h-14 rounded-2xl flex-row items-center justify-center shadow-lg shadow-red-500/20"
+               >
+                  <Phone size={18} color="white" />
+                  <Text className="text-white font-black text-md ml-2">{t('carDetails.callSeller')}</Text>
+               </TouchableOpacity>
+               <TouchableOpacity onPress={() => setContactModalVisible(true)} className="w-14 h-14 bg-[#2dbb4e] rounded-2xl items-center justify-center shadow-lg shadow-green-500/20">
+                  <MessageCircle size={22} color="white" />
+               </TouchableOpacity>
+            </View>
+          )}
 
           {/* Quick Stats Grid */}
           <View className="flex-row flex-wrap justify-between mb-8">
@@ -217,6 +231,40 @@ export default function CarDetailsScreen() {
                </View>
              ))}
           </View>
+
+          {/* Features Section — shown only if car has features */}
+          {car.features && car.features.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setFeaturesModalVisible(true)}
+              className="mb-6 bg-slate-50/80 rounded-3xl border border-slate-100 overflow-hidden"
+              activeOpacity={0.8}
+            >
+              <View className="flex-row-reverse items-center justify-between px-5 py-4">
+                <Text className="text-slate-900 font-black text-base">مواسەفاتی سەیارەکە</Text>
+                <View className="flex-row items-center gap-2">
+                  <View className="bg-[#CC222F] px-2.5 py-0.5 rounded-full">
+                    <Text className="text-white text-xs font-black">{car.features.length}</Text>
+                  </View>
+                  <ChevronLeft size={18} color="#94a3b8" />
+                </View>
+              </View>
+              <View className="flex-row-reverse flex-wrap px-5 pb-4 gap-2">
+                {car.features.slice(0, 6).map((featureId: string) => {
+                  const label = (t('sell.featuresList') as any)?.[featureId] || featureId;
+                  return (
+                    <View key={featureId} className="px-3 py-1.5 rounded-full bg-white border border-slate-200">
+                      <Text className="text-slate-700 text-xs font-bold">{label}</Text>
+                    </View>
+                  );
+                })}
+                {car.features.length > 6 && (
+                  <View className="px-3 py-1.5 rounded-full bg-red-50 border border-red-100">
+                    <Text className="text-[#CC222F] text-xs font-bold">+{car.features.length - 6}</Text>
+                  </View>
+                )}
+              </View>
+            </TouchableOpacity>
+          )}
 
           {/* Description / Notes */}
           {car.description && car.description.trim().length > 0 && (
@@ -270,22 +318,24 @@ export default function CarDetailsScreen() {
                      </TouchableOpacity>
 
                      {/* Action Buttons */}
-                     <View className="flex-row" style={{ gap: 12 }}>
-                        <TouchableOpacity 
-                          onPress={() => Linking.openURL(`tel:${car.phone || car.phone2 || seller.phone || '07500000000'}`)} 
-                          className="flex-1 bg-[#4b4b4b] h-[55px] rounded-[18px] flex-row items-center justify-center"
-                        >
-                           <Phone size={22} color="white" />
-                           <Text className="text-white font-black text-lg ml-3 mr-1">{t('carDetails.callSeller')}</Text>
-                        </TouchableOpacity>
+                     {car.status === 'sold' ? null : (
+                       <View className="flex-row" style={{ gap: 12 }}>
+                          <TouchableOpacity 
+                            onPress={() => Linking.openURL(`tel:${car.phone || car.phone2 || seller.phone || '07500000000'}`)} 
+                            className="flex-1 bg-[#4b4b4b] h-[55px] rounded-[18px] flex-row items-center justify-center"
+                          >
+                             <Phone size={22} color="white" />
+                             <Text className="text-white font-black text-lg ml-3 mr-1">{t('carDetails.callSeller')}</Text>
+                          </TouchableOpacity>
 
-                        <TouchableOpacity 
-                          onPress={() => setContactModalVisible(true)} 
-                          className="w-[85px] h-[55px] bg-[#4ade80] rounded-[18px] items-center justify-center"
-                        >
-                           <MessageCircle size={28} color="white" />
-                        </TouchableOpacity>
-                     </View>
+                          <TouchableOpacity 
+                            onPress={() => setContactModalVisible(true)} 
+                            className="w-[85px] h-[55px] bg-[#4ade80] rounded-[18px] items-center justify-center"
+                          >
+                             <MessageCircle size={28} color="white" />
+                          </TouchableOpacity>
+                       </View>
+                     )}
                    </View>
                  </>
                ) : (
@@ -306,22 +356,24 @@ export default function CarDetailsScreen() {
                       </View>
                    </View>
 
-                   <View className="flex-row" style={{ gap: 12 }}>
-                      <TouchableOpacity 
-                        onPress={() => Linking.openURL(`tel:${car.phone || car.phone2 || seller.phone || '07500000000'}`)} 
-                        className="flex-1 bg-[#4b4b4b] h-[50px] rounded-[16px] flex-row items-center justify-center"
-                      >
-                         <Phone size={20} color="white" />
-                         <Text className="text-white font-black text-base ml-2">{t('carDetails.callSeller')}</Text>
-                      </TouchableOpacity>
+                   {car.status === 'sold' ? null : (
+                     <View className="flex-row" style={{ gap: 12 }}>
+                        <TouchableOpacity 
+                          onPress={() => Linking.openURL(`tel:${car.phone || car.phone2 || seller.phone || '07500000000'}`)} 
+                          className="flex-1 bg-[#4b4b4b] h-[50px] rounded-[16px] flex-row items-center justify-center"
+                        >
+                           <Phone size={20} color="white" />
+                           <Text className="text-white font-black text-base ml-2">{t('carDetails.callSeller')}</Text>
+                        </TouchableOpacity>
 
-                      <TouchableOpacity 
-                        onPress={() => setContactModalVisible(true)} 
-                        className="w-[70px] h-[50px] bg-[#4ade80] rounded-[16px] items-center justify-center"
-                      >
-                         <MessageCircle size={24} color="white" />
-                      </TouchableOpacity>
-                   </View>
+                        <TouchableOpacity 
+                          onPress={() => setContactModalVisible(true)} 
+                          className="w-[70px] h-[50px] bg-[#4ade80] rounded-[16px] items-center justify-center"
+                        >
+                           <MessageCircle size={24} color="white" />
+                        </TouchableOpacity>
+                     </View>
+                   )}
                  </View>
                )}
             </View>
@@ -353,6 +405,35 @@ export default function CarDetailsScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Features Bottom Sheet Modal */}
+      <Modal visible={featuresModalVisible} transparent={true} animationType="slide" statusBarTranslucent>
+        <View className="flex-1 bg-black/50 justify-end">
+          <TouchableOpacity className="flex-1" activeOpacity={1} onPress={() => setFeaturesModalVisible(false)} />
+          <View className="bg-white rounded-t-[40px] p-8" style={{ maxHeight: '65%' }}>
+            <View className="w-12 h-1.5 bg-gray-200 rounded-full self-center mb-6" />
+            <Text className="text-2xl font-black text-slate-900 mb-6 text-center">مواسەفاتی سەیارەکە</Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View className="flex-row-reverse flex-wrap gap-3 pb-8">
+                {(car?.features || []).map((featureId: string) => {
+                  const label = (t('sell.featuresList') as any)?.[featureId] || featureId;
+                  return (
+                    <View key={featureId} className="px-4 py-2.5 rounded-full bg-red-50 border border-red-100">
+                      <Text className="text-[#CC222F] font-bold text-sm">{label}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </ScrollView>
+            <TouchableOpacity
+              onPress={() => setFeaturesModalVisible(false)}
+              className="mt-2 py-4 items-center bg-slate-50 rounded-2xl"
+            >
+              <Text className="text-slate-700 font-black text-base">داخستن</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Share Modal (Action Sheet) */}
       <Modal visible={shareModalVisible} transparent={true} animationType="slide">

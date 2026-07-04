@@ -3,9 +3,11 @@ import { View, Text, SafeAreaView, TextInput, TouchableOpacity, ActivityIndicato
 import { useRouter } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';
 import { ChevronLeft, Phone, ShieldCheck, User } from 'lucide-react-native';
+import { useLanguage } from '../../src/i18n/LanguageContext';
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
@@ -161,16 +163,16 @@ export default function RegisterScreen() {
             <TouchableOpacity onPress={() => router.back()} className="bg-gray-50 w-12 h-12 rounded-full items-center justify-center mb-10">
               <ChevronLeft size={28} color="#000" />
             </TouchableOpacity>
-            <Text className="text-3xl font-black text-gray-900 text-right mb-2">دروستکردنی ئەکاونت</Text>
+            <Text className="text-3xl font-black text-gray-900 text-right mb-2">{t('auth.createAccount')}</Text>
             <Text className="text-gray-500 text-lg font-bold text-right mb-12">
-              {step === 1 ? 'تکایە زانیارییەکانت بنووسە' : 'کۆدی دڵنیایی کە بۆت هاتووە لێرە بنووسە'}
+              {step === 1 ? t('auth.enterDetails') : 'کۆدی دڵنیایی کە بۆت هاتووە لێرە بنووسە'}
             </Text>
 
             {step === 1 ? (
               <View className="space-y-6">
                 <View className="flex-row-reverse items-center bg-gray-50 px-5 h-16 rounded-2xl border border-gray-100">
                   <User size={22} color="#9ca3af" />
-                  <TextInput placeholder="ناوی تەواو" placeholderTextColor="#9ca3af" className="flex-1 mr-4 text-right text-lg font-bold" value={name} onChangeText={setName} />
+                  <TextInput placeholder={t('auth.fullName')} placeholderTextColor="#9ca3af" className="flex-1 mr-4 text-right text-lg font-bold" value={name} onChangeText={setName} />
                 </View>
 
                 <View className="flex-row-reverse items-center bg-gray-50 px-5 h-16 rounded-2xl border border-gray-100 mt-4">
@@ -187,17 +189,16 @@ export default function RegisterScreen() {
                     Alert.alert('هەڵە', 'تکایە ژمارەی مۆبایل بە دروستی بنووسە');
                     return;
                   }
-                  // Just go to step 2 without sending, user will choose there
                   setStep(2);
                 }} className="bg-[#CC222F] h-16 rounded-2xl items-center justify-center shadow-lg shadow-red-500/30 mt-6">
-                  <Text className="text-white font-black text-lg">بەردەوامبوون</Text>
+                  <Text className="text-white font-black text-lg">{t('auth.continue')}</Text>
                 </TouchableOpacity>
 
                 <View className="mt-8 items-center flex-row justify-center space-x-2">
                   <TouchableOpacity onPress={() => router.back()}>
-                    <Text className="text-[#CC222F] font-bold text-[16px]">چوونەژوورەوە</Text>
+                    <Text className="text-[#CC222F] font-bold text-[16px]">{t('auth.login')}</Text>
                   </TouchableOpacity>
-                  <Text className="text-gray-500 font-bold text-[16px]">پێشتر ئەکاونتت هەیە؟</Text>
+                  <Text className="text-gray-500 font-bold text-[16px]">{t('auth.alreadyHaveAccount')}</Text>
                 </View>
               </View>
             ) : (

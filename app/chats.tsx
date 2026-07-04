@@ -30,6 +30,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../src/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../src/i18n/LanguageContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const STATUSBAR_HEIGHT =
   Platform.OS === 'ios'
@@ -44,6 +45,7 @@ export default function ChatsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { t } = useLanguage();
+  const insets = useSafeAreaInsets();
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isUserLoaded, setIsUserLoaded] = useState(false);
@@ -62,6 +64,8 @@ export default function ChatsScreen() {
   const hasProcessedAutoStart = useRef(false);
   const messagesScrollRef = useRef<ScrollView>(null);
   const realtimeRef = useRef<any>(null);
+  const chatsRealtimeRef = useRef<any>(null);
+  const showroomChatsRealtimeRef = useRef<any>(null);
 
   // ── 1. Get current user & detect if Supabase tables exist ───────────
   useEffect(() => {
@@ -203,6 +207,41 @@ export default function ChatsScreen() {
       fetchChats();
     }
   }, [fetchChats, isUserLoaded, dbChecked]);
+
+  // ── Realtime subscription for chat list updates ─────────────────────
+  useEffect(() => {
+    if (!currentUserId || !useSupabase) return;
+
+    // Subscribe to chats table changes for this user
+    chatsRealtimeRef.current = supabase
+      .channel('chats_list_user')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'chats', filter: `buyer_id=eq.${currentUserId}` },
+        () => { fetchChats(); }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'chats', filter: `seller_id=eq.${currentUserId}` },
+        () => { fetchChats(); }
+      )
+      .subscribe();
+
+    // Subscribe to showroom_chats
+    showroomChatsRealtimeRef.current = supabase
+      .channel('showroom_chats_list_user')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'showroom_chats', filter: `buyer_id=eq.${currentUserId}` },
+        () => { fetchChats(); }
+      )
+      .subscribe();
+
+    return () => {
+      if (chatsRealtimeRef.current) supabase.removeChannel(chatsRealtimeRef.current);
+      if (showroomChatsRealtimeRef.current) supabase.removeChannel(showroomChatsRealtimeRef.current);
+    };
+  }, [currentUserId, useSupabase]);
 
   // ── 3. Auto-start chat from car post ─────────────────────────────────
   useEffect(() => {
@@ -556,13 +595,13 @@ export default function ChatsScreen() {
 
   // ── RENDER ────────────────────────────────────────────────────────────
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
       <StatusBar barStyle="dark-content" />
 
       {/* Header */}
       <View
         className="flex-row items-center justify-between px-5 pb-3 border-b border-slate-100"
-        style={{ paddingTop: STATUSBAR_HEIGHT + 10 }}
+        style={{ paddingTop: 10 }}
       >
         <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
           <ArrowLeft size={24} color="#1e293b" />
@@ -673,7 +712,7 @@ export default function ChatsScreen() {
       {/* ── Conversation Modal ── */}
       {selectedChat && (
         <Modal visible={isModalVisible} animationType="slide" transparent={false} onRequestClose={closeConversation}>
-          <SafeAreaView className="flex-1 bg-slate-50">
+          <View className="flex-1 bg-slate-50" style={{ paddingTop: insets.top, paddingBottom: 0 }}>
 
             {/* Modal Header */}
             <View className="flex-row-reverse items-center justify-between px-4 py-3 bg-white border-b border-slate-100">
@@ -783,10 +822,13 @@ export default function ChatsScreen() {
 
             {/* Input */}
             <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-              keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+              behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+              keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
             >
-              <View className="bg-white border-t border-slate-100 px-4 py-3 flex-row-reverse items-end gap-2">
+              <View
+                className="bg-white border-t border-slate-100 px-4 flex-row-reverse items-end gap-2"
+                style={{ paddingTop: 10, paddingBottom: insets.bottom + 10 }}
+              >
                 <View className="flex-1 bg-slate-50 flex-row-reverse items-center px-4 py-2 rounded-3xl border border-slate-200 min-h-[44px]">
                   <TextInput
                     placeholder="پەیامێک بنووسە..."
@@ -812,9 +854,9 @@ export default function ChatsScreen() {
                 </TouchableOpacity>
               </View>
             </KeyboardAvoidingView>
-          </SafeAreaView>
+          </View>
         </Modal>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
