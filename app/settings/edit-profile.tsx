@@ -24,7 +24,7 @@ export default function EditProfileScreen() {
   const [phoneLoading, setPhoneLoading] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<'sms' | 'whatsapp' | null>(null);
 
-  const OTPIQ_KEY = 'YOUR_OTPIQ_KEY_HERE'; // Replace with actual key or use env variables
+  const OTPIQ_KEY = 'sk_live_3c2cce85267eb321a50dae7afa9815c8d4b8f7ae';
 
   useEffect(() => {
     fetchProfile();
