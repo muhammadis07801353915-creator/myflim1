@@ -154,9 +154,27 @@ export default function SellCarScreen() {
     if (type === 'city') {
       if (sellData.governorate_id) {
         const { data: cities } = await supabase.from('cities').select('*').eq('governorate_id', sellData.governorate_id).order('name');
+        if (cities) {
+          cities.sort((a, b) => {
+            const aIsCenter = a.name.includes('(ناوەند)') || a.name.includes('(Center)') || a.name.includes('(المركز)');
+            const bIsCenter = b.name.includes('(ناوەند)') || b.name.includes('(Center)') || b.name.includes('(المركز)');
+            if (aIsCenter && !bIsCenter) return -1;
+            if (!aIsCenter && bIsCenter) return 1;
+            return a.name.localeCompare(b.name);
+          });
+        }
         data = cities || [];
       } else {
         const { data: cities } = await supabase.from('cities').select('*').order('name');
+        if (cities) {
+          cities.sort((a, b) => {
+            const aIsCenter = a.name.includes('(ناوەند)') || a.name.includes('(Center)') || a.name.includes('(المركز)');
+            const bIsCenter = b.name.includes('(ناوەند)') || b.name.includes('(Center)') || b.name.includes('(المركز)');
+            if (aIsCenter && !bIsCenter) return -1;
+            if (!aIsCenter && bIsCenter) return 1;
+            return a.name.localeCompare(b.name);
+          });
+        }
         data = cities || [];
       }
     }
