@@ -69,7 +69,7 @@ export default {
     "title": "پێشانگاکان",
     "searchPlaceholder": "بگەڕێ بۆ پێشانگا...",
     "noShowrooms": "هیچ پێشانگایەکی ڤێریفای کراو نەدۆزرایەوە",
-    "authorizedDealer": "نوێنەری فەرمی بۆ",
+    "authorizedDealer": "کۆمپانیای باوەڕپێکراو لە",
     "about": "زانیاری",
     "cars": "سەیارەکان",
     "noCars": "هیچ ئۆتۆمبێلێک نییە",

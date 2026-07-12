@@ -133,7 +133,7 @@ export default function ShowroomDetailsScreen() {
             </View>
             <View className="ml-4">
               <Text className="text-slate-400 text-xs font-black uppercase tracking-widest">{t('companies.authorizedDealer') || 'Authorized Dealer For'}</Text>
-              <Text className="text-xl font-black text-slate-900">{showroom.category || 'Toyota & More'}</Text>
+              <Text className="text-xl font-black text-slate-900">Taban Cars</Text>
             </View>
           </View>
         </View>

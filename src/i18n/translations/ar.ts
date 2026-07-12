@@ -68,7 +68,7 @@ export default {
     "title": "المعارض",
     "searchPlaceholder": "ابحث عن معرض...",
     "noShowrooms": "لم يتم العثور على معارض موثقة",
-    "authorizedDealer": "وكيل معتمد لـ",
+    "authorizedDealer": "شركة موثوقة في",
     "about": "معلومات",
     "cars": "السيارات",
     "noCars": "لا توجد سيارات",

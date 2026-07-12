@@ -69,7 +69,7 @@ export default {
     "title": "Showrooms",
     "searchPlaceholder": "Search for a showroom...",
     "noShowrooms": "No verified showrooms found",
-    "authorizedDealer": "Authorized Dealer For",
+    "authorizedDealer": "Trusted Company in",
     "about": "About",
     "cars": "Cars",
     "noCars": "No cars available",
