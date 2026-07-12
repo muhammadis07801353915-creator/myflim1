@@ -10,6 +10,7 @@ export default function CompaniesScreen() {
   const { t, getTranslatedName } = useLanguage();
   const [showrooms, setShowrooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchShowrooms();
@@ -24,7 +25,20 @@ export default function CompaniesScreen() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      if (data) setShowrooms(data);
+      if (data) {
+        // Filter out expired showrooms based on the same logic used in ShowroomHeader
+        const activeShowrooms = data.filter((showroom: any) => {
+          let end: Date;
+          if (showroom.verified_until) {
+            end = new Date(showroom.verified_until);
+          } else {
+            end = new Date(showroom.created_at);
+            end.setDate(end.getDate() + 30);
+          }
+          return end.getTime() > Date.now();
+        });
+        setShowrooms(activeShowrooms);
+      }
     } catch (error) {
       console.error('Error fetching showrooms:', error);
     } finally {
@@ -45,6 +59,8 @@ export default function CompaniesScreen() {
           <Search size={20} color="#94a3b8" />
           <TextInput 
             placeholder={t('companies.searchPlaceholder')} 
+            value={searchQuery}
+            onChangeText={setSearchQuery}
             className="flex-1 ml-3 text-[16px] text-slate-800 font-bold text-right"
             placeholderTextColor="#94a3b8"
           />
@@ -57,7 +73,13 @@ export default function CompaniesScreen() {
         </View>
       ) : (
         <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
-          {showrooms.map((item, index) => (
+          {showrooms.filter(item => {
+            if (!searchQuery) return true;
+            const searchLower = searchQuery.toLowerCase();
+            const translatedLocation = getTranslatedName(item.address || 'Erbil', 'locations').toLowerCase();
+            return (item.name && item.name.toLowerCase().includes(searchLower)) || 
+                   translatedLocation.includes(searchLower);
+          }).map((item, index) => (
             <TouchableOpacity 
               key={item.id}
               onPress={() => router.push(`/showroom/${item.id}`)}
@@ -105,7 +127,13 @@ export default function CompaniesScreen() {
               </View>
             </TouchableOpacity>
           ))}
-          {showrooms.length === 0 && (
+          {showrooms.filter(item => {
+            if (!searchQuery) return true;
+            const searchLower = searchQuery.toLowerCase();
+            const translatedLocation = getTranslatedName(item.address || 'Erbil', 'locations').toLowerCase();
+            return (item.name && item.name.toLowerCase().includes(searchLower)) || 
+                   translatedLocation.includes(searchLower);
+          }).length === 0 && (
             <View className="py-20 items-center">
               <Text className="text-slate-400 font-bold text-lg">{t('companies.noShowrooms')}</Text>
             </View>
