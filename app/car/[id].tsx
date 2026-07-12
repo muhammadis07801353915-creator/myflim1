@@ -208,8 +208,8 @@ export default function CarDetailsScreen() {
           <View className="flex-row flex-wrap justify-between mb-8">
              {[
                { icon: <Cog size={20} color="#CC222F" />, val: car.engine_size ? car.engine_size : t('carDetails.notSpecified'), sub: t('carDetails.engine') },
-               { icon: <SlidersHorizontal size={20} color="#CC222F" />, val: car.cylinders ? String(car.cylinders) : t('carDetails.notSpecified'), sub: t('carDetails.cylinder') },
-               { icon: <Wrench size={20} color="#CC222F" />, val: getTranslatedName(car.transmission, 'transmissions') || car.transmission, sub: t('carDetails.transmission') },
+               { icon: <Image source={require('../../assets/cylinder.png')} style={{ width: 22, height: 22, tintColor: '#CC222F' }} resizeMode="contain" />, val: car.cylinders ? String(car.cylinders) : t('carDetails.notSpecified'), sub: t('carDetails.cylinder') },
+               { icon: <Image source={require('../../assets/transmission.png')} style={{ width: 22, height: 22, tintColor: '#CC222F' }} resizeMode="contain" />, val: getTranslatedName(car.transmission, 'transmissions') || car.transmission, sub: t('carDetails.transmission') },
                { icon: <Fuel size={20} color="#CC222F" />, val: getTranslatedName(car.fuel_type, 'fuels1') || car.fuel_type, sub: t('carDetails.fuel') },
                { icon: <Globe size={20} color="#CC222F" />, val: car.spec || t('carDetails.notSpecified'), sub: t('carDetails.specs') },
                { icon: <Gauge size={20} color="#CC222F" />, val: `${car.mileage || 0} km`, sub: t('carDetails.mileage') },
