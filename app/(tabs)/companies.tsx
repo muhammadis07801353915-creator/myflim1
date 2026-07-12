@@ -89,8 +89,8 @@ export default function CompaniesScreen() {
                 <View className="items-end flex-1 ml-4">
                   <View className="flex-row items-center justify-end">
                     {item.is_verified && (
-                      <View className="mr-2 bg-blue-500 rounded-full p-0.5">
-                        <BadgeCheck size={14} color="white" />
+                      <View className="mr-2">
+                        <BadgeCheck size={20} color="#ffffff" fill="#1DA1F2" />
                       </View>
                     )}
                     <Text className="text-white text-2xl font-black text-right shadow-lg" numberOfLines={1}>

@@ -107,8 +107,8 @@ export default function ShowroomDetailsScreen() {
               <View className="flex-row items-center">
                 <Text className="text-white text-3xl font-black shadow-lg">{showroom.name}</Text>
                 {showroom.is_verified && (
-                  <View className="ml-2 bg-blue-500 rounded-full p-1 border border-white/20">
-                    <BadgeCheck size={16} color="white" />
+                  <View className="ml-2">
+                    <BadgeCheck size={24} color="#ffffff" fill="#1DA1F2" />
                   </View>
                 )}
               </View>
