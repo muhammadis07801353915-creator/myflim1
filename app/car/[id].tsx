@@ -2,8 +2,9 @@ import { View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, Dimensio
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../src/lib/supabase';
-import { ChevronLeft, Share2, Heart, MapPin, Clock, Fuel, Gauge, MessageCircle, Cog, Globe, SlidersHorizontal, Wrench, X, BadgeCheck, Phone, Building2, User, Copy, Bookmark, ArrowLeft } from 'lucide-react-native';
+import { ChevronLeft, Share2, Heart, MapPin, Clock, Fuel, Gauge, MessageCircle, Cog, Globe, Wrench, X, BadgeCheck, Phone, Building2, User, Copy, Bookmark, ArrowLeft } from 'lucide-react-native';
 import { useLanguage } from '../../src/i18n/LanguageContext';
+import { PistonIcon, GearStickIcon } from '../../src/components/CustomIcons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -208,8 +209,8 @@ export default function CarDetailsScreen() {
           <View className="flex-row flex-wrap justify-between mb-8">
              {[
                { icon: <Cog size={20} color="#CC222F" />, val: car.engine_size ? car.engine_size : t('carDetails.notSpecified'), sub: t('carDetails.engine') },
-               { icon: <Image source={require('../../assets/cylinder.png')} style={{ width: 22, height: 22, tintColor: '#CC222F' }} resizeMode="contain" />, val: car.cylinders ? String(car.cylinders) : t('carDetails.notSpecified'), sub: t('carDetails.cylinder') },
-               { icon: <Image source={require('../../assets/transmission.png')} style={{ width: 22, height: 22, tintColor: '#CC222F' }} resizeMode="contain" />, val: getTranslatedName(car.transmission, 'transmissions') || car.transmission, sub: t('carDetails.transmission') },
+               { icon: <PistonIcon size={22} color="#CC222F" />, val: car.cylinders ? String(car.cylinders) : t('carDetails.notSpecified'), sub: t('carDetails.cylinder') },
+               { icon: <GearStickIcon size={22} color="#CC222F" />, val: getTranslatedName(car.transmission, 'transmissions') || car.transmission, sub: t('carDetails.transmission') },
                { icon: <Fuel size={20} color="#CC222F" />, val: getTranslatedName(car.fuel_type, 'fuels1') || car.fuel_type, sub: t('carDetails.fuel') },
                { icon: <Globe size={20} color="#CC222F" />, val: car.spec || t('carDetails.notSpecified'), sub: t('carDetails.specs') },
                { icon: <Gauge size={20} color="#CC222F" />, val: `${car.mileage || 0} km`, sub: t('carDetails.mileage') },
