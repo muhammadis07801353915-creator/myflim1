@@ -82,8 +82,8 @@ export default function CarDetailsScreen() {
     } catch (e) {} finally { setLoading(false); }
   };
 
-  const handleCopyLink = () => {
-    const link = `https://tabancars.com/car/${id}`;
+  const handleCopyLink = async () => {
+    const link = `https://taban-share.vercel.app/car/${id}`;
     Clipboard.setString(link);
     setShareModalVisible(false);
     alert(t('carDetails.linkCopied'));
