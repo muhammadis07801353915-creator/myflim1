@@ -136,6 +136,7 @@ export default {
     languageSelect: "اختر اللغة",
     exchangeRates: "أسعار العملات",
     cancel: "إلغاء",
+    settingsAbout: "الإعدادات وحول",
   },
   
   "companyAccount": {
@@ -198,7 +199,15 @@ export default {
     "fullName": "الاسم الكامل",
     "continue": "متابعة",
     "alreadyHaveAccount": "هل لديك حساب بالفعل؟",
-    "login": "تسجيل الدخول"
+    "login": "تسجيل الدخول",
+    "noAccount": "ليس لديك حساب؟",
+    "enterPhone": "يرجى إدخال رقم هاتفك",
+    "enterCode": "أدخل رمز التحقق المرسل إليك",
+    "verify": "تحقق",
+    "changePhone": "تغيير رقم الهاتف",
+    "resendAfter": "يمكنك إعادة الإرسال بعد ({sec}) ثانية",
+    "sendSms": "إرسال الرمز عبر SMS",
+    "sendWhatsapp": "إرسال الرمز عبر واتساب"
   }
 ,
   header: {
@@ -2326,5 +2335,15 @@ export default {
     "sendTo": "يرجى إرسال 10,000 دينار على الرقم أدناه",
     "comingSoon": "قريباً",
     "sendPost": "إرسال للنشر",
+  },
+  favorites: {
+    title: "المفضلة",
+    noCars: "لا توجد سيارات في قائمة المفضلة",
+    browse: "تصفح السيارات",
+  },
+  support: {
+    teamName: "فريق الدعم",
+    online: "متصل (Online)",
+    messagePlaceholder: "اكتب رسالة للمسؤول...",
   },
 };

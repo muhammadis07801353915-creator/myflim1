@@ -191,17 +191,17 @@ export default function LoginScreen() {
                   
                   {countdown > 0 && (
                     <Text className="text-center text-[#CC222F] font-bold text-xs mt-2 mb-4">
-                      دەتوانیت دوای ({countdown}) چرکە دووبارە کۆد بنێریتەوە
+                      {t('auth.resendAfter').replace('{sec}', countdown.toString())}
                     </Text>
                   )}
 
                   <View className="space-y-4 mt-2">
                     <TouchableOpacity onPress={() => handleSendOtp('sms')} disabled={loading || countdown > 0} className={`h-16 rounded-2xl items-center justify-center shadow-lg ${countdown > 0 ? 'bg-gray-300' : 'bg-[#CC222F] shadow-red-500/30'}`}>
-                      {loading && selectedProvider === 'sms' ? <ActivityIndicator color="white" /> : <Text className={`${countdown > 0 ? 'text-gray-500' : 'text-white'} font-black text-lg`}>کۆد بنێرە بۆ سیمکارت (SMS)</Text>}
+                      {loading && selectedProvider === 'sms' ? <ActivityIndicator color="white" /> : <Text className={`${countdown > 0 ? 'text-gray-500' : 'text-white'} font-black text-lg`}>{t('auth.sendSms')}</Text>}
                     </TouchableOpacity>
                     
                     <TouchableOpacity onPress={() => handleSendOtp('whatsapp')} disabled={loading || countdown > 0} className={`h-16 rounded-2xl items-center justify-center shadow-lg ${countdown > 0 ? 'bg-gray-300' : 'bg-[#25D366] shadow-green-500/30'}`}>
-                      {loading && selectedProvider === 'whatsapp' ? <ActivityIndicator color="white" /> : <Text className={`${countdown > 0 ? 'text-gray-500' : 'text-white'} font-black text-lg`}>کۆد بنێرە بۆ وەتسئاپ</Text>}
+                      {loading && selectedProvider === 'whatsapp' ? <ActivityIndicator color="white" /> : <Text className={`${countdown > 0 ? 'text-gray-500' : 'text-white'} font-black text-lg`}>{t('auth.sendWhatsapp')}</Text>}
                     </TouchableOpacity>
                   </View>
                 </View>

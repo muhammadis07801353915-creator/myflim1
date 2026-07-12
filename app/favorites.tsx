@@ -3,11 +3,13 @@ import { View, Text, SafeAreaView, FlatList, TouchableOpacity, Image, ActivityIn
 import { useRouter } from 'expo-router';
 import { ChevronLeft, MapPin, Heart } from 'lucide-react-native';
 import { supabase } from '../src/lib/supabase';
+import { useLanguage } from '../src/i18n/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
 export default function FavoritesScreen() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -73,12 +75,12 @@ export default function FavoritesScreen() {
       <View className="w-20 h-20 bg-gray-50 rounded-full items-center justify-center mb-6">
         <Heart size={40} color="#cbd5e1" />
       </View>
-      <Text className="text-gray-400 font-black text-xl text-center">هیچ سەیارەیەک لە لیستی دڵخوازەکانت نییە</Text>
+      <Text className="text-gray-400 font-black text-xl text-center">{t('favorites.noCars')}</Text>
       <TouchableOpacity 
         onPress={() => router.push('/')}
         className="mt-8 bg-[#CC222F] px-8 py-4 rounded-2xl"
       >
-        <Text className="text-white font-black text-lg">گەڕان بەدوای سەیارە</Text>
+        <Text className="text-white font-black text-lg">{t('favorites.browse')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -89,7 +91,7 @@ export default function FavoritesScreen() {
         <TouchableOpacity onPress={() => router.back()} className="w-12 h-12 bg-gray-50 rounded-full items-center justify-center">
           <ChevronLeft size={28} color="#000" />
         </TouchableOpacity>
-        <Text className="flex-1 text-center text-2xl font-black mr-12">دڵخوازەکانم</Text>
+        <Text className="flex-1 text-center text-2xl font-black mr-12">{t('favorites.title')}</Text>
       </View>
 
       {loading ? (

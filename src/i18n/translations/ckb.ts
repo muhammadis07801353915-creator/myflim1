@@ -137,6 +137,7 @@ export default {
     languageSelect: "هەڵبژاردنی زمان",
     exchangeRates: "نرخی دراوەکان",
     cancel: "لابردن",
+    settingsAbout: "ڕێکخستن و دەربارەی",
   },
   companyAccount: {
     title: "ئەکاونتی کۆمپانیا",
@@ -203,7 +204,10 @@ export default {
     enterPhone: 'تکایە ژمارەی مۆبایلەکەت بنووسە',
     enterCode: 'کۆدی دڵنیایی کە بۆت هاتووە لێرە بنووسە',
     verify: 'پشتڕاستکردنەوە',
-    changePhone: 'گۆڕینی ژمارەی مۆبایل'
+    changePhone: 'گۆڕینی ژمارەی مۆبایل',
+    resendAfter: 'دەتوانیت دوای ({sec}) چرکە دووبارە کۆد بنێریتەوە',
+    sendSms: 'کۆد بنێرە بۆ سیمکارت (SMS)',
+    sendWhatsapp: 'کۆد بنێرە بۆ وەتسئاپ',
   },
   header: {
     sell: "فرۆشتن",
@@ -2326,5 +2330,15 @@ export default {
     "sendTo": "تکایە بڕی 10 هەزار دینار بنێرە بۆ ئەم ژمارەیەی خوارەوە",
     "comingSoon": "بە زوویی بەردەست دەبێت",
     "sendPost": "بنێرە بۆ بڵاوکردنەوەکە",
+  },
+  favorites: {
+    title: "دڵخوازەکانم",
+    noCars: "هیچ سەیارەیەک لە لیستی دڵخوازەکانت نییە",
+    browse: "گەڕان بەدوای سەیارە",
+  },
+  support: {
+    teamName: "تیمی پشتیوانی",
+    online: "لەسەرهێڵە (Online)",
+    messagePlaceholder: "پەیامێک بنووسە بۆ ئادمین...",
   },
 };

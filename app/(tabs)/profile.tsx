@@ -399,7 +399,7 @@ export default function ProfileScreen() {
             onPress={() => router.push('/favorites')}
           >
             <Heart size={32} color="#FF5A5F" fill="#FF5A5F" />
-            <Text className="mt-3 font-black text-gray-700 text-[13px]">دڵخوازەکان</Text>
+            <Text className="mt-3 font-black text-gray-700 text-[13px]">{t('settings.favoriteCars')}</Text>
           </TouchableOpacity>
 
           {/* Currency Rates */}
@@ -408,7 +408,7 @@ export default function ProfileScreen() {
             onPress={() => router.push('/settings/currency-rates')}
           >
             <DollarSign size={32} color="#1f2937" />
-            <Text className="mt-3 font-black text-gray-700 text-[13px]" numberOfLines={1}>نرخی دراوە</Text>
+            <Text className="mt-3 font-black text-gray-700 text-[13px]" numberOfLines={1}>{t('settings.exchangeRates')}</Text>
           </TouchableOpacity>
 
           {/* Language */}
@@ -417,7 +417,7 @@ export default function ProfileScreen() {
             onPress={openModal}
           >
             <Globe size={32} color="#1f2937" />
-            <Text className="mt-3 font-black text-gray-700 text-[13px]">زمان</Text>
+            <Text className="mt-3 font-black text-gray-700 text-[13px]">{t('settings.language')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -443,7 +443,7 @@ export default function ProfileScreen() {
         </View>
 
         <View className="mt-4">
-          <Text className="text-right text-[18px] font-black text-gray-400 mb-2">Settings & About</Text>
+          <Text className="text-right text-[18px] font-black text-gray-400 mb-2">{t('settings.settingsAbout')}</Text>
           <View className="bg-white rounded-3xl">
              <ListMenuItem icon={Phone} title={t('settings.contactUs')} onPress={() => {}} />
              <ListMenuItem icon={MessageCircle} title={t('settings.feedback')} onPress={handleSupportChat} badge={adminUnread} />

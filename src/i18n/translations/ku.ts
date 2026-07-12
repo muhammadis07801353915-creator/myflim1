@@ -136,6 +136,7 @@ export default {
     languageSelect: "هەڵبژارتنا زمانێ",
     exchangeRates: "بهایێ دراڤان",
     cancel: "هەڵوەشاندن",
+    settingsAbout: "Mîheng û der barê",
   },
   
   "companyAccount": {
@@ -198,7 +199,15 @@ export default {
     "fullName": "Navê Tevav",
     "continue": "Berdewamkirin",
     "alreadyHaveAccount": "Gelo berê hesabê we heye?",
-    "login": "Têkeve"
+    "login": "Têkeve",
+    "noAccount": "Hesabê we tune?",
+    "enterPhone": "Ji kerema xwe hejmara têlefonê binivîse",
+    "enterCode": "Kodê pejirandinê ku hatiye şandin binivîse",
+    "verify": "Pejirandin",
+    "changePhone": "Hejmara têlefonê biguhere",
+    "resendAfter": "Hûn dikarin kodê piştî ({sec}) saniyeyan ji nû ve bişînin",
+    "sendSms": "Kod bi SMS bişîne",
+    "sendWhatsapp": "Kod bi WhatsApp bişîne"
   }
 ,
   header: {
@@ -2322,5 +2331,15 @@ export default {
     "sendTo": "تکایە بڕی 10 هەزار دینار بنێرە",
     "comingSoon": "بە زوویی بەردەست دەبێت",
     "sendPost": "بنێرە بۆ بڵاوکردنەوەکە",
+  },
+  favorites: {
+    title: "دڵخوازەکانم",
+    noCars: "هیچ سەیارەیەک لە لیستی دڵخوازەکانت نییە",
+    browse: "لێگەڕیان ل ترۆمبێلان",
+  },
+  support: {
+    teamName: "تیمی پشتیوانی",
+    online: "لەسەرهێڵە (Online)",
+    messagePlaceholder: "پەیامەک بنڤێسە بۆ ئادمین...",
   },
 };

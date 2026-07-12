@@ -164,8 +164,8 @@ export default function SupportChatScreen() {
             <Headset size={20} color="#CC222F" />
           </View>
           <View className="items-end">
-            <Text className="text-base font-black text-slate-800">تیمی پشتیوانی</Text>
-            <Text className="text-[10px] text-emerald-500 font-bold">لەسەرهێڵە (Online)</Text>
+            <Text className="text-base font-black text-slate-800">{t('support.teamName')}</Text>
+            <Text className="text-[10px] text-emerald-500 font-bold">{t('support.online')}</Text>
           </View>
         </View>
       </View>
@@ -217,7 +217,7 @@ export default function SupportChatScreen() {
         >
           <View className="flex-1 bg-slate-50 flex-row-reverse items-center px-4 py-2 rounded-3xl border border-slate-200 min-h-[44px]">
             <TextInput
-              placeholder="پەیامێک بنووسە بۆ ئادمین..."
+              placeholder={t('support.messagePlaceholder')}
               value={newMessageText}
               onChangeText={setNewMessageText}
               multiline

@@ -137,6 +137,7 @@ export default {
     languageSelect: "Select Language",
     exchangeRates: "Exchange Rates",
     cancel: "Cancel",
+    settingsAbout: "Settings & About",
   },
   
   "companyAccount": {
@@ -199,7 +200,15 @@ export default {
     "fullName": "Full Name",
     "continue": "Continue",
     "alreadyHaveAccount": "Already have an account?",
-    "login": "Login"
+    "login": "Login",
+    "noAccount": "Don't have an account?",
+    "enterPhone": "Please enter your phone number",
+    "enterCode": "Enter the verification code sent to you",
+    "verify": "Verify",
+    "changePhone": "Change phone number",
+    "resendAfter": "You can resend the code after ({sec}) seconds",
+    "sendSms": "Send Code via SMS",
+    "sendWhatsapp": "Send Code via WhatsApp"
   }
 ,
   header: {
@@ -719,5 +728,15 @@ export default {
     "sendTo": "Please send 10,000 IQD to the number below",
     "comingSoon": "Coming soon",
     "sendPost": "Send for publishing",
+  },
+  favorites: {
+    title: "My Favorites",
+    noCars: "No cars in your favorites list",
+    browse: "Browse Cars",
+  },
+  support: {
+    teamName: "Support Team",
+    online: "Online",
+    messagePlaceholder: "Write a message to admin...",
   },
 };
