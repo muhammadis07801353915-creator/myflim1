@@ -6,12 +6,14 @@ import { CategoryList } from '../../src/components/Home/CategoryList';
 import { useViewMode } from '../../src/context/ViewModeContext';
 import { useRouter } from 'expo-router';
 import { MapPin, Heart, CheckCircle2 } from 'lucide-react-native';
+import { useLanguage } from '../../src/i18n/LanguageContext';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
   const { viewMode } = useViewMode();
+  const { language } = useLanguage();
   const [cars, setCars] = useState<any[]>([]);
   const [featuredCars, setFeaturedCars] = useState<any[]>([]);
   const [ads, setAds] = useState<any[]>([]);
@@ -102,8 +104,14 @@ export default function HomeScreen() {
     return data;
   };
 
+  const getAdImage = (ad: any) => {
+    if (language === 'ar' && ad.image_url_ar) return ad.image_url_ar;
+    if (language === 'en' && ad.image_url_en) return ad.image_url_en;
+    return ad.image_url;
+  };
+
   const renderTopSlider = () => {
-    const sliderItems = ads.filter(a => a.type === 'slider' || !a.type);
+    const sliderItems = ads.filter(a => a.type === 'slider' || !a.type).map(a => ({...a, image_url: getAdImage(a)}));
     const sliderData = sliderItems.length > 0 ? sliderItems : cars.slice(0, 3);
     if (sliderData.length === 0) return null;
 
@@ -214,7 +222,7 @@ export default function HomeScreen() {
   };
 
   const renderAdSection = () => {
-    const banners = ads.filter(a => a.type === 'banner');
+    const banners = ads.filter(a => a.type === 'banner').map(a => ({...a, image_url: getAdImage(a)}));
     if (banners.length > 0) {
       const banner = banners[Math.floor(Math.random() * banners.length)];
       return (

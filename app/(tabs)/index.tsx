@@ -138,8 +138,14 @@ export default function HomeScreen() {
     return data;
   };
 
+  const getAdImage = (ad: any) => {
+    if (language === 'ar' && ad.image_url_ar) return ad.image_url_ar;
+    if (language === 'en' && ad.image_url_en) return ad.image_url_en;
+    return ad.image_url;
+  };
+
   const renderTopSlider = () => {
-    const sliderItems = ads.filter(a => a.type === 'slider' || !a.type);
+    const sliderItems = ads.filter(a => a.type === 'slider' || !a.type).map(a => ({...a, image_url: getAdImage(a)}));
     const sliderData = sliderItems.length > 0 ? sliderItems : cars.slice(0, 3);
     if (sliderData.length === 0) return null;
 
@@ -235,7 +241,7 @@ export default function HomeScreen() {
   };
 
   const renderAdSection = () => {
-    const banners = ads.filter(a => a.type === 'banner');
+    const banners = ads.filter(a => a.type === 'banner').map(a => ({...a, image_url: getAdImage(a)}));
     if (banners.length > 0) {
       // Instead of picking a random banner, we show the carousel with all banners
       return (
