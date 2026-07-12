@@ -207,11 +207,11 @@ export default function CarDetailsScreen() {
           {/* Quick Stats Grid */}
           <View className="flex-row flex-wrap justify-between mb-8">
              {[
-               { icon: <Cog size={20} color="#CC222F" />, val: car.engine_size || '3.0', sub: t('carDetails.engine') },
-               { icon: <SlidersHorizontal size={20} color="#CC222F" />, val: car.cylinders || 'Cylinder', sub: t('carDetails.cylinder') },
+               { icon: <Cog size={20} color="#CC222F" />, val: car.engine_size ? car.engine_size : t('carDetails.notSpecified'), sub: t('carDetails.engine') },
+               { icon: <SlidersHorizontal size={20} color="#CC222F" />, val: car.cylinders ? String(car.cylinders) : t('carDetails.notSpecified'), sub: t('carDetails.cylinder') },
                { icon: <Wrench size={20} color="#CC222F" />, val: getTranslatedName(car.transmission, 'transmissions') || car.transmission, sub: t('carDetails.transmission') },
                { icon: <Fuel size={20} color="#CC222F" />, val: getTranslatedName(car.fuel_type, 'fuels1') || car.fuel_type, sub: t('carDetails.fuel') },
-               { icon: <Globe size={20} color="#CC222F" />, val: car.import_country || t('carDetails.specs'), sub: t('carDetails.specs') },
+               { icon: <Globe size={20} color="#CC222F" />, val: car.spec || t('carDetails.notSpecified'), sub: t('carDetails.specs') },
                { icon: <Gauge size={20} color="#CC222F" />, val: `${car.mileage || 0} km`, sub: t('carDetails.mileage') },
              ].map((s, i) => (
                <View key={i} className="w-[31%] bg-slate-50/50 border border-slate-100 rounded-3xl p-4 items-center mb-3">
