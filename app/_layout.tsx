@@ -1,7 +1,8 @@
 import 'react-native-get-random-values';
 import { useEffect, useState, useRef } from 'react';
-import { Platform, Image, Animated, Dimensions, AppState } from 'react-native';
+import { Platform, Image, Animated, Dimensions, AppState, Text, TextInput } from 'react-native';
 import { Stack } from 'expo-router';
+import { useFonts } from 'expo-font';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ViewModeProvider } from '../src/context/ViewModeContext';
 import { LocationProvider } from '../src/context/LocationContext';
@@ -30,6 +31,22 @@ const { width, height } = Dimensions.get('window');
 export default function RootLayout() {
   const [showSplash, setShowSplash] = useState(true);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Load custom font
+  const [fontsLoaded] = useFonts({
+    'NRT-Regular': require('../../assets/fonts/NRT-Regular.ttf'),
+  });
+
+  // Apply global font family when loaded
+  useEffect(() => {
+    if (fontsLoaded) {
+      if ((Text as any).defaultProps == null) (Text as any).defaultProps = {};
+      (Text as any).defaultProps.style = { fontFamily: 'NRT-Regular' };
+      
+      if ((TextInput as any).defaultProps == null) (TextInput as any).defaultProps = {};
+      (TextInput as any).defaultProps.style = { fontFamily: 'NRT-Regular' };
+    }
+  }, [fontsLoaded]);
 
   // Global message notification listener refs
   const globalChatRef = useRef<any>(null);
@@ -215,18 +232,26 @@ export default function RootLayout() {
     });
 
     // Show custom splash for 3 seconds, then fade out
-    const timer = setTimeout(() => {
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }).start(() => {
-        setShowSplash(false);
-      });
-    }, 1000);
-
-    return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      setTimeout(() => {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setShowSplash(false);
+          SplashScreen.hideAsync();
+        });
+      }, 100);
+    }
+  }, [fadeAnim, fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null; // Don't render until fonts are loaded
+  }
 
   return (
     <SafeAreaProvider>
