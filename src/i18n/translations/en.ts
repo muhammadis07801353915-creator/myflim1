@@ -323,7 +323,7 @@ export default {
     callForHelp: "CALL FOR HELP",
     
     // Arrays for data
-    countries: ["Gulf", "American", "Canadian", "European", "Japanese", "Korean"],
+    countries: ["Gulf", "American", "Canadian", "European", "Japanese", "Korean", "German"],
     transmissions: ["Manual", "Automatic"],
     cylindersList: ["3 Cylinders", "4 Cylinders", "6 Cylinders", "8 Cylinders"],
     interiors: ["Fabric", "Leather", "Half Leather", "Suede"],
@@ -699,6 +699,7 @@ export default {
     "ئەورووپی": "European",
     "ژاپۆنی": "Japanese",
     "کۆری": "Korean",
+    "ئەڵمانی": "German",
   },
   payment: {
     "title": "Payment",
