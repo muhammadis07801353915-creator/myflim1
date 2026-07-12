@@ -31,6 +31,7 @@ import { supabase } from '../src/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../src/i18n/LanguageContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { playMessageSound } from '../src/lib/useMessageSound';
 
 const STATUSBAR_HEIGHT =
   Platform.OS === 'ios'
@@ -461,6 +462,10 @@ export default function ChatsScreen() {
               if (prev.find((m) => m.id === payload.new.id)) return prev;
               return [...prev, payload.new];
             });
+            // Play sound only when the message is from the other person
+            if (payload.new.sender_id !== currentUserId) {
+              playMessageSound();
+            }
             setTimeout(() => messagesScrollRef.current?.scrollToEnd({ animated: true }), 100);
           }
         )

@@ -6,11 +6,15 @@ import { supabase } from './supabase';
 
 // Configure how notifications are presented when app is in foreground
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
+  handleNotification: async (notification) => {
+    // If it's a silent internal sound trigger, suppress the visual alert
+    const isSilent = notification.request.content.data?.silent === true;
+    return {
+      shouldShowAlert: !isSilent,
+      shouldPlaySound: true,  // Always play sound
+      shouldSetBadge: !isSilent,
+    };
+  },
 });
 
 export async function registerForPushNotificationsAsync(): Promise<string | null> {

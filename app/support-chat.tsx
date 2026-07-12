@@ -21,6 +21,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../src/lib/supabase';
 import { useLanguage } from '../src/i18n/LanguageContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { playMessageSound } from '../src/lib/useMessageSound';
 
 const STATUSBAR_HEIGHT =
   Platform.OS === 'ios'
@@ -98,9 +99,10 @@ export default function SupportChatScreen() {
             return [...prev, payload.new];
           });
           
-          // Mark as read if admin sends message
+          // Mark as read if admin sends message & play sound
           if (payload.new.sender_type === 'admin') {
             supabase.from('support_chats').update({ user_unread: 0 }).eq('id', chatId);
+            playMessageSound();
           }
           
           setTimeout(() => messagesScrollRef.current?.scrollToEnd({ animated: true }), 100);
