@@ -230,8 +230,8 @@ export default function HomeScreen() {
           <Text className="text-slate-400 text-[11px] font-bold mt-0.5">{item.year} • {item.mileage || 0} km</Text>
           <View className="flex-row justify-between items-center mt-2">
              <Text className="text-[#CC222F] text-[16px] font-black">${item.price?.toLocaleString()}</Text>
-             <View className="flex-row items-center">
-                 <Text className={`text-slate-400 text-[10px] font-bold ${language === 'en' ? 'ml-1' : 'mr-1'}`}>{item.city ? `${item.governorate ? `${getTranslatedName(item.governorate, 'locations')} - ` : ''}${getTranslatedName(item.city, 'locations')}` : getTranslatedName(item.governorate || item.city || 'Erbil', 'locations')}</Text>
+             <View className="flex-row items-center flex-1 justify-end ml-2">
+                 <Text numberOfLines={1} ellipsizeMode="tail" className={`text-slate-400 text-[10px] font-bold flex-shrink ${language === 'en' ? 'ml-1' : 'mr-1'}`}>{item.city ? `${item.governorate ? `${getTranslatedName(item.governorate, 'locations')} - ` : ''}${getTranslatedName(item.city, 'locations')}` : getTranslatedName(item.governorate || item.city || 'Erbil', 'locations')}</Text>
                  <MapPin size={10} color="#94a3b8" />
               </View>
           </View>
@@ -322,8 +322,8 @@ export default function HomeScreen() {
                 
                 <View className="flex-row justify-between items-center mt-2.5">
                   <Text className="text-[#CC222F] font-black text-[15px]">${car.price?.toLocaleString()}</Text>
-                  <View className="flex-row items-center">
-                    <Text className={`text-slate-400 text-[9px] font-bold ${language === 'en' ? 'ml-1' : 'mr-1'}`}>{car.city ? `${car.governorate ? `${getTranslatedName(car.governorate, 'locations')} - ` : ''}${getTranslatedName(car.city, 'locations')}` : getTranslatedName(car.governorate || car.city || 'Erbil', 'locations')}</Text>
+                  <View className="flex-row items-center flex-1 justify-end ml-2">
+                    <Text numberOfLines={1} ellipsizeMode="tail" className={`text-slate-400 text-[9px] font-bold flex-shrink ${language === 'en' ? 'ml-1' : 'mr-1'}`}>{car.city ? `${car.governorate ? `${getTranslatedName(car.governorate, 'locations')} - ` : ''}${getTranslatedName(car.city, 'locations')}` : getTranslatedName(car.governorate || car.city || 'Erbil', 'locations')}</Text>
                     <MapPin size={10} color="#94a3b8" />
                   </View>
                 </View>
