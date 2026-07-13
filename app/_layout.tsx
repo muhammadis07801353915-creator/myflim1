@@ -62,9 +62,17 @@ export default function RootLayout() {
       if (!data.user) return;
       userId = data.user.id;
 
+      // Always remove existing channels before creating new ones
+      if (globalChatRef.current) { supabase.removeChannel(globalChatRef.current); globalChatRef.current = null; }
+      if (globalShowroomRef.current) { supabase.removeChannel(globalShowroomRef.current); globalShowroomRef.current = null; }
+      if (globalSupportRef.current) { supabase.removeChannel(globalSupportRef.current); globalSupportRef.current = null; }
+
+      // Use a unique suffix so channel names don't collide on re-subscribe
+      const suffix = Date.now();
+
       // ── 1. Regular chats ──────────────────────────────────────────────────
       globalChatRef.current = supabase
-        .channel('global_chat_msgs')
+        .channel(`global_chat_msgs_${suffix}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'messages' },
@@ -96,7 +104,7 @@ export default function RootLayout() {
 
       // ── 2. Showroom chats ─────────────────────────────────────────────────
       globalShowroomRef.current = supabase
-        .channel('global_showroom_msgs')
+        .channel(`global_showroom_msgs_${suffix}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'showroom_messages' },
@@ -136,7 +144,7 @@ export default function RootLayout() {
 
       // ── 3. Support / Admin chat ───────────────────────────────────────────
       globalSupportRef.current = supabase
-        .channel('global_support_msgs')
+        .channel(`global_support_msgs_${suffix}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'support_messages' },
