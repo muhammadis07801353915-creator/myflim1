@@ -253,11 +253,25 @@ export default function AIChatScreen() {
           </View>
         )}
         {item.cars && item.cars.length === 0 && item.role === 'assistant' && (
-          <Text style={{ color: '#94a3b8', fontSize: 12, marginTop: 6, textAlign: 'right', fontWeight: '700' }}>
-            {language === 'ar' ? 'لم يتم العثور على سيارات مطابقة' :
-             language === 'en' ? 'No matching cars found' :
-             'هیچ سەیارەیەک نەدۆزرایەوە'}
-          </Text>
+          <View style={{
+            marginTop: 10,
+            backgroundColor: '#fff8f0',
+            borderWidth: 1,
+            borderColor: '#fed7aa',
+            borderRadius: 20,
+            padding: 16,
+            alignItems: 'flex-end',
+            maxWidth: '90%',
+          }}>
+            <Text style={{ fontSize: 28, marginBottom: 8 }}>😔</Text>
+            <Text style={{ color: '#92400e', fontWeight: '900', fontSize: 15, textAlign: 'right', lineHeight: 24 }}>
+              {language === 'ar'
+                ? 'عذراً، هذا النوع من السيارات غير متوفر حالياً في التطبيق.\n\nبمجرد توفره، سنرسل لك إشعاراً فورياً! 🔔'
+                : language === 'en'
+                ? "Sorry, this type of car is not currently available in the app.\n\nAs soon as it's listed, we'll send you a quick notification! 🔔"
+                : 'ببوورە، لە ئێستادا ئەو جۆرە سەیارەیە بەردەست نیە لەناو ئەپەکە.\n\nهەر کاتێک هەبوو، بە چاتێکی خێرا بۆت ئەنێرین! 🔔'}
+            </Text>
+          </View>
         )}
       </View>
     );
