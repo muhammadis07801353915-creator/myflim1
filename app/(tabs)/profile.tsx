@@ -421,17 +421,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Third row: Language */}
-        <View className="flex-row justify-start mb-8">
-          {/* Language */}
-          <TouchableOpacity
-            className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
-            onPress={openModal}
-          >
-            <Globe size={32} color="#1f2937" />
-            <Text className="mt-3 font-black text-gray-700 text-[13px]">{t('settings.language')}</Text>
-          </TouchableOpacity>
-        </View>
+
 
         <View className="flex-row justify-between items-center mb-10">
           <View className="flex-row bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
@@ -457,6 +447,7 @@ export default function ProfileScreen() {
         <View className="mt-4">
           <Text className="text-right text-[18px] font-black text-gray-400 mb-2">{t('settings.settingsAbout')}</Text>
           <View className="bg-white rounded-3xl">
+             <ListMenuItem icon={Globe} title={t('settings.language')} onPress={openModal} />
              <ListMenuItem icon={Phone} title={t('settings.contactUs')} onPress={() => {}} />
              <ListMenuItem icon={MessageCircle} title={t('settings.feedback')} onPress={handleSupportChat} badge={adminUnread} />
              <ListMenuItem icon={UserPlus} title={t('settings.inviteFriends')} onPress={() => {}} />
