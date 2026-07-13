@@ -37,7 +37,7 @@ export const Header = () => {
   const { t, getTranslatedName } = useLanguage();
   const insets = useSafeAreaInsets();
   // On iOS, use the real safe area top + small gap; on Android use StatusBar height
-  const headerPaddingTop = Platform.OS === 'ios' ? insets.top + 4 : (StatusBar.currentHeight || 0) + 8;
+  const headerPaddingTop = Platform.OS === 'ios' ? insets.top : (StatusBar.currentHeight || 0) + 8;
 
   return (
     <>
