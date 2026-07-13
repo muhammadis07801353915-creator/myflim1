@@ -17,24 +17,19 @@ export default function TabsLayout() {
           tabBarActiveTintColor: '#CC222F',
           tabBarInactiveTintColor: '#9ca3af',
           tabBarStyle: {
-            position: 'absolute',
-            bottom: Platform.OS === 'web' ? 20 : Math.max(insets.bottom, 16),
-            left: 20,
-            right: 20,
             backgroundColor: '#ffffff',
-            borderRadius: 30,
-            height: 70,
-            paddingBottom: 0,
+            height: Platform.OS === 'ios' ? 85 : 70,
+            paddingBottom: Platform.OS === 'ios' ? 20 : 10,
             elevation: 10,
             shadowColor: '#000',
-            shadowOffset: { width: 0, height: 5 },
-            shadowOpacity: 0.15,
-            shadowRadius: 15,
-            borderTopWidth: 0,
-            ...(Platform.OS === 'web' && { maxWidth: 500, alignSelf: 'center', left: 'auto', right: 'auto', width: '90%' })
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 5,
+            borderTopWidth: 1,
+            borderTopColor: '#f1f5f9',
+            ...(Platform.OS === 'web' && { maxWidth: 500, alignSelf: 'center', width: '100%' })
           },
           tabBarItemStyle: {
-            height: 70,
             paddingTop: 10,
           },
           tabBarLabelStyle: {
