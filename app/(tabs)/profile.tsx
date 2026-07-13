@@ -370,30 +370,8 @@ export default function ProfileScreen() {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity 
-            className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
-            onPress={() => router.push('/ai-chat')}
-          >
-            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#CC222F', alignItems: 'center', justifyContent: 'center' }}>
-              <Bot size={22} color="white" />
-            </View>
-            <Text className="mt-3 font-black text-gray-700 text-[13px]">{language === 'ar' ? 'ذكاء اصطناعي' : language === 'en' ? 'AI Chat' : 'چاتی AI'}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Second row: Favorites, Currency, Language */}
-        <View className="flex-row justify-between mb-8">
-          {/* Favorites */}
-          <TouchableOpacity
-            className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
-            onPress={() => router.push('/favorites')}
-          >
-            <Heart size={32} color="#FF5A5F" fill="#FF5A5F" />
-            <Text className="mt-3 font-black text-gray-700 text-[13px]">{t('settings.favoriteCars')}</Text>
-          </TouchableOpacity>
-
           {/* Sell */}
-          <TouchableOpacity
+          <TouchableOpacity 
             className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
             onPress={() => {
               if (!profile) {
@@ -409,6 +387,18 @@ export default function ProfileScreen() {
             <Car size={32} color="#1f2937" />
             <Text className="mt-3 font-black text-gray-700 text-[13px]">{t('settings.sell')}</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Second row: Favorites, Currency, AI Chat */}
+        <View className="flex-row justify-between mb-8">
+          {/* Favorites */}
+          <TouchableOpacity
+            className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
+            onPress={() => router.push('/favorites')}
+          >
+            <Heart size={32} color="#FF5A5F" fill="#FF5A5F" />
+            <Text className="mt-3 font-black text-gray-700 text-[13px]">{t('settings.favoriteCars')}</Text>
+          </TouchableOpacity>
 
           {/* Currency Rates */}
           <TouchableOpacity
@@ -418,10 +408,21 @@ export default function ProfileScreen() {
             <DollarSign size={32} color="#1f2937" />
             <Text className="mt-3 font-black text-gray-700 text-[13px]" numberOfLines={1}>{t('settings.exchangeRates')}</Text>
           </TouchableOpacity>
+
+          {/* AI Chat */}
+          <TouchableOpacity 
+            className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
+            onPress={() => router.push('/ai-chat')}
+          >
+            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#CC222F', alignItems: 'center', justifyContent: 'center' }}>
+              <Bot size={22} color="white" />
+            </View>
+            <Text className="mt-3 font-black text-gray-700 text-[13px]">{t('settings.aiChat') || 'چاتی AI'}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Third row: Language */}
-        <View className="flex-row justify-between mb-8">
+        <View className="flex-row justify-start mb-8">
           {/* Language */}
           <TouchableOpacity
             className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
