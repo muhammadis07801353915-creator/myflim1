@@ -127,7 +127,7 @@ export default {
     posts: "پۆستەکان",
     chat: "چات",
     sell: "فرۆشتن",
-    favoriteCars: "ئۆتۆمبێلە دڵخوازەکان",
+    favoriteCars: "دڵخوازەکان",
     appLayout: "ڕووکاری ئەپ",
     contactUs: "پەیوەندیمان پێوە بکە",
     feedback: "پەیوەندی بە ئادمین",

@@ -445,7 +445,6 @@ export default function ProfileScreen() {
         <View className="mt-4">
           <Text className="text-right text-[18px] font-black text-gray-400 mb-2">{t('settings.settingsAbout')}</Text>
           <View className="bg-white rounded-3xl">
-             <ListMenuItem icon={Globe} title={t('settings.language')} onPress={openModal} />
              <ListMenuItem icon={Phone} title={t('settings.contactUs')} onPress={() => {}} />
              <ListMenuItem icon={MessageCircle} title={t('settings.feedback')} onPress={handleSupportChat} badge={adminUnread} />
              <ListMenuItem icon={UserPlus} title={t('settings.inviteFriends')} onPress={() => {}} />
