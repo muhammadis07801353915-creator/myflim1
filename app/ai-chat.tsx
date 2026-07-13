@@ -58,8 +58,14 @@ function extractSearchQuery(text: string): Record<string, any> | null {
   }
 }
 
-function cleanText(text: string): string {
-  return text.replace(/<SEARCH>.*?<\/SEARCH>/gs, '').trim();
+function cleanText(text: string, language: string): string {
+  const cleaned = text.replace(/<SEARCH>.*?<\/SEARCH>/gs, '').trim();
+  if (!cleaned) {
+    return language === 'ar' ? 'جاري البحث في قاعدة البيانات...' :
+           language === 'en' ? 'Searching the database for you...' :
+           'بەدوای ئەم داواکارییەدا دەگەڕێم...';
+  }
+  return cleaned;
 }
 
 async function searchCars(filters: Record<string, any>): Promise<any[]> {
@@ -170,7 +176,7 @@ export default function AIChatScreen() {
       const rawText: string = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
       const searchFilters = extractSearchQuery(rawText);
-      const cleanedText = cleanText(rawText);
+      const cleanedText = cleanText(rawText, language);
 
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
