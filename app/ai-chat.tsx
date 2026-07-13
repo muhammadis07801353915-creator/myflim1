@@ -12,6 +12,7 @@ import {
   Image,
   Keyboard,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { supabase } from '../src/lib/supabase';
 import { useLanguage } from '../src/i18n/LanguageContext';
@@ -37,14 +38,14 @@ Your job is:
 2. If the user is specifically looking to BUY or FIND a car in the app, respond naturally AND indicate you will search the database. 
 3. ALWAYS respond in the SAME language the user writes in (Kurdish Sorani/Kurmanji, Arabic, or English).
 4. When you need to SEARCH for a car in the app's database, extract these filters:
-   - brand (e.g. Toyota, BMW, Kia)
+   - brand (e.g. Toyota, BMW, Kia - ONLY use real car brands, leave blank if unsure or if user asks for a category like "family car")
    - min_price and max_price (in USD)  
    - year_from and year_to
    - color
    - max_mileage
 5. To trigger a search, return a JSON block at the END of your message in this exact format:
 <SEARCH>{"brand":"Toyota","min_price":5000,"max_price":20000}</SEARCH>
-Only include fields you are confident about. DO NOT return <SEARCH> if the user is just asking for general advice or comparisons.
+IMPORTANT: When you include the <SEARCH> tag, DO NOT say the car is unavailable or apologize. The app will perform the search using your tags and show the cars to the user automatically. Just say something like "Here are some cars that match your request:" or "I'll find those for you right now."
 6. Be warm, helpful, professional, and keep responses engaging but concise.`;
 
 function extractSearchQuery(text: string): Record<string, any> | null {
@@ -100,7 +101,38 @@ export default function AIChatScreen() {
   const [loading, setLoading] = useState(false);
   const flatListRef = useRef<FlatList>(null);
 
+  // Load chat history from local storage on mount
   useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        const savedHistory = await AsyncStorage.getItem('@taban_ai_chat_history');
+        if (savedHistory) {
+          const parsedHistory = JSON.parse(savedHistory);
+          if (parsedHistory && parsedHistory.length > 0) {
+            setMessages(parsedHistory);
+          }
+        }
+      } catch (e) {
+        console.log('Failed to load chat history', e);
+      }
+    };
+    loadChatHistory();
+  }, []);
+
+  // Save chat history whenever messages change
+  useEffect(() => {
+    const saveChatHistory = async () => {
+      try {
+        if (messages.length > 1) { // Only save if user has sent messages (more than just initial greeting)
+          // Store only the last 30 messages to prevent storage bloat
+          const messagesToSave = messages.slice(-30);
+          await AsyncStorage.setItem('@taban_ai_chat_history', JSON.stringify(messagesToSave));
+        }
+      } catch (e) {
+        console.log('Failed to save chat history', e);
+      }
+    };
+    saveChatHistory();
     setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
   }, [messages]);
 
@@ -140,17 +172,14 @@ export default function AIChatScreen() {
       const searchFilters = extractSearchQuery(rawText);
       const cleanedText = cleanText(rawText);
 
-      let cars: any[] = [];
-      if (searchFilters) {
-        cars = await searchCars(searchFilters);
-      }
-
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         text: cleanedText,
-        cars,
       };
+      if (searchFilters) {
+        assistantMsg.cars = await searchCars(searchFilters);
+      }
 
       setMessages(prev => [...prev, assistantMsg]);
     } catch (e) {
@@ -216,10 +245,8 @@ export default function AIChatScreen() {
       <View style={{ marginVertical: 6, alignItems: isUser ? 'flex-start' : 'flex-end' }}>
         {!isUser && (
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6, justifyContent: 'flex-end' }}>
-            <Text style={{ fontWeight: '900', fontSize: 13, color: '#CC222F', marginLeft: 6 }}>تەبان AI</Text>
-            <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#CC222F', alignItems: 'center', justifyContent: 'center' }}>
-              <Bot size={16} color="white" />
-            </View>
+            <Text style={{ fontWeight: '900', color: '#1f2937', fontSize: 18, marginRight: 6 }}>یارمەتیدەری زیرەکی تەبان <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981', marginLeft: 4 }} /></Text>
+            <Text style={{ color: '#94a3b8', fontSize: 12, fontWeight: '700' }}>ئۆنلاینە • Gemini AI</Text>
           </View>
         )}
         <View
