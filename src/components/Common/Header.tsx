@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Platform, StatusBar, Modal, TextInput, ScrollView, Image, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, Car, Search, X } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { useLocation } from '../../context/LocationContext';
 import { useLanguage } from '../../i18n/LanguageContext';
 import { supabase } from '../../lib/supabase';
-
-const STATUSBAR_HEIGHT = Platform.OS === 'ios' ? 44 : Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 20;
 
 const cities = [
   'هەولێر',
@@ -36,12 +35,15 @@ export const Header = () => {
   const { selectedCity, setSelectedCity } = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const { t, getTranslatedName } = useLanguage();
+  const insets = useSafeAreaInsets();
+  // On iOS, use the real safe area top + small gap; on Android use StatusBar height
+  const headerPaddingTop = Platform.OS === 'ios' ? insets.top + 4 : (StatusBar.currentHeight || 0) + 8;
 
   return (
     <>
       <View 
         className="bg-white border-b border-gray-50 shadow-sm"
-        style={{ paddingTop: STATUSBAR_HEIGHT + 10 }}
+        style={{ paddingTop: headerPaddingTop }}
       >
         <View className="flex-row items-center justify-between px-4 pb-4">
           <View className="flex-row items-center" style={{ gap: 5 }}>
