@@ -90,10 +90,10 @@ export default function AIChatScreen() {
       id: '0',
       role: 'assistant',
       text: language === 'ar'
-        ? 'مرحباً! أنا مساعد تابان كارز الذكي 🚗\nاسألني عن أي سيارة، السعر، المواصفات، أو ابحث عن سيارة مناسبة لك!'
+        ? 'مرحباً! هذا هو مساعد تابان كارز الذكي المخصص للسيارات وإيجادها 🚗\n\nاسألني عن أي سيارة تريدها، وسأبحث لك بسرعة.\n\nطوّرته شركة تابان كارز ✅'
         : language === 'en'
-        ? 'Hello! I\'m Taban Cars AI assistant 🚗\nAsk me anything about cars, prices, specs, or let me find the perfect car for you!'
-        : 'سڵاو! من یارمەتیدەری زیرەکی تەبان کارزم 🚗\nپرسیارێکم لێ بکە دەربارەی هەر سەیارەیەک، نرخ، مواسەفات، یان بۆت بگەڕێم بۆ سەیارەیەکی گونجاو!',
+        ? 'Hello! This is Taban Cars AI — your smart car finder 🚗\n\nAsk me about any car you want and I will find it for you quickly.\n\nDeveloped by Taban Cars ✅'
+        : 'سڵاو! ئێرە چاتی زیرەکی دەستکردە دەربارەی ئۆتۆمۆبێل و دۆزینەوەیە 🚗\n\nتکایە هەر جۆرە ئۆتۆمۆبێلەکت ئەوێ بپرسە، بە گەرانێکی خێرا بۆت دەدۆزینەوە.\n\nلەلایەن کۆمپانیای تابان کارس پەرەی پێدراوە ✅',
     }
   ]);
   const [input, setInput] = useState('');
@@ -317,20 +317,7 @@ export default function AIChatScreen() {
           showsVerticalScrollIndicator={false}
         />
 
-        {/* Suggestion chips (shown only when first message) */}
-        {messages.length === 1 && (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', paddingHorizontal: 16, gap: 8, marginBottom: 8 }}>
-            {suggestions.map((s, i) => (
-              <TouchableOpacity
-                key={i}
-                onPress={() => setInput(s)}
-                style={{ backgroundColor: '#fff5f5', borderWidth: 1, borderColor: '#fecaca', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 }}
-              >
-                <Text style={{ color: '#CC222F', fontWeight: '700', fontSize: 13 }}>{s}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+
 
         {/* Loading indicator */}
         {loading && (
