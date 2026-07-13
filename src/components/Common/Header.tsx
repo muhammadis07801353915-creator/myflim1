@@ -35,9 +35,8 @@ export const Header = () => {
   const { selectedCity, setSelectedCity } = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const { t, getTranslatedName } = useLanguage();
-  const insets = useSafeAreaInsets();
-  // On iOS, use the real safe area top + small gap; on Android use StatusBar height
-  const headerPaddingTop = Platform.OS === 'ios' ? insets.top : (StatusBar.currentHeight || 0) + 8;
+  // On iOS, SafeAreaView in the parent handles the notch. On Android use StatusBar height.
+  const headerPaddingTop = Platform.OS === 'ios' ? 0 : (StatusBar.currentHeight || 0) + 8;
 
   return (
     <>
