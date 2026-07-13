@@ -409,15 +409,13 @@ export default function ProfileScreen() {
             <Text className="mt-3 font-black text-gray-700 text-[13px]" numberOfLines={1}>{t('settings.exchangeRates')}</Text>
           </TouchableOpacity>
 
-          {/* AI Chat */}
+          {/* Language Selector */}
           <TouchableOpacity 
             className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
-            onPress={() => router.push('/ai-chat')}
+            onPress={openModal}
           >
-            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#CC222F', alignItems: 'center', justifyContent: 'center' }}>
-              <Bot size={22} color="white" />
-            </View>
-            <Text className="mt-3 font-black text-gray-700 text-[13px]">{t('settings.aiChat') || 'چاتی AI'}</Text>
+            <Globe size={32} color="#1f2937" />
+            <Text className="mt-3 font-black text-gray-700 text-[13px]" numberOfLines={1}>{t('settings.language')}</Text>
           </TouchableOpacity>
         </View>
 
