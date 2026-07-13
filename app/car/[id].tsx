@@ -1,4 +1,4 @@
-import { View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, Dimensions, Linking, ActivityIndicator, FlatList, Modal, Clipboard, Alert } from 'react-native';
+import { View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, Dimensions, Linking, ActivityIndicator, FlatList, Modal, Clipboard, Alert, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../src/lib/supabase';
@@ -208,17 +208,17 @@ export default function CarDetailsScreen() {
           {/* Quick Stats Grid */}
           <View className="flex-row flex-wrap justify-between mb-8">
              {[
-               { icon: <Cog size={20} color="#CC222F" />, val: car.engine_size ? car.engine_size : t('carDetails.notSpecified'), sub: t('carDetails.engine') },
-               { icon: <PistonIcon size={22} color="#CC222F" />, val: car.cylinders ? String(car.cylinders) : t('carDetails.notSpecified'), sub: t('carDetails.cylinder') },
-               { icon: <GearStickIcon size={22} color="#CC222F" />, val: getTranslatedName(car.transmission, 'transmissions') || car.transmission, sub: t('carDetails.transmission') },
-               { icon: <Fuel size={20} color="#CC222F" />, val: getTranslatedName(car.fuel_type, 'fuels1') || car.fuel_type, sub: t('carDetails.fuel') },
-               { icon: <Globe size={20} color="#CC222F" />, val: car.spec || t('carDetails.notSpecified'), sub: t('carDetails.specs') },
-               { icon: <Gauge size={20} color="#CC222F" />, val: `${car.mileage || 0} km`, sub: t('carDetails.mileage') },
+               { icon: <Cog size={Platform.OS === 'ios' ? 26 : 20} color="#CC222F" />, val: car.engine_size ? car.engine_size : t('carDetails.notSpecified'), sub: t('carDetails.engine') },
+               { icon: <PistonIcon size={Platform.OS === 'ios' ? 28 : 22} color="#CC222F" />, val: car.cylinders ? String(car.cylinders) : t('carDetails.notSpecified'), sub: t('carDetails.cylinder') },
+               { icon: <GearStickIcon size={Platform.OS === 'ios' ? 28 : 22} color="#CC222F" />, val: getTranslatedName(car.transmission, 'transmissions') || car.transmission, sub: t('carDetails.transmission') },
+               { icon: <Fuel size={Platform.OS === 'ios' ? 26 : 20} color="#CC222F" />, val: getTranslatedName(car.fuel_type, 'fuels1') || car.fuel_type, sub: t('carDetails.fuel') },
+               { icon: <Globe size={Platform.OS === 'ios' ? 26 : 20} color="#CC222F" />, val: car.spec || t('carDetails.notSpecified'), sub: t('carDetails.specs') },
+               { icon: <Gauge size={Platform.OS === 'ios' ? 26 : 20} color="#CC222F" />, val: `${car.mileage || 0} km`, sub: t('carDetails.mileage') },
              ].map((s, i) => (
                <View key={i} className="w-[31%] bg-slate-50/50 border border-slate-100 rounded-3xl p-4 items-center mb-3">
                   {s.icon}
-                  <Text className="text-slate-900 font-black text-[11px] mt-2 text-center" numberOfLines={1}>{s.val}</Text>
-                  <Text className="text-slate-400 text-[9px] font-bold mt-1">{s.sub}</Text>
+                  <Text style={{ fontSize: Platform.OS === 'ios' ? 13 : 11 }} className="text-slate-900 font-black mt-2 text-center" numberOfLines={1}>{s.val}</Text>
+                  <Text style={{ fontSize: Platform.OS === 'ios' ? 11 : 9 }} className="text-slate-400 font-bold mt-1">{s.sub}</Text>
                </View>
              ))}
           </View>
