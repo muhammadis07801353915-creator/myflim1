@@ -1,6 +1,6 @@
 import 'react-native-get-random-values';
 import { useEffect, useState, useRef } from 'react';
-import { Platform, Image, Animated, Dimensions, AppState, Text, TextInput } from 'react-native';
+import { Platform, Image, Animated, Dimensions, AppState, Text, TextInput, StatusBar } from 'react-native';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -263,6 +263,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" translucent={false} />
       <LanguageProvider>
         <ViewModeProvider>
           <LocationProvider>
