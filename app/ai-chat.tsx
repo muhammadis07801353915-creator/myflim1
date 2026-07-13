@@ -52,8 +52,15 @@ function extractSearchQuery(text: string): Record<string, any> | null {
   const match = text.match(/<SEARCH>(.*?)<\/SEARCH>/s);
   if (!match) return null;
   try {
-    return JSON.parse(match[1]);
-  } catch {
+    let jsonStr = match[1].trim();
+    if (jsonStr.startsWith('```json')) {
+      jsonStr = jsonStr.replace(/^```json/, '').replace(/```$/, '').trim();
+    } else if (jsonStr.startsWith('```')) {
+      jsonStr = jsonStr.replace(/^```/, '').replace(/```$/, '').trim();
+    }
+    return JSON.parse(jsonStr);
+  } catch (e) {
+    console.log("Failed to parse search query:", e);
     return null;
   }
 }
@@ -175,16 +182,32 @@ export default function AIChatScreen() {
       const data = await response.json();
       const rawText: string = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-      const searchFilters = extractSearchQuery(rawText);
-      const cleanedText = cleanText(rawText, language);
+      let searchFilters = extractSearchQuery(rawText);
+      let cleanedText = cleanText(rawText, language);
 
       const assistantMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         text: cleanedText,
       };
+
+      // If text contains the SEARCH tags but parsing failed, searchFilters will be null.
+      // We should show the empty state so the user isn't stuck.
+      const rawHasSearchTag = /<SEARCH>.*?<\/SEARCH>/s.test(rawText);
+
       if (searchFilters) {
         assistantMsg.cars = await searchCars(searchFilters);
+      } else if (rawHasSearchTag) {
+        // Parsing failed, or search was invalid, treat as empty results
+        assistantMsg.cars = [];
+        if (cleanedText === (language === 'ar' ? 'جاري البحث في قاعدة البيانات...' :
+                             language === 'en' ? 'Searching the database for you...' :
+                             'بەدوای ئەم داواکارییەدا دەگەڕێم...')) {
+          // Hide the fallback text if we are about to show the sad face anyway
+          assistantMsg.text = language === 'ar' ? 'لقد بحثت ولكن لم أجد تطابقاً تاماً.' :
+                              language === 'en' ? 'I searched but could not find an exact match.' :
+                              'گەڕانم کرد بەڵام هیچم نەدۆزیەوە.';
+        }
       }
 
       setMessages(prev => [...prev, assistantMsg]);
