@@ -692,71 +692,6 @@ export default function SellCarScreen() {
     }
   };
 
-  const pickPaymentImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: false,
-      quality: 0.8,
-      base64: true
-    });
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setSellData({ ...sellData, paymentImages: [result.assets[0]] });
-    }
-  };
-
-  const handlePublishClick = () => {
-    if (sellData.plan === 'vip') {
-      setStep(16);
-    } else {
-      handleSubmit();
-    }
-  };
-
-  const handleVIPSubmit = async () => {
-    if (!sellData.paymentImages || sellData.paymentImages.length === 0) {
-      alert('تکایە وێنەی کارتەکە دابنێ');
-      return;
-    }
-    // For now, we just act like we submit to database, but actually submit the car only without DB changes for payment yet
-    // As per user request: "وە جارێ لە داتابەیس مەیکە جارێ ئاوا بیکە کە تەواو بوو ئینجا"
-    setIsLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const imageUrls = await uploadImages();
-      
-      if (imageUrls.length === 0) {
-        throw new Error(t('sell.errorImage') as string);
-      }
-      
-      const { error } = await supabase.from('cars').insert({
-        brand: sellData.brand,
-        model: sellData.model,
-        year: sellData.year,
-        transmission: sellData.transmission,
-        fuel_type: sellData.fuel_type,
-        color: sellData.color,
-        mileage: sellData.mileage,
-        price: sellData.price,
-        phone: sellData.phone,
-        phone2: sellData.phone2 || null,
-        engine_size: sellData.engine_size,
-        description: sellData.description,
-        city: sellData.city,
-        governorate: sellData.governorate,
-        images: imageUrls,
-        status: 'pending',
-        user_id: user?.id || null,
-      });
-
-      if (error) throw error;
-      setStep(19);
-    } catch (err) {
-      alert(`${t('sell.errorPublish')} ` + err.message);
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const pickImage = async (index: number) => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -1343,8 +1278,7 @@ export default function SellCarScreen() {
                <Check size={100} color="white" strokeWidth={4} />
              </View>
           </View>
-          <Text className="text-4xl font-black text-[#1A1A1A] mb-6 text-center leading-tight">گەیشت!{"
-"}دەستەکانت خۆش</Text>
+          <Text className="text-4xl font-black text-[#1A1A1A] mb-6 text-center leading-tight">گەیشت!{"\n"}دەستەکانت خۆش</Text>
           <Text className="text-xl text-slate-600 mb-16 text-center leading-relaxed">لەماوەی 60 دەقە پێداچوونەوە بە پارەکە و ریکڵامەکەت دا دەکرێت و راستەوخۆ وەردەگیرێ</Text>
           <TouchableOpacity onPress={() => router.push('/')} className="w-full bg-[#0F172A] py-6 rounded-full items-center shadow-xl shadow-slate-900/20">
             <Text className="text-white text-2xl font-black">{t('sell.done')}</Text>

@@ -34,7 +34,7 @@ export default function RootLayout() {
 
   // Load custom font
   const [fontsLoaded] = useFonts({
-    'NRT-Regular': require('../../assets/fonts/NRT-Regular.ttf'),
+    'NRT-Regular': require('../assets/fonts/NRT-Regular.ttf'),
   });
 
   // Apply global font family when loaded
