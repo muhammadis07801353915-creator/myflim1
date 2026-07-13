@@ -22,7 +22,8 @@ import {
   ChevronLeft,
   Globe,
   Check,
-  DollarSign
+  DollarSign,
+  Bot
 } from 'lucide-react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -371,23 +372,12 @@ export default function ProfileScreen() {
 
           <TouchableOpacity 
             className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
-            onPress={() => {
-              if (!profile) {
-                Alert.alert(
-                  t('settings.loginCreateAccount'),
-                  '',
-                  [
-                    { text: t('settings.cancel'), style: 'cancel' },
-                    { text: t('settings.yes'), onPress: () => router.push('/auth/login') }
-                  ]
-                );
-              } else {
-                router.push('/sell');
-              }
-            }}
+            onPress={() => router.push('/ai-chat')}
           >
-            <Car size={32} color="#1f2937" />
-            <Text className="mt-3 font-black text-gray-700 text-[13px]">{t('settings.sell')}</Text>
+            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#CC222F', alignItems: 'center', justifyContent: 'center' }}>
+              <Bot size={22} color="white" />
+            </View>
+            <Text className="mt-3 font-black text-gray-700 text-[13px]">{language === 'ar' ? 'ذكاء اصطناعي' : language === 'en' ? 'AI Chat' : 'چاتی AI'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -402,6 +392,24 @@ export default function ProfileScreen() {
             <Text className="mt-3 font-black text-gray-700 text-[13px]">{t('settings.favoriteCars')}</Text>
           </TouchableOpacity>
 
+          {/* Sell */}
+          <TouchableOpacity
+            className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
+            onPress={() => {
+              if (!profile) {
+                Alert.alert(t('settings.loginCreateAccount'), '', [
+                  { text: t('settings.cancel'), style: 'cancel' },
+                  { text: t('settings.yes'), onPress: () => router.push('/auth/login') }
+                ]);
+              } else {
+                router.push('/sell');
+              }
+            }}
+          >
+            <Car size={32} color="#1f2937" />
+            <Text className="mt-3 font-black text-gray-700 text-[13px]">{t('settings.sell')}</Text>
+          </TouchableOpacity>
+
           {/* Currency Rates */}
           <TouchableOpacity
             className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
@@ -410,7 +418,10 @@ export default function ProfileScreen() {
             <DollarSign size={32} color="#1f2937" />
             <Text className="mt-3 font-black text-gray-700 text-[13px]" numberOfLines={1}>{t('settings.exchangeRates')}</Text>
           </TouchableOpacity>
+        </View>
 
+        {/* Third row: Language */}
+        <View className="flex-row justify-between mb-8">
           {/* Language */}
           <TouchableOpacity
             className="w-[31%] aspect-square bg-white border border-gray-100 rounded-[25px] items-center justify-center shadow-sm"
