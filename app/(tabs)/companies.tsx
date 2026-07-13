@@ -22,6 +22,7 @@ export default function CompaniesScreen() {
         .from('showrooms')
         .select('*')
         .eq('is_verified', true)
+        .order('sort_order', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;

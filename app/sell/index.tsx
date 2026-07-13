@@ -73,6 +73,7 @@ export default function SellCarScreen() {
     mileage: '', color: '', fuel_type: '', plate_type: '', plate_city: '', paint_status: '',
     description: '', currency: '$ (Dollar)', price: '', phone: '', phone2: '', mileage_unit: 'km',
     plan: 'free',
+    paymentMethod: '', paymentType: '', paymentImages: [],
     paymentMethod: '', paymentType: '', paymentImages: [], paymentNote: '',
     images: Array(8).fill(null),
     features: [] as string[]
@@ -691,6 +692,72 @@ export default function SellCarScreen() {
     }
   };
 
+  const pickPaymentImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      quality: 0.8,
+      base64: true
+    });
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setSellData({ ...sellData, paymentImages: [result.assets[0]] });
+    }
+  };
+
+  const handlePublishClick = () => {
+    if (sellData.plan === 'vip') {
+      setStep(16);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleVIPSubmit = async () => {
+    if (!sellData.paymentImages || sellData.paymentImages.length === 0) {
+      alert('تکایە وێنەی کارتەکە دابنێ');
+      return;
+    }
+    // For now, we just act like we submit to database, but actually submit the car only without DB changes for payment yet
+    // As per user request: "وە جارێ لە داتابەیس مەیکە جارێ ئاوا بیکە کە تەواو بوو ئینجا"
+    setIsLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const imageUrls = await uploadImages();
+      
+      if (imageUrls.length === 0) {
+        throw new Error(t('sell.errorImage') as string);
+      }
+      
+      const { error } = await supabase.from('cars').insert({
+        brand: sellData.brand,
+        model: sellData.model,
+        year: sellData.year,
+        transmission: sellData.transmission,
+        fuel_type: sellData.fuel_type,
+        color: sellData.color,
+        mileage: sellData.mileage,
+        price: sellData.price,
+        phone: sellData.phone,
+        phone2: sellData.phone2 || null,
+        engine_size: sellData.engine_size,
+        description: sellData.description,
+        city: sellData.city,
+        governorate: sellData.governorate,
+        images: imageUrls,
+        status: 'pending',
+        user_id: user?.id || null,
+      });
+
+      if (error) throw error;
+      setStep(19);
+    } catch (err) {
+      alert(`${t('sell.errorPublish')} ` + err.message);
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const pickImage = async (index: number) => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -1170,6 +1237,117 @@ export default function SellCarScreen() {
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setStep(17)} disabled={isLoading} className="w-full h-16 bg-white border border-slate-200 rounded-full items-center justify-center">
              <Text className="text-slate-600 text-xl font-bold">{t('payment.back')}</Text>
+          </TouchableOpacity>
+        </View>
+      );
+
+      
+      case 16: return (
+        <View className="flex-1 bg-slate-50 absolute inset-0 z-50">
+          <View className="bg-[#5B88D6] pt-16 pb-12 rounded-b-[40px] items-center shadow-lg">
+            <TouchableOpacity onPress={() => setStep(14)} className="absolute left-6 top-16 w-10 h-10 items-center justify-center">
+              <ChevronLeft size={30} color="white" />
+            </TouchableOpacity>
+            <Text className="text-white text-3xl font-bold mb-2">Payment</Text>
+            <Text className="text-white/80 text-lg">Select payment method</Text>
+          </View>
+          <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false}>
+            {/* Debit Card */}
+            <View className="flex-row items-center mb-4">
+               <CreditCard size={24} color="#475569" />
+               <Text className="text-slate-600 font-bold ml-2 text-xl">Debit Card</Text>
+            </View>
+            <View className="flex-row gap-4 mb-8">
+               <TouchableOpacity onPress={() => alert('بە زوویی بەردەست دەبێت')} className="flex-1 h-24 border border-slate-200 rounded-xl items-center justify-center bg-white shadow-sm">
+                  <Text className="text-blue-800 font-black text-3xl italic">VISA</Text>
+               </TouchableOpacity>
+               <TouchableOpacity onPress={() => alert('بە زوویی بەردەست دەبێت')} className="flex-1 h-24 border border-slate-200 rounded-xl items-center justify-center bg-white shadow-sm flex-row">
+                  <View className="w-8 h-8 rounded-full bg-red-500 opacity-90 -mr-3 z-10" />
+                  <View className="w-8 h-8 rounded-full bg-yellow-500 opacity-90" />
+               </TouchableOpacity>
+            </View>
+            
+            {/* e-Wallets */}
+            <View className="flex-row items-center mb-4 mt-4">
+               <Wallet size={24} color="#475569" />
+               <Text className="text-slate-600 font-bold ml-2 text-xl">e-Wallets</Text>
+            </View>
+            <View className="flex-row flex-wrap gap-4">
+               <TouchableOpacity onPress={() => alert('بە زوویی بەردەست دەبێت')} className="w-[85px] h-[85px] bg-[#E12A61] rounded-full items-center justify-center shadow-md">
+                  <Text className="text-white font-black">FastPay</Text>
+               </TouchableOpacity>
+               <TouchableOpacity onPress={() => alert('بە زوویی بەردەست دەبێت')} className="w-[85px] h-[85px] bg-[#00A8B8] rounded-full items-center justify-center shadow-md">
+                   <Text className="text-white font-black text-lg">FIB</Text>
+               </TouchableOpacity>
+               <TouchableOpacity onPress={() => { setSellData({...sellData, paymentMethod: 'korek'}); setStep(17); }} className={`w-[85px] h-[85px] rounded-full items-center justify-center shadow-md ${sellData.paymentMethod === 'korek' ? 'border-4 border-emerald-500 bg-[#0B5ED7]' : 'bg-[#0B5ED7]'}`}>
+                  <Text className="text-white font-black text-xs">KOREK</Text>
+               </TouchableOpacity>
+               <TouchableOpacity onPress={() => { setSellData({...sellData, paymentMethod: 'asiacell'}); setStep(17); }} className={`w-[85px] h-[85px] rounded-full items-center justify-center shadow-md ${sellData.paymentMethod === 'asiacell' ? 'border-4 border-emerald-500 bg-[#E30613]' : 'bg-[#E30613]'}`}>
+                  <Text className="text-white font-black text-[10px]">Asiacell</Text>
+               </TouchableOpacity>
+            </View>
+          </ScrollView>
+          <View className="p-6 bg-white border-t border-slate-100 pb-10">
+             <TouchableOpacity onPress={() => { if (!sellData.paymentMethod) { alert('تکایە جۆرێک هەڵبژێرە'); return; } setStep(17); }} className="w-full h-16 bg-[#4CA66B] rounded-full items-center justify-center shadow-lg">
+                <Text className="text-white text-xl font-bold">Next</Text>
+             </TouchableOpacity>
+          </View>
+        </View>
+      );
+      case 17: return (
+        <View className="flex-1 px-6 pt-10 absolute inset-0 z-50 bg-slate-50">
+          <TouchableOpacity onPress={() => setStep(16)} className="w-12 h-12 bg-white rounded-full items-center justify-center shadow-sm mb-6 mt-10">
+            <ChevronLeft size={24} color="#1e293b" />
+          </TouchableOpacity>
+          <Text className="text-2xl font-black text-slate-800 mb-8 text-center">شێوازی پارەدان هەڵبژێرە</Text>
+          <TouchableOpacity onPress={() => setStep(18)} className="bg-white p-8 rounded-3xl mb-4 border border-slate-200 items-center justify-center shadow-sm h-40">
+             <Camera size={40} color="#475569" className="mb-4" />
+             <Text className="text-xl font-bold text-slate-700">ناردن بە وێنەی کارتی پڕکردنەوە</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => alert('بە زوویی بەردەست دەبێت')} className="bg-white p-8 rounded-3xl border border-slate-200 items-center justify-center shadow-sm h-40 opacity-70">
+             <Send size={40} color="#475569" className="mb-4" />
+             <Text className="text-xl font-bold text-slate-700">ناردن بە شێوەی باڵانس</Text>
+          </TouchableOpacity>
+        </View>
+      );
+      case 18: return (
+        <View className="flex-1 px-6 pt-10 absolute inset-0 z-50 bg-slate-50">
+          <TouchableOpacity onPress={() => setStep(17)} className="w-12 h-12 bg-white rounded-full items-center justify-center shadow-sm mb-6 mt-10">
+            <ChevronLeft size={24} color="#1e293b" />
+          </TouchableOpacity>
+          <Text className="text-3xl font-black text-slate-800 mb-4 text-center">وێنەی کارتەکە دابنێ</Text>
+          <Text className="text-lg text-slate-600 mb-10 text-center leading-relaxed">تکایە لەو بەشە وێنەی کارتەکە دابنێ و پاشان بنێرێ</Text>
+          
+          <TouchableOpacity onPress={pickPaymentImage} className="w-full h-64 bg-white rounded-[40px] border-2 border-dashed border-slate-300 items-center justify-center mb-10 overflow-hidden shadow-sm">
+             {sellData.paymentImages && sellData.paymentImages[0] ? (
+                <Image source={{uri: sellData.paymentImages[0].uri}} className="w-full h-full" resizeMode="cover" />
+             ) : (
+                <>
+                  <View className="w-20 h-20 bg-slate-50 rounded-full items-center justify-center mb-4">
+                    <Camera size={32} color="#94A3B8" />
+                  </View>
+                  <Text className="text-slate-500 font-bold text-lg">وێنەی کارت هەڵبژێرە</Text>
+                </>
+             )}
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={handleVIPSubmit} disabled={isLoading} className="w-full h-16 bg-[#CC222F] rounded-full items-center justify-center shadow-lg">
+             {isLoading ? <ActivityIndicator color="white" /> : <Text className="text-white text-2xl font-black">ناردن</Text>}
+          </TouchableOpacity>
+        </View>
+      );
+      case 19: return (
+        <View className="flex-1 items-center justify-center px-10 absolute inset-0 z-50 bg-white">
+          <View className="w-48 h-48 bg-purple-500 rounded-[50px] items-center justify-center mb-10 shadow-xl shadow-purple-500/40 rotate-12">
+             <View className="-rotate-12">
+               <Check size={100} color="white" strokeWidth={4} />
+             </View>
+          </View>
+          <Text className="text-4xl font-black text-[#1A1A1A] mb-6 text-center leading-tight">گەیشت!{"
+"}دەستەکانت خۆش</Text>
+          <Text className="text-xl text-slate-600 mb-16 text-center leading-relaxed">لەماوەی 60 دەقە پێداچوونەوە بە پارەکە و ریکڵامەکەت دا دەکرێت و راستەوخۆ وەردەگیرێ</Text>
+          <TouchableOpacity onPress={() => router.push('/')} className="w-full bg-[#0F172A] py-6 rounded-full items-center shadow-xl shadow-slate-900/20">
+            <Text className="text-white text-2xl font-black">{t('sell.done')}</Text>
           </TouchableOpacity>
         </View>
       );
