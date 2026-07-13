@@ -133,7 +133,7 @@ export default function EditPostScreen() {
     } else if (type === 'condition') {
       data = ['Used', 'New'].map(n => ({ id: n, name: n === 'Used' ? 'بەکارهاتوو' : 'نوێ' }));
     } else if (type === 'import_country') {
-      data = ['خەلیجی', 'ئەمریکی', 'کەنەدی', 'ئەورووپی', 'ژاپۆنی', 'کۆری'].map(n => ({ id: n, name: n }));
+      data = ['خەلیجی', 'ئەمریکی', 'کەنەدی', 'ئەورووپی', 'ژاپۆنی', 'کۆری', 'ئەڵمانی'].map(n => ({ id: n, name: n }));
     } else if (type === 'plate_type') {
       data = ['عراقی', 'بێ پلەیت', 'ئیستیمارا'].map(n => ({ id: n, name: n }));
     } else if (type === 'paint_status') {
