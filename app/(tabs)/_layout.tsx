@@ -18,8 +18,8 @@ export default function TabsLayout() {
           tabBarInactiveTintColor: '#9ca3af',
           tabBarStyle: {
             backgroundColor: '#ffffff',
-            height: Platform.OS === 'ios' ? 85 : 70,
-            paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+            height: Platform.OS === 'ios' ? 85 : 60 + insets.bottom,
+            paddingBottom: Platform.OS === 'ios' ? 20 : insets.bottom + 4,
             elevation: 10,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -2 },
