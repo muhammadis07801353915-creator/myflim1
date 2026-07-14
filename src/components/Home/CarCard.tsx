@@ -59,6 +59,7 @@ export const CarCard = ({ car, idx, fullWidth = false, isLarge = false }: any) =
           source={{ uri: car.image }} 
           className="w-full h-32"
           resizeMode="cover"
+          style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
         />
         {car.vip_plan && (
           <View className="absolute top-0 left-0 bg-[#CC222F] px-3 py-1 rounded-br-2xl">
