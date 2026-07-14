@@ -174,7 +174,7 @@ export default function RootLayout() {
         if (globalSupportRef.current) supabase.removeChannel(globalSupportRef.current);
         setupGlobalListeners();
         // Mark online on login
-        supabase.rpc('set_user_online', { p_user_id: session.user.id, p_is_online: true }).catch(() => {});
+        try { await supabase.rpc('set_user_online', { p_user_id: session.user.id, p_is_online: true }); } catch (_) {}
       } else {
         // Signed out — remove channels
         if (globalChatRef.current) supabase.removeChannel(globalChatRef.current);
@@ -186,21 +186,20 @@ export default function RootLayout() {
     setupGlobalListeners();
 
     // Mark user online on mount
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        supabase.rpc('set_user_online', { p_user_id: data.user.id, p_is_online: true }).catch(() => {});
-      }
-    });
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (data.user) await supabase.rpc('set_user_online', { p_user_id: data.user.id, p_is_online: true });
+      } catch (_) {}
+    })();
 
     // Track AppState to update presence
     const appStateListener = AppState.addEventListener('change', async (nextState) => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) return;
-      if (nextState === 'active') {
-        supabase.rpc('set_user_online', { p_user_id: data.user.id, p_is_online: true }).catch(() => {});
-      } else {
-        supabase.rpc('set_user_online', { p_user_id: data.user.id, p_is_online: false }).catch(() => {});
-      }
+      try {
+        const { data } = await supabase.auth.getUser();
+        if (!data.user) return;
+        await supabase.rpc('set_user_online', { p_user_id: data.user.id, p_is_online: nextState === 'active' });
+      } catch (_) {}
     });
 
     return () => {
@@ -211,7 +210,9 @@ export default function RootLayout() {
       if (globalSupportRef.current) supabase.removeChannel(globalSupportRef.current);
       // Mark offline on unmount
       supabase.auth.getUser().then(({ data }) => {
-        if (data.user) supabase.rpc('set_user_online', { p_user_id: data.user.id, p_is_online: false }).catch(() => {});
+        if (data.user) {
+          try { supabase.rpc('set_user_online', { p_user_id: data.user.id, p_is_online: false }); } catch (_) {}
+        }
       });
     };
   }, []);
