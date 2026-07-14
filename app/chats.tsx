@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   Search,
   Send,
+  Check,
   CheckCheck,
   Phone,
   MoreVertical,
@@ -888,7 +889,7 @@ export default function ChatsScreen() {
                           {isMe && (
                             msg.is_read
                               ? <CheckCheck size={12} color="rgba(147,197,253,1)" />
-                              : <CheckCheck size={12} color="rgba(255,255,255,0.5)" />
+                              : <Check size={12} color="rgba(255,255,255,0.6)" />
                           )}
                         </View>
                       </View>
