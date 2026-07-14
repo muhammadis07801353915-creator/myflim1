@@ -67,6 +67,10 @@ export default function ChatsScreen() {
   const realtimeRef = useRef<any>(null);
   const chatsRealtimeRef = useRef<any>(null);
   const showroomChatsRealtimeRef = useRef<any>(null);
+  const presenceRef = useRef<any>(null);
+
+  const [otherOnline, setOtherOnline] = useState(false);
+  const [otherLastSeen, setOtherLastSeen] = useState<string | null>(null);
 
   // ── 1. Get current user & detect if Supabase tables exist ───────────
   useEffect(() => {
@@ -428,11 +432,14 @@ export default function ChatsScreen() {
     setSelectedChat(chat);
     setIsModalVisible(true);
     setLoadingMessages(true);
+    setOtherOnline(false);
+    setOtherLastSeen(null);
 
     if (useSupabase && !chat.isLocal) {
       // Mark read
       const table = chat.isShowroomChat ? 'showroom_chats' : 'chats';
       const messagesTable = chat.isShowroomChat ? 'showroom_messages' : 'messages';
+      const markFn = chat.isShowroomChat ? 'mark_showroom_messages_read' : 'mark_messages_read';
       
       let unreadField = 'buyer_unread';
       if (!chat.isShowroomChat) {
@@ -440,6 +447,35 @@ export default function ChatsScreen() {
       }
 
       await supabase.from(table).update({ [unreadField]: 0 }).eq('id', chat.id);
+      // Mark individual messages as read
+      if (currentUserId) {
+        await supabase.rpc(markFn, { p_chat_id: chat.id, p_reader_id: currentUserId });
+      }
+
+      // Fetch other user's online status
+      const otherId = chat.otherId || (chat.buyer_id === currentUserId ? chat.seller_id : chat.buyer_id);
+      if (otherId && !chat.isShowroomChat) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_online, last_seen')
+          .eq('id', otherId)
+          .single();
+        if (profile) {
+          setOtherOnline(profile.is_online || false);
+          setOtherLastSeen(profile.last_seen || null);
+        }
+
+        // Realtime presence
+        if (presenceRef.current) supabase.removeChannel(presenceRef.current);
+        presenceRef.current = supabase
+          .channel(`presence:${otherId}`)
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${otherId}` },
+            (payload: any) => {
+              setOtherOnline(payload.new.is_online || false);
+              setOtherLastSeen(payload.new.last_seen || null);
+            })
+          .subscribe();
+      }
 
       // Load messages
       const { data } = await supabase
@@ -450,7 +486,7 @@ export default function ChatsScreen() {
 
       setMessages(data || []);
 
-      // Realtime
+      // Realtime new messages
       if (realtimeRef.current) supabase.removeChannel(realtimeRef.current);
       realtimeRef.current = supabase
         .channel(`msgs:${chat.id}`)
@@ -462,11 +498,21 @@ export default function ChatsScreen() {
               if (prev.find((m) => m.id === payload.new.id)) return prev;
               return [...prev, payload.new];
             });
-            // Play sound only when the message is from the other person
+            // Mark as read immediately since we're viewing the chat
+            if (payload.new.sender_id !== currentUserId && currentUserId) {
+              supabase.rpc(markFn, { p_chat_id: chat.id, p_reader_id: currentUserId });
+            }
             if (payload.new.sender_id !== currentUserId) {
               playMessageSound();
             }
             setTimeout(() => messagesScrollRef.current?.scrollToEnd({ animated: true }), 100);
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: messagesTable, filter: `chat_id=eq.${chat.id}` },
+          (payload: any) => {
+            setMessages((prev) => prev.map((m) => m.id === payload.new.id ? payload.new : m));
           }
         )
         .subscribe();
@@ -483,9 +529,15 @@ export default function ChatsScreen() {
     setIsModalVisible(false);
     setSelectedChat(null);
     setMessages([]);
+    setOtherOnline(false);
+    setOtherLastSeen(null);
     if (realtimeRef.current) {
       supabase.removeChannel(realtimeRef.current);
       realtimeRef.current = null;
+    }
+    if (presenceRef.current) {
+      supabase.removeChannel(presenceRef.current);
+      presenceRef.current = null;
     }
     fetchChats();
   };
@@ -581,6 +633,18 @@ export default function ChatsScreen() {
   };
 
   // ── Helpers ──────────────────────────────────────────────────────────
+  const formatLastSeen = (iso: string | null): string => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const now = new Date();
+    const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000);
+    if (diffMin < 1) return 'هەڵسووکەوت';
+    if (diffMin < 60) return `${diffMin} خولەک پێش`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr} کاتژمێر پێش`;
+    return `${Math.floor(diffHr / 24)} رۆژ پێش`;
+  };
+
   const formatTime = (iso: string) => {
     if (!iso) return '';
     const d = new Date(iso);
@@ -735,11 +799,15 @@ export default function ChatsScreen() {
                       </Text>
                     </View>
                   )}
-                  <View className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white" />
+                  {otherOnline && <View className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white" />}
                 </View>
                 <View className="items-end">
                   <Text className="text-base font-black text-slate-800">{selectedChat.otherName}</Text>
-                  <Text className="text-[10px] text-emerald-500 font-bold">Online</Text>
+                  {otherOnline ? (
+                    <Text className="text-[10px] text-emerald-500 font-bold">لەخەتە</Text>
+                  ) : otherLastSeen ? (
+                    <Text className="text-[10px] text-slate-400 font-bold">{formatLastSeen(otherLastSeen)}</Text>
+                  ) : null}
                 </View>
               </View>
               <View className="flex-row items-center gap-3">
@@ -803,6 +871,7 @@ export default function ChatsScreen() {
               >
                 {messages.map((msg: any, idx: number) => {
                   const isMe = msg.sender_id === currentUserId || msg.sender_id === 'me';
+                  const isLast = idx === messages.length - 1;
                   const timeStr = msg.created_at
                     ? `${new Date(msg.created_at).getHours().toString().padStart(2,'0')}:${new Date(msg.created_at).getMinutes().toString().padStart(2,'0')}`
                     : '';
@@ -816,7 +885,11 @@ export default function ChatsScreen() {
                         </Text>
                         <View className="flex-row items-center justify-end mt-1 gap-1">
                           <Text className={`text-[9px] ${isMe ? 'text-white/70' : 'text-slate-400'}`}>{timeStr}</Text>
-                          {isMe && <CheckCheck size={10} color="rgba(255,255,255,0.8)" />}
+                          {isMe && (
+                            msg.is_read
+                              ? <CheckCheck size={12} color="rgba(147,197,253,1)" />
+                              : <CheckCheck size={12} color="rgba(255,255,255,0.5)" />
+                          )}
                         </View>
                       </View>
                     </View>

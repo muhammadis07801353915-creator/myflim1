@@ -63,6 +63,10 @@ export default function ShowroomChatScreen() {
   const hasProcessedAutoStart = useRef(false);
   const messagesScrollRef = useRef<ScrollView>(null);
   const realtimeRef = useRef<any>(null);
+  const presenceRef = useRef<any>(null);
+
+  const [otherOnline, setOtherOnline] = useState(false);
+  const [otherLastSeen, setOtherLastSeen] = useState<string | null>(null);
 
   // ── 1. Get current user & detect if Supabase tables exist ───────────
   useEffect(() => {
@@ -353,12 +357,19 @@ export default function ShowroomChatScreen() {
     setSelectedChat(chat);
     setIsModalVisible(true);
     setLoadingMessages(true);
+    setOtherOnline(false);
+    setOtherLastSeen(null);
 
     if (useSupabase && !chat.isLocal) {
       // Mark read
       const unreadField =
         chat.buyer_id === currentUserId ? 'buyer_unread' : 'showroom_unread';
       await supabase.from('showroom_chats').update({ [unreadField]: 0 }).eq('id', chat.id);
+
+      // Mark individual messages as read
+      if (currentUserId) {
+        await supabase.rpc('mark_showroom_messages_read', { p_chat_id: chat.id, p_reader_id: currentUserId });
+      }
 
       // Load messages
       const { data } = await supabase
@@ -369,7 +380,7 @@ export default function ShowroomChatScreen() {
 
       setMessages(data || []);
 
-      // Realtime
+      // Realtime new messages
       if (realtimeRef.current) supabase.removeChannel(realtimeRef.current);
       realtimeRef.current = supabase
         .channel(`msgs:${chat.id}`)
@@ -381,11 +392,20 @@ export default function ShowroomChatScreen() {
               if (prev.find((m) => m.id === payload.new.id)) return prev;
               return [...prev, payload.new];
             });
-            // Play sound only when the message is from the other person
+            if (payload.new.sender_id !== currentUserId && currentUserId) {
+              supabase.rpc('mark_showroom_messages_read', { p_chat_id: chat.id, p_reader_id: currentUserId });
+            }
             if (payload.new.sender_id !== currentUserId) {
               playMessageSound();
             }
             setTimeout(() => messagesScrollRef.current?.scrollToEnd({ animated: true }), 100);
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'showroom_messages', filter: `chat_id=eq.${chat.id}` },
+          (payload: any) => {
+            setMessages((prev) => prev.map((m) => m.id === payload.new.id ? payload.new : m));
           }
         )
         .subscribe();
@@ -402,9 +422,15 @@ export default function ShowroomChatScreen() {
     setIsModalVisible(false);
     setSelectedChat(null);
     setMessages([]);
+    setOtherOnline(false);
+    setOtherLastSeen(null);
     if (realtimeRef.current) {
       supabase.removeChannel(realtimeRef.current);
       realtimeRef.current = null;
+    }
+    if (presenceRef.current) {
+      supabase.removeChannel(presenceRef.current);
+      presenceRef.current = null;
     }
     fetchChats();
   };
@@ -498,6 +524,18 @@ export default function ShowroomChatScreen() {
   };
 
   // ── Helpers ──────────────────────────────────────────────────────────
+  const formatLastSeen = (iso: string | null): string => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const now = new Date();
+    const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000);
+    if (diffMin < 1) return 'هەڵسووکەوت';
+    if (diffMin < 60) return `${diffMin} خولەک پێش`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr} کاتژمێر پێش`;
+    return `${Math.floor(diffHr / 24)} رۆژ پێش`;
+  };
+
   const formatTime = (iso: string) => {
     if (!iso) return '';
     const d = new Date(iso);
@@ -652,11 +690,15 @@ export default function ShowroomChatScreen() {
                       </Text>
                     </View>
                   )}
-                  <View className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white" />
+                  {otherOnline && <View className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white" />}
                 </View>
                 <View className="items-end">
                   <Text className="text-base font-black text-slate-800">{selectedChat.otherName}</Text>
-                  <Text className="text-[10px] text-emerald-500 font-bold">Online</Text>
+                  {otherOnline ? (
+                    <Text className="text-[10px] text-emerald-500 font-bold">لەخەتە</Text>
+                  ) : otherLastSeen ? (
+                    <Text className="text-[10px] text-slate-400 font-bold">{formatLastSeen(otherLastSeen)}</Text>
+                  ) : null}
                 </View>
               </View>
               <View className="flex-row items-center gap-3">
@@ -733,7 +775,11 @@ export default function ShowroomChatScreen() {
                         </Text>
                         <View className="flex-row items-center justify-end mt-1 gap-1">
                           <Text className={`text-[9px] ${isMe ? 'text-white/70' : 'text-slate-400'}`}>{timeStr}</Text>
-                          {isMe && <CheckCheck size={10} color="rgba(255,255,255,0.8)" />}
+                          {isMe && (
+                            msg.is_read
+                              ? <CheckCheck size={12} color="rgba(147,197,253,1)" />
+                              : <CheckCheck size={12} color="rgba(255,255,255,0.5)" />
+                          )}
                         </View>
                       </View>
                     </View>
