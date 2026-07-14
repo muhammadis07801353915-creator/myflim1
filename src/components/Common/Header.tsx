@@ -49,7 +49,7 @@ export const Header = () => {
             {/* Location Button */}
             <TouchableOpacity 
               onPress={() => setModalVisible(true)}
-              className="flex-row items-center justify-center h-[42px] px-3.5 bg-gray-50 rounded-xl border border-gray-100"
+              className="flex-row items-center justify-center h-[42px] px-3 bg-gray-50 rounded-xl border border-gray-100"
             >
               <MapPin size={Platform.OS === 'ios' ? 18 : 16} color="#4b5563" />
               <Text style={{ fontSize: Platform.OS === 'ios' ? 15 : 13, lineHeight: 18 }} className="text-gray-700 ml-1 font-bold">
@@ -74,7 +74,7 @@ export const Header = () => {
                   router.push('/sell');
                 }
               }}
-              className="flex-row items-center justify-center h-[42px] px-3.5 bg-[#b3191f]/5 rounded-xl border border-[#b3191f]/10"
+              className="flex-row items-center justify-center h-[42px] px-3 bg-[#b3191f]/5 rounded-xl border border-[#b3191f]/10"
               style={{ gap: 4 }}
             >
               <Text style={{ fontSize: Platform.OS === 'ios' ? 15 : 13, lineHeight: 18 }} className="font-bold text-[#b3191f]">{t('header.sell')}</Text>
