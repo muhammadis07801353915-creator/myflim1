@@ -14,6 +14,15 @@ import { supabase } from '../src/lib/supabase';
 import { registerForPushNotificationsAsync, savePushToken } from '../src/lib/notifications';
 import { showChatNotification } from '../src/lib/useMessageSound';
 
+// Set up global fonts before any component renders
+const TextProps = (Text as any).defaultProps || {};
+TextProps.style = [{ fontFamily: 'NRT-Regular' }, TextProps.style];
+(Text as any).defaultProps = TextProps;
+
+const TextInputProps = (TextInput as any).defaultProps || {};
+TextInputProps.style = [{ fontFamily: 'NRT-Regular' }, TextInputProps.style];
+(TextInput as any).defaultProps = TextInputProps;
+
 // Simple UUID generator that works in React Native without the uuid package
 function generateUUID(): string {
   const bytes = new Uint8Array(16);
@@ -36,21 +45,6 @@ export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     'NRT-Regular': require('../assets/fonts/NRT-Regular.ttf'),
   });
-
-  // Apply global font family when loaded
-  useEffect(() => {
-    if (fontsLoaded) {
-      // Setup global default props for React Native Text and TextInput
-      const TextProps = (Text as any).defaultProps || {};
-      TextProps.style = [{ fontFamily: 'NRT-Regular' }, TextProps.style];
-      (Text as any).defaultProps = TextProps;
-
-      const TextInputProps = (TextInput as any).defaultProps || {};
-      TextInputProps.style = [{ fontFamily: 'NRT-Regular' }, TextInputProps.style];
-      (TextInput as any).defaultProps = TextInputProps;
-    }
-  }, [fontsLoaded]);
-
 
   // Global message notification listener refs
   const globalChatRef = useRef<any>(null);
