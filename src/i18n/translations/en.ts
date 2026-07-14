@@ -44,6 +44,7 @@ export default {
     "transmission": "Transmission",
     "fuel": "Fuel",
     "specs": "Specs",
+    "carFeatures": "Car Features",
     "notSpecified": "Not Specified",
     "mileage": "Mileage",
     "make": "Make",

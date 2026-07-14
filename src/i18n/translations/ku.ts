@@ -43,6 +43,7 @@ export default {
     "transmission": "گێڕ",
     "fuel": "سووتەمەنی",
     "specs": "مواسەفات",
+    "carFeatures": "تایبەتمەندییەکان",
     "notSpecified": "دیاری نەکراوە",
     "mileage": "کیلۆمەتر",
     "make": "براند",

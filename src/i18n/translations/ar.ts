@@ -43,6 +43,7 @@ export default {
     "transmission": "ناقل الحركة",
     "fuel": "الوقود",
     "specs": "المواصفات",
+    "carFeatures": "مميزات السيارة",
     "notSpecified": "غير محدد",
     "mileage": "المسافة",
     "make": "الصنع",
