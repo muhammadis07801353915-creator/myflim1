@@ -241,7 +241,7 @@ export default function CarDetailsScreen() {
               activeOpacity={0.8}
             >
               <View className="flex-row-reverse items-center justify-between px-5 py-4">
-                <Text className="text-slate-900 font-black text-base">مواسەفاتی سەیارەکە</Text>
+                <Text className="text-slate-900 font-black text-base">{t('carDetails.carFeatures')}</Text>
                 <View className="flex-row items-center gap-2">
                   <View className="bg-[#CC222F] px-2.5 py-0.5 rounded-full">
                     <Text className="text-white text-xs font-black">{car.features.length}</Text>
@@ -413,7 +413,7 @@ export default function CarDetailsScreen() {
           <TouchableOpacity className="flex-1" activeOpacity={1} onPress={() => setFeaturesModalVisible(false)} />
           <View className="bg-white rounded-t-[40px] p-8" style={{ maxHeight: '65%' }}>
             <View className="w-12 h-1.5 bg-gray-200 rounded-full self-center mb-6" />
-            <Text className="text-2xl font-black text-slate-900 mb-6 text-center">مواسەفاتی سەیارەکە</Text>
+            <Text className="text-2xl font-black text-slate-900 mb-6 text-center">{t('carDetails.carFeatures')}</Text>
             <ScrollView showsVerticalScrollIndicator={false}>
               <View className="flex-row-reverse flex-wrap gap-3 pb-8">
                 {(car?.features || []).map((featureId: string) => {
@@ -430,7 +430,7 @@ export default function CarDetailsScreen() {
               onPress={() => setFeaturesModalVisible(false)}
               className="mt-2 py-4 items-center bg-slate-50 rounded-2xl"
             >
-              <Text className="text-slate-700 font-black text-base">داخستن</Text>
+              <Text className="text-slate-700 font-black text-base">{t('carDetails.close')}</Text>
             </TouchableOpacity>
           </View>
         </View>
