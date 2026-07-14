@@ -397,6 +397,29 @@ export default {
       {c: "#F00", n: "Red"}, {c: "#00F", n: "Blue"}, {c: "#0F0", n: "Green"}, {c: "#FF0", n: "Yellow"}
     ]
   },
+  fuels: {
+    "بەنزین": "Petrol",
+    "Gasoline": "Petrol",
+    "Petrol": "Petrol",
+    "هایبرێد": "Hybrid",
+    "Hybrid": "Hybrid",
+    "کارەبایی": "Electric",
+    "Electric": "Electric",
+    "گاز": "Diesel",
+    "Diesel": "Diesel"
+  },
+  colorsMap: {
+    "سپی": "White", "سپى": "White", "White": "White",
+    "ڕەش": "Black", "Black": "Black",
+    "زیڤی": "Silver", "زیوی": "Silver", "Silver": "Silver",
+    "خۆلەمێشی": "Gray", "رەساسی": "Gray", "Gray": "Gray",
+    "سۆر": "Red", "سوور": "Red", "Red": "Red",
+    "شین": "Blue", "Blue": "Blue",
+    "کەسک": "Green", "سەوز": "Green", "Green": "Green",
+    "زەر": "Yellow", "زەرد": "Yellow", "Yellow": "Yellow",
+    "قاوەیی": "Brown", "Brown": "Brown",
+    "پرتەقاڵی": "Orange", "Orange": "Orange"
+  },
   locations: {
     "ئەنبار": "Anbar",
     "بابیل": "Babil",

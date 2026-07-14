@@ -211,7 +211,7 @@ export default function CarDetailsScreen() {
                { icon: <Cog size={Platform.OS === 'ios' ? 26 : 20} color="#CC222F" />, val: car.engine_size ? car.engine_size : t('carDetails.notSpecified'), sub: t('carDetails.engine') },
                { icon: <PistonIcon size={Platform.OS === 'ios' ? 28 : 22} color="#CC222F" />, val: car.cylinders ? String(car.cylinders) : t('carDetails.notSpecified'), sub: t('carDetails.cylinder') },
                { icon: <GearStickIcon size={Platform.OS === 'ios' ? 28 : 22} color="#CC222F" />, val: getTranslatedName(car.transmission, 'transmissions') || car.transmission, sub: t('carDetails.transmission') },
-               { icon: <Fuel size={Platform.OS === 'ios' ? 26 : 20} color="#CC222F" />, val: getTranslatedName(car.fuel_type, 'fuels1') || car.fuel_type, sub: t('carDetails.fuel') },
+               { icon: <Fuel size={Platform.OS === 'ios' ? 26 : 20} color="#CC222F" />, val: getTranslatedName(car.fuel_type, 'fuels') || car.fuel_type, sub: t('carDetails.fuel') },
                { icon: <Globe size={Platform.OS === 'ios' ? 26 : 20} color="#CC222F" />, val: car.spec || t('carDetails.notSpecified'), sub: t('carDetails.specs') },
                { icon: <Gauge size={Platform.OS === 'ios' ? 26 : 20} color="#CC222F" />, val: `${car.mileage || 0} km`, sub: t('carDetails.mileage') },
              ].map((s, i) => (
@@ -225,7 +225,7 @@ export default function CarDetailsScreen() {
 
           {/* Details Table */}
           <View className="space-y-4 mb-6">
-             {[{l: t('carDetails.make'), v: getTranslatedName(car.brand, 'brands') || car.brand}, {l: t('carDetails.model'), v: getTranslatedName(car.model, 'models') || car.model}, {l: t('carDetails.year'), v: car.year}, {l: t('carDetails.transmission'), v: getTranslatedName(car.transmission, 'transmissions') || car.transmission}, {l: t('carDetails.fuel'), v: getTranslatedName(car.fuel_type, 'fuels1') || car.fuel_type}, {l: t('carDetails.color'), v: getTranslatedName(car.color, 'colors') || car.color}].map((x, i) => (
+             {[{l: t('carDetails.make'), v: getTranslatedName(car.brand, 'brands') || car.brand}, {l: t('carDetails.model'), v: getTranslatedName(car.model, 'models') || car.model}, {l: t('carDetails.year'), v: car.year}, {l: t('carDetails.transmission'), v: getTranslatedName(car.transmission, 'transmissions') || car.transmission}, {l: t('carDetails.fuel'), v: getTranslatedName(car.fuel_type, 'fuels') || car.fuel_type}, {l: t('carDetails.color'), v: getTranslatedName(car.color, 'colorsMap') || car.color}].map((x, i) => (
                <View key={i} className="flex-row justify-between py-3 border-b border-slate-50">
                   <Text className="text-slate-400 font-bold text-sm">{x.l}</Text>
                   <Text className="text-slate-900 font-black text-sm">{x.v}</Text>
