@@ -1,6 +1,7 @@
 import 'react-native-get-random-values';
 import { useEffect, useState, useRef } from 'react';
-import { Platform, Image, Animated, Dimensions, AppState, Text, TextInput, StatusBar } from 'react-native';
+import {  Platform, Image, Animated, Dimensions, AppState, Text as RNText, TextInput, StatusBar  } from 'react-native';
+import { Text } from '../src/components/Common/CustomText';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

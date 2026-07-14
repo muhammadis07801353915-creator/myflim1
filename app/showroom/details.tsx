@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, Dimensions, Linking } from 'react-native';
+import {  View, Text as RNText, SafeAreaView, ScrollView, Image, TouchableOpacity, Dimensions, Linking  } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, MapPin, Phone, Globe, Share2, Info } from 'lucide-react-native';
 

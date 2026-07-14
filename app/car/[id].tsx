@@ -1,4 +1,5 @@
-import { View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, Dimensions, Linking, ActivityIndicator, FlatList, Modal, Clipboard, Alert, Platform } from 'react-native';
+import {  View, Text as RNText, SafeAreaView, ScrollView, Image, TouchableOpacity, Dimensions, Linking, ActivityIndicator, FlatList, Modal, Clipboard, Alert, Platform  } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../src/lib/supabase';

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, Image, ActivityIndicator, RefreshControl, Alert, Animated, Dimensions, Modal, TouchableWithoutFeedback } from 'react-native';
+import {  View, Text as RNText, SafeAreaView, TouchableOpacity, ScrollView, Image, ActivityIndicator, RefreshControl, Alert, Animated, Dimensions, Modal, TouchableWithoutFeedback  } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import { useViewMode } from '../../src/context/ViewModeContext';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';

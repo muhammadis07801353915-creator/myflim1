@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Image, TextInput, Modal, FlatList, ActivityIndicator, Dimensions } from 'react-native';
+import {  View, Text as RNText, SafeAreaView, ScrollView, TouchableOpacity, Image, TextInput, Modal, FlatList, ActivityIndicator, Dimensions  } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import { ChevronDown, ArrowRight, Search, X, Check, Car, MapPin, ChevronLeft, CheckCircle2 } from 'lucide-react-native';
 import { supabase } from '../../src/lib/supabase';
 import { useRouter, useLocalSearchParams } from 'expo-router';

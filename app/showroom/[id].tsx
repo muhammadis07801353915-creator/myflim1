@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, SafeAreaView, ScrollView, Image, TouchableOpacity, Dimensions, Linking, ActivityIndicator, FlatList } from 'react-native';
+import {  View, Text as RNText, SafeAreaView, ScrollView, Image, TouchableOpacity, Dimensions, Linking, ActivityIndicator, FlatList  } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ChevronLeft, MapPin, Phone, Globe, Share2, Info, BadgeCheck, Car, Building2, ExternalLink } from 'lucide-react-native';
 import { supabase } from '../../src/lib/supabase';

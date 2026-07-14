@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {  
   View, 
-  Text, 
+  Text as RNText, 
   TouchableOpacity, 
   ScrollView, 
   TextInput, 
@@ -14,7 +14,8 @@ import {
   BackHandler,
   Platform,
   Linking
-} from 'react-native';
+ } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { 
   ChevronLeft, 

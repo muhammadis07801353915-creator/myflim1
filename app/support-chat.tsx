@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
+import { 
   View,
-  Text,
+  Text as RNText,
   SafeAreaView,
   TouchableOpacity,
   TextInput,
@@ -10,7 +10,8 @@ import {
   Platform,
   StatusBar,
   ActivityIndicator,
-} from 'react-native';
+ } from 'react-native';
+import { Text } from '../src/components/Common/CustomText';
 import {
   ChevronLeft,
   Send,

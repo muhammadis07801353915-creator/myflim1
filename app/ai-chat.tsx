@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
+import { 
   View,
-  Text,
+  Text as RNText,
   TextInput,
   TouchableOpacity,
   FlatList,
@@ -11,7 +11,8 @@ import {
   SafeAreaView,
   Image,
   Keyboard,
-} from 'react-native';
+ } from 'react-native';
+import { Text } from '../src/components/Common/CustomText';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { supabase } from '../src/lib/supabase';

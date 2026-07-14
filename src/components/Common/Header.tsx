@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Platform, StatusBar, Modal, TextInput, ScrollView, Image, Alert } from 'react-native';
+import {  View, Text as RNText, TouchableOpacity, Platform, StatusBar, Modal, TextInput, ScrollView, Image, Alert  } from 'react-native';
+import { Text } from './CustomText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, Car, Search, X } from 'lucide-react-native';
 import { useRouter } from 'expo-router';

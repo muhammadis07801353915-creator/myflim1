@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import {  View, Text as RNText, ScrollView, TouchableOpacity, Image, ActivityIndicator  } from 'react-native';
+import { Text } from '../Common/CustomText';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { ArrowRight, Car } from 'lucide-react-native';

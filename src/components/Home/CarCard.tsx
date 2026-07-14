@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import {  View, Text as RNText, TouchableOpacity, Image  } from 'react-native';
+import { Text } from '../Common/CustomText';
 import { MapPin, Heart } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 

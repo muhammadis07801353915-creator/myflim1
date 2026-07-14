@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, TouchableOpacity, ScrollView, TextInput, Modal,
+import { 
+  View, Text as RNText, TouchableOpacity, ScrollView, TextInput, Modal,
   FlatList, ActivityIndicator, Image, SafeAreaView, Alert, BackHandler
-} from 'react-native';
+ } from 'react-native';
+import { Text } from '../src/components/Common/CustomText';
 import { ChevronLeft, ChevronDown, Camera, X, Check, Save } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../src/lib/supabase';

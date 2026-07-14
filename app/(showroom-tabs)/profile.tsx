@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
+import { 
   View,
-  Text,
+  Text as RNText,
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
@@ -16,7 +16,8 @@ import {
   KeyboardAvoidingView,
   StyleSheet,
   Dimensions,
-} from 'react-native';
+ } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import {
   Camera,
   Building2,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
+import {  
   View, 
-  Text, 
+  Text as RNText, 
   SafeAreaView, 
   TouchableOpacity, 
   FlatList, 
@@ -12,7 +12,8 @@ import {
   Modal,
   Platform,
   StatusBar
-} from 'react-native';
+ } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, MoreVertical, Eye, Trash2, CheckCircle, Edit, MapPin, Search } from 'lucide-react-native';
 import { supabase } from '../../src/lib/supabase';

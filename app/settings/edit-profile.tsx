@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Image, TextInput, ActivityIndicator, Alert, Modal } from 'react-native';
+import {  View, Text as RNText, SafeAreaView, ScrollView, TouchableOpacity, Image, TextInput, ActivityIndicator, Alert, Modal  } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import { ChevronRight, Camera, Phone, Pencil, ShieldCheck, X, Trash2 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../src/lib/supabase';

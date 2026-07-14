@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import {  View, Text as RNText, SafeAreaView, ScrollView, TouchableOpacity, Image, Dimensions  } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import { ChevronLeft, Check, Grid, List } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { CarCard } from '../../src/components/Home/CarCard';

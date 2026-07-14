@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, SafeAreaView, FlatList, RefreshControl, ActivityIndicator, TouchableOpacity, Image, Dimensions, ScrollView, Linking } from 'react-native';
+import {  View, Text as RNText, SafeAreaView, FlatList, RefreshControl, ActivityIndicator, TouchableOpacity, Image, Dimensions, ScrollView, Linking  } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import { supabase } from '../../src/lib/supabase';
 import { ShowroomHeader } from '../../src/components/Common/ShowroomHeader';
 import { CategoryList } from '../../src/components/Home/CategoryList';

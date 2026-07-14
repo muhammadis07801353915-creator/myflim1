@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import {  View, Text as RNText, SafeAreaView, TouchableOpacity, ScrollView, Animated  } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, ArrowUpRight, ArrowDownRight, Activity, DollarSign, Euro, PoundSterling, Coins } from 'lucide-react-native';
 import { useLanguage } from '../../src/i18n/LanguageContext';

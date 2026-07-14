@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { SafeAreaView, ScrollView, Text, TouchableOpacity, View, Image, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import {  SafeAreaView, ScrollView, Text as RNText, TouchableOpacity, View, Image, ActivityIndicator, Alert, RefreshControl  } from 'react-native';
+import { Text } from '../src/components/Common/CustomText';
 import { Eye, CheckCircle2, CircleDollarSign, PencilLine, MapPin, ChevronLeft } from 'lucide-react-native';
 import { supabase } from '../src/lib/supabase';
 import { useRouter } from 'expo-router';

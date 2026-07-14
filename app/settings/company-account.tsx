@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {  
   View, 
-  Text, 
+  Text as RNText, 
   SafeAreaView, 
   ScrollView, 
   TouchableOpacity, 
@@ -12,7 +12,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   StatusBar
-} from 'react-native';
+ } from 'react-native';
+import { Text } from '../../src/components/Common/CustomText';
 import { ChevronLeft, Camera, Building, MapPin, Clock, CheckCircle2, ChevronDown, Search, Check, X } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';

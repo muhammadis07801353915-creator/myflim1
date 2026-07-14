@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Platform, StatusBar, Modal, TextInput, ScrollView, Image, ActivityIndicator } from 'react-native';
+import {  View, Text as RNText, TouchableOpacity, Platform, StatusBar, Modal, TextInput, ScrollView, Image, ActivityIndicator  } from 'react-native';
+import { Text } from './CustomText';
 import { MapPin, Car, Search, X, PhoneCall } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
