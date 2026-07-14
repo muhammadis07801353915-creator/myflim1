@@ -698,8 +698,10 @@ export default function ShowroomChatScreen() {
                   {otherOnline ? (
                     <Text className="text-[10px] text-emerald-500 font-bold">لەخەتە</Text>
                   ) : otherLastSeen ? (
-                    <Text className="text-[10px] text-slate-400 font-bold">{formatLastSeen(otherLastSeen)}</Text>
-                  ) : null}
+                    <Text className="text-[10px] text-slate-400 font-bold">دوایین بوونە: {formatLastSeen(otherLastSeen)}</Text>
+                  ) : (
+                    <Text className="text-[10px] text-slate-400 font-bold">لەخەت نییە</Text>
+                  )}
                 </View>
               </View>
               <View className="flex-row items-center gap-3">
