@@ -10,6 +10,9 @@ module.exports = {
         primary: '#b3191f',
         background: '#ffffff',
       },
+      fontFamily: {
+        sans: ['NRT-Regular', 'sans-serif'],
+      },
       fontWeight: {
         thin: 'normal',
         extralight: 'normal',

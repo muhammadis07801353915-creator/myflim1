@@ -40,13 +40,17 @@ export default function RootLayout() {
   // Apply global font family when loaded
   useEffect(() => {
     if (fontsLoaded) {
-      if ((Text as any).defaultProps == null) (Text as any).defaultProps = {};
-      (Text as any).defaultProps.style = { fontFamily: 'NRT-Regular' };
-      
-      if ((TextInput as any).defaultProps == null) (TextInput as any).defaultProps = {};
-      (TextInput as any).defaultProps.style = { fontFamily: 'NRT-Regular' };
+      // Setup global default props for React Native Text and TextInput
+      const TextProps = (Text as any).defaultProps || {};
+      TextProps.style = [{ fontFamily: 'NRT-Regular' }, TextProps.style];
+      (Text as any).defaultProps = TextProps;
+
+      const TextInputProps = (TextInput as any).defaultProps || {};
+      TextInputProps.style = [{ fontFamily: 'NRT-Regular' }, TextInputProps.style];
+      (TextInput as any).defaultProps = TextInputProps;
     }
   }, [fontsLoaded]);
+
 
   // Global message notification listener refs
   const globalChatRef = useRef<any>(null);
