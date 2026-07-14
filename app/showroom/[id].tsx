@@ -163,9 +163,9 @@ export default function ShowroomDetailsScreen() {
                 <TouchableOpacity 
                   key={car.id} 
                   onPress={() => router.push(`/car/${car.id}`)}
-                  className="flex-row mb-6 bg-white overflow-hidden"
+                  className="flex-row mb-4 bg-white p-3 rounded-[24px] border border-slate-100 items-center shadow-sm"
                 >
-                  <Image source={{ uri: car.images?.[0] || car.image_urls?.[0] || 'https://via.placeholder.com/400' }} className="w-32 h-24 rounded-[20px]" />
+                  <Image source={{ uri: car.images?.[0] || car.image_urls?.[0] || 'https://via.placeholder.com/400' }} className="w-32 h-28 rounded-[16px]" />
                   <View className="flex-1 ml-4 justify-between py-1">
                     <Text className="text-[17px] font-black text-slate-900 text-right">{getTranslatedName(car.brand, 'brands')} {getTranslatedName(car.model, 'models')}</Text>
                     <View className="flex-row items-center justify-end" style={{ gap: 8 }}>
