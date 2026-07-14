@@ -166,7 +166,7 @@ export default function RootLayout() {
     };
 
     // Set up listeners on auth change
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         // Clean up old channels first
         if (globalChatRef.current) supabase.removeChannel(globalChatRef.current);
