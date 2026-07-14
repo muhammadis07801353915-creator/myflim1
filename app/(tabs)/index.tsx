@@ -204,16 +204,15 @@ export default function HomeScreen() {
       );
     }
 
-    // ORIGINAL GRID CARD
+    // ORIGINAL GRID CARD (untouched)
     return (
       <TouchableOpacity 
         key={item.id}
         onPress={() => router.push(`/car/${item.id}`)}
-        className={`${isHorizontal ? "w-44 mr-4" : "w-[48%]"} bg-white rounded-[20px] mb-4 overflow-hidden`}
-        style={{ borderWidth: 1, borderColor: '#e2e8f0' }}
+        className={isHorizontal ? "w-44 mr-4" : "w-[48%]"}
       >
         <View className="relative">
-          <Image source={{ uri: item.images?.[0] || item.image_urls?.[0] }} className={`w-full ${isHorizontal ? 'h-28' : 'h-32'}`} resizeMode="cover" />
+          <Image source={{ uri: item.images?.[0] || item.image_urls?.[0] }} className={`w-full ${isHorizontal ? 'h-28' : 'h-36'} rounded-[20px]`} resizeMode="cover" />
           {item.vip_plan && (
              <View className="absolute top-0 left-0 bg-[#FF5A5F] px-4 py-1.5 rounded-br-xl rotate-[-5deg] mt-[-2px] ml-[-2px] shadow-sm shadow-red-500/50">
                 <Text className="text-white font-black text-[11px] tracking-widest">VIP</Text>
@@ -226,7 +225,7 @@ export default function HomeScreen() {
             </View>
           )}
         </View>
-        <View className="p-3">
+        <View className="mt-2 px-1">
           <Text className="text-gray-900 font-black text-[14px]" numberOfLines={1}>{getTranslatedName(item.brand, 'brands')} {getTranslatedName(item.model, 'models')}</Text>
           <Text className="text-slate-400 text-[11px] font-bold mt-0.5">{item.year} • {item.mileage || 0} km</Text>
           <View className="flex-row justify-between items-center mt-2">
