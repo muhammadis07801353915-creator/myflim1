@@ -12,7 +12,8 @@ export const CarCard = ({ car, idx, fullWidth = false, isLarge = false }: any) =
     return (
       <TouchableOpacity 
         onPress={() => router.push(`/car/${car.id}`)}
-        className="w-full bg-white rounded-[20px] mb-4 overflow-hidden border border-gray-200 shadow-sm"
+        className="w-full bg-white rounded-[20px] mb-4 overflow-hidden shadow-sm"
+        style={{ borderWidth: 1, borderColor: '#e2e8f0' }}
       >
         <View className="relative">
           <Image 
@@ -52,7 +53,8 @@ export const CarCard = ({ car, idx, fullWidth = false, isLarge = false }: any) =
   return (
     <TouchableOpacity 
       onPress={() => router.push(`/car/${car.id}`)}
-      className="w-full bg-white rounded-[20px] mb-4 overflow-hidden border border-gray-200 shadow-sm"
+      className="w-full bg-white rounded-[20px] mb-4 overflow-hidden shadow-sm"
+      style={{ borderWidth: 1, borderColor: '#e2e8f0' }}
     >
       <View className="relative">
         <Image 
