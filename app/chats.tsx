@@ -222,7 +222,7 @@ export default function ChatsScreen() {
 
     // Subscribe to chats table changes for this user
     chatsRealtimeRef.current = supabase
-      .channel('chats_list_user')
+      .channel(`chats_list_user_${Date.now()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'chats', filter: `buyer_id=eq.${currentUserId}` },
@@ -237,7 +237,7 @@ export default function ChatsScreen() {
 
     // Subscribe to showroom_chats
     showroomChatsRealtimeRef.current = supabase
-      .channel('showroom_chats_list_user')
+      .channel(`showroom_chats_list_user_${Date.now()}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'showroom_chats', filter: `buyer_id=eq.${currentUserId}` },

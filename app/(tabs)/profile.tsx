@@ -148,7 +148,7 @@ export default function ProfileScreen() {
     if (!user) return;
     if (chatsRealtimeRef.current) supabase.removeChannel(chatsRealtimeRef.current);
     chatsRealtimeRef.current = supabase
-      .channel('profile_chats_unread')
+      .channel(`profile_chats_unread_${Date.now()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'chats', filter: `buyer_id=eq.${user.id}` },
         () => fetchRecentChats()
       )
@@ -182,7 +182,7 @@ export default function ProfileScreen() {
       supabase.removeChannel(adminChatRealtimeRef.current);
     }
     adminChatRealtimeRef.current = supabase
-      .channel('support_chats_user')
+      .channel(`support_chats_user_${Date.now()}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'support_chats', filter: `user_id=eq.${user.id}` },
