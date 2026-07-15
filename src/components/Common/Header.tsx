@@ -52,10 +52,10 @@ export const Header = () => {
             <TouchableOpacity 
               onPress={() => setModalVisible(true)}
               className="flex-row items-center justify-center bg-gray-50 rounded-xl border border-gray-100"
-              style={{ height: isKurdish ? 36 : 42, paddingHorizontal: isKurdish ? 8 : 12 }}
+              style={{ height: isKurdish ? 39 : 42, paddingHorizontal: isKurdish ? 10 : 12 }}
             >
-              <MapPin size={isKurdish ? 14 : (Platform.OS === 'ios' ? 18 : 16)} color="#4b5563" />
-              <Text style={{ fontSize: isKurdish ? 11 : (Platform.OS === 'ios' ? 15 : 13), lineHeight: 16 }} className="text-gray-700 ml-1 font-bold">
+              <MapPin size={isKurdish ? 15 : (Platform.OS === 'ios' ? 18 : 16)} color="#4b5563" />
+              <Text style={{ fontSize: isKurdish ? 12 : (Platform.OS === 'ios' ? 15 : 13), lineHeight: 17 }} className="text-gray-700 ml-1 font-bold">
                 {selectedCity === 'هەموو شارەکان' ? t('header.allCities') : getTranslatedName(selectedCity, 'locations')}
               </Text>
             </TouchableOpacity>
@@ -78,10 +78,10 @@ export const Header = () => {
                 }
               }}
               className="flex-row items-center justify-center bg-[#b3191f]/5 rounded-xl border border-[#b3191f]/10"
-              style={{ height: isKurdish ? 36 : 42, paddingHorizontal: isKurdish ? 8 : 12, gap: 4 }}
+              style={{ height: isKurdish ? 39 : 42, paddingHorizontal: isKurdish ? 10 : 12, gap: 4 }}
             >
-              <Text style={{ fontSize: isKurdish ? 11 : (Platform.OS === 'ios' ? 15 : 13), lineHeight: 16 }} className="font-bold text-[#b3191f]">{t('header.sell')}</Text>
-              <Car size={isKurdish ? 14 : (Platform.OS === 'ios' ? 18 : 16)} color="#b3191f" />
+              <Text style={{ fontSize: isKurdish ? 12 : (Platform.OS === 'ios' ? 15 : 13), lineHeight: 17 }} className="font-bold text-[#b3191f]">{t('header.sell')}</Text>
+              <Car size={isKurdish ? 15 : (Platform.OS === 'ios' ? 18 : 16)} color="#b3191f" />
             </TouchableOpacity>
           </View>
           
