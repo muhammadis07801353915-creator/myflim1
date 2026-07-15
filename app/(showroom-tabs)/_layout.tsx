@@ -38,7 +38,7 @@ export default function ShowroomTabsLayout() {
           tabBarLabelStyle: {
             fontFamily: 'NRT-Regular',
             fontSize: 11,
-            fontWeight: '700',
+            fontWeight: 'normal',
             marginBottom: 8,
           }
         }}>
