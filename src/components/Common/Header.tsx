@@ -35,7 +35,8 @@ export const Header = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const { selectedCity, setSelectedCity } = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
-  const { t, getTranslatedName } = useLanguage();
+  const { t, getTranslatedName, language } = useLanguage();
+  const isKurdish = language === 'ckb' || language === 'ku';
   // On iOS, SafeAreaView handles the notch, but we add a small 12px gap for aesthetics. On Android use StatusBar height.
   const headerPaddingTop = Platform.OS === 'ios' ? 12 : (StatusBar.currentHeight || 0) + 8;
 
@@ -50,10 +51,11 @@ export const Header = () => {
             {/* Location Button */}
             <TouchableOpacity 
               onPress={() => setModalVisible(true)}
-              className="flex-row items-center justify-center h-[42px] px-3 bg-gray-50 rounded-xl border border-gray-100"
+              className="flex-row items-center justify-center bg-gray-50 rounded-xl border border-gray-100"
+              style={{ height: isKurdish ? 36 : 42, paddingHorizontal: isKurdish ? 8 : 12 }}
             >
-              <MapPin size={Platform.OS === 'ios' ? 18 : 16} color="#4b5563" />
-              <Text style={{ fontSize: Platform.OS === 'ios' ? 15 : 13, lineHeight: 18 }} className="text-gray-700 ml-1 font-bold">
+              <MapPin size={isKurdish ? 14 : (Platform.OS === 'ios' ? 18 : 16)} color="#4b5563" />
+              <Text style={{ fontSize: isKurdish ? 11 : (Platform.OS === 'ios' ? 15 : 13), lineHeight: 16 }} className="text-gray-700 ml-1 font-bold">
                 {selectedCity === 'هەموو شارەکان' ? t('header.allCities') : getTranslatedName(selectedCity, 'locations')}
               </Text>
             </TouchableOpacity>
@@ -75,11 +77,11 @@ export const Header = () => {
                   router.push('/sell');
                 }
               }}
-              className="flex-row items-center justify-center h-[42px] px-3 bg-[#b3191f]/5 rounded-xl border border-[#b3191f]/10"
-              style={{ gap: 4 }}
+              className="flex-row items-center justify-center bg-[#b3191f]/5 rounded-xl border border-[#b3191f]/10"
+              style={{ height: isKurdish ? 36 : 42, paddingHorizontal: isKurdish ? 8 : 12, gap: 4 }}
             >
-              <Text style={{ fontSize: Platform.OS === 'ios' ? 15 : 13, lineHeight: 18 }} className="font-bold text-[#b3191f]">{t('header.sell')}</Text>
-              <Car size={Platform.OS === 'ios' ? 18 : 16} color="#b3191f" />
+              <Text style={{ fontSize: isKurdish ? 11 : (Platform.OS === 'ios' ? 15 : 13), lineHeight: 16 }} className="font-bold text-[#b3191f]">{t('header.sell')}</Text>
+              <Car size={isKurdish ? 14 : (Platform.OS === 'ios' ? 18 : 16)} color="#b3191f" />
             </TouchableOpacity>
           </View>
           
