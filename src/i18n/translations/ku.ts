@@ -88,6 +88,14 @@ export default {
     "topShowrooms": "باشترین پێشانگاکان",
     "more": "زیاتر",
   },
+  header: {
+    "allCities": "هەموو شارەکان",
+    "sell": "فرۆشتن",
+    "chooseCity": "شارێک هەڵبژێرە",
+    "searchCities": "گەڕان لە شارەکان...",
+    "cancel": "داخستن",
+    "save": "پاشەکەوت",
+  },
   search: {
     "search": "گەڕان",
     "findCars": "دۆزینەوەی {count} سەیارە",
