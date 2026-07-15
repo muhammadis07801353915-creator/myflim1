@@ -285,19 +285,32 @@ export default function ChatsScreen() {
     if (useSupabase && currentUserId && sellerId) {
       // === SUPABASE MODE ===
       try {
-        // Check existing chat with this seller
-        const { data: existing } = await supabase
+        // Fetch all chats with this seller (handle duplicates gracefully)
+        let { data: existingList } = await supabase
           .from('chats')
           .select('*')
           .eq('buyer_id', currentUserId)
           .eq('seller_id', sellerId)
-          .maybeSingle();
+          .order('last_message_at', { ascending: false })
+          .limit(10);
+
+        // Pick exact car match first, then most recent
+        let existing: any = null;
+        if (existingList && existingList.length > 0) {
+          existing = existingList.find((c: any) => c.car_id === carId) || existingList[0];
+        }
 
         let chatToOpen = existing;
 
         if (existing) {
-          // If it's a different car, update the chat header to the new car and send new message
-          if (existing.car_brand !== carBrand || existing.car_model !== carModel || existing.car_year !== carYear) {
+          const isSameCar = existing.car_id === carId || (
+            existing.car_brand === carBrand &&
+            existing.car_model === carModel &&
+            String(existing.car_year) === String(carYear)
+          );
+
+          if (!isSameCar) {
+            // Different car from same seller → update and send new message
             await supabase.from('chats').update({
               car_id: carId || null,
               car_brand: carBrand,
@@ -315,17 +328,20 @@ export default function ChatsScreen() {
               text: firstMessage,
             });
 
-            chatToOpen = { 
-              ...existing, 
-              car_brand: carBrand, 
-              car_model: carModel, 
-              car_year: carYear, 
-              car_price: carPrice, 
+            chatToOpen = {
+              ...existing,
+              car_id: carId,
+              car_brand: carBrand,
+              car_model: carModel,
+              car_year: carYear,
+              car_price: carPrice,
               car_image: carImage,
               last_message: firstMessage
             };
           }
+          // Same car → just open, no duplicate message
         } else {
+          // No existing chat → create new
           const { data: newChat, error } = await supabase
             .from('chats')
             .insert({
