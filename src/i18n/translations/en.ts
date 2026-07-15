@@ -60,12 +60,12 @@ export default {
     "cancel": "Cancel",
     "chooseContact": "Choose contact method",
     "howToContact": "How do you want to contact the seller?",
+    "initialMessage": "Hello, I am contacting you through the Taban Cars app regarding the car post {brand} {model} ({year}) which is listed for {price}.",
     "inAppChat": "In-App Chat (Taban Chat)",
     "liveChat": "Live chat inside the app",
     "whatsapp": "WhatsApp",
     "whatsappMsg": "Sending a message via WhatsApp",
     "images": "Images",
-    "carFeatures": "Car Features",
     "close": "Close",
   },
 

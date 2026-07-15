@@ -59,6 +59,7 @@ export default {
     "cancel": "إلغاء",
     "chooseContact": "اختر طريقة التواصل",
     "howToContact": "كيف تريد التواصل مع البائع؟",
+    "initialMessage": "مرحباً سيدي، أتواصل معك عبر تطبيق Taban Cars بخصوص إعلان سيارة {brand} {model} ({year}) المعروضة بسعر {price}.",
     "inAppChat": "محادثة داخل التطبيق (Taban Chat)",
     "liveChat": "محادثة مباشرة داخل التطبيق",
     "whatsapp": "واتساب (WhatsApp)",

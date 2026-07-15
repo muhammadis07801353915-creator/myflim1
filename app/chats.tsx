@@ -47,7 +47,7 @@ const getStorageKey = (uid: string | null) => `@taban_chats_v2_${uid || 'guest'}
 export default function ChatsScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { t } = useLanguage();
+  const { t, getTranslatedName } = useLanguage();
   const insets = useSafeAreaInsets();
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -275,7 +275,11 @@ export default function ChatsScreen() {
     const carPrice = params.carPrice as string;
     const carImage = params.carImage as string;
 
-    const firstMessage = `سڵاو بەڕێزم، من لە ڕێگەی ئەپی Taban Carsـەوە پەیوەندی دەکەم سەبارەت بە پۆستی ئۆتۆمبێلی ${carBrand} ${carModel} (${carYear}) کە بە نرخی ${carPrice} بڵاوتکردووەتەوە.`;
+    const firstMessage = t('carDetails.initialMessage')
+      .replace('{brand}', typeof carBrand === 'string' ? getTranslatedName(carBrand, 'brands') : '')
+      .replace('{model}', typeof carModel === 'string' ? getTranslatedName(carModel, 'models') : '')
+      .replace('{year}', typeof carYear === 'string' ? carYear : '')
+      .replace('{price}', typeof carPrice === 'string' ? carPrice : '');
 
     if (useSupabase && currentUserId && sellerId) {
       // === SUPABASE MODE ===

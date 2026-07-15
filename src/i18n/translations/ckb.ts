@@ -59,6 +59,7 @@ export default {
     "cancel": "پاشگەزبوونەوە",
     "chooseContact": "شێوازی گفتوگۆ هەڵبژێرە",
     "howToContact": "چۆن دەتەوێت پەیوەندی بە فرۆشیارەوە بکەیت؟",
+    "initialMessage": "سڵاو بەڕێزم، من لە ڕێگەی ئەپی Taban Cars ەوە پەیوەندی دەکەم سەبارەت بە پۆستی ئۆتۆمبێلی {brand} {model} ({year}) کە بە نرخی {price} بڵاوتکردووەتەوە.",
     "inAppChat": "چاتی ناو ئەپ (Taban Chat)",
     "liveChat": "گفتوگۆی ڕاستەوخۆ لەناو ئەپەکەتدا",
     "whatsapp": "وەتسئاپ (WhatsApp)",

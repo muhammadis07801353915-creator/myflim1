@@ -33,6 +33,7 @@ import { supabase } from '../src/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { playMessageSound } from '../src/lib/useMessageSound';
+import { useLanguage } from '../src/i18n/LanguageContext';
 
 const STATUSBAR_HEIGHT =
   Platform.OS === 'ios'
@@ -47,6 +48,7 @@ export default function ShowroomChatScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const insets = useSafeAreaInsets();
+  const { t, getTranslatedName } = useLanguage();
 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isUserLoaded, setIsUserLoaded] = useState(false);
@@ -200,7 +202,11 @@ export default function ShowroomChatScreen() {
     const carPrice = params.carPrice as string;
     const carImage = params.carImage as string;
 
-    const firstMessage = `سڵاو بەڕێزم، من لە ڕێگەی ئەپی Taban Carsـەوە پەیوەندی دەکەم سەبارەت بە پۆستی ئۆتۆمبێلی ${carBrand} ${carModel} (${carYear}) کە بە نرخی ${carPrice} بڵاوتکردووەتەوە.`;
+    const firstMessage = t('carDetails.initialMessage')
+      .replace('{brand}', typeof carBrand === 'string' ? getTranslatedName(carBrand, 'brands') : '')
+      .replace('{model}', typeof carModel === 'string' ? getTranslatedName(carModel, 'models') : '')
+      .replace('{year}', typeof carYear === 'string' ? carYear : '')
+      .replace('{price}', typeof carPrice === 'string' ? carPrice : '');
 
     if (useSupabase && currentUserId && showroomId) {
       // === SUPABASE MODE ===

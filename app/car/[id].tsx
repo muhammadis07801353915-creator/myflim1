@@ -369,7 +369,21 @@ export default function CarDetailsScreen() {
                         </TouchableOpacity>
 
                         <TouchableOpacity 
-                          onPress={() => setContactModalVisible(true)} 
+                          onPress={async () => {
+                            const { data: { user } } = await supabase.auth.getUser();
+                            if (!user) {
+                              Alert.alert(
+                                t('settings.loginCreateAccount'),
+                                '',
+                                [
+                                  { text: t('carDetails.cancel'), style: 'cancel' },
+                                  { text: t('settings.yes'), onPress: () => router.push('/auth/login') }
+                                ]
+                              );
+                            } else {
+                              setContactModalVisible(true);
+                            }
+                          }} 
                           className="w-[70px] h-[50px] bg-[#4ade80] rounded-[16px] items-center justify-center"
                         >
                            <MessageCircle size={24} color="white" />
@@ -557,7 +571,12 @@ export default function CarDetailsScreen() {
                   onPress={() => {
                     setContactModalVisible(false);
                     setTimeout(() => {
-                      Linking.openURL(`whatsapp://send?phone=${(car.phone || car.phone2 || seller?.phone || '07500000000').replace(/^0/, '+964')}`);
+                      const message = t('carDetails.initialMessage')
+                        .replace('{brand}', getTranslatedName(car.brand, 'brands'))
+                        .replace('{model}', getTranslatedName(car.model, 'models'))
+                        .replace('{year}', car.year?.toString() || '')
+                        .replace('{price}', `$${car.price?.toLocaleString()}`);
+                      Linking.openURL(`whatsapp://send?phone=${(car.phone || car.phone2 || seller?.phone || '07500000000').replace(/^0/, '+964')}&text=${encodeURIComponent(message)}`);
                     }, 300);
                   }}
                   className="w-full bg-slate-50 border border-slate-100 p-5 rounded-[25px] flex-row-reverse items-center justify-between shadow-sm"
