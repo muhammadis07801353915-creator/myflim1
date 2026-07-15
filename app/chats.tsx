@@ -26,6 +26,7 @@ import {
   MoreVertical,
   Car,
   MessageSquare,
+  MessageCircle,
   ArrowLeft,
 } from 'lucide-react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -669,6 +670,39 @@ export default function ChatsScreen() {
   );
 
   // ── RENDER ────────────────────────────────────────────────────────────
+  if (!isUserLoaded) {
+    return (
+      <View className="flex-1 bg-white items-center justify-center">
+        <ActivityIndicator size="large" color="#CC222F" />
+      </View>
+    );
+  }
+
+  if (!currentUserId) {
+    return (
+      <View className="flex-1 bg-white items-center justify-center p-6" style={{ paddingTop: insets.top }}>
+        <MessageCircle size={64} color="#e2e8f0" />
+        <Text className="text-xl font-black text-slate-800 mt-6 text-center px-4 leading-8">
+          {t('settings.loginCreateAccount')}
+        </Text>
+        <TouchableOpacity 
+          onPress={() => router.push('/auth/login')}
+          className="mt-8 bg-[#CC222F] px-8 py-4 rounded-2xl w-full max-w-[280px] shadow-sm items-center"
+        >
+          <Text className="text-white font-black text-base">{t('settings.loginCreateAccount')}</Text>
+        </TouchableOpacity>
+        {params.autoStartChat && (
+          <TouchableOpacity 
+            onPress={() => router.back()}
+            className="mt-4 px-8 py-4 items-center"
+          >
+            <Text className="text-slate-400 font-bold text-base">{t('carDetails.cancel')}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
       <StatusBar barStyle="dark-content" />
