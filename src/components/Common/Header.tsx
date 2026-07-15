@@ -45,7 +45,7 @@ export const Header = () => {
         className="bg-white border-b border-gray-50 shadow-sm"
         style={{ paddingTop: headerPaddingTop }}
       >
-        <View className="flex-row items-center justify-between px-4 pb-4">
+        <View className="flex-row items-center px-4 pb-4">
           <View className="flex-row items-center" style={{ gap: 5 }}>
             {/* Location Button */}
             <TouchableOpacity 
