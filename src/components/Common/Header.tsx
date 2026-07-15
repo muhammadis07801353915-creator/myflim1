@@ -83,6 +83,9 @@ export const Header = () => {
             </TouchableOpacity>
           </View>
           
+          {/* Spacer */}
+          <View style={{ flex: 1 }} />
+
           <View className="flex-row items-center" style={{ gap: 10 }}>
             <Text className="text-[20px] font-bold text-gray-900 tracking-tight">Taban Cars</Text>
             <View className="w-11 h-11 rounded-full overflow-hidden shadow-sm">
