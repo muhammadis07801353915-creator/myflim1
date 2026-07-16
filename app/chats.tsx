@@ -130,7 +130,7 @@ export default function ChatsScreen() {
                   .from('profiles')
                   .select('full_name, avatar_url, phone')
                   .eq('id', otherId)
-                  .single();
+                  .maybeSingle();
                 otherName = profile?.full_name || profile?.phone || 'بەکارهێنەر';
                 otherAvatar = profile?.avatar_url || null;
               }
