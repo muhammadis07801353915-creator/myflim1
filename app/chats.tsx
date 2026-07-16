@@ -64,6 +64,7 @@ export default function ChatsScreen() {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [useSupabase, setUseSupabase] = useState(false);
   const [dbChecked, setDbChecked] = useState(false);
+  const [deletedChatIds, setDeletedChatIds] = useState<Set<string>>(new Set());
 
   const hasProcessedAutoStart = useRef(false);
   const messagesScrollRef = useRef<ScrollView>(null);
@@ -191,6 +192,14 @@ export default function ChatsScreen() {
             finalChats.push(lc);
           }
         }
+      }
+
+      // Filter out any chats that have been deleted in this session
+      const deletedKey = `@taban_deleted_chats_${currentUserId || 'guest'}`;
+      const deletedRaw = await AsyncStorage.getItem(deletedKey);
+      const deletedIds: string[] = deletedRaw ? JSON.parse(deletedRaw) : [];
+      if (deletedIds.length > 0) {
+        finalChats = finalChats.filter((c: any) => !deletedIds.includes(c.id));
       }
 
       // Sort combined list by most recent
@@ -622,32 +631,45 @@ export default function ChatsScreen() {
     }
   };
 
-  const handleDeleteChat = (chatId: string, isLocal: boolean) => {
+  const handleDeleteChat = (chatId: string, isLocal: boolean, isShowroomChat?: boolean) => {
     Alert.alert(
-      "سڕینەوەی گفتوگۆ",
-      "ئایا دڵنیایت دەتەوێت ئەم گفتوگۆیە بسڕیتەوە؟",
+      t('chats.deleteTitle'),
+      t('chats.deleteConfirm'),
       [
-        { text: "نەخێر", style: "cancel" },
+        { text: t('chats.cancel'), style: "cancel" },
         { 
-          text: "بەڵێ، بیسڕەوە", 
+          text: t('chats.deleteYes'), 
           style: "destructive",
           onPress: async () => {
             try {
-              if (isLocal) {
-                const saved = await AsyncStorage.getItem(getStorageKey(currentUserId));
-                if (saved) {
-                  const list = JSON.parse(saved);
-                  const updatedList = list.filter((c: any) => c.id !== chatId);
-                  await AsyncStorage.setItem(getStorageKey(currentUserId), JSON.stringify(updatedList));
-                }
-              } else {
-                const table = selectedChat?.isShowroomChat ? 'showroom_chats' : 'chats';
+              // 1. Delete from Supabase (if applicable)
+              if (!isLocal && useSupabase) {
+                const table = isShowroomChat ? 'showroom_chats' : 'chats';
                 await supabase.from(table).delete().eq('id', chatId);
               }
+
+              // 2. Remove from AsyncStorage (local chats list)
+              const saved = await AsyncStorage.getItem(getStorageKey(currentUserId));
+              if (saved) {
+                const list = JSON.parse(saved);
+                const updatedList = list.filter((c: any) => c.id !== chatId);
+                await AsyncStorage.setItem(getStorageKey(currentUserId), JSON.stringify(updatedList));
+              }
+
+              // 3. Add to deleted IDs blocklist so it never comes back
+              const deletedKey = `@taban_deleted_chats_${currentUserId || 'guest'}`;
+              const deletedRaw = await AsyncStorage.getItem(deletedKey);
+              const deletedIds: string[] = deletedRaw ? JSON.parse(deletedRaw) : [];
+              if (!deletedIds.includes(chatId)) {
+                deletedIds.push(chatId);
+                await AsyncStorage.setItem(deletedKey, JSON.stringify(deletedIds));
+              }
+
+              // 4. Remove from state immediately
               setChats(prev => prev.filter(c => c.id !== chatId));
             } catch (err) {
               console.error('Delete chat error:', err);
-              Alert.alert('هەڵە', 'نەتوانرا گفتوگۆکە بسڕدرێتەوە');
+              Alert.alert(t('chats.error'), t('chats.deleteError'));
             }
           }
         }
@@ -776,7 +798,7 @@ export default function ChatsScreen() {
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => openConversation(item)}
-              onLongPress={() => handleDeleteChat(item.id, item.isLocal)}
+              onLongPress={() => handleDeleteChat(item.id, item.isLocal, item.isShowroomChat)}
               delayLongPress={500}
               className="flex-row-reverse items-center py-4 border-b border-slate-50"
             >

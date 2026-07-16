@@ -3,6 +3,12 @@ export default {
     "title": "المحادثات",
     "search": "البحث في المحادثات أو السيارات...",
     "noChats": "لا توجد محادثات",
+    "deleteTitle": "حذف المحادثة",
+    "deleteConfirm": "هل أنت متأكد أنك تريد حذف هذه المحادثة؟",
+    "cancel": "لا",
+    "deleteYes": "نعم، احذف",
+    "error": "خطأ",
+    "deleteError": "تعذر حذف هذه المحادثة"
   },
   posts: {
     "title": "منشوراتي",

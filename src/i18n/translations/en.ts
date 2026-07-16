@@ -3,6 +3,12 @@ export default {
     "title": "Chats",
     "search": "Search in chats or cars...",
     "noChats": "No chats available",
+    "deleteTitle": "Delete Conversation",
+    "deleteConfirm": "Are you sure you want to delete this conversation?",
+    "cancel": "No",
+    "deleteYes": "Yes, Delete",
+    "error": "Error",
+    "deleteError": "Could not delete this conversation"
   },
   posts: {
     "title": "My Posts",
