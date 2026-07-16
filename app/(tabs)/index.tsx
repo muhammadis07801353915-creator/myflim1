@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {  View, Text as RNText, SafeAreaView, FlatList, RefreshControl, ActivityIndicator, TouchableOpacity, Image, Dimensions, ScrollView, BackHandler, Linking  } from 'react-native';
+import {  View, Text as RNText, SafeAreaView, FlatList, RefreshControl, ActivityIndicator, TouchableOpacity, Image, Dimensions, ScrollView, BackHandler, Linking, Alert  } from 'react-native';
 import { Text } from '../../src/components/Common/CustomText';
 import { supabase } from '../../src/lib/supabase';
 import { Header } from '../../src/components/Common/Header';
@@ -156,8 +156,22 @@ export default function HomeScreen() {
           data={sliderData} 
           height={250} 
           autoScrollInterval={5000}
-          onPressItem={(item) => {
-            if (item.link) {
+          onPressItem={async (item) => {
+            if (item.action_sell) {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (!user) {
+                Alert.alert(
+                  t('settings.loginCreateAccount'),
+                  '',
+                  [
+                    { text: t('header.cancel'), style: 'cancel' },
+                    { text: t('settings.yes'), onPress: () => router.push('/auth/login') }
+                  ]
+                );
+              } else {
+                router.push('/sell');
+              }
+            } else if (item.link) {
               Linking.openURL(item.link).catch(err => console.error("Couldn't load page", err));
             } else if (item.car_id || item.id) {
               router.push(`/car/${item.car_id || item.id}`);
@@ -252,8 +266,22 @@ export default function HomeScreen() {
             height={112} // equivalent to h-28
             autoScrollInterval={5000}
             showIndicators={false}
-            onPressItem={(item) => {
-              if (item.link) {
+            onPressItem={async (item) => {
+              if (item.action_sell) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                  Alert.alert(
+                    t('settings.loginCreateAccount'),
+                    '',
+                    [
+                      { text: t('header.cancel'), style: 'cancel' },
+                      { text: t('settings.yes'), onPress: () => router.push('/auth/login') }
+                    ]
+                  );
+                } else {
+                  router.push('/sell');
+                }
+              } else if (item.link) {
                 Linking.openURL(item.link).catch(err => console.error("Couldn't load page", err));
               }
             }}
