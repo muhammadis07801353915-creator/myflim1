@@ -409,7 +409,7 @@ export default function ShowroomChatScreen() {
       // Realtime new messages
       if (realtimeRef.current) supabase.removeChannel(realtimeRef.current);
       realtimeRef.current = supabase
-        .channel(`msgs:${chat.id}`)
+        .channel(`msgs:${chat.id}:${Date.now()}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'showroom_messages', filter: `chat_id=eq.${chat.id}` },

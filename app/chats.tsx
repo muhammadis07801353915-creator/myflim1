@@ -500,7 +500,7 @@ export default function ChatsScreen() {
         // Realtime presence
         if (presenceRef.current) supabase.removeChannel(presenceRef.current);
         presenceRef.current = supabase
-          .channel(`presence:${otherId}`)
+          .channel(`presence:${otherId}:${Date.now()}`)
           .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${otherId}` },
             (payload: any) => {
               setOtherOnline(payload.new.is_online || false);
@@ -521,7 +521,7 @@ export default function ChatsScreen() {
       // Realtime new messages
       if (realtimeRef.current) supabase.removeChannel(realtimeRef.current);
       realtimeRef.current = supabase
-        .channel(`msgs:${chat.id}`)
+        .channel(`msgs:${chat.id}:${Date.now()}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: messagesTable, filter: `chat_id=eq.${chat.id}` },

@@ -205,7 +205,7 @@ export default function ChatsScreen() {
 
       // Subscribe to new messages for this showroom chat
       realtimeRef.current = supabase
-        .channel(`showroom_chat_${chat.id}`)
+        .channel(`showroom_chat_${chat.id}:${Date.now()}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'showroom_messages', filter: `chat_id=eq.${chat.id}` },
