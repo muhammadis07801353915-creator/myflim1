@@ -791,7 +791,7 @@ export default function ChatsScreen() {
               </View>
               <Text className="text-slate-700 font-black text-xl mb-2">{t('chats.noChats')}</Text>
               <Text className="text-slate-400 font-bold text-sm text-center px-10 leading-6">
-                بچۆ سەر پۆستی سەیارەیەک، کلیک بکە لەسەر ئایکۆنی پەیام و "چاتی ناو ئەپ" هەڵبژێرە
+                {t('chats.noChatsDesc')}
               </Text>
             </View>
           }

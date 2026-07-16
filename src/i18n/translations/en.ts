@@ -3,6 +3,7 @@ export default {
     "title": "Chats",
     "search": "Search in chats or cars...",
     "noChats": "No chats available",
+    "noChatsDesc": "Go to a car post, tap the message icon, and select 'In-App Chat'",
     "deleteTitle": "Delete Conversation",
     "deleteConfirm": "Are you sure you want to delete this conversation?",
     "cancel": "No",
