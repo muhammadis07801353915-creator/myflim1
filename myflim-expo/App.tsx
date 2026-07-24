@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import AppNavigator from './src/navigation/AppNavigator';
+import AccessScreen from './src/screens/AccessScreen';
 import UpdateChecker from './src/components/UpdateChecker';
 import { useAppStore } from './src/store/useAppStore';
 import { getColors } from './src/theme/theme';
@@ -16,7 +17,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 LogBox.ignoreLogs(['Non-serializable values were found in the navigation state']);
 
 function App(): React.JSX.Element {
-  const { fetchInitialData, theme } = useAppStore();
+  const { fetchInitialData, theme, isUnlocked } = useAppStore();
   const themeColors = getColors(theme);
   
   const [appIsReady, setAppIsReady] = useState(false);
@@ -74,8 +75,14 @@ function App(): React.JSX.Element {
           barStyle={theme === 'light' ? 'dark-content' : 'light-content'} 
           backgroundColor={themeColors.background} 
         />
-        <AppNavigator />
-        <UpdateChecker />
+        {isUnlocked ? (
+          <>
+            <AppNavigator />
+            <UpdateChecker />
+          </>
+        ) : (
+          <AccessScreen />
+        )}
       </NavigationContainer>
 
       {!animationDone && (

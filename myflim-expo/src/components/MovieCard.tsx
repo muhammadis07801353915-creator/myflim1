@@ -27,17 +27,17 @@ export default function MovieCard({ item, onPress, width = 140, height = 200 }: 
           style={styles.image}
           resizeMode="cover"
         />
-        {item.is_pro && (
+        {item.is_pro ? (
           <View style={styles.proBadge}>
             <Text style={styles.proText}>PRO</Text>
           </View>
-        )}
-        {item.rating && (
+        ) : null}
+        {item.rating ? (
           <View style={styles.ratingBadge}>
             <Star size={10} color="#fbbf24" fill="#fbbf24" />
             <Text style={styles.ratingText}>{item.rating}</Text>
           </View>
-        )}
+        ) : null}
       </View>
       <Text numberOfLines={1} style={styles.title}>{getLocalized(item, 'title', language)}</Text>
       <Text numberOfLines={1} style={styles.subtitle}>{item.genre}</Text>

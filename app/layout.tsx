@@ -7,14 +7,14 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: 'MyFlim | باشترین سەرچاوە بۆ بینینی فیلم و زنجیرەکان',
-  description: 'سەکۆی MyFlim بۆ بینینی نوێترین فیلم و زنجیرە جیهانییەکان بە ژێرنووسی کوردی و کوالێتی بەرز.',
+  title: 'MBox | باشترین سەرچاوە بۆ بینینی فیلم و زنجیرەکان',
+  description: 'سەکۆی MBox بۆ بینینی نوێترین فیلم و زنجیرە جیهانییەکان بە ژێرنووسی کوردی و کوالێتی بەرز.',
   manifest: '/manifest.json',
   verification: {
     google: 'iVzP8mGF3Lc9mJu2-r-jkshlTCXfklCgzMwEzP1ISvk',
   },
   openGraph: {
-    title: 'MyFlim - بینەری نوێترین فیلم و زنجیرەکان بن',
+    title: 'MBox - بینەری نوێترین فیلم و زنجیرەکان بن',
     description: 'نوێترین فیلم و زنجیرەکان بە زمانی کوردی، عەرەبی و ئینگلیزی لێرە ببینە',
     type: 'website',
     url: 'https://myflim.com',

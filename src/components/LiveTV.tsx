@@ -257,12 +257,9 @@ export default function LiveTV() {
           
           {/* Logo in the middle */}
           <div className="flex-1 flex justify-center">
-             <div className="flex items-center space-x-1.5 leading-none">
-                <span className="text-xl font-black text-white light-mode:text-black tracking-tighter">MY</span>
-                <span className="text-xl font-medium text-white light-mode:text-black relative">
-                  Film
-                  <span className="absolute -top-1 -right-0.5 w-1.5 h-1.5 bg-red-600 rounded-full"></span>
-                </span>
+             <div className="flex items-center space-x-2 leading-none">
+                <Image src="/app-logo-new.png" alt="MBox" width={24} height={24} className="rounded-md object-contain" unoptimized />
+                <span className="text-xl font-black text-white light-mode:text-black tracking-tighter">MBox</span>
              </div>
           </div>
 

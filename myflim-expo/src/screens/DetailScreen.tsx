@@ -51,16 +51,79 @@ export default function DetailScreen({ route, navigation }: any) {
   };
 
   let servers: any[] = [];
+  let episodes: any[] = [];
+
+  const getEmbedUrl = (url: string): string => {
+    if (!url) return '';
+    if (url.startsWith('vidsrc://')) {
+      const parts = url.replace('vidsrc://', '').split('/');
+      const type = parts[0];
+      const id = parts[1];
+      if (type === 'movie') return `https://vidsrc.pm/embed/movie/${id}`;
+      const season = parts[2] || '1';
+      const ep = parts[3] || '1';
+      return `https://vidsrc.pm/embed/tv/${id}/${season}/${ep}`;
+    }
+    return url;
+  };
+
   try {
-    servers = JSON.parse(item.video_url || '[]');
+    const parsed = JSON.parse(item.video_url || '[]');
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      // Format: {"servers": [...], "episodes": [...], ...}
+      if (parsed.servers && Array.isArray(parsed.servers)) {
+        servers = parsed.servers.map((s: any, i: number) => ({
+          name: s.name || `Server ${i + 1}`,
+          url: getEmbedUrl(s.url || ''),
+          quality: s.quality || 'HD'
+        }));
+      }
+      if (parsed.episodes && Array.isArray(parsed.episodes)) {
+        episodes = parsed.episodes;
+      }
+    } else if (Array.isArray(parsed)) {
+      // Old format: [{name, url}, ...]  OR  [{number, season, servers}, ...]
+      if (parsed.length > 0 && parsed[0].number !== undefined) {
+        episodes = parsed;
+      } else {
+        servers = parsed.map((s: any, i: number) => {
+          if (typeof s === 'string') return { name: `Server ${i + 1}`, url: getEmbedUrl(s) };
+          return { name: s.name || `Server ${i + 1}`, url: getEmbedUrl(s.url || ''), quality: s.quality || 'HD' };
+        });
+      }
+    } else if (typeof parsed === 'string') {
+      servers = [{ name: 'Server 1', url: getEmbedUrl(parsed) }];
+    }
   } catch (e) {
     if (typeof item.video_url === 'string' && item.video_url.length > 0) {
-       servers = [{ name: 'Server 1', url: item.video_url }];
+       servers = [{ name: 'Server 1', url: getEmbedUrl(item.video_url) }];
     }
   }
 
-  const activeVideoUrl_original = currentVideoUrl || (item.type === 'LiveTV' ? item.stream_url : (servers.length > 0 ? (servers[selectedEpisodeIndex ?? 0].url || servers[selectedEpisodeIndex ?? 0].servers?.[0]?.url) : null));
-  
+  // If it's a series, use episodes. If movie, use servers.
+  const isSeriesContent = item.type === 'Series';
+
+  if (!servers || !Array.isArray(servers)) servers = [];
+  if (!episodes || !Array.isArray(episodes)) episodes = [];
+
+  // For display in grid: if series show episodes, if movie show servers
+  const gridItems = isSeriesContent ? episodes : servers;
+
+  // Determine the active video URL
+  let activeVideoUrl_original: string | null = currentVideoUrl;
+  if (!activeVideoUrl_original) {
+    if (item.type === 'LiveTV') {
+      activeVideoUrl_original = item.stream_url;
+    } else if (isSeriesContent && episodes.length > 0) {
+      const epIdx = selectedEpisodeIndex ?? 0;
+      const ep = episodes[epIdx];
+      const epUrl = ep?.servers?.[0]?.url || ep?.url || '';
+      activeVideoUrl_original = getEmbedUrl(epUrl);
+    } else if (servers.length > 0) {
+      activeVideoUrl_original = servers[0].url;
+    }
+  }
+
   // Transform links to embed if needed
   let activeVideoUrl = activeVideoUrl_original;
   if (activeVideoUrl?.includes('ok.ru/video/')) {
@@ -89,24 +152,20 @@ export default function DetailScreen({ route, navigation }: any) {
   `;
 
   const handleWatchNow = () => {
-    if (item.type === 'Series') {
-      // If no episode selected, pick the first one
+    if (isSeriesContent) {
       const targetIndex = selectedEpisodeIndex !== null ? selectedEpisodeIndex : 0;
-      if (selectedEpisodeIndex === null) {
-        setSelectedEpisodeIndex(targetIndex);
-      }
-      
-      const epServers = servers[targetIndex]?.servers || [];
+      if (selectedEpisodeIndex === null) setSelectedEpisodeIndex(targetIndex);
+      const ep = episodes[targetIndex];
+      const epServers = ep?.servers || [];
       if (epServers.length > 1) {
         setShowServerModal(true);
       } else if (epServers.length === 1) {
-        handlePlayServer(epServers[0].url);
-      } else if (servers[targetIndex]?.url) {
-        handlePlayServer(servers[targetIndex].url);
+        handlePlayServer(getEmbedUrl(epServers[0].url));
+      } else if (ep?.url) {
+        handlePlayServer(getEmbedUrl(ep.url));
       }
       return;
     }
-
     // Movie logic
     if (selectedMovieServerUrl) {
       handlePlayServer(selectedMovieServerUrl);
@@ -129,20 +188,18 @@ export default function DetailScreen({ route, navigation }: any) {
   };
 
   const handleEpisodeSelect = (index: number) => {
-    if (item.type === 'Series') {
+    if (isSeriesContent) {
       setSelectedEpisodeIndex(index);
-      
-      // Directly display server options when selected
-      const epServers = servers[index]?.servers || [];
+      const ep = episodes[index];
+      const epServers = ep?.servers || [];
       if (epServers.length > 1) {
         setShowServerModal(true);
       } else if (epServers.length === 1) {
-        handlePlayServer(epServers[0].url);
-      } else if (servers[index]?.url) {
-        handlePlayServer(servers[index].url);
+        handlePlayServer(getEmbedUrl(epServers[0].url));
+      } else if (ep?.url) {
+        handlePlayServer(getEmbedUrl(ep.url));
       }
     } else {
-      // Movie Server Selection
       setSelectedMovieServerIndex(index);
       setSelectedMovieServerUrl(servers[index].url);
       handlePlayServer(servers[index].url);
@@ -151,8 +208,11 @@ export default function DetailScreen({ route, navigation }: any) {
 
   // Modal Content Logic
   const getModalServers = () => {
-    if (selectedEpisodeIndex !== null && servers[selectedEpisodeIndex]?.servers) {
-      return servers[selectedEpisodeIndex].servers;
+    if (isSeriesContent && selectedEpisodeIndex !== null) {
+      return (episodes[selectedEpisodeIndex]?.servers || []).map((s: any) => ({
+        ...s,
+        url: getEmbedUrl(s.url)
+      }));
     }
     return servers;
   };
@@ -323,8 +383,10 @@ export default function DetailScreen({ route, navigation }: any) {
                {item.type === 'Series' ? (t.episodes) : (t.availableServers)}
              </Text>
              <View style={styles.serverGrid}>
-               {servers.map((server: any, index: number) => {
-                 let displayName = server.name;
+               {gridItems?.map?.((gridItem: any, index: number) => {
+                 let displayName = isSeriesContent
+                   ? (gridItem?.title ? `${gridItem.title}` : `${language === 'ku' ? 'بەش' : 'Episode'} ${gridItem?.number || index + 1}`)
+                   : (gridItem?.name || `${language === 'ku' ? 'سێرڤەری' : 'Server'} ${index + 1}`);
                  if (!displayName) {
                    displayName = item.type === 'Series' 
                      ? `${t.episodes} ${index + 1}` 

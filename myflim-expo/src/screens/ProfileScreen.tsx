@@ -265,7 +265,7 @@ export default function ProfileScreen() {
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.proMainBox}>
                 <View style={styles.proBrandBox}>
-                   <Text style={[styles.proBrandText, { fontWeight: '900' }]}>MY FLIM+</Text>
+                   <Text style={[styles.proBrandText, { fontWeight: '900' }]}>MBox PRO</Text>
                 </View>
                 
                 <Text style={[styles.proSubscribeTitle, { color: themeColors.text }]}>Subscribe to <Text style={{ color: '#E53935' }}>PRO</Text></Text>
@@ -312,7 +312,7 @@ export default function ProfileScreen() {
                    onPress={() => {
                      updateUser({ isPro: true });
                      setShowProModal(false);
-                     Alert.alert('Success', 'Welcome to My Flim PRO!');
+                     Alert.alert('Success', 'Welcome to MBox PRO!');
                    }}
                 >
                   <Text style={styles.proSubscribeButtonText}>Subscribe (Enter Code)</Text>

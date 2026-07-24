@@ -11,7 +11,8 @@ import {
   Dimensions,
   Modal,
   Pressable,
-  TextInput
+  TextInput,
+  Linking
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -24,7 +25,7 @@ const { width } = Dimensions.get('window');
 
 export default function LiveTVScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { liveTv, channelCategories, loading, fetchInitialData, language } = useAppStore();
+  const { liveTv, channelCategories, banners, loading, fetchInitialData, language } = useAppStore();
   const t = translations[language];
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -67,26 +68,47 @@ export default function LiveTVScreen({ navigation }: any) {
     const visibleChannels = searchQuery.trim().length > 0 ? channels : channels.slice(0, 6);
 
     return (
-      <View key={category.id} style={styles.categoryContainer}>
-        <View style={styles.categoryHeader}>
-          <Text style={styles.categoryTitle}>{category.name}</Text>
-          {channels.length > 6 && searchQuery.trim().length === 0 && (
-            <TouchableOpacity 
-              style={styles.viewAllButton}
-              onPress={() => navigation.navigate('Category', { 
-                title: category.name, 
-                data: channels,
-                type: 'LiveTV'
-              })}
-            >
-              <Text style={styles.viewAllText}>+ {t.viewAll}</Text>
-            </TouchableOpacity>
-          )}
+      <React.Fragment key={category.id}>
+        <View style={styles.categoryContainer}>
+          <View style={styles.categoryHeader}>
+            <Text style={styles.categoryTitle}>{category.name}</Text>
+            {channels.length > 6 && searchQuery.trim().length === 0 && (
+              <TouchableOpacity 
+                style={styles.viewAllButton}
+                onPress={() => navigation.navigate('Category', { 
+                  title: category.name, 
+                  data: channels,
+                  type: 'LiveTV'
+                })}
+              >
+                <Text style={styles.viewAllText}>+ {t.viewAll}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <View style={styles.channelGrid}>
+            {visibleChannels.map(renderChannel)}
+          </View>
         </View>
-        <View style={styles.channelGrid}>
-          {visibleChannels.map(renderChannel)}
-        </View>
-      </View>
+
+        {/* Dynamic Interspersed Banners */}
+        {banners && banners.filter(b => b.placement_after === category.name).map(banner => (
+          <TouchableOpacity 
+            key={banner.id}
+            style={[styles.promoContainer, { marginTop: 10, marginBottom: 20 }]}
+            onPress={() => {
+              if (banner.link) {
+                Linking.openURL(banner.link).catch(() => {});
+              }
+            }}
+          >
+            <Image 
+              source={{ uri: banner.image }} 
+              style={styles.promoImage} 
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
+        ))}
+      </React.Fragment>
     );
   };
 
@@ -110,9 +132,12 @@ export default function LiveTVScreen({ navigation }: any) {
             </TouchableOpacity>
             
             <View style={styles.logoContainer}>
-              <Text style={styles.logoTextBold}>MY </Text>
-              <Text style={styles.logoTextLight}>Film</Text>
-              <View style={styles.logoDot} />
+              <Image 
+                source={require('../../assets/app-logo-new.png')} 
+                style={{ width: 26, height: 26, borderRadius: 6, marginRight: 6 }} 
+                resizeMode="contain" 
+              />
+              <Text style={styles.logoTextBold}>MBox</Text>
             </View>
             
             <TouchableOpacity onPress={() => setIsSearchActive(true)}>
@@ -141,13 +166,26 @@ export default function LiveTVScreen({ navigation }: any) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Mock Promo Banner */}
-        <View style={styles.promoContainer}>
-          <Image 
-            source={{ uri: 'https://images.unsplash.com/photo-1595769816263-9b910be24d5f?q=80&w=800&auto=format&fit=crop' }} 
-            style={styles.promoImage} 
-          />
-        </View>
+        {/* Dynamic Banners */}
+        {banners && banners.filter(b => b.type?.toLowerCase() === 'top').length > 0 ? (
+          banners.filter(b => b.type?.toLowerCase() === 'top').map(banner => (
+            <TouchableOpacity 
+              key={banner.id}
+              style={styles.promoContainer}
+              onPress={() => {
+                if (banner.link) {
+                  Linking.openURL(banner.link).catch(() => {});
+                }
+              }}
+            >
+              <Image 
+                source={{ uri: banner.image }} 
+                style={styles.promoImage} 
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          ))
+        ) : null}
 
         {channelCategories.map(renderCategory)}
       </ScrollView>

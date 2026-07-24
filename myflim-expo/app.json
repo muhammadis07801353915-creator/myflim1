@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "My Flim+",
+    "name": "MBox",
     "slug": "myflim-mobile",
     "scheme": "myflim",
-    "version": "1.0.2",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/app-logo-new.png",
     "userInterfaceStyle": "light",
@@ -18,7 +18,7 @@
     },
     "android": {
       "package": "com.muhamad.myflim",
-      "versionCode": 4,
+      "versionCode": 10,
       "adaptiveIcon": {
         "foregroundImage": "./assets/app-logo-new.png",
         "backgroundColor": "#ffffff"
@@ -29,8 +29,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-    ],
+    "plugins": [],
     "owner": "my123",
     "extra": {
       "eas": {

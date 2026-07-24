@@ -126,7 +126,7 @@ export default function Movies() {
                 title: ep.name || '',
                 servers: [
                   { 
-                    name: 'Server My flim', 
+                    name: 'Server MBox', 
                     url: `vidsrc://tv/${item.id}/${sDetails.season_number}/${ep.episode_number}`, 
                     quality: 'Multi' 
                   }
@@ -349,7 +349,7 @@ export default function Movies() {
         
         if (quickAddConfig.type === 'movie') {
           videoUrlObj = {
-            servers: [{ name: 'Server My flim', url: `vidsrc://movie/${item.id}`, quality: 'Auto' }],
+            servers: [{ name: 'Server MBox', url: `vidsrc://movie/${item.id}`, quality: 'Auto' }],
             download_url: '',
             tmdb_id: item.id.toString()
           };
@@ -369,7 +369,7 @@ export default function Movies() {
                   number: ep.episode_number,
                   season: sDetails.season_number,
                   title: ep.name || '',
-                  servers: [{ name: 'Server My flim', url: `vidsrc://tv/${item.id}/${sDetails.season_number}/${ep.episode_number}`, quality: 'Auto' }],
+                  servers: [{ name: 'Server MBox', url: `vidsrc://tv/${item.id}/${sDetails.season_number}/${ep.episode_number}`, quality: 'Auto' }],
                   subtitles: []
                 }));
                 allEpisodes = [...allEpisodes, ...seasonEpisodes];
@@ -377,7 +377,7 @@ export default function Movies() {
             });
           }
           videoUrlObj = {
-            episodes: allEpisodes.length > 0 ? allEpisodes : [{ number: 1, season: 1, title: '', servers: [{ name: 'Server My flim', url: `vidsrc://tv/${item.id}/1/1`, quality: 'Auto' }], subtitles: [] }],
+            episodes: allEpisodes.length > 0 ? allEpisodes : [{ number: 1, season: 1, title: '', servers: [{ name: 'Server MBox', url: `vidsrc://tv/${item.id}/1/1`, quality: 'Auto' }], subtitles: [] }],
             download_url: '',
             tmdb_id: item.id.toString()
           };
@@ -500,7 +500,7 @@ export default function Movies() {
           backdrop: details.backdrop_path ? `https://image.tmdb.org/t/p/original${details.backdrop_path}` : '',
           top_rank: rank,
           video_url: JSON.stringify({
-            servers: [{ name: 'Server My flim', url: `vidsrc://movie/${item.id}`, quality: 'Auto' }],
+            servers: [{ name: 'Server MBox', url: `vidsrc://movie/${item.id}`, quality: 'Auto' }],
             download_url: '',
             tmdb_id: tmdbIdStr
           }),

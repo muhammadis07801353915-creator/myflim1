@@ -138,7 +138,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         ? `vidsrc://tv/${tmdbId}/${selectedSeason}/${(episodes[currentEpisodeIndex]?.number || 1)}`
         : `vidsrc://movie/${tmdbId}`;
       
-      const serverName = 'Server My flim';
+      const serverName = 'Server MBox';
       
       if (item.type !== 'Series') {
         if (!parsedServers.find((s: any) => s.name === serverName)) {
@@ -155,7 +155,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       let epServers = ep?.servers || [];
       
       if (tmdbId) {
-        const serverName = 'Server My flim';
+        const serverName = 'Server MBox';
         if (!epServers.find((s: any) => s.name === serverName)) {
           const vidsrcUrl = `vidsrc://tv/${tmdbId}/${ep?.season || selectedSeason}/${ep?.number || 1}`;
           epServers = [{ name: serverName, url: vidsrcUrl, quality: 'Multi' }, ...epServers];

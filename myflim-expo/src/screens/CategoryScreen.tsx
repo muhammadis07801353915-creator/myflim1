@@ -11,13 +11,95 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, SIZES } from '../theme/theme';
 import { ChevronLeft, Play } from 'lucide-react-native';
+import { useAppStore } from '../store/useAppStore';
+
+const translations: any = {
+  ku: {
+    all: 'گشتی',
+    movie: 'فیلم',
+    series: 'زنجیرە',
+    animation: 'ئەنیمەیشن',
+    korean: 'کۆری',
+    hindi: 'هیندی',
+    persian: 'فارسی'
+  },
+  en: {
+    all: 'All',
+    movie: 'Movie',
+    series: 'Series',
+    animation: 'Animation',
+    korean: 'Korean',
+    hindi: 'Hindi',
+    persian: 'Persian'
+  },
+  ar: {
+    all: 'الكل',
+    movie: 'فيلم',
+    series: 'مسلسل',
+    animation: 'أنمي',
+    korean: 'كوري',
+    hindi: 'هندي',
+    persian: 'فارسي'
+  }
+};
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - (SPACING.md * 4)) / 3; 
 
 export default function CategoryScreen({ route, navigation }: any) {
-  const { title, data, type } = route.params;
+  const { title, data, type, listName } = route.params;
   const insets = useSafeAreaInsets();
+  const { language } = useAppStore();
+  const t = translations[language] || translations['ku'];
+
+  const [activeTab, setActiveTab] = React.useState('All');
+
+  // Determine which tabs to show based on listName
+  let tabs: any[] = [];
+  if (listName === 'نوێترین بەرهەمەکان 2026') {
+    tabs = [
+      { id: 'All', label: t.all },
+      { id: 'Movie', label: t.movie },
+      { id: 'Series', label: t.series },
+      { id: 'Animation', label: t.animation },
+    ];
+  } else if (listName === 'فیلمی کوردی دۆبلاژ') {
+    tabs = [
+      { id: 'All', label: t.all },
+      { id: 'Korean', label: t.korean },
+      { id: 'Hindi', label: t.hindi },
+      { id: 'Persian', label: t.persian },
+    ];
+  } else if (listName === 'کارتۆنی کوردی' || listName === 'کارتۆنی نوێ') {
+    tabs = [
+      { id: 'All', label: t.all },
+      { id: 'Series', label: t.series },
+      { id: 'Animation', label: t.animation },
+    ];
+  }
+
+  // Filter data based on activeTab
+  const filteredData = React.useMemo(() => {
+    if (!tabs.length || activeTab === 'All') return data;
+    
+    return data.filter((item: any) => {
+      if (activeTab === 'Movie') return item.type === 'Movie';
+      if (activeTab === 'Series') return item.type === 'Series';
+      if (activeTab === 'Animation') return item.type === 'Animation';
+      
+      if (activeTab === 'Korean') {
+        return item.country?.toLowerCase().includes('korea') || item.country?.includes('کۆری');
+      }
+      if (activeTab === 'Hindi') {
+        return item.country?.toLowerCase().includes('india') || item.country?.includes('هیندی');
+      }
+      if (activeTab === 'Persian') {
+        return item.country?.toLowerCase().includes('iran') || item.country?.includes('فارسی') || item.country?.includes('ئێران');
+      }
+      
+      return true;
+    });
+  }, [data, activeTab, tabs]);
 
   const renderItem = ({ item }: any) => {
     if (type === 'LiveTV') {
@@ -58,8 +140,27 @@ export default function CategoryScreen({ route, navigation }: any) {
         <View style={{ width: 28 }} />
       </View>
 
+      {tabs.length > 0 && (
+        <View style={styles.tabsContainer}>
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <TouchableOpacity
+                key={tab.id}
+                style={[styles.tabButton, isActive && styles.tabButtonActive]}
+                onPress={() => setActiveTab(tab.id)}
+              >
+                <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
+
       <FlatList
-        data={data}
+        data={filteredData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         numColumns={3}
@@ -149,5 +250,33 @@ const styles = StyleSheet.create({
     fontSize: 8,
     fontWeight: '900',
     letterSpacing: 0.5,
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    marginBottom: SPACING.md,
+    flexWrap: 'wrap',
+  },
+  tabButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#2A2A35',
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  tabButtonActive: {
+    backgroundColor: '#E53935',
+  },
+  tabText: {
+    color: '#888',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  tabTextActive: {
+    color: 'white',
   }
 });

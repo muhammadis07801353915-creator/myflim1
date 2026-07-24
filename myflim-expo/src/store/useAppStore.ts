@@ -9,6 +9,7 @@ interface AppState {
   categories: any[];
   liveTv: any[];
   channelCategories: any[];
+  banners: any[];
   watchlist: any[];
   user: {
     name: string;
@@ -19,8 +20,10 @@ interface AppState {
   language: 'ku' | 'ar' | 'en';
   loading: boolean;
   error: string | null;
+  isUnlocked: boolean;
   
   fetchInitialData: () => Promise<void>;
+  unlockApp: (code: string) => Promise<boolean>;
   fetchMoviesByList: (listName: string) => Promise<any[]>;
   incrementViews: (id: string | number, currentViews: number) => Promise<void>;
   toggleWatchlist: (item: any) => Promise<void>;
@@ -43,33 +46,74 @@ export const useAppStore = create<AppState>((set, get) => ({
   categories: [],
   liveTv: [],
   channelCategories: [],
+  banners: [],
   watchlist: [],
   user: DEFAULT_USER,
   theme: 'dark',
   language: 'ku', // Default language is Kurdish
   loading: false,
   error: null,
+  isUnlocked: false,
+
+  unlockApp: async (code: string) => {
+    if (code.toLowerCase() === 'myflim1') {
+      set({ isUnlocked: true });
+      await AsyncStorage.setItem('app_unlocked', 'true');
+      return true;
+    }
+    return false;
+  },
 
   fetchInitialData: async () => {
     set({ loading: true, error: null });
     try {
+      // Helper to fetch all rows bypassing 1000 limit
+      const fetchAllRows = async (table: string, orderColumn: string, ascending = false) => {
+        let allData: any[] = [];
+        let from = 0;
+        const step = 1000;
+        
+        while (true) {
+          const { data, error } = await supabase
+            .from(table)
+            .select('*')
+            .order(orderColumn, { ascending })
+            .range(from, from + step - 1);
+            
+          if (error) {
+            console.error(`Error fetching ${table}:`, error);
+            break;
+          }
+          if (data && data.length > 0) {
+            allData = [...allData, ...data];
+            if (data.length < step) break;
+            from += step;
+          } else {
+            break;
+          }
+        }
+        return allData;
+      };
+
       // Parallel fetch from Supabase
       const [
-        { data: allMovies, error: moviesError },
+        allMovies,
         { data: movieLists, error: listsError },
         { data: channels, error: channelsError },
-        { data: channelCats, error: catError }
+        { data: channelCats, error: catError },
+        { data: bannersData, error: bannersError }
       ] = await Promise.all([
-        supabase.from('movies').select('*').order('id', { ascending: false }),
+        fetchAllRows('movies', 'id', false),
         supabase.from('movie_lists').select('*').order('order_index', { ascending: true }),
         supabase.from('channels').select('*').order('order_index', { ascending: true }),
-        supabase.from('channel_categories').select('*').order('order_index', { ascending: true })
+        supabase.from('channel_categories').select('*').order('order_index', { ascending: true }),
+        supabase.from('banners').select('*').order('order_index', { ascending: true })
       ]);
 
-      if (moviesError) throw moviesError;
       if (listsError) throw listsError;
       if (channelsError) throw channelsError;
       if (catError) throw catError;
+      if (bannersError) throw bannersError;
 
       // Type-based filtering for main content
       const movies = allMovies?.filter(item => item.type === 'Movie') || [];
@@ -80,11 +124,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         item.type === 'Anime'
       ) || [];
 
+      // All content (movies + series + anime) for list-based filtering
+      const allContent = allMovies || [];
+
       // Load Local Storage
       let storedWatchlist = [];
       let storedUser = DEFAULT_USER;
       let storedTheme: 'dark' | 'light' = 'dark';
       let storedLanguage: 'ku' | 'ar' | 'en' = 'ku';
+      let storedUnlocked = false;
 
       try {
         const w = await AsyncStorage.getItem('watchlist');
@@ -101,21 +149,26 @@ export const useAppStore = create<AppState>((set, get) => ({
 
         const lang = await AsyncStorage.getItem('app_language');
         if (lang === 'ku' || lang === 'ar' || lang === 'en') storedLanguage = lang as 'ku'|'ar'|'en';
+        
+        const un = await AsyncStorage.getItem('app_unlocked');
+        if (un === 'true') storedUnlocked = true;
       } catch (e) {
         console.warn('AsyncStorage error:', e);
       }
 
       set({ 
-        movies,
+        movies: allContent,
         series,
         anime,
         categories: movieLists || [],
         liveTv: channels || [],
         channelCategories: channelCats || [],
+        banners: bannersData || [],
         watchlist: storedWatchlist,
         user: storedUser,
         theme: storedTheme,
         language: storedLanguage,
+        isUnlocked: storedUnlocked,
         loading: false 
       });
     } catch (err: any) {

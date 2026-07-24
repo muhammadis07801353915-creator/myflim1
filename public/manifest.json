@@ -1,6 +1,6 @@
 {
-  "name": "MyFlim",
-  "short_name": "MyFlim",
+  "name": "MBox",
+  "short_name": "MBox",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f1115",

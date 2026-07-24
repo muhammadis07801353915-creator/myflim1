@@ -214,27 +214,19 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                     </div>
                   </div>
 
-                  {/* My Film Branding Style */}
+                  {/* MBox Branding Style */}
                   <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
                     <div className="flex items-center">
-                       <div className="flex items-center" dir="ltr">
-                          {/* Styled Logo Icon mimicking the image */}
-                          <div className="relative flex items-center mr-3">
-                            <div className="w-9 h-7 bg-white rounded-md flex items-center justify-center relative">
-                               <span className="text-black font-black text-lg -mt-1">m</span>
-                               {/* Camera lens triangle */}
-                               <div className="absolute -right-2 top-1.5 w-0 h-0 border-t-[8px] border-t-transparent border-l-[10px] border-l-red-600 border-b-[8px] border-b-transparent"></div>
-                               {/* Red dot on top of m */}
-                               <div className="absolute -top-1.5 right-1 w-3 h-3 bg-red-600 rounded-full border-2 border-black"></div>
-                            </div>
-                          </div>
-                          <div className="flex items-baseline leading-none">
-                            <span className="text-2xl font-black text-white tracking-tighter">MY</span>
-                            <span className="text-2xl font-black text-white ml-1.5 relative italic">
-                              FLIM
-                              <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full"></span>
-                            </span>
-                          </div>
+                       <div className="flex items-center space-x-2" dir="ltr">
+                          <Image 
+                            src="/app-logo-new.png" 
+                            alt="MBox" 
+                            width={32} 
+                            height={32} 
+                            className="rounded-lg object-contain" 
+                            unoptimized 
+                          />
+                          <span className="text-2xl font-black text-white tracking-tighter">MBox</span>
                        </div>
                     </div>
                     {movie.genre && (

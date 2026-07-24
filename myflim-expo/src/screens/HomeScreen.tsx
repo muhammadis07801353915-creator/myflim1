@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Play } from 'lucide-react-native';
 import { translations } from '../utils/translations';
 import { getLocalized } from '../utils/localization';
+import FloatingSocialButton from '../components/FloatingSocialButton';
 
 const { width } = Dimensions.get('window');
 
@@ -44,6 +45,9 @@ export default function HomeScreen({ navigation }: any) {
 
   const featured = movies.filter(m => m.is_featured);
   const topContents = movies.filter(m => m.top_rank).sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99));
+  const animeItems = movies.filter(a => 
+    a.genre?.includes('Anime') || a.genre?.includes('Animation') || a.type === 'Anime'
+  );
 
   const onRefresh = () => {
     fetchInitialData();
@@ -53,15 +57,15 @@ export default function HomeScreen({ navigation }: any) {
     navigation.navigate('Detail', { item });
   };
 
-  const handlePressSeeAll = (title: string, data: any[]) => {
-    navigation.navigate('Category', { title, data, type: 'Movie' });
+  const handlePressSeeAll = (title: string, data: any[], listName?: string) => {
+    navigation.navigate('Category', { title, data, type: 'Movie', listName });
   };
 
-  const renderSection = (title: string, data: any[], fullData?: any[]) => (
+  const renderSection = (title: string, data: any[], fullData?: any[], listName?: string) => (
     <View style={styles.sectionContainer}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{title}</Text>
-        <TouchableOpacity onPress={() => handlePressSeeAll(title, fullData || data)}>
+        <TouchableOpacity onPress={() => handlePressSeeAll(title, fullData || data, listName)}>
           <Text style={styles.seeAll}>{t.all}</Text>
         </TouchableOpacity>
       </View>
@@ -98,23 +102,21 @@ export default function HomeScreen({ navigation }: any) {
           <Text style={styles.featuredYear}>{item.year}</Text>
           
           <View style={styles.featuredBottomRow}>
-            {/* Custom Logo Mimic */}
+            {/* App Logo */}
             <View style={styles.logoMimicContainer}>
-              <View style={styles.mIconContainer}>
-                <Text style={styles.mText}>m</Text>
-                <View style={styles.mDot} />
-                <View style={styles.mTriangle} />
-              </View>
-              <Text style={styles.logoTextBold}>MY </Text>
-              <Text style={styles.logoTextLight}>Flim</Text>
-              <View style={styles.logoDot} />
+              <Image 
+                source={require('../../assets/app-logo-new.png')} 
+                style={{ width: 28, height: 28, borderRadius: 7, marginRight: 8 }} 
+                resizeMode="contain" 
+              />
+              <Text style={styles.logoTextBold}>MBox</Text>
             </View>
             
-            {item.genre && (
+            {item.genre ? (
                <View style={styles.genreBadge}>
                  <Text style={styles.genreText}>{item.genre.split(',')[0]}</Text>
                </View>
-            )}
+            ) : null}
           </View>
         </View>
 
@@ -153,14 +155,15 @@ export default function HomeScreen({ navigation }: any) {
   }
 
   return (
-    <ScrollView 
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={COLORS.primary} />
-      }
-    >
+    <View style={styles.container}>
+      <ScrollView 
+        style={styles.container}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={COLORS.primary} />
+        }
+      >
       {/* Featured Header / Billboard */}
-      {featured.length > 0 && (
+      {featured.length > 0 ? (
         <View style={[styles.billboardContainer, { paddingTop: insets.top + 10 }]}>
           <FlatList
              data={featured}
@@ -185,14 +188,14 @@ export default function HomeScreen({ navigation }: any) {
              ))}
           </View>
         </View>
-      )}
+      ) : null}
 
       {/* Top Contents */}
-      {topContents.length > 0 && (
+      {topContents.length > 0 ? (
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{t.popular || 'Top Contents'}</Text>
-            <TouchableOpacity onPress={() => handlePressSeeAll(t.popular || 'Top Contents', topContents)}>
+            <TouchableOpacity onPress={() => handlePressSeeAll(t.popular || 'Top Contents', topContents, 'Top Contents')}>
               <Text style={styles.seeAll}>{t.viewAll || 'All'}</Text>
             </TouchableOpacity>
           </View>
@@ -205,25 +208,33 @@ export default function HomeScreen({ navigation }: any) {
             contentContainerStyle={styles.horizontalList}
           />
         </View>
-      )}
+      ) : null}
 
       <View style={{ marginTop: topContents.length > 0 ? 0 : 20 }}>
-        {/* زنجیرە ئەنیمەیشنەکان - Restored and filtered to only show series */}
-        {renderSection(language === 'ku' ? 'زنجیرە ئەنیمەیشنەکان' : language === 'ar' ? 'مسلسلات انمي' : 'Anime Series', anime.filter(a => a.type === 'Series').slice(0, 15), anime.filter(a => a.type === 'Series'))}
+        {animeItems.length > 0 ? renderSection(
+          language === 'ku' ? 'ئەنیمەیشنەکان' : language === 'ar' ? 'أنيمي' : 'Animation',
+          animeItems.slice(0, 15),
+          animeItems,
+          'Animation'
+        ) : null}
 
-        {/* Dynamic Categories From Database - No more hardcoded lists to avoid duplicates */}
+        {/* Dynamic Categories From Database */}
         {categories.map(cat => {
            const catMovies = movies.filter(m => m.list_name === cat.name);
            if (catMovies.length === 0) return null;
+           const catTitle = String(getLocalized(cat, 'name', language) || cat.name || '');
+           if (!catTitle) return null;
            return (
              <View key={cat.id}>
-               {renderSection(getLocalized(cat, 'name', language) || cat.name, catMovies.slice(0, 20), catMovies)}
+               {renderSection(catTitle, catMovies.slice(0, 20), catMovies, cat.name)}
              </View>
            );
         })}
-      </View>
-      <View style={{ height: 100 }} />
-    </ScrollView>
+        </View>
+        <View style={{ height: 100 }} />
+      </ScrollView>
+      <FloatingSocialButton />
+    </View>
   );
 }
 
