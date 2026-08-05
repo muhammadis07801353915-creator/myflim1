@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Home from './components/Home';
@@ -130,7 +132,7 @@ export default function ClientApp() {
           ) : (
             <div className="relative">
               <div className={currentTab === 'home' ? 'block' : 'hidden'}>
-                <Home onSelect={handleSelectItem} />
+                <Home onSelect={handleSelectItem} onChangeTab={setCurrentTab} />
               </div>
               <div className={currentTab === 'search' ? 'block' : 'hidden'}>
                 <Search onSelect={handleSelectItem} />

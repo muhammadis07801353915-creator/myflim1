@@ -14,7 +14,13 @@ import { getLocalized } from '../lib/translations';
 import { useData } from '../lib/DataContext';
 import { FloatingSocialButton } from './SocialLinks';
 
-export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
+export default function Home({ 
+  onSelect, 
+  onChangeTab 
+}: { 
+  onSelect: (item: any) => void; 
+  onChangeTab?: (tab: string) => void; 
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, language } = useLanguage();
@@ -80,7 +86,12 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
     return () => clearInterval(interval);
   }, [featuredMovies.length, nextFeatured]);
 
-  const currentFeatured = featuredMovies.length > 0 ? featuredMovies[currentFeaturedIndex] : movies[0];
+  const currentFeatured = useMemo(() => {
+    if (featuredMovies.length > 0) {
+      return featuredMovies[currentFeaturedIndex % featuredMovies.length] || featuredMovies[0];
+    }
+    return movies.length > 0 ? movies[0] : null;
+  }, [featuredMovies, currentFeaturedIndex, movies]);
   const topContents = useMemo(() => {
     return movies.filter(m => m.top_rank).sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99));
   }, [movies]);
@@ -240,7 +251,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
         {/* Header Right Tools */}
         <div className="flex items-center space-x-3 rtl:space-x-reverse">
           <button 
-            onClick={() => router.push('?tab=search')}
+            onClick={() => onChangeTab ? onChangeTab('search') : router.push('/search')}
             className="p-2.5 rounded-full bg-[#14151c] hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/10 transition"
           >
             <Search size={18} />
@@ -325,7 +336,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                   {currentFeatured.year && (
                     <span>{currentFeatured.year}</span>
                   )}
-                  {currentFeatured.genre && (
+                  {typeof currentFeatured.genre === 'string' && currentFeatured.genre.trim() && (
                     <>
                       <span className="w-1 h-1 rounded-full bg-neutral-400" />
                       <span>{currentFeatured.genre.split(',')[0]}</span>
