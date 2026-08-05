@@ -1,36 +1,30 @@
 import React, { useCallback, useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  Image, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
   Dimensions,
-  Modal,
-  Pressable,
-  TextInput,
-  Linking
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { COLORS, SPACING, SIZES } from '../theme/theme';
 import { useAppStore } from '../store/useAppStore';
-import { Search, ChevronDown, Check, X } from 'lucide-react-native';
-import { translations } from '../utils/translations';
+import { Play, Cast } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
+const FEATURED_W = width * 0.42;
+const FEATURED_H = FEATURED_W * 0.72;
 
 export default function LiveTVScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { liveTv, channelCategories, banners, loading, fetchInitialData, language, isUnlocked } = useAppStore();
-  const t = translations[language];
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const { liveTv, channelCategories, loading, fetchInitialData, language, isUnlocked } = useAppStore();
+
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchActive, setIsSearchActive] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -38,411 +32,262 @@ export default function LiveTVScreen({ navigation }: any) {
     }, [fetchInitialData])
   );
 
-  const renderChannel = (item: any) => (
-    <TouchableOpacity 
-      key={item.id}
-      style={styles.channelCard}
-      onPress={() => navigation.navigate('Detail', { item: { ...item, type: 'LiveTV' } })}
-    >
-      <View style={styles.imageContainer}>
-        <Image source={{ uri: item.image }} style={styles.logo} resizeMode="contain" />
-        <View style={styles.liveBadge}>
-          <View style={styles.liveDot} />
-          <Text style={styles.liveText}>LIVE</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  // ── Category tabs: All + real categories ──────────────────────────────────
+  const tabs = [
+    { id: 'All', label: language === 'ku' ? 'هەموو' : language === 'ar' ? 'الكل' : 'All' },
+    ...channelCategories.map((c) => ({ id: c.name, label: c.name })),
+  ];
 
-  const renderCategory = (category: any) => {
-    // Filter channels by search query and category
-    let channels = liveTv.filter(c => c.category === category.name);
-    
-    if (searchQuery.trim().length > 0) {
-      channels = channels.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    }
+  // ── Filtered channels ─────────────────────────────────────────────────────
+  const filteredChannels =
+    selectedCategory === 'All'
+      ? liveTv
+      : liveTv.filter((c) => c.category === selectedCategory);
 
-    if (selectedCategory !== 'All' && category.name !== selectedCategory) return null;
-    if (channels.length === 0) return null;
+  // ── Featured: first 6 channels ───────────────────────────────────────────
+  const featured = filteredChannels.slice(0, 6);
 
-    const visibleChannels = searchQuery.trim().length > 0 ? channels : channels.slice(0, 6);
+  // ── Group remaining by category ───────────────────────────────────────────
+  const allChannelsList =
+    selectedCategory === 'All'
+      ? liveTv
+      : filteredChannels;
 
-    return (
-      <React.Fragment key={category.id}>
-        <View style={styles.categoryContainer}>
-          <View style={styles.categoryHeader}>
-            <Text style={styles.categoryTitle}>{category.name}</Text>
-            {channels.length > 6 && searchQuery.trim().length === 0 && (
-              <TouchableOpacity 
-                style={styles.viewAllButton}
-                onPress={() => navigation.navigate('Category', { 
-                  title: category.name, 
-                  data: channels,
-                  type: 'LiveTV'
-                })}
-              >
-                <Text style={styles.viewAllText}>+ {t.viewAll}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-          <View style={styles.channelGrid}>
-            {visibleChannels.map(renderChannel)}
-          </View>
-        </View>
+  const handlePress = (item: any) =>
+    navigation.navigate('Detail', { item: { ...item, type: 'LiveTV' } });
 
-        {/* Dynamic Interspersed Banners */}
-        {banners && banners.filter(b => b.placement_after === category.name).map(banner => (
-          <TouchableOpacity 
-            key={banner.id}
-            style={[styles.promoContainer, { marginTop: 10, marginBottom: 20 }]}
-            onPress={() => {
-              if (banner.link) {
-                Linking.openURL(banner.link).catch(() => {});
-              }
-            }}
-          >
-            <Image 
-              source={{ uri: banner.image }} 
-              style={styles.promoImage} 
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-        ))}
-      </React.Fragment>
-    );
-  };
-
+  // ── Loading ───────────────────────────────────────────────────────────────
   if (loading && liveTv.length === 0) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      <View style={s.center}>
+        <ActivityIndicator size="large" color="#CC222F" />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Custom Header matching Web */}
-      <View style={styles.header}>
-        {!isSearchActive ? (
-          <>
-            <TouchableOpacity style={styles.headerLeft} onPress={() => setShowCategoryModal(true)}>
-              <Text style={styles.categoryText}>{selectedCategory === 'All' ? t.category : selectedCategory}</Text>
-              <ChevronDown size={16} color="white" />
-            </TouchableOpacity>
-            
-            <View style={styles.logoContainer}>
-              <Image 
-                source={require('../../assets/app-logo-new.png')} 
-                style={{ width: 26, height: 26, borderRadius: 6, marginRight: 6 }} 
-                resizeMode="contain" 
-              />
-              <Text style={styles.logoTextBold}>Taban Play</Text>
-            </View>
-            
-            <TouchableOpacity onPress={() => setIsSearchActive(true)}>
-              <Search size={22} color="white" />
-            </TouchableOpacity>
-          </>
-        ) : (
-          <View style={styles.searchContainer}>
-            <Search size={20} color="#888" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder={t.searchChannels}
-              placeholderTextColor="#888"
-              autoFocus
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            <TouchableOpacity onPress={() => {
-              setIsSearchActive(false);
-              setSearchQuery('');
-            }}>
-              <X size={22} color="white" />
-            </TouchableOpacity>
-          </View>
-        )}
+    <View style={[s.root, { paddingTop: insets.top }]}>
+
+      {/* ── HEADER ─────────────────────────────────────────────────── */}
+      <View style={s.header}>
+        <Text style={s.headerTitle}>
+          {language === 'ku' ? 'تەلەڤیزیۆنی ڕاستەوخۆ' : language === 'ar' ? 'التلفزيون المباشر' : 'Live TV'}
+        </Text>
+        <TouchableOpacity style={s.castBtn}>
+          <Cast size={20} color="rgba(255,255,255,0.75)" />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Dynamic Banners */}
-        {isUnlocked && banners && banners.filter(b => b.type?.toLowerCase() === 'top').length > 0 ? (
-          banners.filter(b => b.type?.toLowerCase() === 'top').map(banner => (
-            <TouchableOpacity 
-              key={banner.id}
-              style={styles.promoContainer}
-              onPress={() => {
-                if (banner.link) {
-                  Linking.openURL(banner.link).catch(() => {});
-                }
-              }}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+
+        {/* ── CATEGORY TABS ──────────────────────────────────────────── */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={s.tabsScroll}
+        >
+          {tabs.map((tab) => (
+            <TouchableOpacity
+              key={tab.id}
+              style={[s.tab, selectedCategory === tab.id && s.tabActive]}
+              onPress={() => setSelectedCategory(tab.id)}
+              activeOpacity={0.8}
             >
-              <Image 
-                source={{ uri: banner.image }} 
-                style={styles.promoImage} 
-                resizeMode="cover"
-              />
+              <Text style={[s.tabLabel, selectedCategory === tab.id && s.tabLabelActive]}>
+                {tab.label}
+              </Text>
             </TouchableOpacity>
-          ))
-        ) : null}
+          ))}
+        </ScrollView>
 
-        {isUnlocked ? channelCategories.map(renderCategory) : null}
-      </ScrollView>
+        {isUnlocked ? (
+          <>
+            {/* ── FEATURED CHANNELS ─────────────────────────────────────── */}
+            {featured.length > 0 ? (
+              <View style={s.section}>
+                <View style={s.sectionRow}>
+                  <Text style={s.sectionTitle}>
+                    {language === 'ku' ? 'بەناوبانگ' : language === 'ar' ? 'القنوات المميزة' : 'Featured Channels'}
+                  </Text>
+                  <TouchableOpacity>
+                    <Text style={s.seeAll}>
+                      {language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.featuredScroll}>
+                  {featured.map((ch) => (
+                    <TouchableOpacity
+                      key={ch.id}
+                      style={s.featCard}
+                      onPress={() => handlePress(ch)}
+                      activeOpacity={0.85}
+                    >
+                      <View style={s.featImgWrap}>
+                        {ch.image ? (
+                          <Image source={{ uri: ch.image }} style={s.featImg} resizeMode="contain" />
+                        ) : (
+                          <Text style={s.featName} numberOfLines={2}>{ch.name}</Text>
+                        )}
+                        {/* LIVE badge */}
+                        <View style={s.liveBadge}>
+                          <View style={s.liveDot} />
+                          <Text style={s.liveText}>LIVE</Text>
+                        </View>
+                      </View>
+                      <Text numberOfLines={1} style={s.featTitle}>{ch.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            ) : null}
 
-      {/* Category Modal */}
-      <Modal
-        visible={showCategoryModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowCategoryModal(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setShowCategoryModal(false)}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t.category}</Text>
-              <TouchableOpacity onPress={() => setShowCategoryModal(false)}>
-                <X color="#888" size={24} />
-              </TouchableOpacity>
+            {/* ── ALL CHANNELS LIST ─────────────────────────────────────── */}
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>
+                {language === 'ku' ? 'هەموو چەناڵەکان' : language === 'ar' ? 'جميع القنوات' : 'All Channels'}
+              </Text>
+              {allChannelsList.map((ch) => (
+                <TouchableOpacity
+                  key={ch.id}
+                  style={s.listRow}
+                  onPress={() => handlePress(ch)}
+                  activeOpacity={0.85}
+                >
+                  {/* Logo */}
+                  <View style={s.listLogoWrap}>
+                    {ch.image ? (
+                      <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
+                    ) : (
+                      <Text style={s.listLogoFallback} numberOfLines={1}>{ch.name[0]}</Text>
+                    )}
+                    <View style={s.listLiveDot} />
+                  </View>
+
+                  {/* Info */}
+                  <View style={s.listInfo}>
+                    <Text numberOfLines={1} style={s.listName}>{ch.name}</Text>
+                    <Text style={s.listCat}>{ch.category}</Text>
+                  </View>
+
+                  {/* Play button */}
+                  <View style={s.playBtn}>
+                    <Play size={14} color="#fff" fill="#fff" />
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
-            <ScrollView style={styles.modalList}>
-               <TouchableOpacity 
-                 style={[styles.modalItem, selectedCategory === 'All' && styles.modalItemActive]}
-                 onPress={() => {
-                   setSelectedCategory('All');
-                   setShowCategoryModal(false);
-                 }}
-               >
-                 <Text style={[styles.modalItemText, selectedCategory === 'All' && styles.modalItemTextActive]}>{t.all}</Text>
-                 {selectedCategory === 'All' && <Check size={18} color="black" />}
-               </TouchableOpacity>
-
-               {channelCategories.map(cat => (
-                 <TouchableOpacity 
-                   key={cat.id}
-                   style={[styles.modalItem, selectedCategory === cat.name && styles.modalItemActive]}
-                   onPress={() => {
-                     setSelectedCategory(cat.name);
-                     setShowCategoryModal(false);
-                   }}
-                 >
-                   <Text style={[styles.modalItemText, selectedCategory === cat.name && styles.modalItemTextActive]}>{cat.name}</Text>
-                   {selectedCategory === cat.name && <Check size={18} color="black" />}
-                 </TouchableOpacity>
-               ))}
-            </ScrollView>
+          </>
+        ) : (
+          <View style={s.locked}>
+            <Text style={s.lockedText}>
+              {language === 'ku' ? 'قفڵ کراوە — بەشدار بکەوە' : 'Locked — Subscribe to watch'}
+            </Text>
           </View>
-        </Pressable>
-      </Modal>
+        )}
+      </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1E1E24', // Web dark background
-  },
-  center: {
-    flex: 1,
-    backgroundColor: '#1E1E24',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+// ─── STYLES ───────────────────────────────────────────────────────────────
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: '#0F0F13' },
+  center: { flex: 1, backgroundColor: '#0F0F13', justifyContent: 'center', alignItems: 'center' },
+
+  // Header
   header: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 15,
-    backgroundColor: '#27272F', // Header color
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    paddingTop: 6,
   },
-  searchContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    height: 40,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    gap: 8,
+  headerTitle: { color: '#fff', fontSize: 24, fontWeight: '900', letterSpacing: -0.5 },
+  castBtn: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  searchInput: {
-    flex: 1,
-    color: 'white',
-    fontSize: 14,
-    padding: 0,
+
+  // Tabs
+  tabsScroll: { paddingHorizontal: 16, paddingBottom: 16, gap: 8 },
+  tab: {
+    paddingHorizontal: 18, paddingVertical: 8, borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  tabActive: { backgroundColor: '#CC222F', borderColor: '#CC222F' },
+  tabLabel: { color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: '700' },
+  tabLabelActive: { color: '#fff' },
+
+  // Sections
+  section: { marginBottom: 28 },
+  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginBottom: 14 },
+  sectionTitle: { color: '#fff', fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
+  seeAll: { color: '#CC222F', fontSize: 13, fontWeight: '700' },
+
+  // Featured cards
+  featuredScroll: { paddingLeft: 16, paddingRight: 8, gap: 12 },
+  featCard: { width: FEATURED_W, marginRight: 4 },
+  featImgWrap: {
+    width: FEATURED_W, height: FEATURED_H,
+    backgroundColor: '#1c1c28',
+    borderRadius: 16, overflow: 'hidden',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center', justifyContent: 'center',
+    marginBottom: 8,
   },
-  categoryText: {
-    color: '#E0E0E0',
-    fontSize: 14,
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  logoTextBold: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '900',
-  },
-  logoTextLight: {
-    color: '#E0E0E0',
-    fontSize: 20,
-    fontWeight: '300',
-  },
-  logoDot: {
-    width: 6,
-    height: 6,
-    backgroundColor: '#E53935',
-    borderRadius: 3,
-    position: 'absolute',
-    top: -2,
-    right: -8,
-  },
-  scrollContent: {
-    paddingBottom: 100,
-  },
-  promoContainer: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#111',
-    marginBottom: SPACING.xl,
-  },
-  promoImage: {
-    width: '100%',
-    height: '100%',
-    opacity: 0.8,
-  },
-  categoryContainer: {
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.xxl,
-  },
-  categoryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: SPACING.md,
-  },
-  categoryTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-  },
-  viewAllButton: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  viewAllText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  channelGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  channelCard: {
-    width: '31%',
-    marginBottom: SPACING.md,
-  },
-  imageContainer: {
-    width: '100%',
-    aspectRatio: 1,
-    backgroundColor: '#2A2A35',
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
-  },
-  logo: {
-    width: '65%',
-    height: '65%',
-  },
+  featImg: { width: '70%', height: '70%' },
+  featName: { color: '#fff', fontSize: 12, fontWeight: '700', textAlign: 'center', paddingHorizontal: 8 },
+  featTitle: { color: '#fff', fontSize: 12, fontWeight: '700' },
+
+  // LIVE badge
   liveBadge: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 4,
-    gap: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#E53935',
-  },
-  liveText: {
-    color: '#E0E0E0',
-    fontSize: 8,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-  },
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
+    position: 'absolute', top: 8, right: 8,
     backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 7, paddingVertical: 3,
+    borderRadius: 6, gap: 4,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
   },
-  modalContent: {
-    backgroundColor: '#1A1A22',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: SPACING.lg,
-    maxHeight: '70%',
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#E53935' },
+  liveText: { color: '#fff', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
+
+  // List rows
+  listRow: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 16, paddingVertical: 12,
+    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)',
+    gap: 12,
   },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
+  listLogoWrap: {
+    width: 52, height: 52, borderRadius: 12,
+    backgroundColor: '#1c1c28',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
+    alignItems: 'center', justifyContent: 'center',
+    overflow: 'hidden', position: 'relative',
   },
-  modalTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
+  listLogo: { width: '75%', height: '75%' },
+  listLogoFallback: { color: '#fff', fontSize: 18, fontWeight: '900' },
+  listLiveDot: {
+    position: 'absolute', bottom: 4, right: 4,
+    width: 8, height: 8, borderRadius: 4,
+    backgroundColor: '#E53935',
+    borderWidth: 1.5, borderColor: '#0F0F13',
   },
-  modalList: {
-    marginBottom: 20,
+  listInfo: { flex: 1 },
+  listName: { color: '#fff', fontSize: 14, fontWeight: '700', marginBottom: 3 },
+  listCat: { color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: '500' },
+  playBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: '#CC222F',
+    alignItems: 'center', justifyContent: 'center',
   },
-  modalItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 18,
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.03)',
-  },
-  modalItemActive: {
-    backgroundColor: 'rgba(229,57,53,0.1)',
-    borderRadius: 12,
-  },
-  modalItemText: {
-    color: '#AAA',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modalItemTextActive: {
-    color: '#E53935',
-  }
+
+  // Locked
+  locked: { alignItems: 'center', marginTop: 80 },
+  lockedText: { color: 'rgba(255,255,255,0.4)', fontSize: 15, fontWeight: '600' },
 });

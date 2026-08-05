@@ -226,303 +226,211 @@ export default function LiveTV() {
   }
 
   return (
-    <div className="bg-[#1A1D24] light-mode:bg-gray-50 min-h-screen text-white light-mode:text-black pb-24 font-sans">
-      {/* Header */}
-      {isSearchOpen ? (
-        <div className="flex items-center w-full px-4 py-3 bg-[#22252D] light-mode:bg-white sticky top-0 z-40 shadow-md space-x-3 rtl:space-x-reverse border-b light-mode:border-neutral-200">
-          <Search size={20} className="text-neutral-400" />
-          <input 
-            type="text" 
-            autoFocus
-            placeholder={t.searchChannels} 
-            className="flex-1 bg-transparent text-white light-mode:text-black outline-none"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }}>
-            <X size={20} className="text-neutral-400 hover:text-white light-mode:hover:text-black" />
-          </button>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between px-4 py-3 bg-[#22252D] light-mode:bg-white sticky top-0 z-40 shadow-md border-b light-mode:border-neutral-200">
-          <div className="flex-1 flex justify-start">
-            <button 
-              onClick={() => setIsCategoryModalOpen(true)}
-              className="flex items-center space-x-1 rtl:space-x-reverse text-sm font-medium hover:text-red-400 transition text-white light-mode:text-black"
-            >
-              <ChevronDown size={16} />
-              <span>{t.category}</span>
-            </button>
-          </div>
-          
-          {/* Logo in the middle */}
-          <div className="flex-1 flex justify-center">
-             <div className="flex items-center space-x-2 leading-none">
-                <Image src="/app-logo-new.png" alt="Taban Play" width={24} height={24} className="rounded-md object-contain" unoptimized />
-                <span className="text-xl font-black text-white light-mode:text-black tracking-tighter">Taban Play</span>
-             </div>
-          </div>
+    <div className="bg-[#0a0a0f] min-h-screen text-white pb-32 font-sans">
 
-          <div className="flex-1 flex justify-end">
-            <button 
-              onClick={() => setIsSearchOpen(true)}
-              className="flex items-center space-x-1 text-sm font-medium hover:text-red-400 transition text-white light-mode:text-black"
-            >
-              <Search size={20} />
-            </button>
+      {/* ── HEADER ── */}
+      <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/5 px-4 sm:px-6 py-4 flex items-center justify-between">
+        <h1 className="text-2xl font-black tracking-tight">
+          {language === 'ku' ? 'تەلەڤیزیۆنی ڕاستەوخۆ' : language === 'ar' ? 'التلفزيون المباشر' : 'Live TV'}
+        </h1>
+        <button
+          onClick={() => setIsSearchOpen(!isSearchOpen)}
+          className="w-10 h-10 rounded-full bg-white/7 border border-white/8 flex items-center justify-center hover:bg-white/12 transition"
+        >
+          {isSearchOpen ? <X size={18} /> : <Search size={18} />}
+        </button>
+      </div>
+
+      {/* ── SEARCH BAR ── */}
+      {isSearchOpen && (
+        <div className="px-4 sm:px-6 py-3 border-b border-white/5">
+          <div className="flex items-center gap-3 bg-white/7 border border-white/8 rounded-2xl px-4 h-11">
+            <Search size={16} className="text-white/40 shrink-0" />
+            <input
+              type="text"
+              autoFocus
+              placeholder={t.searchChannels}
+              className="flex-1 bg-transparent text-white placeholder-white/35 text-[15px] outline-none"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && <button onClick={() => setSearchQuery('')}><X size={16} className="text-white/40" /></button>}
           </div>
         </div>
       )}
 
+      {/* ── CATEGORY TABS ── */}
+      <div className="flex items-center gap-2 px-4 sm:px-6 py-4 overflow-x-auto scrollbar-hide">
+        {[
+          { id: 'All', label: language === 'ku' ? 'هەموو' : language === 'ar' ? 'الكل' : 'All' },
+          ...categories.map(c => ({ id: c.name, label: getLocalized(c, 'name', language) || c.name }))
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setSelectedCategory(tab.id)}
+            className={`px-5 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-all ${
+              selectedCategory === tab.id
+                ? 'bg-[#CC222F] text-white shadow-lg shadow-red-600/25'
+                : 'bg-white/7 border border-white/6 text-white/55 hover:text-white hover:bg-white/12'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {/* Main Content */}
       {searchQuery.trim() ? (
-        <div className="p-4 md:p-8">
-          <h2 className="text-xl font-bold mb-6">{t.searchResults}</h2>
-          {searchResults.length > 0 ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
-              {searchResults.map(channel => (
-                <div 
-                  key={channel.id} 
-                  onClick={() => handleChannelSelect(channel)}
-                  className="bg-[#2A2D34] border border-neutral-700/50 rounded-xl aspect-[4/3] flex flex-col items-center justify-center p-3 cursor-pointer hover:bg-[#333740] hover:border-neutral-500 transition group relative overflow-hidden"
-                >
-                  <div className="absolute top-2 right-2 rtl:right-auto rtl:left-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] flex items-center space-x-1 rtl:space-x-reverse z-10">
-                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                    <span>LIVE</span>
-                  </div>
-                  {channel.image ? (
-                    <Image 
-                      src={channel.image} 
-                      alt={channel.name} 
-                      fill
-                      sizes="(max-width: 768px) 33vw, 15vw"
-                      className="object-contain opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all p-2"
-                      unoptimized={true}
-                    />
-                  ) : (
-                    <span className="text-xs text-center text-neutral-400 font-medium">{channel.name}</span>
-                  )}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20">
-                    <Play size={24} className="text-white" />
-                  </div>
-                </div>
-              ))}
+        <div className="px-4 sm:px-6 space-y-1">
+          <p className="text-sm text-white/40 font-semibold mb-4">{searchResults.length} channels</p>
+          {searchResults.map(channel => (
+            <div key={channel.id} onClick={() => handleChannelSelect(channel)}
+              className="flex items-center gap-4 py-3 border-b border-white/5 cursor-pointer group">
+              <div className="w-14 h-14 relative rounded-xl bg-[#14151c] border border-white/8 overflow-hidden flex items-center justify-center shrink-0">
+                {channel.image
+                  ? <Image src={channel.image} alt={channel.name} fill sizes="56px" className="object-contain p-1" unoptimized />
+                  : <span className="text-white font-bold text-lg">{channel.name[0]}</span>}
+                <div className="absolute bottom-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0a0a0f]" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-[14px] truncate group-hover:text-[#CC222F] transition-colors">{channel.name}</p>
+                <p className="text-[12px] text-white/40">{channel.category}</p>
+              </div>
+              <div className="w-9 h-9 rounded-full bg-[#CC222F] flex items-center justify-center shrink-0">
+                <Play size={14} className="fill-white text-white ml-0.5" />
+              </div>
             </div>
-          ) : (
-            <div className="text-center text-neutral-500 py-10">
-              No channels found for "{searchQuery}"
-            </div>
+          ))}
+          {searchResults.length === 0 && (
+            <div className="text-center py-16 text-white/30">No channels found</div>
           )}
         </div>
       ) : (
         <>
-          {/* Main Top Slider Banner */}
+          {/* Top Banner */}
           {topBanners.length > 0 && (
-            <div className="relative w-full h-48 md:h-64 overflow-hidden bg-neutral-900 group">
+            <div className="relative w-full h-44 md:h-56 overflow-hidden bg-neutral-900 group mb-2">
               <AnimatePresence mode="wait">
-                <motion.div
-                  key={topBanners[currentTopBannerIndex].id}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.5 }}
-                  className="absolute inset-0 cursor-pointer"
-                  onClick={() => topBanners[currentTopBannerIndex].link && window.open(topBanners[currentTopBannerIndex].link, '_blank')}
-                >
-                  <Image 
-                    src={topBanners[currentTopBannerIndex].image} 
-                    alt="Promo" 
-                    fill
-                    priority
-                    sizes="100vw"
-                    className="object-cover"
-                    unoptimized={true}
-                  />
-                  <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent" />
+                <motion.div key={topBanners[currentTopBannerIndex].id}
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }} className="absolute inset-0 cursor-pointer"
+                  onClick={() => topBanners[currentTopBannerIndex].link && window.open(topBanners[currentTopBannerIndex].link, '_blank')}>
+                  <Image src={topBanners[currentTopBannerIndex].image} alt="Promo" fill priority sizes="100vw" className="object-cover" unoptimized />
+                  <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0a0a0f] to-transparent" />
                 </motion.div>
               </AnimatePresence>
-
               {topBanners.length > 1 && (
-                <>
-                  {/* Slider Indicators */}
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
-                    {topBanners.map((_, i) => (
-                      <div 
-                        key={i} 
-                        className={`w-1.5 h-1.5 rounded-full transition-all ${i === currentTopBannerIndex ? 'bg-red-500 w-4' : 'bg-white/40'}`} 
-                      />
-                    ))}
-                  </div>
-                  
-                  {/* Navigation Buttons */}
-                  <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); setCurrentTopBannerIndex(prev => (prev - 1 + topBanners.length) % topBanners.length); }}
-                      className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md text-white transition pointer-events-auto"
-                    >
-                      <ChevronLeft size={24} />
-                    </button>
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); setCurrentTopBannerIndex(prev => (prev + 1) % topBanners.length); }}
-                      className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md text-white transition pointer-events-auto"
-                    >
-                      <ChevronRight size={24} />
-                    </button>
-                  </div>
-                </>
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                  {topBanners.map((_, i) => (
+                    <div key={i} className={`h-1.5 rounded-full transition-all ${i === currentTopBannerIndex ? 'bg-red-500 w-4' : 'bg-white/30 w-1.5'}`} />
+                  ))}
+                </div>
               )}
             </div>
           )}
 
-          <div className="p-4 md:p-8 space-y-10">
-          {/* Check for "Start" Banners */}
-          {interspersedBanners.filter(b => !b.placement_after || b.placement_after === '').map(banner => (
-            <div 
-              key={banner.id}
-              onClick={() => banner.link && window.open(banner.link, '_blank')}
-              className="relative w-full h-24 md:h-32 cursor-pointer hover:opacity-95 transition rounded-xl overflow-hidden border border-white/5 shadow-2xl"
-            >
-              <Image 
-                src={banner.image} 
-                className="object-cover" 
-                alt="Ad"
-                fill
-                sizes="100vw"
-                unoptimized={true}
-              />
-            </div>
-          ))}
-        {categoriesToRender.length === 0 ? (
-            <div className="text-center text-neutral-500 py-10">
-              {t.noChannels}
-            </div>
-        ) : categoriesToRender.map((catObj, index) => {
-          const category = typeof catObj === 'string' ? catObj : catObj.name;
-          const categoryChannels = channelsByCategory[category] || [];
-          if (categoryChannels.length === 0) return null;
- 
-          return (
-            <div key={category} className="space-y-4">
-              {/* Category Header */}
-              <div className="flex justify-between items-center px-1">
-                <h2 className="text-xl md:text-2xl font-black uppercase tracking-tighter">
-                  {getLocalized(catObj, 'name', language) || category}
-                </h2>
-                <button 
-                  onClick={() => setViewAllCategory(category)}
-                  className="bg-neutral-800 hover:bg-neutral-700 text-white px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center space-x-2"
-                >
-                  <span>+ {t.viewAll}</span>
-                </button>
-              </div>
- 
-              {/* Channel Grid */}
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
-                {categoryChannels.slice(0, 6).map(channel => (
-                  <div 
-                    key={channel.id} 
-                    onClick={() => handleChannelSelect(channel)}
-                    className="bg-[#2A2D34] light-mode:bg-white border border-neutral-700/50 light-mode:border-neutral-200 rounded-xl aspect-[4/3] flex flex-col items-center justify-center p-3 cursor-pointer hover:bg-[#333740] light-mode:hover:bg-neutral-50 hover:border-neutral-500 transition group relative overflow-hidden shadow-sm"
-                  >
-                    <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] flex items-center space-x-1 z-10 text-white">
-                      <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                      <span>LIVE</span>
-                    </div>
-                    {channel.image ? (
-                      <Image 
-                        src={channel.image} 
-                        alt={channel.name} 
-                        fill
-                        sizes="(max-width: 768px) 33vw, 15vw"
-                        className="object-contain opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all p-2"
-                        unoptimized={true}
-                      />
-                    ) : (
-                      <span className="text-xs text-center text-neutral-400 font-medium">{channel.name}</span>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20">
-                      <Play size={24} className="text-white" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Dynamic Interspersed Banners */}
-              {interspersedBanners.filter(b => b.placement_after === category).map(banner => (
-                <div 
-                  key={banner.id}
-                  onClick={() => banner.link && window.open(banner.link, '_blank')}
-                  className="pt-4 relative w-full h-28 md:h-36 cursor-pointer hover:opacity-95 transition rounded-xl overflow-hidden"
-                >
-                  <Image 
-                    src={banner.image} 
-                    className="object-cover border border-white/5 shadow-2xl rounded-xl" 
-                    alt="Ad"
-                    fill
-                    sizes="100vw"
-                    unoptimized={true}
-                  />
+          <div className="px-4 sm:px-6 space-y-10">
+            {/* Featured Channels */}
+            {channels.length > 0 && (
+              <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-[18px] font-black tracking-tight">
+                    {language === 'ku' ? 'بەناوبانگەکان' : language === 'ar' ? 'القنوات المميزة' : 'Featured Channels'}
+                  </h2>
+                  <span className="text-[#CC222F] text-sm font-bold">See All</span>
                 </div>
-              ))}
-            </div>
-          );
-        })}
-      </div>
+                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+                  {(selectedCategory === 'All' ? channels : channels.filter(c => c.category === selectedCategory)).slice(0, 8).map(channel => (
+                    <div key={channel.id} onClick={() => handleChannelSelect(channel)} className="flex-none w-36 cursor-pointer group">
+                      <div className="relative w-36 h-24 rounded-2xl bg-[#14151c] border border-white/8 overflow-hidden flex items-center justify-center mb-2 group-hover:border-[#CC222F]/40 transition-colors">
+                        {channel.image
+                          ? <Image src={channel.image} alt={channel.name} fill sizes="144px" className="object-contain p-3 group-hover:scale-105 transition-transform duration-300" unoptimized />
+                          : <span className="text-white font-bold text-sm text-center px-2">{channel.name}</span>}
+                        <div className="absolute top-2 right-2 bg-black/70 px-2 py-0.5 rounded-md text-[10px] flex items-center gap-1">
+                          <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                          <span className="font-bold">LIVE</span>
+                        </div>
+                      </div>
+                      <p className="text-[12px] font-bold truncate group-hover:text-[#CC222F] transition-colors">{channel.name}</p>
+                      <p className="text-[11px] text-white/40">{channel.category}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* All Channels by Category */}
+            {categoriesToRender.length === 0 ? (
+              <div className="text-center text-white/30 py-10">{t.noChannels}</div>
+            ) : categoriesToRender.map((catObj) => {
+              const category = typeof catObj === 'string' ? catObj : catObj.name;
+              const categoryChannels = channelsByCategory[category] || [];
+              if (categoryChannels.length === 0) return null;
+              return (
+                <section key={category} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-[18px] font-black tracking-tight">{getLocalized(catObj, 'name', language) || category}</h2>
+                    {categoryChannels.length > 6 && (
+                      <button onClick={() => setViewAllCategory(category)} className="text-[#CC222F] text-sm font-bold hover:text-red-400 transition">See All</button>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    {categoryChannels.slice(0, 6).map(channel => (
+                      <div key={channel.id} onClick={() => handleChannelSelect(channel)}
+                        className="flex items-center gap-4 py-3 border-b border-white/5 cursor-pointer group hover:bg-white/2 rounded-xl px-2 -mx-2 transition">
+                        <div className="w-14 h-14 relative rounded-xl bg-[#14151c] border border-white/8 overflow-hidden flex items-center justify-center shrink-0">
+                          {channel.image
+                            ? <Image src={channel.image} alt={channel.name} fill sizes="56px" className="object-contain p-1.5" unoptimized />
+                            : <span className="text-white font-bold text-lg">{channel.name[0]}</span>}
+                          <div className="absolute bottom-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0a0a0f]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-[14px] truncate group-hover:text-[#CC222F] transition-colors">{channel.name}</p>
+                          <p className="text-[12px] text-white/40 mt-0.5">{channel.category}</p>
+                        </div>
+                        <div className="w-9 h-9 rounded-full bg-[#CC222F] flex items-center justify-center shrink-0 shadow-lg shadow-red-600/25 group-hover:scale-110 transition-transform">
+                          <Play size={14} className="fill-white text-white ml-0.5" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {interspersedBanners.filter(b => b.placement_after === category).map(banner => (
+                    <div key={banner.id} onClick={() => banner.link && window.open(banner.link, '_blank')}
+                      className="relative w-full h-24 md:h-32 cursor-pointer rounded-xl overflow-hidden border border-white/5 mt-4">
+                      <Image src={banner.image} alt="Ad" fill sizes="100vw" className="object-cover" unoptimized />
+                    </div>
+                  ))}
+                </section>
+              );
+            })}
+          </div>
         </>
       )}
       {/* Category Modal */}
       {isCategoryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#22252D] light-mode:bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] text-white light-mode:text-black border border-transparent light-mode:border-neutral-200">
-            <div className="p-4 border-b border-neutral-800 light-mode:border-neutral-100">
-              <h3 className="text-lg font-semibold">{t.category}</h3>
+          <div className="bg-[#161720] w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] text-white border border-white/10">
+            <div className="p-4 border-b border-white/8 flex items-center justify-between">
+              <h3 className="text-lg font-bold">{t.category}</h3>
+              <button onClick={() => setIsCategoryModalOpen(false)}><X size={20} className="text-white/50" /></button>
             </div>
-            <div className="overflow-y-auto p-2">
-              <button
-                onClick={() => {
-                  setSelectedCategory('All');
-                  setIsCategoryModalOpen(false);
-                }}
-                className="w-full flex items-center space-x-3 rtl:space-x-reverse p-3 rounded-xl hover:bg-[#2A2D34] transition text-left rtl:text-right"
-              >
-                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedCategory === 'All' ? 'border-red-500' : 'border-neutral-500'}`}>
-                  {selectedCategory === 'All' && <div className="w-2.5 h-2.5 bg-red-500 rounded-full" />}
-                </div>
-                <span className={selectedCategory === 'All' ? 'text-white font-medium' : 'text-neutral-400'}>
-                  {getLocalized('All', 'name', language)}
-                </span>
-              </button>
-              {categories.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => {
-                    setSelectedCategory(cat.name);
-                    setIsCategoryModalOpen(false);
-                  }}
-                  className="w-full flex items-center space-x-3 rtl:space-x-reverse p-3 rounded-xl hover:bg-[#2A2D34] light-mode:hover:bg-neutral-100 transition text-left rtl:text-right"
-                >
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedCategory === cat.name ? 'border-red-500' : 'border-neutral-500'}`}>
-                    {selectedCategory === cat.name && <div className="w-2.5 h-2.5 bg-red-500 rounded-full" />}
-                  </div>
-                  <span className={selectedCategory === cat.name ? 'text-white light-mode:text-red-500 font-medium' : 'text-neutral-400 light-mode:text-neutral-600'}>
-                    {getLocalized(cat, 'name', language) || cat.name}
-                  </span>
+            <div className="overflow-y-auto p-3 space-y-1">
+              {[{ id: 'all-item', name: t.all || 'All' }, ...categories].map((cat: any) => (
+                <button key={cat.id}
+                  onClick={() => { setSelectedCategory(cat.name === (t.all || 'All') ? 'All' : cat.name); setIsCategoryModalOpen(false); }}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl transition text-left ${
+                    (cat.name === (t.all || 'All') ? selectedCategory === 'All' : selectedCategory === cat.name)
+                      ? 'bg-[#CC222F]/15 text-[#CC222F]' : 'hover:bg-white/5 text-white/70'
+                  }`}>
+                  <span className="font-semibold">{getLocalized(cat, 'name', language) || cat.name}</span>
+                  {(cat.name === (t.all || 'All') ? selectedCategory === 'All' : selectedCategory === cat.name) && <CheckCircle2 size={18} className="text-[#CC222F]" />}
                 </button>
               ))}
-            </div>
-            <div className="p-4 border-t border-neutral-800 light-mode:border-neutral-100">
-              <button 
-                onClick={() => setIsCategoryModalOpen(false)}
-                className="w-full py-3 bg-neutral-800 light-mode:bg-neutral-200 text-white light-mode:text-black hover:bg-neutral-700 light-mode:hover:bg-neutral-300 rounded-xl font-medium transition"
-              >
-                {t.close}
-              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Pro Modal */}
       <ProSubscriptionModal isOpen={showProModal} onClose={() => setShowProModal(false)} />
     </div>
   );
