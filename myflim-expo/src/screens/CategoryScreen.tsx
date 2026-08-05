@@ -1,61 +1,41 @@
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
   TouchableOpacity,
   Dimensions,
-  Image
+  Image,
+  StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, SIZES } from '../theme/theme';
-import { ChevronLeft, Play } from 'lucide-react-native';
+import { ChevronLeft, Star } from 'lucide-react-native';
 import { useAppStore } from '../store/useAppStore';
+import { getLocalized } from '../utils/localization';
 
-const translations: any = {
-  ku: {
-    all: 'گشتی',
-    movie: 'فیلم',
-    series: 'زنجیرە',
-    animation: 'ئەنیمەیشن',
-    korean: 'کۆری',
-    hindi: 'هیندی',
-    persian: 'فارسی'
-  },
-  en: {
-    all: 'All',
-    movie: 'Movie',
-    series: 'Series',
-    animation: 'Animation',
-    korean: 'Korean',
-    hindi: 'Hindi',
-    persian: 'Persian'
-  },
-  ar: {
-    all: 'الكل',
-    movie: 'فيلم',
-    series: 'مسلسل',
-    animation: 'أنمي',
-    korean: 'كوري',
-    hindi: 'هندي',
-    persian: 'فارسي'
-  }
+const tabTr: any = {
+  ku: { all: 'گشتی', movie: 'فیلم', series: 'زنجیرە', animation: 'ئەنیمەیشن', korean: 'کۆری', hindi: 'هیندی', persian: 'فارسی' },
+  en: { all: 'All', movie: 'Movie', series: 'Series', animation: 'Animation', korean: 'Korean', hindi: 'Hindi', persian: 'Persian' },
+  ar: { all: 'الكل', movie: 'فيلم', series: 'مسلسل', animation: 'أنمي', korean: 'كوري', hindi: 'هندي', persian: 'فارسي' },
 };
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - (SPACING.md * 4)) / 3; 
+const GAP = 12;
+const H_PAD = 16;
+const CARD_W = (width - H_PAD * 2 - GAP) / 2;
 
 export default function CategoryScreen({ route, navigation }: any) {
   const { title, data, type, listName } = route.params;
   const insets = useSafeAreaInsets();
   const { language } = useAppStore();
-  const t = translations[language] || translations['ku'];
+  const t = tabTr[language] || tabTr['ku'];
 
   const [activeTab, setActiveTab] = React.useState('All');
 
-  // Determine which tabs to show based on listName
-  let tabs: any[] = [];
+  // ── Tabs config ──────────────────────────────────────────────────────────
+  let tabs: { id: string; label: string }[] = [];
   if (listName === 'نوێترین بەرهەمەکان 2026') {
     tabs = [
       { id: 'All', label: t.all },
@@ -76,168 +56,299 @@ export default function CategoryScreen({ route, navigation }: any) {
       { id: 'Series', label: t.series },
       { id: 'Animation', label: t.animation },
     ];
+  } else if (type !== 'LiveTV') {
+    // Generic: show All / Series / Movie
+    tabs = [
+      { id: 'All', label: t.all },
+      { id: 'Series', label: t.series },
+      { id: 'Movie', label: t.movie },
+    ];
   }
 
-  // Filter data based on activeTab
+  // ── Filter ───────────────────────────────────────────────────────────────
   const filteredData = React.useMemo(() => {
     if (!tabs.length || activeTab === 'All') return data;
-    
     return data.filter((item: any) => {
       if (activeTab === 'Movie') return item.type === 'Movie';
       if (activeTab === 'Series') return item.type === 'Series';
       if (activeTab === 'Animation') return item.type === 'Animation';
-      
-      if (activeTab === 'Korean') {
-        return item.country?.toLowerCase().includes('korea') || item.country?.includes('کۆری');
-      }
-      if (activeTab === 'Hindi') {
-        return item.country?.toLowerCase().includes('india') || item.country?.includes('هیندی');
-      }
-      if (activeTab === 'Persian') {
-        return item.country?.toLowerCase().includes('iran') || item.country?.includes('فارسی') || item.country?.includes('ئێران');
-      }
-      
+      if (activeTab === 'Korean') return item.country?.toLowerCase().includes('korea') || item.country?.includes('کۆری');
+      if (activeTab === 'Hindi') return item.country?.toLowerCase().includes('india') || item.country?.includes('هیندی');
+      if (activeTab === 'Persian') return item.country?.toLowerCase().includes('iran') || item.country?.includes('فارسی') || item.country?.includes('ئێران');
       return true;
     });
-  }, [data, activeTab, tabs]);
+  }, [data, activeTab]);
 
-  const renderItem = ({ item }: any) => {
-    if (type === 'LiveTV') {
-      return (
-        <TouchableOpacity 
-          style={styles.channelCard}
-          onPress={() => navigation.navigate('Detail', { item: { ...item, type: 'LiveTV' } })}
-        >
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: item.image }} style={styles.logo} resizeMode="contain" />
-            <View style={styles.liveBadge}>
-              <View style={styles.liveDot} />
-              <Text style={styles.liveText}>LIVE</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-      );
-    }
-    
-    // Default Movie/Series rendering
-    return (
-      <TouchableOpacity 
-        style={styles.movieCard}
-        onPress={() => navigation.navigate('Detail', { item })}
-      >
+  // ── Render: Movie / Series card (2-column) ───────────────────────────────
+  const renderMovieCard = ({ item }: any) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('Detail', { item })}
+      activeOpacity={0.85}
+    >
+      {/* Poster */}
+      <View style={styles.posterWrap}>
         <Image source={{ uri: item.image }} style={styles.poster} />
-      </TouchableOpacity>
-    );
-  };
 
-  return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <ChevronLeft color="white" size={28} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{title}</Text>
-        <View style={{ width: 28 }} />
+        {/* Rating badge — top right */}
+        {item.rating ? (
+          <View style={styles.ratingBadge}>
+            <Star size={10} color="#FBBF24" fill="#FBBF24" />
+            <Text style={styles.ratingText}>{item.rating}</Text>
+          </View>
+        ) : null}
       </View>
 
-      {tabs.length > 0 && (
-        <View style={styles.tabsContainer}>
+      {/* Title + Year */}
+      <Text numberOfLines={1} style={styles.cardTitle}>
+        {getLocalized(item, 'title', language)}
+      </Text>
+      {item.year ? <Text style={styles.cardYear}>{item.year}</Text> : null}
+    </TouchableOpacity>
+  );
+
+  // ── Render: Live TV card ─────────────────────────────────────────────────
+  const renderTVCard = ({ item }: any) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('Detail', { item: { ...item, type: 'LiveTV' } })}
+      activeOpacity={0.85}
+    >
+      <View style={styles.tvLogoWrap}>
+        <Image source={{ uri: item.image }} style={styles.tvLogo} resizeMode="contain" />
+        <View style={styles.liveBadge}>
+          <View style={styles.liveDot} />
+          <Text style={styles.liveText}>LIVE</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
+  const renderItem = ({ item }: any) =>
+    type === 'LiveTV' ? renderTVCard({ item }) : renderMovieCard({ item });
+
+  // ── Header component (passed to FlatList as ListHeaderComponent) ─────────
+  const ListHeader = () => (
+    <>
+      {/* Back + Title */}
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <ChevronLeft color="white" size={26} />
+        </TouchableOpacity>
+        <View style={styles.titleBlock}>
+          <Text style={styles.headerTitle}>{title}</Text>
+          {filteredData.length > 0 ? (
+            <Text style={styles.itemCount}>
+              {language === 'ar' ? `${filteredData.length} عنصر` : language === 'ku' ? `${filteredData.length} ئایتەم` : `${filteredData.length} items`}
+            </Text>
+          ) : null}
+        </View>
+        {/* Spacer to center title */}
+        <View style={{ width: 38 }} />
+      </View>
+
+      {/* Filter tabs */}
+      {tabs.length > 0 ? (
+        <View style={styles.tabsRow}>
           {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
+            const active = activeTab === tab.id;
             return (
               <TouchableOpacity
                 key={tab.id}
-                style={[styles.tabButton, isActive && styles.tabButtonActive]}
+                style={[styles.tab, active && styles.tabActive]}
                 onPress={() => setActiveTab(tab.id)}
+                activeOpacity={0.8}
               >
-                <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
                   {tab.label}
                 </Text>
               </TouchableOpacity>
             );
           })}
         </View>
-      )}
+      ) : null}
+    </>
+  );
+
+  return (
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" backgroundColor="#0F0F13" />
 
       <FlatList
         data={filteredData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
-        numColumns={3}
+        numColumns={2}
+        ListHeaderComponent={<ListHeader />}
         contentContainerStyle={styles.listContent}
         columnWrapperStyle={styles.columnWrapper}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
 }
 
+// ─── STYLES ───────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: '#1E1E24',
+    backgroundColor: '#0F0F13',
   },
+
+  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 15,
-    backgroundColor: '#27272F',
-    marginBottom: SPACING.md,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    backgroundColor: '#0F0F13',
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleBlock: {
+    alignItems: 'center',
   },
   headerTitle: {
     color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.3,
   },
+  itemCount: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+
+  // Tabs
+  tabsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    flexWrap: 'wrap',
+  },
+  tab: {
+    paddingHorizontal: 20,
+    paddingVertical: 9,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  tabActive: {
+    backgroundColor: '#CC222F',
+    borderColor: '#CC222F',
+  },
+  tabLabel: {
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  tabLabelActive: {
+    color: 'white',
+    fontWeight: '700',
+  },
+
+  // List
   listContent: {
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: H_PAD,
     paddingBottom: 100,
   },
   columnWrapper: {
-    justifyContent: 'flex-start',
-    gap: SPACING.md,
+    justifyContent: 'space-between',
+    marginBottom: GAP,
   },
-  channelCard: {
-    width: CARD_WIDTH,
-    marginBottom: SPACING.md,
+
+  // Movie card (2-col)
+  card: {
+    width: CARD_W,
   },
-  movieCard: {
-    width: CARD_WIDTH,
-    height: CARD_WIDTH * 1.5,
-    marginBottom: SPACING.md,
+  posterWrap: {
+    width: '100%',
+    aspectRatio: 2 / 3,
+    borderRadius: 14,
+    overflow: 'hidden',
+    backgroundColor: '#1c1c24',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.07)',
+    marginBottom: 8,
   },
   poster: {
     width: '100%',
     height: '100%',
-    borderRadius: SIZES.radius,
   },
-  imageContainer: {
+  ratingBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  ratingText: {
+    color: '#FBBF24',
+    fontSize: 11,
+    fontWeight: '700',
+    marginLeft: 2,
+  },
+  cardTitle: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  cardYear: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+
+  // TV card
+  tvLogoWrap: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: '#2A2A35',
-    borderRadius: 12,
-    justifyContent: 'center',
+    borderRadius: 14,
+    backgroundColor: '#1c1c24',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.07)',
     alignItems: 'center',
+    justifyContent: 'center',
     overflow: 'hidden',
   },
-  logo: {
+  tvLogo: {
     width: '65%',
     height: '65%',
   },
   liveBadge: {
     position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.65)',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 7,
     paddingVertical: 3,
-    borderRadius: 4,
+    borderRadius: 5,
     gap: 4,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(255,255,255,0.12)',
   },
   liveDot: {
     width: 6,
@@ -247,36 +358,8 @@ const styles = StyleSheet.create({
   },
   liveText: {
     color: '#E0E0E0',
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: '900',
     letterSpacing: 0.5,
   },
-  tabsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.md,
-    flexWrap: 'wrap',
-  },
-  tabButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#2A2A35',
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  tabButtonActive: {
-    backgroundColor: '#E53935',
-  },
-  tabText: {
-    color: '#888',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  tabTextActive: {
-    color: 'white',
-  }
 });
