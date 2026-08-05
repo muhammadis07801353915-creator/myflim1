@@ -38,7 +38,7 @@ export default function AccessScreen() {
           resizeMode="contain" 
         />
         
-        <Text style={styles.title}>MBox</Text>
+        <Text style={styles.title}>Taban Play</Text>
         <Text style={styles.subtitle}>بۆ چوونە ژوورەوە پێویستت بە کۆدە</Text>
         
         <View style={styles.inputContainer}>

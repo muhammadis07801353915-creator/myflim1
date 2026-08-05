@@ -226,7 +226,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                             className="rounded-lg object-contain" 
                             unoptimized 
                           />
-                          <span className="text-2xl font-black text-white tracking-tighter">MBox</span>
+                          <span className="text-2xl font-black text-white tracking-tighter">Taban Play</span>
                        </div>
                     </div>
                     {movie.genre && (

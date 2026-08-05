@@ -109,7 +109,7 @@ export default function HomeScreen({ navigation }: any) {
                 style={{ width: 28, height: 28, borderRadius: 7, marginRight: 8 }} 
                 resizeMode="contain" 
               />
-              <Text style={styles.logoTextBold}>MBox</Text>
+              <Text style={styles.logoTextBold}>Taban Play</Text>
             </View>
             
             {item.genre ? (

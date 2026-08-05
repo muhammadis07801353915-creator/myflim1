@@ -137,7 +137,7 @@ export default function LiveTVScreen({ navigation }: any) {
                 style={{ width: 26, height: 26, borderRadius: 6, marginRight: 6 }} 
                 resizeMode="contain" 
               />
-              <Text style={styles.logoTextBold}>MBox</Text>
+              <Text style={styles.logoTextBold}>Taban Play</Text>
             </View>
             
             <TouchableOpacity onPress={() => setIsSearchActive(true)}>

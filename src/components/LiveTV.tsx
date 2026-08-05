@@ -258,8 +258,8 @@ export default function LiveTV() {
           {/* Logo in the middle */}
           <div className="flex-1 flex justify-center">
              <div className="flex items-center space-x-2 leading-none">
-                <Image src="/app-logo-new.png" alt="MBox" width={24} height={24} className="rounded-md object-contain" unoptimized />
-                <span className="text-xl font-black text-white light-mode:text-black tracking-tighter">MBox</span>
+                <Image src="/app-logo-new.png" alt="Taban Play" width={24} height={24} className="rounded-md object-contain" unoptimized />
+                <span className="text-xl font-black text-white light-mode:text-black tracking-tighter">Taban Play</span>
              </div>
           </div>
 
