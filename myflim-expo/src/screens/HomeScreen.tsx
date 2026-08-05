@@ -12,17 +12,18 @@ import {
   RefreshControl,
   PanResponder,
 } from 'react-native';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '../theme/theme';
 import { useAppStore } from '../store/useAppStore';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Star, Flame, ChevronRight } from 'lucide-react-native';
+import { Star, Flame, ChevronRight, Search, Bell } from 'lucide-react-native';
 import { translations } from '../utils/translations';
 import { getLocalized } from '../utils/localization';
 import FloatingSocialButton from '../components/FloatingSocialButton';
 
 const { width } = Dimensions.get('window');
-const HERO_HEIGHT = width * 0.64; // ~16:10
+const HERO_HEIGHT = width * 0.64 + 60; // ~16:10 + header height
 
 // ─── Poster card (2:3) — used in all horizontal sections ──────────────────
 function PosterCard({
@@ -159,24 +160,66 @@ export default function HomeScreen({ navigation }: any) {
     if (!item) return null;
 
     return (
-      <View style={[hero.wrapper, { paddingTop: insets.top }]}>
-        <View style={hero.card} {...heroPan.panHandlers}>
+      <View style={[hero.wrapper]}>
+        <View style={[hero.card, { paddingTop: insets.top }]} {...heroPan.panHandlers}>
           {/* BG image */}
           {item.image ? (
             <Image source={{ uri: item.image }} style={hero.img} resizeMode="cover" />
           ) : null}
 
-          {/* Gradients */}
+          {/* Top-to-mid dark fade so header text is readable */}
+          <LinearGradient
+            colors={['rgba(10,10,15,0.75)', 'rgba(10,10,15,0.2)', 'transparent']}
+            style={[StyleSheet.absoluteFillObject, { zIndex: 1 }]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 0.45 }}
+          />
+          {/* Bottom gradient */}
           <LinearGradient
             colors={['transparent', 'rgba(10,10,15,0.6)', 'rgba(10,10,15,0.97)']}
             style={StyleSheet.absoluteFillObject}
           />
+          {/* Left gradient */}
           <LinearGradient
             colors={['rgba(10,10,15,0.8)', 'rgba(10,10,15,0.3)', 'transparent']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={StyleSheet.absoluteFillObject}
           />
+
+          {/* ── HEADER BAR (overlaid on hero, matches website) ── */}
+          <View style={[header.bar, { paddingTop: insets.top, zIndex: 10 }]}>
+            {/* Left: Logo + Brand name */}
+            <View style={header.brand}>
+              <Image
+                source={require('../../assets/app-logo-new.png')}
+                style={header.logo}
+                resizeMode="contain"
+              />
+              <View style={header.brandText}>
+                <Text style={header.brandBold}>Taban</Text>
+                <Text style={[header.brandBold, { color: '#CC222F' }]}>Play</Text>
+              </View>
+            </View>
+
+            {/* Right: Search + Bell */}
+            <View style={header.actions}>
+              <TouchableOpacity
+                style={header.iconBtn}
+                onPress={(e) => { (e as any).stopPropagation?.(); navigation.navigate('Search' as never); }}
+                activeOpacity={0.8}
+              >
+                <Search size={18} color="rgba(255,255,255,0.85)" />
+              </TouchableOpacity>
+              <View>
+                <TouchableOpacity style={header.iconBtn} activeOpacity={0.8}>
+                  <Bell size={18} color="rgba(255,255,255,0.85)" />
+                </TouchableOpacity>
+                {/* Red dot */}
+                <View style={header.notifDot} />
+              </View>
+            </View>
+          </View>
 
           {/* Content */}
           <View style={hero.content}>
@@ -549,3 +592,66 @@ const styles = StyleSheet.create({
     paddingRight: 16,
   },
 });
+
+// ─── HEADER STYLES ────────────────────────────────────────────────────────
+const header = StyleSheet.create({
+  bar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  logo: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+  },
+  brandText: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 2,
+  },
+  brandBold: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  iconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(20,21,34,0.75)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  notifDot: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: '#CC222F',
+    borderWidth: 1.5,
+    borderColor: '#0F0F13',
+  },
+});
+
