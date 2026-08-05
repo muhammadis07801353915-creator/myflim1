@@ -270,65 +270,113 @@ export default function Home({
         </div>
       </header>
 
-      {/* 1. FULL-WIDTH EDGE-TO-EDGE BILLBOARD HERO (outside padded wrapper) */}
-      {currentFeatured && (
-        <div
-          className="relative w-full overflow-hidden bg-[#141522] shadow-[0_20px_50px_rgba(0,0,0,0.9)] cursor-pointer"
-          onClick={() => onSelect(currentFeatured)}
-        >
-          {/* Full-width background image */}
-          {currentFeatured.image && (
-            <Image
-              src={currentFeatured.image}
-              alt={currentFeatured.title || ''}
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover object-center scale-105 hover:scale-110 transition-transform duration-[3000ms] ease-out"
-              unoptimized={true}
-            />
-          )}
 
-          {/* Bottom fade gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/60 to-transparent" />
-          {/* Left fade gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/80 via-[#0a0a0f]/30 to-transparent" />
+      {/* 1. FULL-WIDTH EDGE-TO-EDGE BILLBOARD HERO */}
+      {currentFeatured && (() => {
+        // Swipe gesture tracking refs (inline via data attributes handled in JSX)
+        return (
+          <div
+            className="relative w-full overflow-hidden bg-[#141522] shadow-[0_20px_50px_rgba(0,0,0,0.9)] cursor-pointer select-none"
+            onClick={() => onSelect(currentFeatured)}
+            onTouchStart={(e) => {
+              const t = e.touches[0];
+              (e.currentTarget as HTMLElement).dataset.touchX = String(t.clientX);
+              (e.currentTarget as HTMLElement).dataset.touchY = String(t.clientY);
+            }}
+            onTouchEnd={(e) => {
+              const startX = Number((e.currentTarget as HTMLElement).dataset.touchX || 0);
+              const startY = Number((e.currentTarget as HTMLElement).dataset.touchY || 0);
+              const dx = e.changedTouches[0].clientX - startX;
+              const dy = e.changedTouches[0].clientY - startY;
+              if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (dx < 0) nextFeatured();
+                else prevFeatured();
+              }
+            }}
+          >
+            {/* Full-width background image */}
+            {currentFeatured.image && (
+              <Image
+                src={currentFeatured.image}
+                alt={currentFeatured.title || ''}
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-center scale-105 hover:scale-110 transition-transform duration-[3000ms] ease-out pointer-events-none"
+                unoptimized={true}
+              />
+            )}
 
-          {/* Content overlay */}
-          <div className="relative z-10 aspect-[16/10] sm:aspect-[21/9] md:aspect-[3/1] flex flex-col justify-end p-5 sm:p-8 md:p-10">
+            {/* Bottom fade gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/60 to-transparent pointer-events-none" />
+            {/* Left fade gradient */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/80 via-[#0a0a0f]/30 to-transparent pointer-events-none" />
 
-            {/* Movie Title */}
-            <h1 className="text-base sm:text-2xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-2xl line-clamp-2 max-w-md mb-2">
-              {getLocalized(currentFeatured, 'title', language)}
-            </h1>
+            {/* Content overlay */}
+            <div className="relative z-10 aspect-[16/10] sm:aspect-[21/9] md:aspect-[3/1] flex flex-col justify-end px-5 pt-5 pb-8 sm:px-8 sm:pb-10 md:px-10">
 
-            {/* Meta Badges Row — below title */}
-            <div className="flex items-center flex-wrap gap-1.5">
-              {typeof currentFeatured.genre === 'string' && currentFeatured.genre.trim() && (
-                <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-neutral-200 font-semibold text-[10px]">
-                  {currentFeatured.genre.split(',')[0]}
-                </span>
-              )}
-              {currentFeatured.year && (
-                <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-neutral-200 font-semibold text-[10px]">
-                  {currentFeatured.year}
-                </span>
-              )}
-              {currentFeatured.rating && (
-                <span className="px-2.5 py-0.5 rounded-md bg-black/70 backdrop-blur-md border border-white/10 text-yellow-400 font-bold text-[10px] flex items-center space-x-1">
-                  <Star size={10} className="fill-yellow-400 text-yellow-400" />
-                  <span>{currentFeatured.rating}</span>
-                </span>
-              )}
-              {currentFeatured.type && (
-                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#CC222F] text-white shadow-md">
-                  {currentFeatured.type}
-                </span>
+              {/* Movie Title */}
+              <h1 className="text-base sm:text-2xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-2xl line-clamp-2 max-w-md mb-2">
+                {getLocalized(currentFeatured, 'title', language)}
+              </h1>
+
+              {/* Meta Badges Row — below title */}
+              <div className="flex items-center flex-wrap gap-1.5 mb-4">
+                {typeof currentFeatured.genre === 'string' && currentFeatured.genre.trim() && (
+                  <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-neutral-200 font-semibold text-[10px]">
+                    {currentFeatured.genre.split(',')[0]}
+                  </span>
+                )}
+                {currentFeatured.year && (
+                  <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-neutral-200 font-semibold text-[10px]">
+                    {currentFeatured.year}
+                  </span>
+                )}
+                {currentFeatured.rating && (
+                  <span className="px-2.5 py-0.5 rounded-md bg-black/70 backdrop-blur-md border border-white/10 text-yellow-400 font-bold text-[10px] flex items-center space-x-1">
+                    <Star size={10} className="fill-yellow-400 text-yellow-400" />
+                    <span>{currentFeatured.rating}</span>
+                  </span>
+                )}
+                {currentFeatured.type && (
+                  <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#CC222F] text-white shadow-md">
+                    {currentFeatured.type}
+                  </span>
+                )}
+              </div>
+
+              {/* Dot Slide Indicators — bottom centre */}
+              {featuredMovies.length > 1 && (
+                <div
+                  className="flex items-center gap-1.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {featuredMovies.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const diff = i - currentFeaturedIndex;
+                        if (diff > 0) for (let j = 0; j < diff; j++) nextFeatured();
+                        else if (diff < 0) for (let j = 0; j < Math.abs(diff); j++) prevFeatured();
+                      }}
+                      className="transition-all duration-300 rounded-full"
+                      style={{
+                        width: i === currentFeaturedIndex ? '20px' : '6px',
+                        height: '6px',
+                        backgroundColor: i === currentFeaturedIndex ? '#CC222F' : 'rgba(255,255,255,0.4)',
+                      }}
+                    />
+                  ))}
+                </div>
               )}
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
+
 
       <div className="px-4 md:px-8 space-y-10 pt-4">
 
