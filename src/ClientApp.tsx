@@ -23,14 +23,6 @@ export default function ClientApp() {
   const selectedItem = movies.find(m => m.id.toString() === movieId);
 
   useEffect(() => {
-    // Handle ChunkLoadError (when deployment hashes change on Vercel)
-    const handleChunkError = (e: ErrorEvent) => {
-      if (e.message && (e.message.includes('Loading chunk') || e.message.includes('ChunkLoadError') || e.message.includes('Failed to fetch'))) {
-        window.location.reload();
-      }
-    };
-    window.addEventListener('error', handleChunkError);
-
     const recordVisit = async () => {
       try {
         const lastVisit = localStorage.getItem('last_visit_time');
@@ -100,7 +92,6 @@ export default function ClientApp() {
       });
 
     return () => {
-      window.removeEventListener('error', handleChunkError);
       authListener.subscription.unsubscribe();
       channel.unsubscribe();
     };
