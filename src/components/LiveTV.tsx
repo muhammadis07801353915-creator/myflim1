@@ -335,14 +335,14 @@ export default function LiveTV() {
               <section className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[18px] font-black tracking-tight">
-                    {language === 'ku' ? 'بەناوبانگەکان' : language === 'ar' ? 'القنوات المميزة' : 'Featured Channels'}
+                    {language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched'}
                   </h2>
                   <span className="text-[#CC222F] text-sm font-bold">See All</span>
                 </div>
                 <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
                   {(selectedCategory === 'All' ? channels : channels.filter(c => c.category === selectedCategory)).slice(0, 8).map(channel => (
-                    <div key={channel.id} onClick={() => handleChannelSelect(channel)} className="flex-none w-36 cursor-pointer group">
-                      <div className="relative w-36 h-24 rounded-2xl bg-[#14151c] border border-white/8 overflow-hidden flex items-center justify-center mb-2 group-hover:border-[#CC222F]/40 transition-colors">
+                      <div key={channel.id} onClick={() => handleChannelSelect(channel)} className="flex-none w-44 cursor-pointer group">
+                      <div className="relative w-44 h-28 rounded-2xl bg-[#14151c] border border-white/8 overflow-hidden flex items-center justify-center mb-2 group-hover:border-[#CC222F]/40 transition-colors">
                         {channel.image
                           ? <Image src={channel.image} alt={channel.name} fill sizes="144px" className="object-contain p-3 group-hover:scale-105 transition-transform duration-300" unoptimized />
                           : <span className="text-white font-bold text-sm text-center px-2">{channel.name}</span>}
@@ -378,18 +378,18 @@ export default function LiveTV() {
                     {categoryChannels.slice(0, 6).map(channel => (
                       <div key={channel.id} onClick={() => handleChannelSelect(channel)}
                         className="flex items-center gap-4 py-3 border-b border-white/5 cursor-pointer group hover:bg-white/2 rounded-xl px-2 -mx-2 transition">
-                        <div className="w-14 h-14 relative rounded-xl bg-[#14151c] border border-white/8 overflow-hidden flex items-center justify-center shrink-0">
+                        <div className="w-16 h-16 relative rounded-2xl bg-[#14151c] border border-white/8 overflow-hidden flex items-center justify-center shrink-0">
                           {channel.image
-                            ? <Image src={channel.image} alt={channel.name} fill sizes="56px" className="object-contain p-1.5" unoptimized />
+                            ? <Image src={channel.image} alt={channel.name} fill sizes="64px" className="object-contain p-1.5" unoptimized />
                             : <span className="text-white font-bold text-lg">{channel.name[0]}</span>}
                           <div className="absolute bottom-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0a0a0f]" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-[14px] truncate group-hover:text-[#CC222F] transition-colors">{channel.name}</p>
-                          <p className="text-[12px] text-white/40 mt-0.5">{channel.category}</p>
+                          <p className="font-bold text-[16px] truncate group-hover:text-[#CC222F] transition-colors">{channel.name}</p>
+                          <p className="text-[13px] text-white/40 mt-0.5">{channel.category}</p>
                         </div>
-                        <div className="w-9 h-9 rounded-full bg-[#CC222F] flex items-center justify-center shrink-0 shadow-lg shadow-red-600/25 group-hover:scale-110 transition-transform">
-                          <Play size={14} className="fill-white text-white ml-0.5" />
+                        <div className="w-10 h-10 rounded-full bg-[#CC222F] flex items-center justify-center shrink-0 shadow-lg shadow-red-600/25 group-hover:scale-110 transition-transform">
+                          <Play size={16} className="fill-white text-white ml-0.5" />
                         </div>
                       </div>
                     ))}

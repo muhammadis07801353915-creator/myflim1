@@ -17,8 +17,8 @@ import { useAppStore } from '../store/useAppStore';
 import { Play, Cast } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
-const FEATURED_W = width * 0.42;
-const FEATURED_H = FEATURED_W * 0.72;
+const FEATURED_W = width * 0.48;
+const FEATURED_H = FEATURED_W * 0.68;
 
 export default function LiveTVScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -107,7 +107,7 @@ export default function LiveTVScreen({ navigation }: any) {
               <View style={s.section}>
                 <View style={s.sectionRow}>
                   <Text style={s.sectionTitle}>
-                    {language === 'ku' ? 'بەناوبانگ' : language === 'ar' ? 'القنوات المميزة' : 'Featured Channels'}
+                    {language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched'}
                   </Text>
                   <TouchableOpacity>
                     <Text style={s.seeAll}>
@@ -155,25 +155,25 @@ export default function LiveTVScreen({ navigation }: any) {
                   activeOpacity={0.85}
                 >
                   {/* Logo */}
-                  <View style={s.listLogoWrap}>
-                    {ch.image ? (
-                      <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
-                    ) : (
-                      <Text style={s.listLogoFallback} numberOfLines={1}>{ch.name[0]}</Text>
-                    )}
-                    <View style={s.listLiveDot} />
-                  </View>
+                <View style={s.listLogoWrap}>
+                  {ch.image ? (
+                    <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
+                  ) : (
+                    <Text style={s.listLogoFallback} numberOfLines={1}>{ch.name[0]}</Text>
+                  )}
+                  <View style={s.listLiveDot} />
+                </View>
 
-                  {/* Info */}
-                  <View style={s.listInfo}>
-                    <Text numberOfLines={1} style={s.listName}>{ch.name}</Text>
-                    <Text style={s.listCat}>{ch.category}</Text>
-                  </View>
+                {/* Info */}
+                <View style={s.listInfo}>
+                  <Text numberOfLines={1} style={s.listName}>{ch.name}</Text>
+                  <Text style={s.listCat}>{ch.category}</Text>
+                </View>
 
-                  {/* Play button */}
-                  <View style={s.playBtn}>
-                    <Play size={14} color="#fff" fill="#fff" />
-                  </View>
+                {/* Play button */}
+                <View style={s.playBtn}>
+                  <Play size={16} color="#fff" fill="#fff" />
+                </View>
                 </TouchableOpacity>
               ))}
             </View>
@@ -259,19 +259,19 @@ const s = StyleSheet.create({
   // List rows
   listRow: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 12,
+    paddingHorizontal: 16, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)',
-    gap: 12,
+    gap: 14,
   },
   listLogoWrap: {
-    width: 52, height: 52, borderRadius: 12,
+    width: 62, height: 62, borderRadius: 14,
     backgroundColor: '#1c1c28',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)',
     alignItems: 'center', justifyContent: 'center',
     overflow: 'hidden', position: 'relative',
   },
-  listLogo: { width: '75%', height: '75%' },
-  listLogoFallback: { color: '#fff', fontSize: 18, fontWeight: '900' },
+  listLogo: { width: '78%', height: '78%' },
+  listLogoFallback: { color: '#fff', fontSize: 20, fontWeight: '900' },
   listLiveDot: {
     position: 'absolute', bottom: 4, right: 4,
     width: 8, height: 8, borderRadius: 4,
@@ -279,10 +279,10 @@ const s = StyleSheet.create({
     borderWidth: 1.5, borderColor: '#0F0F13',
   },
   listInfo: { flex: 1 },
-  listName: { color: '#fff', fontSize: 14, fontWeight: '700', marginBottom: 3 },
-  listCat: { color: 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: '500' },
+  listName: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 3 },
+  listCat: { color: 'rgba(255,255,255,0.4)', fontSize: 13, fontWeight: '500' },
   playBtn: {
-    width: 36, height: 36, borderRadius: 18,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: '#CC222F',
     alignItems: 'center', justifyContent: 'center',
   },
