@@ -23,7 +23,7 @@ import { getLocalized } from '../utils/localization';
 import FloatingSocialButton from '../components/FloatingSocialButton';
 
 const { width } = Dimensions.get('window');
-const HERO_HEIGHT = width * 0.64 + 60; // ~16:10 + header height
+const HERO_HEIGHT = width * 0.64; // ~16:10
 
 // ─── Poster card (2:3) — used in all horizontal sections ──────────────────
 function PosterCard({
@@ -284,7 +284,7 @@ export default function HomeScreen({ navigation }: any) {
     <View style={styles.root}>
 
       {/* ── STICKY HEADER BAR ──────────────────────────────────── */}
-      <View style={[header.bar, { paddingTop: insets.top + 4, backgroundColor: 'rgba(10,10,15,0.92)' }]}>
+      <View style={[styles.headerBar, { paddingTop: insets.top + 6 }]}>
         {/* Left: Logo + Brand */}
         <View style={header.brand}>
           <Image
@@ -584,15 +584,23 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     paddingRight: 16,
   },
+  headerBar: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    backgroundColor: 'rgba(10,10,15,0.96)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.05)',
+  },
 });
+
 
 // ─── HEADER STYLES ────────────────────────────────────────────────────────
 const header = StyleSheet.create({
   bar: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
