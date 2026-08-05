@@ -25,8 +25,8 @@ export default function Profile() {
     return 'User Name';
   });
   const [profileImage, setProfileImage] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('user_image') || 'https://i.pravatar.cc/150?img=11';
-    return 'https://i.pravatar.cc/150?img=11';
+    if (typeof window !== 'undefined') return localStorage.getItem('user_image') || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
+    return 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150';
   });
   const [tempName, setTempName] = useState(userName);
   
