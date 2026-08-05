@@ -30,10 +30,10 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [],
-    "owner": "my123",
+    "owner": "taboo1",
     "extra": {
       "eas": {
-        "projectId": "70324676-1be5-413d-9e15-3d59b4c6e3b1"
+        "projectId": "1cd8d1cd-bc48-4bf2-9be8-229f10299656"
       }
     }
   }
