@@ -298,13 +298,13 @@ export default function Home({
               
               {/* Prominent Large 2:3 Vertical Poster Card */}
               {currentFeatured.image && (
-                <div className="relative w-44 sm:w-52 md:w-60 aspect-[2/3] shrink-0 rounded-2xl overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.8)] border border-white/20 ring-1 ring-white/10 group/poster">
+                <div className="relative w-52 sm:w-64 md:w-72 aspect-[2/3] shrink-0 rounded-2xl overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.8)] border border-white/20 ring-1 ring-white/10 group/poster">
                   <Image 
                     src={currentFeatured.image} 
                     alt={currentFeatured.title || ''} 
                     fill
                     priority
-                    sizes="(max-width: 768px) 220px, 260px"
+                    sizes="(max-width: 768px) 260px, 310px"
                     className="object-cover group-hover/poster:scale-105 transition-transform duration-700"
                     unoptimized={true}
                   />
