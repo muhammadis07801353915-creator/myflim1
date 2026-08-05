@@ -43,8 +43,8 @@ export default function AnalyticsAdmin() {
       
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
       const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      const yearStart = new Date(now.getFullYear(), 0, 1).toISOString();
+      const monthStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const yearStart = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
 
       const [todayRes, weekRes, monthRes, yearRes, totalRes] = await Promise.all([
         supabase.from('site_visits').select('*', { count: 'exact', head: true }).gte('created_at', todayStart),
@@ -99,17 +99,17 @@ export default function AnalyticsAdmin() {
             </div>
             
             <div className="bg-neutral-900 border border-neutral-800 p-4 rounded-xl flex flex-col items-center">
-              <span className="text-neutral-400 text-sm mb-2 font-medium">ئەم هەفتەیە (This Week)</span>
+              <span className="text-neutral-400 text-sm mb-2 font-medium">٧ ڕۆژی ڕابردوو (Last 7 Days)</span>
               <span className="text-3xl font-black text-blue-500">{stats.week.toLocaleString()}</span>
             </div>
             
             <div className="bg-neutral-900 border border-neutral-800 p-4 rounded-xl flex flex-col items-center">
-              <span className="text-neutral-400 text-sm mb-2 font-medium">ئەم مانگە (This Month)</span>
+              <span className="text-neutral-400 text-sm mb-2 font-medium">٣٠ ڕۆژی ڕابردوو (Last 30 Days)</span>
               <span className="text-3xl font-black text-emerald-500">{stats.month.toLocaleString()}</span>
             </div>
             
             <div className="bg-neutral-900 border border-neutral-800 p-4 rounded-xl flex flex-col items-center">
-              <span className="text-neutral-400 text-sm mb-2 font-medium">ئەم ساڵ (This Year)</span>
+              <span className="text-neutral-400 text-sm mb-2 font-medium">٣٦٥ ڕۆژی ڕابردوو (Last 365 Days)</span>
               <span className="text-3xl font-black text-purple-500">{stats.year.toLocaleString()}</span>
             </div>
             </div>
