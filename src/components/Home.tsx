@@ -26,7 +26,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
   const [watchlistIds, setWatchlistIds] = useState<string[]>([]);
 
   // Derive viewingList from URL
-  const listName = searchParams.get('list');
+  const listName = searchParams ? searchParams.get('list') : null;
   const viewingList = useMemo(() => {
     if (!listName) return null;
     let items: any[] = [];
@@ -46,7 +46,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
   }, [listName, movies, movieLists, t.popular, language]);
 
   const setViewingList = (list: { rawName: string } | null) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams ? searchParams.toString() : '');
     if (list) params.set('list', list.rawName);
     else params.delete('list');
     router.push(`?${params.toString()}`, { scroll: false });

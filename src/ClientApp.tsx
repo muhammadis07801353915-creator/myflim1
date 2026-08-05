@@ -19,7 +19,7 @@ export default function ClientApp() {
   const { movies, loading } = useData();
 
   // URL-based navigation
-  const movieId = searchParams.get('movie');
+  const movieId = searchParams ? searchParams.get('movie') : null;
   const selectedItem = movies.find(m => m.id.toString() === movieId);
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function ClientApp() {
   }, [currentTab]);
 
   const handleSelectItem = (item: any) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams ? searchParams.toString() : '');
     params.set('movie', item.id.toString());
     router.push(`?${params.toString()}`, { scroll: false });
   };
