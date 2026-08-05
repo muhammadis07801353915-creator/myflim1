@@ -15,15 +15,90 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '../theme/theme';
 import { useAppStore } from '../store/useAppStore';
-import MovieCard from '../components/MovieCard';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Star } from 'lucide-react-native';
+import { Star, Flame, ChevronRight } from 'lucide-react-native';
 import { translations } from '../utils/translations';
 import { getLocalized } from '../utils/localization';
 import FloatingSocialButton from '../components/FloatingSocialButton';
 
 const { width } = Dimensions.get('window');
+const HERO_HEIGHT = width * 0.64; // ~16:10
 
+// ─── Poster card (2:3) — used in all horizontal sections ──────────────────
+function PosterCard({
+  item,
+  onPress,
+  showRating = true,
+  showType = false,
+  language,
+}: {
+  item: any;
+  onPress: (i: any) => void;
+  showRating?: boolean;
+  showType?: boolean;
+  language: string;
+}) {
+  return (
+    <TouchableOpacity
+      style={card.wrap}
+      onPress={() => onPress(item)}
+      activeOpacity={0.85}
+    >
+      <View style={card.poster}>
+        <Image source={{ uri: item.image }} style={card.img} />
+
+        {/* Rating badge — top right */}
+        {showRating && item.rating ? (
+          <View style={card.ratingBadge}>
+            <Star size={10} color="#FBBF24" fill="#FBBF24" />
+            <Text style={card.ratingText}>{item.rating}</Text>
+          </View>
+        ) : null}
+
+        {/* Type badge — top left */}
+        {showType && item.type ? (
+          <View style={card.typeBadge}>
+            <Text style={card.typeBadgeText}>{item.type.toUpperCase()}</Text>
+          </View>
+        ) : null}
+      </View>
+
+      <Text numberOfLines={1} style={card.title}>
+        {getLocalized(item, 'title', language)}
+      </Text>
+      {item.year ? <Text style={card.year}>{item.year}</Text> : null}
+    </TouchableOpacity>
+  );
+}
+
+// ─── Section header — matches web layout ──────────────────────────────────
+function SectionHeader({
+  title,
+  onSeeAll,
+  showFlame = false,
+}: {
+  title: string;
+  onSeeAll: () => void;
+  showFlame?: boolean;
+}) {
+  return (
+    <View style={sh.row}>
+      {/* Left: See All  (matches web "< See All") */}
+      <TouchableOpacity onPress={onSeeAll} style={sh.seeAllBtn}>
+        <ChevronRight size={14} color="#CC222F" style={{ transform: [{ rotate: '180deg' }] }} />
+        <Text style={sh.seeAllText}>See All</Text>
+      </TouchableOpacity>
+
+      {/* Right: Title + optional flame icon */}
+      <View style={sh.titleRow}>
+        {showFlame ? <Flame size={20} color="#CC222F" style={{ marginLeft: 6 }} /> : null}
+        <Text style={sh.titleText}>{title}</Text>
+      </View>
+    </View>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────
 export default function HomeScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const {
@@ -40,7 +115,9 @@ export default function HomeScreen({ navigation }: any) {
 
   const featured = isUnlocked ? movies.filter((m) => m.is_featured) : [];
   const topContents = isUnlocked
-    ? movies.filter((m) => m.top_rank).sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99))
+    ? movies
+        .filter((m) => m.top_rank)
+        .sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99))
     : [];
   const animeItems = isUnlocked
     ? movies.filter(
@@ -52,113 +129,101 @@ export default function HomeScreen({ navigation }: any) {
     : [];
 
   const onRefresh = () => fetchInitialData();
-
   const handlePress = (item: any) => navigation.navigate('Detail', { item });
-
-  const handlePressSeeAll = (title: string, data: any[], listName?: string) => {
+  const handleSeeAll = (title: string, data: any[], listName?: string) =>
     navigation.navigate('Category', { title, data, type: 'Movie', listName });
-  };
 
-  // ─── HERO SWIPE (PanResponder) ────────────────────────────────────────────
-  const swipeDx = useRef(0);
-  const swipeDy = useRef(0);
-
+  // ── Swipe handler for hero ───────────────────────────────────────────────
+  const panRef = useRef<any>(null);
   const heroPan = PanResponder.create({
     onStartShouldSetPanResponder: () => false,
     onMoveShouldSetPanResponder: (_, g) =>
-      Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy),
-    onPanResponderMove: (_, g) => {
-      swipeDx.current = g.dx;
-      swipeDy.current = g.dy;
-    },
+      Math.abs(g.dx) > 8 && Math.abs(g.dx) > Math.abs(g.dy),
     onPanResponderRelease: (_, g) => {
       if (Math.abs(g.dx) > 40 && featured.length > 1) {
-        if (g.dx < 0) {
-          setActiveIndex((prev) => (prev + 1) % featured.length);
-        } else {
-          setActiveIndex((prev) => (prev - 1 + featured.length) % featured.length);
-        }
+        setActiveIndex((prev) =>
+          g.dx < 0
+            ? (prev + 1) % featured.length
+            : (prev - 1 + featured.length) % featured.length
+        );
       } else if (Math.abs(g.dx) < 8 && Math.abs(g.dy) < 8 && featured[activeIndex]) {
-        // Tap — navigate to detail
         handlePress(featured[activeIndex]);
       }
-      swipeDx.current = 0;
-      swipeDy.current = 0;
     },
   });
 
-  // ─── FEATURED HERO CARD ───────────────────────────────────────────────────
+  // ── Hero render ──────────────────────────────────────────────────────────
   const renderHero = () => {
     if (featured.length === 0) return null;
     const item = featured[activeIndex];
     if (!item) return null;
 
     return (
-      <View style={[styles.heroWrapper, { paddingTop: insets.top }]}>
-        <View style={styles.heroCard} {...heroPan.panHandlers}>
-          {/* Background Image */}
+      <View style={[hero.wrapper, { paddingTop: insets.top }]}>
+        <View style={hero.card} {...heroPan.panHandlers}>
+          {/* BG image */}
           {item.image ? (
-            <Image source={{ uri: item.image }} style={styles.heroImage} resizeMode="cover" />
+            <Image source={{ uri: item.image }} style={hero.img} resizeMode="cover" />
           ) : null}
 
           {/* Gradients */}
           <LinearGradient
-            colors={['transparent', 'rgba(10,10,15,0.55)', 'rgba(10,10,15,0.97)']}
+            colors={['transparent', 'rgba(10,10,15,0.6)', 'rgba(10,10,15,0.97)']}
             style={StyleSheet.absoluteFillObject}
           />
           <LinearGradient
-            colors={['rgba(10,10,15,0.75)', 'rgba(10,10,15,0.28)', 'transparent']}
+            colors={['rgba(10,10,15,0.8)', 'rgba(10,10,15,0.3)', 'transparent']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={StyleSheet.absoluteFillObject}
           />
 
-          {/* Bottom Content */}
-          <View style={styles.heroContent}>
+          {/* Content */}
+          <View style={hero.content}>
             {/* Title */}
-            <Text style={styles.heroTitle} numberOfLines={2}>
+            <Text style={hero.title} numberOfLines={2}>
               {getLocalized(item, 'title', language)}
             </Text>
 
-            {/* Meta badges */}
-            <View style={styles.metaRow}>
-              {item.genre ? (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{item.genre.split(',')[0]}</Text>
-                </View>
-              ) : null}
-              {item.year ? (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{item.year}</Text>
-                </View>
-              ) : null}
-              {item.rating ? (
-                <View style={[styles.badge, styles.ratingBadge]}>
-                  <Star size={10} color="#FBBF24" fill="#FBBF24" />
-                  <Text style={[styles.badgeText, { color: '#FBBF24', marginLeft: 3 }]}>
-                    {item.rating}
-                  </Text>
-                </View>
-              ) : null}
+            {/* Badges row: Type · Rating · Year · Genre */}
+            <View style={hero.metaRow}>
               {item.type ? (
-                <View style={[styles.badge, styles.typeBadge]}>
-                  <Text style={[styles.badgeText, { color: 'white' }]}>
+                <View style={[hero.badge, hero.typeBadge]}>
+                  <Text style={[hero.badgeText, { color: '#fff' }]}>
                     {item.type.toUpperCase()}
                   </Text>
                 </View>
               ) : null}
+              {item.rating ? (
+                <View style={[hero.badge, hero.ratingBadge]}>
+                  <Star size={10} color="#FBBF24" fill="#FBBF24" />
+                  <Text style={[hero.badgeText, { color: '#FBBF24', marginLeft: 3 }]}>
+                    {item.rating}
+                  </Text>
+                </View>
+              ) : null}
+              {item.year ? (
+                <View style={hero.badge}>
+                  <Text style={hero.badgeText}>{item.year}</Text>
+                </View>
+              ) : null}
+              {typeof item.genre === 'string' && item.genre.trim() ? (
+                <View style={hero.badge}>
+                  <Text style={hero.badgeText}>{item.genre.split(',')[0]}</Text>
+                </View>
+              ) : null}
             </View>
 
-            {/* Dot indicators */}
+            {/* Dots */}
             {featured.length > 1 ? (
-              <View style={styles.dotsRow}>
+              <View style={hero.dotsRow}>
                 {featured.map((_, i) => (
                   <TouchableOpacity
                     key={i}
                     onPress={() => setActiveIndex(i)}
                     style={[
-                      styles.dot,
-                      i === activeIndex ? styles.dotActive : styles.dotInactive,
+                      hero.dot,
+                      i === activeIndex ? hero.dotActive : hero.dotInactive,
                     ]}
                   />
                 ))}
@@ -170,46 +235,41 @@ export default function HomeScreen({ navigation }: any) {
     );
   };
 
-  // ─── SECTION RENDERER ─────────────────────────────────────────────────────
-  const renderSection = (title: string, data: any[], fullData?: any[], listName?: string) => (
-    <View style={styles.sectionContainer}>
-      <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{title}</Text>
-        <TouchableOpacity onPress={() => handlePressSeeAll(title, fullData || data, listName)}>
-          <Text style={styles.seeAll}>{t.all}</Text>
-        </TouchableOpacity>
-      </View>
+  // ── Generic section ──────────────────────────────────────────────────────
+  const renderSection = (
+    title: string,
+    data: any[],
+    fullData?: any[],
+    listName?: string,
+    showFlame = false,
+    showType = false
+  ) => (
+    <View style={styles.section} key={title}>
+      <SectionHeader
+        title={title}
+        showFlame={showFlame}
+        onSeeAll={() => handleSeeAll(title, fullData || data, listName)}
+      />
       <FlatList
         data={data}
         horizontal
         showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => <MovieCard item={item} onPress={handlePress} />}
+        contentContainerStyle={styles.hList}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.horizontalList}
+        renderItem={({ item }) => (
+          <PosterCard
+            item={item}
+            onPress={handlePress}
+            showRating
+            showType={showType}
+            language={language}
+          />
+        )}
       />
     </View>
   );
 
-  // ─── TOP CONTENT ITEM ─────────────────────────────────────────────────────
-  const renderTopContentItem = ({ item, index }: any) => (
-    <TouchableOpacity style={styles.topContentCard} onPress={() => handlePress(item)}>
-      <View style={styles.topContentImageContainer}>
-        <Image source={{ uri: item.image }} style={styles.topContentImage} />
-        <View style={styles.movieBadge}>
-          <Text style={styles.movieBadgeText}>
-            {item.type === 'Series' ? t.series : t.movies}
-          </Text>
-        </View>
-        <View style={styles.topNumberContainer}>
-          <Text style={styles.topNumberText}>{index + 1}</Text>
-        </View>
-      </View>
-      <Text numberOfLines={1} style={styles.topContentTitle}>
-        {getLocalized(item, 'title', language)}
-      </Text>
-    </TouchableOpacity>
-  );
-
+  // ── Loading ──────────────────────────────────────────────────────────────
   if (loading && movies.length === 0) {
     return (
       <View style={styles.loadingContainer}>
@@ -219,42 +279,33 @@ export default function HomeScreen({ navigation }: any) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.root}>
       <ScrollView
-        style={styles.container}
+        style={styles.root}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={onRefresh} tintColor={COLORS.primary} />
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={onRefresh}
+            tintColor={COLORS.primary}
+          />
         }
       >
-        {/* ── HERO BANNER ─────────────────────────────────────────── */}
+        {/* ── HERO ──────────────────────────────────────────────── */}
         {renderHero()}
 
-        {/* ── TOP CONTENTS ────────────────────────────────────────── */}
-        {topContents.length > 0 ? (
-          <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{t.popular || 'Top Contents'}</Text>
-              <TouchableOpacity
-                onPress={() =>
-                  handlePressSeeAll(t.popular || 'Top Contents', topContents, 'Top Contents')
-                }
-              >
-                <Text style={styles.seeAll}>{t.viewAll || 'All'}</Text>
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={topContents}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              renderItem={renderTopContentItem}
-              keyExtractor={(item) => item.id.toString()}
-              contentContainerStyle={styles.horizontalList}
-            />
-          </View>
-        ) : null}
+        <View style={styles.body}>
+          {/* ── TRENDING NOW ─────────────────────────────────────── */}
+          {topContents.length > 0
+            ? renderSection(
+                language === 'ku' ? 'ناودار' : language === 'ar' ? 'الأكثر مشاهدةً' : 'Trending Now',
+                topContents.slice(0, 20),
+                topContents,
+                'Top Contents',
+                true // flame icon
+              )
+            : null}
 
-        {/* ── ANIME ───────────────────────────────────────────────── */}
-        <View style={{ marginTop: topContents.length > 0 ? 0 : 20 }}>
+          {/* ── ANIME / ANIMATION ────────────────────────────────── */}
           {animeItems.length > 0
             ? renderSection(
                 language === 'ku'
@@ -273,12 +324,17 @@ export default function HomeScreen({ navigation }: any) {
             if (!isUnlocked && cat.name !== 'زنجیرەی کوردی دۆبلاژ') return null;
             const catMovies = movies.filter((m) => m.list_name === cat.name);
             if (catMovies.length === 0) return null;
-            const catTitle = String(getLocalized(cat, 'name', language) || cat.name || '');
+            const catTitle = String(
+              getLocalized(cat, 'name', language) || cat.name || ''
+            );
             if (!catTitle) return null;
-            return (
-              <View key={cat.id}>
-                {renderSection(catTitle, catMovies.slice(0, 20), catMovies, cat.name)}
-              </View>
+            return renderSection(
+              catTitle,
+              catMovies.slice(0, 20),
+              catMovies,
+              cat.name,
+              false,
+              true // show type badge
             );
           })}
         </View>
@@ -290,62 +346,48 @@ export default function HomeScreen({ navigation }: any) {
   );
 }
 
-const HERO_HEIGHT = width * 0.62; // 16:10 ratio approx
+// ─── STYLES ───────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F0F13',
-  },
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: '#0F0F13',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  // ── HERO ──────────────────────────────────────────────────────────────────
-  heroWrapper: {
+const hero = StyleSheet.create({
+  wrapper: {
     width,
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  heroCard: {
+  card: {
     width,
     height: HERO_HEIGHT,
     backgroundColor: '#141522',
     overflow: 'hidden',
   },
-  heroImage: {
+  img: {
     width: '100%',
     height: '100%',
     position: 'absolute',
   },
-  heroContent: {
+  content: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 18,
   },
-  heroTitle: {
-    color: 'white',
-    fontSize: 18,
+  title: {
+    color: '#fff',
+    fontSize: 17,
     fontWeight: '900',
     textTransform: 'uppercase',
-    letterSpacing: -0.5,
+    letterSpacing: -0.3,
     marginBottom: 8,
-    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowColor: 'rgba(0,0,0,0.9)',
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
+    textShadowRadius: 6,
   },
-
-  // meta badges
   metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 14,
+    gap: 5,
+    marginBottom: 12,
   },
   badge: {
     backgroundColor: 'rgba(255,255,255,0.15)',
@@ -355,21 +397,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  ratingBadge: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
   typeBadge: {
     backgroundColor: '#CC222F',
+  },
+  ratingBadge: {
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
   badgeText: {
     color: 'rgba(255,255,255,0.9)',
     fontSize: 10,
     fontWeight: '700',
   },
-
-  // dots
   dotsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -385,83 +425,127 @@ const styles = StyleSheet.create({
   },
   dotInactive: {
     width: 6,
-    backgroundColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
+});
 
-  // ── SECTIONS ──────────────────────────────────────────────────────────────
-  sectionContainer: {
-    marginBottom: 28,
-  },
-  sectionHeader: {
+const sh = StyleSheet.create({
+  row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.sm,
+    paddingHorizontal: 16,
+    marginBottom: 12,
   },
-  sectionTitle: {
-    color: 'white',
+  seeAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  seeAllText: {
+    color: '#CC222F',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  titleText: {
+    color: '#fff',
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '800',
+    letterSpacing: -0.3,
   },
-  seeAll: {
-    color: '#E53935',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  horizontalList: {
-    paddingLeft: SPACING.md,
-    paddingRight: SPACING.md,
-  },
+});
 
-  // ── TOP CONTENT ───────────────────────────────────────────────────────────
-  topContentCard: {
-    width: 160,
-    marginRight: SPACING.md,
+const card = StyleSheet.create({
+  wrap: {
+    width: 130,
+    marginRight: 12,
   },
-  topContentImageContainer: {
+  poster: {
     width: '100%',
     aspectRatio: 2 / 3,
-    borderRadius: 16,
+    borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: '#222',
+    backgroundColor: '#1c1c24',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
-  topContentImage: {
+  img: {
     width: '100%',
     height: '100%',
   },
-  movieBadge: {
+  ratingBadge: {
     position: 'absolute',
-    top: 10,
-    left: 10,
-    backgroundColor: '#E53935',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
-  movieBadgeText: {
-    color: 'white',
+  ratingText: {
+    color: '#FBBF24',
     fontSize: 10,
-    fontWeight: '900',
-  },
-  topNumberContainer: {
-    position: 'absolute',
-    bottom: -35,
-    right: -10,
-  },
-  topNumberText: {
-    color: 'white',
-    fontSize: 140,
     fontWeight: '700',
-    fontStyle: 'italic',
-    textShadowColor: 'rgba(0,0,0,0.9)',
-    textShadowOffset: { width: 4, height: 4 },
-    textShadowRadius: 10,
+    marginLeft: 2,
   },
-  topContentTitle: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginTop: 12,
+  typeBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  typeBadgeText: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  title: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+    marginTop: 8,
+  },
+  year: {
+    color: 'rgba(255,255,255,0.45)',
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+});
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#0F0F13',
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#0F0F13',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  body: {
+    flex: 1,
+  },
+  section: {
+    marginBottom: 28,
+  },
+  hList: {
+    paddingLeft: 16,
+    paddingRight: 16,
   },
 });
