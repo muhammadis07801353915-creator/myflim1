@@ -37,11 +37,16 @@ export default function AnalyticsAdmin() {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      // For simplicity in client-side, we fetch recent and aggregate.
-      // In a real big app, this should be done via an RPC function in Supabase.
       const now = new Date();
       
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      // Iraq timezone is UTC+3. Supabase stores created_at in UTC.
+      // We need to compute start of today in Iraq local time, then convert back to UTC
+      const IRAQ_OFFSET_MS = 3 * 60 * 60 * 1000; // UTC+3
+      const nowInIraq = new Date(now.getTime() + IRAQ_OFFSET_MS);
+      // Midnight Iraq time = midnight UTC+3 = subtract 3 hours for UTC
+      const todayInIraqMidnight = new Date(Date.UTC(nowInIraq.getUTCFullYear(), nowInIraq.getUTCMonth(), nowInIraq.getUTCDate()) - IRAQ_OFFSET_MS);
+      const todayStart = todayInIraqMidnight.toISOString();
+      
       const weekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const monthStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
       const yearStart = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000).toISOString();
