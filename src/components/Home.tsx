@@ -256,107 +256,118 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
 
       <div className="px-4 md:px-8 space-y-10 pt-4">
 
-        {/* 1. HERO FEATURED BANNER - Sleek & Beautiful Design */}
+        {/* 1. HERO FEATURED BANNER - Clean, Minimal & Manual Navigation */}
         {currentFeatured && (
-          <div className="relative w-full rounded-[2.2rem] md:rounded-[2.8rem] overflow-hidden bg-[#121319] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.85)]">
-            <div className="relative min-h-[420px] sm:min-h-[460px] md:min-h-[500px] w-full flex flex-col justify-end p-6 sm:p-10 md:p-14">
+          <div className="relative w-full rounded-2xl md:rounded-3xl overflow-hidden bg-[#121319] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] group">
+            <div className="relative min-h-[320px] sm:min-h-[400px] md:min-h-[460px] w-full flex flex-col justify-end p-5 sm:p-8 md:p-10">
               
-              {/* Background Image */}
+              {/* Background Poster Image */}
               <Image 
                 src={currentFeatured.image} 
                 alt={currentFeatured.title} 
                 fill
                 priority
                 sizes="100vw"
-                className="object-cover object-center scale-105"
+                className="object-cover object-center transition-transform duration-700"
                 unoptimized={true}
               />
 
-              {/* Multi-Layer Dark Vignette Gradients */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/60 to-black/30" />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/95 via-[#0a0a0f]/40 to-transparent rtl:bg-gradient-to-l" />
-              <div className="absolute top-0 right-0 w-80 h-80 bg-[#CC222F]/15 blur-3xl rounded-full pointer-events-none" />
+              {/* Bottom Dark Gradient for Text Legibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/50 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/80 via-transparent to-transparent rtl:bg-gradient-to-l" />
 
-              {/* Banner Content Container */}
-              <div className="relative z-10 space-y-3 max-w-3xl">
+              {/* Manual Navigation Arrows (Left & Right) */}
+              {featuredMovies.length > 1 && (
+                <>
+                  <button
+                    onClick={prevFeatured}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-[#CC222F] border border-white/15 backdrop-blur-md text-white flex items-center justify-center shadow-xl transition-all duration-300 z-20 active:scale-95"
+                    title="Previous Movie"
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+
+                  <button
+                    onClick={nextFeatured}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-[#CC222F] border border-white/15 backdrop-blur-md text-white flex items-center justify-center shadow-xl transition-all duration-300 z-20 active:scale-95"
+                    title="Next Movie"
+                  >
+                    <ChevronRight size={22} />
+                  </button>
+                </>
+              )}
+
+              {/* Banner Content Container - Clean & Uncluttered */}
+              <div className="relative z-10 space-y-2 max-w-2xl">
                 
-                {/* Badges Container */}
-                <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <span className="px-3.5 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest bg-[#CC222F] text-white shadow-lg shadow-red-600/40 border border-red-500/30 flex items-center space-x-1.5">
-                    <Sparkles size={12} className="fill-white" />
-                    <span>NEW RELEASE</span>
-                  </span>
-
+                {/* Single Clean Badge */}
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
                   {currentFeatured.type && (
-                    <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-white/10 backdrop-blur-md border border-white/15 text-neutral-200">
+                    <span className="px-3 py-0.5 rounded-md text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-[#CC222F] text-white shadow-md">
                       {currentFeatured.type}
+                    </span>
+                  )}
+                  {currentFeatured.rating && (
+                    <span className="px-2.5 py-0.5 rounded-md bg-black/60 backdrop-blur-md border border-white/10 text-yellow-400 font-bold text-xs flex items-center space-x-1">
+                      <Star size={11} className="fill-yellow-400 text-yellow-400" />
+                      <span>{currentFeatured.rating}</span>
                     </span>
                   )}
                 </div>
 
-                {/* Big Title */}
-                <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white uppercase tracking-tight leading-none drop-shadow-2xl">
+                {/* Movie Title */}
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-xl">
                   {getLocalized(currentFeatured, 'title', language)}
                 </h1>
 
-                {/* Meta Details Bar (Rating, Genre, Year) */}
-                <div className="flex items-center flex-wrap gap-3 text-xs sm:text-sm font-semibold text-neutral-300 pt-1">
-                  {currentFeatured.rating && (
-                    <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-yellow-400 font-bold flex items-center space-x-1">
-                      <Star size={13} className="fill-yellow-400 text-yellow-400" />
-                      <span>{currentFeatured.rating}</span>
-                    </span>
-                  )}
-
-                  {currentFeatured.genre && (
-                    <span className="text-neutral-300">
-                      {currentFeatured.genre.split(',')[0]}
-                    </span>
-                  )}
-
+                {/* Subtitle Details */}
+                <div className="flex items-center space-x-3 text-xs sm:text-sm font-medium text-neutral-300">
                   {currentFeatured.year && (
+                    <span>{currentFeatured.year}</span>
+                  )}
+                  {currentFeatured.genre && (
                     <>
-                      <span className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
-                      <span className="text-neutral-300">{currentFeatured.year}</span>
+                      <span className="w-1 h-1 rounded-full bg-neutral-400" />
+                      <span>{currentFeatured.genre.split(',')[0]}</span>
                     </>
                   )}
                 </div>
 
-                {/* Action Buttons: ▶ Play & + My List */}
-                <div className="flex items-center space-x-4 rtl:space-x-reverse pt-4">
+                {/* Action Buttons: ▶ PLAY & + */}
+                <div className="flex items-center space-x-3 rtl:space-x-reverse pt-2">
                   <button 
                     onClick={() => onSelect(currentFeatured)}
-                    className="px-8 py-3.5 rounded-full bg-[#CC222F] hover:bg-red-700 text-white font-black text-sm sm:text-base tracking-wider uppercase flex items-center space-x-2.5 shadow-xl shadow-red-600/50 transform hover:scale-105 active:scale-95 transition-all duration-300"
+                    className="px-7 py-3 rounded-full bg-[#CC222F] hover:bg-red-700 text-white font-black text-xs sm:text-sm tracking-wider uppercase flex items-center space-x-2 shadow-lg shadow-red-600/40 hover:scale-105 active:scale-95 transition-all duration-300"
                   >
-                    <Play size={18} className="fill-white" />
+                    <Play size={16} className="fill-white" />
                     <span>PLAY</span>
                   </button>
 
                   <button 
                     onClick={(e) => toggleWatchlist(currentFeatured.id.toString(), e)}
-                    className="w-12 h-12 rounded-full bg-[#181922]/90 hover:bg-white/20 border border-white/15 backdrop-blur-md flex items-center justify-center text-white shadow-lg transition active:scale-90"
+                    className="w-11 h-11 rounded-full bg-black/60 hover:bg-white/20 border border-white/15 backdrop-blur-md flex items-center justify-center text-white shadow-md transition active:scale-90"
                     title="Add to My List"
                   >
                     {watchlistIds.includes(currentFeatured.id.toString()) ? (
-                      <Check size={20} className="text-emerald-400" />
+                      <Check size={18} className="text-emerald-400" />
                     ) : (
-                      <Plus size={22} />
+                      <Plus size={20} />
                     )}
                   </button>
                 </div>
               </div>
 
-              {/* Featured Slider Dots Indicator */}
+              {/* Slider Dots Indicator */}
               {featuredMovies.length > 1 && (
-                <div className="absolute bottom-6 right-6 sm:right-10 z-10 flex items-center space-x-2">
+                <div className="absolute bottom-4 right-4 sm:right-8 z-20 flex items-center space-x-1.5">
                   {featuredMovies.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentFeaturedIndex(idx)}
-                      className={`h-2 rounded-full transition-all duration-500 ${
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
                         idx === currentFeaturedIndex 
-                          ? 'w-8 bg-[#CC222F] shadow-lg shadow-red-600/50' 
-                          : 'w-2 bg-white/30 hover:bg-white/60'
+                          ? 'w-6 bg-[#CC222F]' 
+                          : 'w-1.5 bg-white/30 hover:bg-white/60'
                       }`}
                     />
                   ))}
