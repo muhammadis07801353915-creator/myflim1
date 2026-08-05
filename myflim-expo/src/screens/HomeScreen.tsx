@@ -92,8 +92,8 @@ function SectionHeader({
 
       {/* Right: Title + optional flame icon */}
       <View style={sh.titleRow}>
-        {showFlame ? <Flame size={20} color="#CC222F" style={{ marginLeft: 6 }} /> : null}
-        <Text style={sh.titleText}>{title}</Text>
+        <Text style={sh.titleText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{title}</Text>
+        {showFlame ? <Flame size={18} color="#CC222F" style={{ marginLeft: 5 }} /> : null}
       </View>
     </View>
   );
@@ -486,12 +486,15 @@ const sh = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
+    maxWidth: width * 0.6,
   },
   titleText: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
     letterSpacing: -0.3,
+    flexShrink: 1,
   },
 });
 
