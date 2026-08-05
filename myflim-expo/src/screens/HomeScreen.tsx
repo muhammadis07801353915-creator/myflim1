@@ -34,7 +34,8 @@ export default function HomeScreen({ navigation }: any) {
     loading, 
     error,
     fetchInitialData,
-    language 
+    language,
+    isUnlocked
   } = useAppStore();
 
   const [activeIndex, setActiveIndex] = useState(0);
@@ -43,11 +44,11 @@ export default function HomeScreen({ navigation }: any) {
   // Data is fetched once in App.tsx on mount. 
   // Manual refresh is available via pull-to-refresh.
 
-  const featured = movies.filter(m => m.is_featured);
-  const topContents = movies.filter(m => m.top_rank).sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99));
-  const animeItems = movies.filter(a => 
+  const featured = isUnlocked ? movies.filter(m => m.is_featured) : [];
+  const topContents = isUnlocked ? movies.filter(m => m.top_rank).sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99)) : [];
+  const animeItems = isUnlocked ? movies.filter(a => 
     a.genre?.includes('Anime') || a.genre?.includes('Animation') || a.type === 'Anime'
-  );
+  ) : [];
 
   const onRefresh = () => {
     fetchInitialData();
@@ -220,6 +221,7 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* Dynamic Categories From Database */}
         {categories.map(cat => {
+           if (!isUnlocked && cat.name !== "زنجیرەی کوردی دۆبلاژ") return null;
            const catMovies = movies.filter(m => m.list_name === cat.name);
            if (catMovies.length === 0) return null;
            const catTitle = String(getLocalized(cat, 'name', language) || cat.name || '');

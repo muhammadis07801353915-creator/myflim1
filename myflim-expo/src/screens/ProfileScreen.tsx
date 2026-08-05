@@ -33,14 +33,15 @@ import {
   Camera,
   Pencil,
   X,
-  CheckCircle2
+  CheckCircle2,
+  Key
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { user, theme, updateUser, toggleTheme, language, setLanguage } = useAppStore();
+  const { user, theme, updateUser, toggleTheme, language, setLanguage, isUnlocked, unlockApp } = useAppStore();
   const t = translations[language];
   const themeColors = getColors(theme);
   
@@ -48,6 +49,8 @@ export default function ProfileScreen() {
   const [showNameModal, setShowNameModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [unlockCode, setUnlockCode] = useState('');
   const [adminCode, setAdminCode] = useState('');
   const [newName, setNewName] = useState(user.name);
   const [availableUpdate, setAvailableUpdate] = useState<AppUpdateInfo | null>(null);
@@ -56,6 +59,28 @@ export default function ProfileScreen() {
   const currentVersion = getCurrentVersion();
 
   // Default web admin code
+
+  const handleUnlockSubmit = async () => {
+    const normalized = unlockCode.trim().toLowerCase();
+    if (normalized === 'taban play1' || normalized === 'tabanplay1') {
+      const success = await unlockApp('myflim1');
+      if (success) {
+        setShowUnlockModal(false);
+        setUnlockCode('');
+        Alert.alert(
+          language === 'ku' ? 'سەرکەوتوو بوو' : 'Success',
+          language === 'ku' ? 'ئەپەکە بە سەرکەوتوویی بەتەواوی کرایەوە!' : 'App successfully unlocked!'
+        );
+      } else {
+        Alert.alert('Error', 'Failed to unlock');
+      }
+    } else {
+      Alert.alert(
+        language === 'ku' ? 'هەڵە' : 'Error',
+        language === 'ku' ? 'کۆدەکە هەڵەیە، تکایە دووبارە هەوڵبدەرەوە.' : 'Invalid code, please try again.'
+      );
+    }
+  };
 
   const handleAdminSubmit = () => {
     if (adminCode === '400500') {
@@ -149,18 +174,32 @@ export default function ProfileScreen() {
           )}
         </View>
 
-        {/* Pro Banner */}
-        <TouchableOpacity style={styles.proBanner} onPress={() => setShowProModal(true)}>
+        {/* Enter Code Banner */}
+        <TouchableOpacity style={styles.proBanner} onPress={() => {
+          if (!isUnlocked) {
+            setShowUnlockModal(true);
+          }
+        }}>
           <View style={styles.proLeft}>
             <View style={styles.crownIconCircle}>
-               <Crown size={24} color="#E53935" fill="#E53935" />
+               <Key size={24} color="#E53935" />
             </View>
             <View style={styles.proTextContainer}>
-              <Text style={styles.proTitle}>{user?.isPro ? 'PRO Activated' : 'Become a PRO'}</Text>
-              <Text style={[styles.proSubtitle, { color: themeColors.textSecondary }]}>{user?.isPro ? 'You have access to all premium features' : 'Unlock all premium features'}</Text>
+              <Text style={styles.proTitle}>
+                {isUnlocked 
+                  ? (language === 'ku' ? 'کۆد چالاککراوە' : 'Code Activated') 
+                  : (language === 'ku' ? 'داخڵکردنی کۆد' : 'Enter Code')
+                }
+              </Text>
+              <Text style={[styles.proSubtitle, { color: themeColors.textSecondary }]}>
+                {isUnlocked 
+                  ? (language === 'ku' ? 'سەرجەم بەشەکانی ئەپەکە بە سەرکەوتوویی کراونەتەوە' : 'All app sections successfully unlocked') 
+                  : (language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکانی ئەپەکە' : 'Enter code to unlock all sections of the app')
+                }
+              </Text>
             </View>
           </View>
-          {!user?.isPro && <ChevronRight size={24} color="#E53935" />}
+          {!isUnlocked && <ChevronRight size={24} color="#E53935" />}
         </TouchableOpacity>
 
         {/* Menu Items */}
@@ -419,6 +458,40 @@ export default function ProfileScreen() {
               </TouchableOpacity>
               <TouchableOpacity style={styles.saveBtn} onPress={handleAdminSubmit}>
                 <Text style={styles.saveBtnText}>Enter</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
+      {/* Unlock App Modal */}
+      <Modal
+        visible={showUnlockModal}
+        transparent
+        animationType="fade"
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setShowUnlockModal(false)}>
+          <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface }]}>
+            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>
+              {language === 'ku' ? 'داخڵکردنی کۆد' : 'Enter Code'}
+            </Text>
+            <Text style={{ color: themeColors.textSecondary, marginBottom: 15 }}>
+              {language === 'ku' ? 'کۆدی چالاککردنی ئەپەکە بنووسە:' : 'Please enter the app activation code:'}
+            </Text>
+            <TextInput
+              style={[styles.nameInput, { color: themeColors.text, backgroundColor: themeColors.surfaceLight, borderColor: themeColors.textMuted }]}
+              value={unlockCode}
+              onChangeText={setUnlockCode}
+              placeholder="Code..."
+              placeholderTextColor={themeColors.textSecondary}
+              autoFocus
+              autoCapitalize="none"
+            />
+            <View style={styles.nameModalActions}>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowUnlockModal(false)}>
+                <Text style={styles.cancelBtnText}>{t.cancel}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveBtn} onPress={handleUnlockSubmit}>
+                <Text style={styles.saveBtnText}>{language === 'ku' ? 'چالاککردن' : 'Activate'}</Text>
               </TouchableOpacity>
             </View>
           </View>

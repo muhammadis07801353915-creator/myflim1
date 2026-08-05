@@ -22,7 +22,7 @@ const { width } = Dimensions.get('window');
 
 export default function SearchScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { movies, series, anime, language } = useAppStore();
+  const { movies, series, anime, language, isUnlocked } = useAppStore();
   const t = translations[language];
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<any[]>([]);
@@ -36,6 +36,10 @@ export default function SearchScreen({ navigation }: any) {
   const filterOptions = ['All', 'Movie', 'Series', 'Anime'];
 
   useEffect(() => {
+    if (!isUnlocked) {
+      setResults([]);
+      return;
+    }
     let filtered = allContent;
     
     // Apply search query
@@ -51,7 +55,7 @@ export default function SearchScreen({ navigation }: any) {
     }
 
     setResults(filtered);
-  }, [query, activeFilter, movies, series]);
+  }, [query, activeFilter, movies, series, isUnlocked]);
 
   const handlePress = (item: any) => {
     navigation.navigate('Detail', { item });
@@ -69,6 +73,7 @@ export default function SearchScreen({ navigation }: any) {
             style={styles.input}
             value={query}
             onChangeText={setQuery}
+            editable={isUnlocked}
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')}>
@@ -78,7 +83,7 @@ export default function SearchScreen({ navigation }: any) {
         </View>
         <TouchableOpacity 
           style={[styles.filterButton, activeFilter !== 'All' && { backgroundColor: COLORS.primary }]} 
-          onPress={() => setShowFilter(true)}
+          onPress={() => isUnlocked && setShowFilter(true)}
         >
           <SlidersHorizontal size={20} color={activeFilter !== 'All' ? 'black' : 'white'} />
         </TouchableOpacity>
@@ -86,7 +91,7 @@ export default function SearchScreen({ navigation }: any) {
 
       {/* Results */}
       <FlatList
-        data={query.length > 0 || activeFilter !== 'All' ? results : movies.slice(0, 12)}
+        data={isUnlocked ? (query.length > 0 || activeFilter !== 'All' ? results : movies.slice(0, 12)) : []}
         renderItem={({ item }) => (
           <MovieCard 
             item={item} 
@@ -98,15 +103,17 @@ export default function SearchScreen({ navigation }: any) {
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}
         ListHeaderComponent={
-          <Text style={styles.listHeader}>
-            {query.length > 0 || activeFilter !== 'All' ? `${t.results} (${results.length})` : t.trendingNow}
-          </Text>
+          isUnlocked ? (
+            <Text style={styles.listHeader}>
+              {query.length > 0 || activeFilter !== 'All' ? `${t.results} (${results.length})` : t.trendingNow}
+            </Text>
+          ) : null
         }
         contentContainerStyle={styles.listContent}
         columnWrapperStyle={styles.columnWrapper}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>{t.noResults}</Text>
+            <Text style={styles.emptyText}>{isUnlocked ? t.noResults : t.noResults}</Text>
           </View>
         }
       />

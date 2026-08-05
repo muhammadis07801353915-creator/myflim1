@@ -75,14 +75,8 @@ function App(): React.JSX.Element {
           barStyle={theme === 'light' ? 'dark-content' : 'light-content'} 
           backgroundColor={themeColors.background} 
         />
-        {isUnlocked ? (
-          <>
-            <AppNavigator />
-            <UpdateChecker />
-          </>
-        ) : (
-          <AccessScreen />
-        )}
+        <AppNavigator />
+        <UpdateChecker />
       </NavigationContainer>
 
       {!animationDone && (

@@ -25,7 +25,7 @@ const { width } = Dimensions.get('window');
 
 export default function LiveTVScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { liveTv, channelCategories, banners, loading, fetchInitialData, language } = useAppStore();
+  const { liveTv, channelCategories, banners, loading, fetchInitialData, language, isUnlocked } = useAppStore();
   const t = translations[language];
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -167,7 +167,7 @@ export default function LiveTVScreen({ navigation }: any) {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Dynamic Banners */}
-        {banners && banners.filter(b => b.type?.toLowerCase() === 'top').length > 0 ? (
+        {isUnlocked && banners && banners.filter(b => b.type?.toLowerCase() === 'top').length > 0 ? (
           banners.filter(b => b.type?.toLowerCase() === 'top').map(banner => (
             <TouchableOpacity 
               key={banner.id}
@@ -187,7 +187,7 @@ export default function LiveTVScreen({ navigation }: any) {
           ))
         ) : null}
 
-        {channelCategories.map(renderCategory)}
+        {isUnlocked ? channelCategories.map(renderCategory) : null}
       </ScrollView>
 
       {/* Category Modal */}
