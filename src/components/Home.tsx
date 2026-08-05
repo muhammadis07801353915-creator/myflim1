@@ -80,6 +80,11 @@ export default function Home({
     setCurrentFeaturedIndex((prev) => (prev + 1) % featuredMovies.length);
   }, [featuredMovies.length]);
 
+  const prevFeatured = useCallback(() => {
+    if (featuredMovies.length === 0) return;
+    setCurrentFeaturedIndex((prev) => (prev - 1 + featuredMovies.length) % featuredMovies.length);
+  }, [featuredMovies.length]);
+
   useEffect(() => {
     if (featuredMovies.length <= 1) return;
     const interval = setInterval(nextFeatured, 6000);
