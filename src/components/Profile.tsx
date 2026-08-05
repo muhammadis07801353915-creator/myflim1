@@ -209,26 +209,6 @@ export default function Profile() {
         </div>
       </div>
 
-      <div 
-        onClick={() => !isPro && setShowProModal(true)}
-        className={`${isPro ? 'bg-emerald-900/20 border-emerald-900/50' : 'bg-gradient-to-r from-red-900/40 to-red-600/20 border-red-900/50 hover:from-red-900/50 hover:to-red-600/30'} border rounded-2xl p-5 mb-8 flex items-center justify-between cursor-pointer transition group`}
-      >
-        <div className="flex items-center space-x-4 rtl:space-x-reverse">
-          <div className={`w-12 h-12 ${isPro ? 'bg-emerald-600/20 text-emerald-500' : 'bg-red-600/20 text-red-500'} rounded-full flex items-center justify-center group-hover:scale-110 transition-transform`}>
-            <Crown size={24} />
-          </div>
-          <div>
-            <h3 className={`font-semibold ${isPro ? 'text-emerald-500' : 'text-red-500'} text-lg`}>
-              {isPro ? t.activated : t.becomePro}
-            </h3>
-            <p className="text-sm text-neutral-400 light-mode:text-neutral-600">
-              {isPro ? t.premiumFeatures : t.premiumFeatures}
-            </p>
-          </div>
-        </div>
-        {!isPro && <ChevronRight size={24} className="text-red-500 rtl:rotate-180" />}
-      </div>
-
       <div className="space-y-2">
         <button 
           onClick={toggleTheme}
