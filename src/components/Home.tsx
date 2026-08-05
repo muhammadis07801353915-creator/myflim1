@@ -1,11 +1,16 @@
-import { Plus, Star, ChevronLeft, ChevronRight, Play } from 'lucide-react';
-import { useEffect, useState, useCallback, useMemo } from 'react';
+'use client';
+
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import { 
+  Play, Plus, Star, ChevronLeft, Bell, Search, 
+  ChevronRight, Bookmark, Check, Info, Sparkles, Flame
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { useLanguage } from '../lib/LanguageContext';
 import { getLocalized } from '../lib/translations';
-import { motion, AnimatePresence } from 'motion/react';
 import { useData } from '../lib/DataContext';
 import { FloatingSocialButton } from './SocialLinks';
 
@@ -14,9 +19,11 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
   const searchParams = useSearchParams();
   const { t, language } = useLanguage();
   const { movies, movieLists, loading } = useData();
+
   const [currentFeaturedIndex, setCurrentFeaturedIndex] = useState(0);
   const [displayLimit, setDisplayLimit] = useState(10);
   const [filterType, setFilterType] = useState<'all' | 'Movie' | 'Series'>('all');
+  const [watchlistIds, setWatchlistIds] = useState<string[]>([]);
 
   // Derive viewingList from URL
   const listName = searchParams.get('list');
@@ -25,24 +32,18 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
     let items: any[] = [];
     let displayTitle = listName ? getLocalized(listName, 'name', language) : '';
 
-    // Check for "Top Contents" (Popular)
-    if (listName === 'Top Contents') {
+    if (listName === 'Top Contents' || listName === 'Trending Now') {
       items = movies.filter(m => m.top_rank).sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99));
-      displayTitle = t.popular || 'Top Contents';
-    } 
-    // Check for generic movies
-    // Check for dynamic lists
-    else {
+      displayTitle = t.popular || 'Trending Now';
+    } else {
       items = movies.filter(m => m.list_name === listName);
-      // Sort by rating descending
       items.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      
       const list = movieLists.find(l => l.name === listName);
       if (list) displayTitle = getLocalized(list, 'name', language) || list.name;
     }
 
     return items.length > 0 ? { title: displayTitle, rawName: listName, items } : null;
-  }, [listName, movies, movieLists, t.popular, t.movies, language]);
+  }, [listName, movies, movieLists, t.popular, language]);
 
   const setViewingList = (list: { rawName: string } | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -53,7 +54,7 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
 
   useEffect(() => {
     const handleResize = () => {
-      setDisplayLimit(window.innerWidth < 768 ? 3 : 10);
+      setDisplayLimit(window.innerWidth < 768 ? 4 : 12);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -64,48 +65,79 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
     setFilterType('all');
   }, [listName]);
 
+  const featuredMovies = useMemo(() => {
+    return movies.filter(m => m.is_featured);
+  }, [movies]);
 
-
-  const featuredMovies = movies.filter(m => m.is_featured);
-  
   const nextFeatured = useCallback(() => {
     if (featuredMovies.length === 0) return;
     setCurrentFeaturedIndex((prev) => (prev + 1) % featuredMovies.length);
   }, [featuredMovies.length]);
 
-  const prevFeatured = useCallback(() => {
-    if (featuredMovies.length === 0) return;
-    setCurrentFeaturedIndex((prev) => (prev - 1 + featuredMovies.length) % featuredMovies.length);
-  }, [featuredMovies.length]);
-
   useEffect(() => {
     if (featuredMovies.length <= 1) return;
-    const interval = setInterval(nextFeatured, 5000);
+    const interval = setInterval(nextFeatured, 6000);
     return () => clearInterval(interval);
   }, [featuredMovies.length, nextFeatured]);
 
   const currentFeatured = featuredMovies.length > 0 ? featuredMovies[currentFeaturedIndex] : movies[0];
-  const topContents = movies.filter(m => m.top_rank).sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99));
+  const topContents = useMemo(() => {
+    return movies.filter(m => m.top_rank).sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99));
+  }, [movies]);
+
+  // Demo "Continue Watching" items derived from movies for UI showcase
+  const continueWatchingItems = useMemo(() => {
+    if (movies.length === 0) return [];
+    return movies.slice(0, 4).map((m, idx) => ({
+      ...m,
+      progress: idx === 0 ? 65 : idx === 1 ? 40 : idx === 2 ? 80 : 25,
+      timeLeft: idx === 0 ? '1h 22m left' : idx === 1 ? '45m left' : idx === 2 ? '52m left' : '15m left',
+    }));
+  }, [movies]);
+
+  const toggleWatchlist = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setWatchlistIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-[65vh]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div></div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-4">
+        <div className="w-14 h-14 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin"></div>
+        <p className="text-neutral-400 text-sm font-semibold tracking-wider animate-pulse">
+          Loading Taban Play...
+        </p>
+      </div>
+    );
   }
 
   if (movies.length === 0) {
-    return <div className="flex items-center justify-center h-[65vh] text-neutral-400">No content available</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] text-neutral-400">
+        No content available
+      </div>
+    );
   }
 
+  // Full category view when "See All >" is clicked
   if (viewingList) {
     return (
-      <div className="pb-24 pt-6 px-4 bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black">
-        <div className="flex items-center mb-6">
-          <button 
-            onClick={() => setViewingList(null)}
-            className="w-10 h-10 bg-neutral-900 light-mode:bg-neutral-100 hover:bg-neutral-800 light-mode:hover:bg-neutral-200 rounded-full flex items-center justify-center mr-4 rtl:mr-0 rtl:ml-4 transition"
-          >
-            <ChevronLeft size={20} className="rtl:rotate-180" />
-          </button>
-          <h1 className="text-2xl font-bold">{viewingList.title}</h1>
+      <div className="pb-28 pt-6 px-4 md:px-8 bg-[#0a0a0f] min-h-screen text-white">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4 rtl:space-x-reverse">
+            <button 
+              onClick={() => setViewingList(null)}
+              className="w-10 h-10 bg-[#161720] hover:bg-neutral-800 border border-white/10 rounded-full flex items-center justify-center transition shadow-lg"
+            >
+              <ChevronLeft size={20} className="rtl:rotate-180 text-white" />
+            </button>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight">{viewingList.title}</h1>
+              <p className="text-xs text-neutral-400 mt-0.5">{viewingList.items.length} items</p>
+            </div>
+          </div>
         </div>
         
         {/* Type Filter Bar */}
@@ -124,10 +156,10 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                 <button
                   key={f.id}
                   onClick={() => setFilterType(f.id as any)}
-                  className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-300 whitespace-nowrap ${
+                  className={`px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 whitespace-nowrap ${
                     filterType === f.id 
-                      ? 'bg-red-600 text-white shadow-lg shadow-red-600/40 ring-2 ring-red-600/20' 
-                      : 'bg-neutral-900 light-mode:bg-neutral-100 text-neutral-400 light-mode:text-neutral-500 hover:text-white light-mode:hover:text-black border border-white/5 light-mode:border-neutral-200'
+                      ? 'bg-[#CC222F] text-white shadow-lg shadow-red-600/30' 
+                      : 'bg-[#14151c] text-neutral-400 hover:text-white border border-white/5'
                   }`}
                 >
                   {f.label}
@@ -137,29 +169,43 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
           );
         })()}
 
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
           {viewingList.items
             .filter(m => filterType === 'all' ? true : m.type === filterType)
             .map((movie) => (
-            <div key={movie.id} className="cursor-pointer group flex flex-col" onClick={() => onSelect(movie)}>
-              <div className="relative overflow-hidden rounded-xl shadow-lg aspect-[2/3] border border-white/5 bg-neutral-900">
+            <motion.div 
+              key={movie.id} 
+              whileHover={{ y: -6, scale: 1.02 }}
+              transition={{ duration: 0.2 }}
+              className="cursor-pointer group flex flex-col" 
+              onClick={() => onSelect(movie)}
+            >
+              <div className="relative overflow-hidden rounded-2xl shadow-xl aspect-[2/3] border border-white/10 bg-[#14151c]">
                 <Image 
                   src={movie.image} 
                   alt={movie.title} 
                   fill
-                  sizes="(max-width: 768px) 33vw, 20vw"
-                  className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                  sizes="(max-width: 768px) 50vw, 20vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500" 
                   unoptimized={true}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                  <Play size={20} className="text-white fill-white" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-3">
+                  <div className="w-12 h-12 rounded-full bg-[#CC222F] flex items-center justify-center text-white shadow-lg shadow-red-600/40 transform group-hover:scale-110 transition">
+                    <Play size={22} className="fill-white ml-0.5" />
+                  </div>
                 </div>
+                {movie.rating && (
+                  <div className="absolute top-2.5 right-2.5 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 text-[11px] font-bold text-yellow-400 flex items-center space-x-1">
+                    <Star size={11} className="fill-yellow-400 text-yellow-400" />
+                    <span>{movie.rating}</span>
+                  </div>
+                )}
               </div>
-              <h3 className="mt-3 text-sm font-semibold truncate text-neutral-200 light-mode:text-black group-hover:text-red-500 transition-colors uppercase tracking-tight">
+              <h3 className="mt-3 text-sm font-bold truncate text-white group-hover:text-[#CC222F] transition-colors tracking-tight">
                 {getLocalized(movie, 'title', language)}
               </h3>
-              <p className="text-[10px] text-neutral-500 font-medium">{movie.year}</p>
-            </div>
+              <p className="text-[11px] text-neutral-400 font-medium">{movie.year}</p>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -167,186 +213,353 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
   }
 
   return (
-    <div className="pb-24">
-      {/* Featured Hero Slider - New Image Style */}
-      <div className="relative pt-8 pb-4 overflow-hidden">
-        <div 
-          className="flex px-6 space-x-5 overflow-x-auto scrollbar-hide snap-x"
-          onScroll={(e) => {
-            const target = e.currentTarget;
-            const scrollLeft = target.scrollLeft;
-            const firstChild = target.firstChild as HTMLElement;
-            const itemWidth = firstChild ? firstChild.offsetWidth + 20 : target.offsetWidth * 0.85; // 20 is the space-x-5 gap
-            const index = Math.round(scrollLeft / itemWidth);
-            if (index !== currentFeaturedIndex && index >= 0 && index < featuredMovies.length) {
-              setCurrentFeaturedIndex(index);
-            }
-          }}
-        >
-          {featuredMovies.length > 0 ? (
-            featuredMovies.map((movie, idx) => (
-              <motion.div 
-                key={movie.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: idx * 0.05 }}
-                className="flex-none w-[85vw] md:w-[450px] aspect-[1/1.4] relative rounded-[3rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 snap-center cursor-pointer group"
-                onClick={() => onSelect(movie)}
-              >
-                <Image 
-                  src={movie.image} 
-                  alt={movie.title} 
-                  fill
-                  priority={idx === 0}
-                  sizes="(max-width: 768px) 85vw, 450px"
-                  className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  unoptimized={true}
-                />
-                
-                {/* Overlay with Content */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent flex flex-col justify-end p-8">
-                  <div className="space-y-1">
-                    <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter mb-1">
-                      {getLocalized(movie, 'title', language)}
-                    </h2>
-                    <div className="flex items-center space-x-3 text-white/80 text-lg font-medium">
-                      <span>{movie.year}</span>
-                    </div>
-                  </div>
+    <div className="bg-[#0a0a0f] min-h-screen text-white pb-32">
 
-                  {/* MBox Branding Style */}
-                  <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4">
-                    <div className="flex items-center">
-                       <div className="flex items-center space-x-2" dir="ltr">
-                          <Image 
-                            src="/app-logo-new.png" 
-                            alt="MBox" 
-                            width={32} 
-                            height={32} 
-                            className="rounded-lg object-contain" 
-                            unoptimized 
-                          />
-                          <span className="text-2xl font-black text-white tracking-tighter">Taban Play</span>
-                       </div>
-                    </div>
-                    {movie.genre && (
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50 px-3 py-1 bg-white/5 rounded-full border border-white/10">
-                        {movie.genre.split(',')[0]}
-                      </span>
-                    )}
-                  </div>
+      {/* Top Header Bar (Matching design) */}
+      <header className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl sticky top-0 z-40">
+        {/* Brand Logo */}
+        <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer" onClick={() => router.push('/')}>
+          <Image 
+            src="/app-logo-new.png" 
+            alt="Taban Play" 
+            width={34} 
+            height={34} 
+            className="rounded-xl object-contain shadow-lg shadow-red-600/20" 
+            unoptimized 
+          />
+          <div className="flex items-baseline">
+            <span className="text-xl font-black text-white tracking-tight">Taban</span>
+            <span className="text-xl font-black text-[#CC222F] tracking-tight ml-1">Play</span>
+          </div>
+        </div>
+
+        {/* Header Right Tools */}
+        <div className="flex items-center space-x-4 rtl:space-x-reverse">
+          <button 
+            onClick={() => router.push('?tab=search')}
+            className="p-2.5 rounded-full bg-[#14151c] hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/5 transition"
+          >
+            <Search size={18} />
+          </button>
+          <div className="relative">
+            <button className="p-2.5 rounded-full bg-[#14151c] hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/5 transition">
+              <Bell size={18} />
+            </button>
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#CC222F] rounded-full ring-2 ring-[#0a0a0f]"></span>
+          </div>
+        </div>
+      </header>
+
+      <div className="px-4 md:px-8 space-y-10 pt-4">
+
+        {/* 1. HERO FEATURED BANNER ("VIKINGS SEASON 6" Style) */}
+        {currentFeatured && (
+          <div className="relative w-full rounded-[2rem] md:rounded-[2.5rem] overflow-hidden bg-[#14151c] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.8)]">
+            <div className="relative aspect-[16/10] md:aspect-[21/9] w-full">
+              <Image 
+                src={currentFeatured.image} 
+                alt={currentFeatured.title} 
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-top"
+                unoptimized={true}
+              />
+
+              {/* Ambient Glow & Dark Gradients */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f] via-[#0a0a0f]/60 to-transparent rtl:bg-gradient-to-l" />
+              <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 blur-3xl pointer-events-none" />
+
+              {/* Banner Content */}
+              <div className="absolute inset-0 p-6 md:p-12 flex flex-col justify-end">
+                {/* Red "NEW RELEASE" Pill Badge */}
+                <div className="flex items-center space-x-2 mb-3">
+                  <span className="px-3.5 py-1 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest bg-[#CC222F] text-white shadow-lg shadow-red-600/40 flex items-center space-x-1.5">
+                    <Sparkles size={12} className="fill-white" />
+                    <span>NEW RELEASE</span>
+                  </span>
+                  {currentFeatured.type && (
+                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 border border-white/10 text-neutral-300">
+                      {currentFeatured.type}
+                    </span>
+                  )}
                 </div>
 
-                {/* Optional: Add the specific text from image if it's a fixed part of the design */}
+                {/* Big Title */}
+                <h1 className="text-3xl md:text-6xl font-black text-white uppercase tracking-tight drop-shadow-lg max-w-2xl leading-none">
+                  {getLocalized(currentFeatured, 'title', language)}
+                </h1>
 
-              </motion.div>
-            ))
-          ) : (
-             <div className="w-full h-64 flex items-center justify-center text-neutral-500">
-               No featured content
-             </div>
-          )}
-        </div>
+                {/* Subtitle / Season / Info */}
+                <div className="flex items-center space-x-4 rtl:space-x-reverse mt-2 text-sm text-neutral-300 font-medium">
+                  {currentFeatured.year && (
+                    <span className="font-bold text-white">{currentFeatured.year}</span>
+                  )}
+                  {currentFeatured.genre && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
+                      <span>{currentFeatured.genre.split(',')[0]}</span>
+                    </>
+                  )}
+                  {currentFeatured.rating && (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
+                      <span className="text-yellow-400 font-bold flex items-center space-x-1">
+                        <Star size={13} className="fill-yellow-400 text-yellow-400" />
+                        <span>{currentFeatured.rating}</span>
+                      </span>
+                    </>
+                  )}
+                </div>
 
-        {/* Pagination Dashes - Blue Style */}
-        <div className="mt-8 px-6 flex items-center space-x-2">
-          {featuredMovies.map((_, idx) => (
-            <div 
-              key={idx}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                idx === currentFeaturedIndex 
-                  ? 'w-10 bg-blue-600' 
-                  : idx < 3 ? 'w-4 bg-blue-900/40' : 'hidden'
-              }`}
-            />
-          ))}
-          {featuredMovies.length > 3 && (
-             <div className="w-2 h-1.5 rounded-full bg-blue-900/20" />
-          )}
-        </div>
-      </div>
+                {/* Action Buttons: ▶ Play & + My List */}
+                <div className="flex items-center space-x-4 rtl:space-x-reverse mt-6">
+                  <button 
+                    onClick={() => onSelect(currentFeatured)}
+                    className="px-8 py-3.5 rounded-full bg-[#CC222F] hover:bg-red-700 text-white font-black text-sm md:text-base tracking-wider uppercase flex items-center space-x-2.5 shadow-xl shadow-red-600/40 transform hover:scale-105 transition duration-300 active:scale-95"
+                  >
+                    <Play size={18} className="fill-white" />
+                    <span>Play</span>
+                  </button>
 
-
-      {/* Top Contents Section - Video Style */}
-      {topContents.length > 0 && (
-        <div className="mt-6 px-4">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-white light-mode:text-black">{t.popular || 'Top Contents'}</h2>
-            <button onClick={() => setViewingList({ rawName: 'Top Contents' })} className="text-red-500 text-sm font-medium">{t.all}</button>
-          </div>
-          <div className="flex space-x-4 md:space-x-8 overflow-x-auto pb-8 scrollbar-hide -mx-4 px-4">
-            {topContents.slice(0, displayLimit).map((movie, index) => (
-              <div key={movie.id} className="flex-none w-44 md:w-64 relative cursor-pointer group" onClick={() => onSelect(movie)}>
-                <div className="relative overflow-hidden rounded-2xl shadow-lg aspect-[2/3] border border-white/5 bg-neutral-900">
-                  <Image 
-                    src={movie.image} 
-                    alt={getLocalized(movie, 'title', language)} 
-                    fill
-                    sizes="(max-width: 768px) 50vw, 33vw"
-                    className="object-cover group-hover:scale-110 transition-transform duration-700" 
-                    unoptimized={true}
-                  />
-                  {/* Type Badge */}
-                  <div className="absolute top-3 left-3 bg-red-600 px-2.5 py-1 rounded-lg text-[10px] md:text-xs font-black text-white shadow-lg uppercase tracking-wider z-20">
-                    {movie.type}
-                  </div>
-                  
-                  {/* Large Outline Number */}
-                  <div className="absolute -bottom-6 -right-4 z-10 select-none pointer-events-none transition-transform group-hover:scale-110 duration-500">
-                    <span className="text-[140px] md:text-[200px] font-black text-white leading-none tracking-tighter drop-shadow-[0_15px_30px_rgba(0,0,0,0.9)] opacity-95 italic">
-                      {index + 1}
-                    </span>
-                  </div>
-                  </div>
-                <h3 className="mt-4 text-sm md:text-lg font-bold truncate text-neutral-200 light-mode:text-black group-hover:text-red-500 transition-colors uppercase tracking-tight">
-                  {getLocalized(movie, 'title', language)}
-                </h3>
+                  <button 
+                    onClick={(e) => toggleWatchlist(currentFeatured.id.toString(), e)}
+                    className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md flex items-center justify-center text-white transition duration-300 active:scale-90"
+                    title="Add to My List"
+                  >
+                    {watchlistIds.includes(currentFeatured.id.toString()) ? (
+                      <Check size={20} className="text-emerald-400" />
+                    ) : (
+                      <Plus size={22} />
+                    )}
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {/* Dynamic Movie Lists */}
-      {movieLists.map((list) => {
-        const listMovies = movies.filter(m => m.list_name === list.name);
-        if (listMovies.length === 0) return null;
-
-        return (
-          <div key={list.id} className="mt-8 px-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-white light-mode:text-black">
-                {getLocalized(list, 'name', language) || list.name}
-              </h2>
-              <button onClick={() => setViewingList({ rawName: list.name })} className="text-red-500 text-sm font-medium">{t.all}</button>
+              {/* Featured Slider Controls / Dots */}
+              {featuredMovies.length > 1 && (
+                <div className="absolute bottom-6 right-6 md:right-10 flex items-center space-x-2">
+                  {featuredMovies.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentFeaturedIndex(idx)}
+                      className={`h-2 rounded-full transition-all duration-500 ${
+                        idx === currentFeaturedIndex 
+                          ? 'w-8 bg-[#CC222F] shadow-lg shadow-red-600/50' 
+                          : 'w-2 bg-white/30 hover:bg-white/60'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
+          </div>
+        )}
+
+        {/* 2. "CONTINUE WATCHING" ROW (Landscape 16:9 cards with progress bars) */}
+        {continueWatchingItems.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center space-x-2">
+                <span>Continue Watching</span>
+              </h2>
+              <button 
+                onClick={() => setViewingList({ rawName: 'Top Contents' })}
+                className="text-xs md:text-sm font-bold text-[#CC222F] hover:text-red-400 transition flex items-center space-x-1"
+              >
+                <span>See All</span>
+                <ChevronRight size={14} className="rtl:rotate-180" />
+              </button>
+            </div>
+
             <div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
-              {listMovies.slice(0, displayLimit).map((movie) => (
-                <div key={movie.id} className="flex-none w-32 md:w-48 cursor-pointer group" onClick={() => onSelect(movie)}>
-                  <div className="relative overflow-hidden rounded-xl shadow-lg aspect-[2/3] bg-neutral-900">
+              {continueWatchingItems.map((item) => (
+                <motion.div 
+                  key={item.id}
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => onSelect(item)}
+                  className="flex-none w-64 md:w-80 cursor-pointer group flex flex-col"
+                >
+                  {/* 16:9 Landscape Card Container */}
+                  <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-[#14151c] border border-white/10 shadow-lg">
+                    <Image 
+                      src={item.image} 
+                      alt={item.title} 
+                      fill
+                      sizes="(max-width: 768px) 70vw, 320px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      unoptimized={true}
+                    />
+
+                    {/* Dark overlay & Central Play button on hover */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-[#CC222F] text-white flex items-center justify-center shadow-lg shadow-red-600/50 transform group-hover:scale-110 transition">
+                        <Play size={20} className="fill-white ml-0.5" />
+                      </div>
+                    </div>
+
+                    {/* Time Left Badge */}
+                    <div className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold text-neutral-300 border border-white/10">
+                      {item.timeLeft}
+                    </div>
+
+                    {/* Glowing Red Watch Progress Bar */}
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
+                      <div 
+                        className="h-full bg-[#CC222F] shadow-[0_0_8px_#CC222F]"
+                        style={{ width: `${item.progress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Card Title & Info */}
+                  <div className="mt-3 flex items-start justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-white truncate max-w-[200px] group-hover:text-[#CC222F] transition-colors">
+                        {getLocalized(item, 'title', language)}
+                      </h3>
+                      <p className="text-[11px] text-neutral-400 mt-0.5">{item.year}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 3. "TRENDING NOW" / TOP CONTENTS ROW (Portrait 2:3 cards) */}
+        {topContents.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center space-x-2">
+                <Flame size={20} className="text-[#CC222F]" />
+                <span>Trending Now</span>
+              </h2>
+              <button 
+                onClick={() => setViewingList({ rawName: 'Top Contents' })}
+                className="text-xs md:text-sm font-bold text-[#CC222F] hover:text-red-400 transition flex items-center space-x-1"
+              >
+                <span>See All</span>
+                <ChevronRight size={14} className="rtl:rotate-180" />
+              </button>
+            </div>
+
+            <div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
+              {topContents.slice(0, displayLimit).map((movie, idx) => (
+                <motion.div 
+                  key={movie.id}
+                  whileHover={{ y: -6, scale: 1.03 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={() => onSelect(movie)}
+                  className="flex-none w-36 sm:w-44 md:w-52 cursor-pointer group flex flex-col"
+                >
+                  {/* 2:3 Portrait Card */}
+                  <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-[#14151c] border border-white/10 shadow-xl group-hover:border-[#CC222F]/40 transition-colors">
                     <Image 
                       src={movie.image} 
                       alt={movie.title} 
                       fill
-                      sizes="(max-width: 768px) 33vw, 20vw"
-                      className="object-cover group-hover:scale-110 transition-transform duration-500" 
+                      sizes="(max-width: 768px) 40vw, 220px"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                       unoptimized={true}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                      <Play size={18} className="text-white fill-white" />
+
+                    {/* Dark Vignette Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                      <div className="w-10 h-10 rounded-full bg-[#CC222F] text-white flex items-center justify-center shadow-lg shadow-red-600/40">
+                        <Play size={18} className="fill-white ml-0.5" />
+                      </div>
                     </div>
+
+                    {/* Top Rank Badge or Rating */}
+                    {movie.rating ? (
+                      <div className="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 text-[11px] font-bold text-yellow-400 flex items-center space-x-1">
+                        <Star size={11} className="fill-yellow-400 text-yellow-400" />
+                        <span>{movie.rating}</span>
+                      </div>
+                    ) : (
+                      <div className="absolute top-2.5 left-2.5 bg-[#CC222F] px-2 py-0.5 rounded-md text-[10px] font-black text-white uppercase tracking-wider">
+                        #{idx + 1}
+                      </div>
+                    )}
                   </div>
-                  <h3 className="mt-3 text-xs md:text-sm font-bold truncate text-neutral-300 light-mode:text-slate-700 group-hover:text-red-600 transition-colors uppercase tracking-tight">
+
+                  {/* Title & Year */}
+                  <h3 className="mt-3 text-sm font-bold text-white truncate group-hover:text-[#CC222F] transition-colors">
                     {getLocalized(movie, 'title', language)}
                   </h3>
-                  <p className="text-[10px] text-neutral-500 mt-0.5">{movie.year}</p>
-                </div>
+                  <p className="text-[11px] text-neutral-400 mt-0.5 font-medium">{movie.year}</p>
+                </motion.div>
               ))}
             </div>
-          </div>
-        );
-      })}
+          </section>
+        )}
 
+        {/* 4. DYNAMIC MOVIE LISTS (e.g. Kurdish Dubbed Series, Action, Cartoons) */}
+        {movieLists.map((list) => {
+          const listMovies = movies.filter(m => m.list_name === list.name);
+          if (listMovies.length === 0) return null;
+
+          const listTitle = getLocalized(list, 'name', language) || list.name;
+
+          return (
+            <section key={list.id} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">
+                  {listTitle}
+                </h2>
+                <button 
+                  onClick={() => setViewingList({ rawName: list.name })}
+                  className="text-xs md:text-sm font-bold text-[#CC222F] hover:text-red-400 transition flex items-center space-x-1"
+                >
+                  <span>See All</span>
+                  <ChevronRight size={14} className="rtl:rotate-180" />
+                </button>
+              </div>
+
+              <div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
+                {listMovies.slice(0, displayLimit).map((movie) => (
+                  <motion.div 
+                    key={movie.id}
+                    whileHover={{ y: -5, scale: 1.02 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => onSelect(movie)}
+                    className="flex-none w-36 sm:w-44 md:w-52 cursor-pointer group flex flex-col"
+                  >
+                    <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-[#14151c] border border-white/10 shadow-xl group-hover:border-[#CC222F]/40 transition-colors">
+                      <Image 
+                        src={movie.image} 
+                        alt={movie.title} 
+                        fill
+                        sizes="(max-width: 768px) 40vw, 220px"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        unoptimized={true}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                        <div className="w-10 h-10 rounded-full bg-[#CC222F] text-white flex items-center justify-center shadow-lg shadow-red-600/40">
+                          <Play size={18} className="fill-white ml-0.5" />
+                        </div>
+                      </div>
+                      {movie.type && (
+                        <div className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md text-[10px] font-bold text-neutral-300 border border-white/10">
+                          {movie.type}
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="mt-3 text-sm font-bold text-white truncate group-hover:text-[#CC222F] transition-colors">
+                      {getLocalized(movie, 'title', language)}
+                    </h3>
+                    <p className="text-[11px] text-neutral-400 mt-0.5 font-medium">{movie.year}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+
+      </div>
 
       <FloatingSocialButton />
     </div>
