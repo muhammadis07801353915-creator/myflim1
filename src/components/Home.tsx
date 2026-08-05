@@ -215,34 +215,38 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
   return (
     <div className="bg-[#0a0a0f] min-h-screen text-white pb-32">
 
-      {/* Top Header Bar (Matching design) */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl sticky top-0 z-40">
-        {/* Brand Logo */}
-        <div className="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer" onClick={() => router.push('/')}>
+      {/* Top Header Bar */}
+      <header className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/5 bg-[#0a0a0f]/90 backdrop-blur-xl sticky top-0 z-40">
+        {/* Brand Logo - LTR Fixed */}
+        <div 
+          className="flex items-center space-x-3 cursor-pointer group" 
+          dir="ltr" 
+          onClick={() => router.push('/')}
+        >
           <Image 
             src="/app-logo-new.png" 
             alt="Taban Play" 
-            width={34} 
-            height={34} 
-            className="rounded-xl object-contain shadow-lg shadow-red-600/20" 
+            width={36} 
+            height={36} 
+            className="rounded-xl object-contain shadow-lg shadow-red-600/30 group-hover:scale-105 transition" 
             unoptimized 
           />
-          <div className="flex items-baseline">
+          <div className="flex items-baseline space-x-1">
             <span className="text-xl font-black text-white tracking-tight">Taban</span>
-            <span className="text-xl font-black text-[#CC222F] tracking-tight ml-1">Play</span>
+            <span className="text-xl font-black text-[#CC222F] tracking-tight">Play</span>
           </div>
         </div>
 
         {/* Header Right Tools */}
-        <div className="flex items-center space-x-4 rtl:space-x-reverse">
+        <div className="flex items-center space-x-3 rtl:space-x-reverse">
           <button 
             onClick={() => router.push('?tab=search')}
-            className="p-2.5 rounded-full bg-[#14151c] hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/5 transition"
+            className="p-2.5 rounded-full bg-[#14151c] hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/10 transition"
           >
             <Search size={18} />
           </button>
           <div className="relative">
-            <button className="p-2.5 rounded-full bg-[#14151c] hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/5 transition">
+            <button className="p-2.5 rounded-full bg-[#14151c] hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/10 transition">
               <Bell size={18} />
             </button>
             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#CC222F] rounded-full ring-2 ring-[#0a0a0f]"></span>
@@ -252,80 +256,85 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
 
       <div className="px-4 md:px-8 space-y-10 pt-4">
 
-        {/* 1. HERO FEATURED BANNER ("VIKINGS SEASON 6" Style) */}
+        {/* 1. HERO FEATURED BANNER - Sleek & Beautiful Design */}
         {currentFeatured && (
-          <div className="relative w-full rounded-[2rem] md:rounded-[2.5rem] overflow-hidden bg-[#14151c] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.8)]">
-            <div className="relative aspect-[16/10] md:aspect-[21/9] w-full">
+          <div className="relative w-full rounded-[2.2rem] md:rounded-[2.8rem] overflow-hidden bg-[#121319] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.85)]">
+            <div className="relative min-h-[420px] sm:min-h-[460px] md:min-h-[500px] w-full flex flex-col justify-end p-6 sm:p-10 md:p-14">
+              
+              {/* Background Image */}
               <Image 
                 src={currentFeatured.image} 
                 alt={currentFeatured.title} 
                 fill
                 priority
                 sizes="100vw"
-                className="object-cover object-top"
+                className="object-cover object-center scale-105"
                 unoptimized={true}
               />
 
-              {/* Ambient Glow & Dark Gradients */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/40 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f] via-[#0a0a0f]/60 to-transparent rtl:bg-gradient-to-l" />
-              <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 blur-3xl pointer-events-none" />
+              {/* Multi-Layer Dark Vignette Gradients */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/60 to-black/30" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/95 via-[#0a0a0f]/40 to-transparent rtl:bg-gradient-to-l" />
+              <div className="absolute top-0 right-0 w-80 h-80 bg-[#CC222F]/15 blur-3xl rounded-full pointer-events-none" />
 
-              {/* Banner Content */}
-              <div className="absolute inset-0 p-6 md:p-12 flex flex-col justify-end">
-                {/* Red "NEW RELEASE" Pill Badge */}
-                <div className="flex items-center space-x-2 mb-3">
-                  <span className="px-3.5 py-1 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest bg-[#CC222F] text-white shadow-lg shadow-red-600/40 flex items-center space-x-1.5">
+              {/* Banner Content Container */}
+              <div className="relative z-10 space-y-3 max-w-3xl">
+                
+                {/* Badges Container */}
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <span className="px-3.5 py-1 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest bg-[#CC222F] text-white shadow-lg shadow-red-600/40 border border-red-500/30 flex items-center space-x-1.5">
                     <Sparkles size={12} className="fill-white" />
                     <span>NEW RELEASE</span>
                   </span>
+
                   {currentFeatured.type && (
-                    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/10 border border-white/10 text-neutral-300">
+                    <span className="px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider bg-white/10 backdrop-blur-md border border-white/15 text-neutral-200">
                       {currentFeatured.type}
                     </span>
                   )}
                 </div>
 
                 {/* Big Title */}
-                <h1 className="text-3xl md:text-6xl font-black text-white uppercase tracking-tight drop-shadow-lg max-w-2xl leading-none">
+                <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-white uppercase tracking-tight leading-none drop-shadow-2xl">
                   {getLocalized(currentFeatured, 'title', language)}
                 </h1>
 
-                {/* Subtitle / Season / Info */}
-                <div className="flex items-center space-x-4 rtl:space-x-reverse mt-2 text-sm text-neutral-300 font-medium">
-                  {currentFeatured.year && (
-                    <span className="font-bold text-white">{currentFeatured.year}</span>
-                  )}
-                  {currentFeatured.genre && (
-                    <>
-                      <span className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
-                      <span>{currentFeatured.genre.split(',')[0]}</span>
-                    </>
-                  )}
+                {/* Meta Details Bar (Rating, Genre, Year) */}
+                <div className="flex items-center flex-wrap gap-3 text-xs sm:text-sm font-semibold text-neutral-300 pt-1">
                   {currentFeatured.rating && (
+                    <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-yellow-400 font-bold flex items-center space-x-1">
+                      <Star size={13} className="fill-yellow-400 text-yellow-400" />
+                      <span>{currentFeatured.rating}</span>
+                    </span>
+                  )}
+
+                  {currentFeatured.genre && (
+                    <span className="text-neutral-300">
+                      {currentFeatured.genre.split(',')[0]}
+                    </span>
+                  )}
+
+                  {currentFeatured.year && (
                     <>
                       <span className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
-                      <span className="text-yellow-400 font-bold flex items-center space-x-1">
-                        <Star size={13} className="fill-yellow-400 text-yellow-400" />
-                        <span>{currentFeatured.rating}</span>
-                      </span>
+                      <span className="text-neutral-300">{currentFeatured.year}</span>
                     </>
                   )}
                 </div>
 
                 {/* Action Buttons: ▶ Play & + My List */}
-                <div className="flex items-center space-x-4 rtl:space-x-reverse mt-6">
+                <div className="flex items-center space-x-4 rtl:space-x-reverse pt-4">
                   <button 
                     onClick={() => onSelect(currentFeatured)}
-                    className="px-8 py-3.5 rounded-full bg-[#CC222F] hover:bg-red-700 text-white font-black text-sm md:text-base tracking-wider uppercase flex items-center space-x-2.5 shadow-xl shadow-red-600/40 transform hover:scale-105 transition duration-300 active:scale-95"
+                    className="px-8 py-3.5 rounded-full bg-[#CC222F] hover:bg-red-700 text-white font-black text-sm sm:text-base tracking-wider uppercase flex items-center space-x-2.5 shadow-xl shadow-red-600/50 transform hover:scale-105 active:scale-95 transition-all duration-300"
                   >
                     <Play size={18} className="fill-white" />
-                    <span>Play</span>
+                    <span>PLAY</span>
                   </button>
 
                   <button 
                     onClick={(e) => toggleWatchlist(currentFeatured.id.toString(), e)}
-                    className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md flex items-center justify-center text-white transition duration-300 active:scale-90"
+                    className="w-12 h-12 rounded-full bg-[#181922]/90 hover:bg-white/20 border border-white/15 backdrop-blur-md flex items-center justify-center text-white shadow-lg transition active:scale-90"
                     title="Add to My List"
                   >
                     {watchlistIds.includes(currentFeatured.id.toString()) ? (
@@ -337,9 +346,9 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
                 </div>
               </div>
 
-              {/* Featured Slider Controls / Dots */}
+              {/* Featured Slider Dots Indicator */}
               {featuredMovies.length > 1 && (
-                <div className="absolute bottom-6 right-6 md:right-10 flex items-center space-x-2">
+                <div className="absolute bottom-6 right-6 sm:right-10 z-10 flex items-center space-x-2">
                   {featuredMovies.map((_, idx) => (
                     <button
                       key={idx}
@@ -355,78 +364,6 @@ export default function Home({ onSelect }: { onSelect: (item: any) => void }) {
               )}
             </div>
           </div>
-        )}
-
-        {/* 2. "CONTINUE WATCHING" ROW (Landscape 16:9 cards with progress bars) */}
-        {continueWatchingItems.length > 0 && (
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center space-x-2">
-                <span>Continue Watching</span>
-              </h2>
-              <button 
-                onClick={() => setViewingList({ rawName: 'Top Contents' })}
-                className="text-xs md:text-sm font-bold text-[#CC222F] hover:text-red-400 transition flex items-center space-x-1"
-              >
-                <span>See All</span>
-                <ChevronRight size={14} className="rtl:rotate-180" />
-              </button>
-            </div>
-
-            <div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
-              {continueWatchingItems.map((item) => (
-                <motion.div 
-                  key={item.id}
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => onSelect(item)}
-                  className="flex-none w-64 md:w-80 cursor-pointer group flex flex-col"
-                >
-                  {/* 16:9 Landscape Card Container */}
-                  <div className="relative aspect-[16/9] rounded-2xl overflow-hidden bg-[#14151c] border border-white/10 shadow-lg">
-                    <Image 
-                      src={item.image} 
-                      alt={item.title} 
-                      fill
-                      sizes="(max-width: 768px) 70vw, 320px"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      unoptimized={true}
-                    />
-
-                    {/* Dark overlay & Central Play button on hover */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-[#CC222F] text-white flex items-center justify-center shadow-lg shadow-red-600/50 transform group-hover:scale-110 transition">
-                        <Play size={20} className="fill-white ml-0.5" />
-                      </div>
-                    </div>
-
-                    {/* Time Left Badge */}
-                    <div className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold text-neutral-300 border border-white/10">
-                      {item.timeLeft}
-                    </div>
-
-                    {/* Glowing Red Watch Progress Bar */}
-                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
-                      <div 
-                        className="h-full bg-[#CC222F] shadow-[0_0_8px_#CC222F]"
-                        style={{ width: `${item.progress}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Card Title & Info */}
-                  <div className="mt-3 flex items-start justify-between">
-                    <div>
-                      <h3 className="text-sm font-bold text-white truncate max-w-[200px] group-hover:text-[#CC222F] transition-colors">
-                        {getLocalized(item, 'title', language)}
-                      </h3>
-                      <p className="text-[11px] text-neutral-400 mt-0.5">{item.year}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </section>
         )}
 
         {/* 3. "TRENDING NOW" / TOP CONTENTS ROW (Portrait 2:3 cards) */}
