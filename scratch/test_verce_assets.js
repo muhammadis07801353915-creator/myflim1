@@ -13,11 +13,32 @@ function testUrl(url) {
 }
 
 async function run() {
-  const url = 'https://www.myflim.com/_next/static/chunks/0cje14_narrpx.js';
-  console.log('Testing JS chunk URL:', url);
-  const res = await testUrl(url);
-  console.log('Status Code:', res.statusCode);
-  console.log('Headers:', res.headers);
+  const main = await testUrl('https://www.myflim.com/');
+  console.log('Main HTML status:', main.statusCode);
+
+  const scriptRegex = /src="([^"]+)"/g;
+  let match;
+  const scripts = [];
+  while ((match = scriptRegex.exec(main.body)) !== null) {
+    if (match[1].includes('_next')) {
+      scripts.push(match[1]);
+    }
+  }
+
+  console.log(`Found ${scripts.length} script tags.`);
+  let allSuccess = true;
+  for (const s of scripts) {
+    const fullUrl = s.startsWith('http') ? s : `https://www.myflim.com${s}`;
+    const res = await testUrl(fullUrl);
+    if (res.statusCode !== 200) {
+      console.error(`FAIL: ${s} returned ${res.statusCode}`);
+      allSuccess = false;
+    }
+  }
+
+  if (allSuccess) {
+    console.log('SUCCESS: All Next.js script bundles loaded with 200 OK!');
+  }
 }
 
 run();

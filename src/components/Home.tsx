@@ -273,15 +273,17 @@ export default function Home({
             <div className="relative min-h-[320px] sm:min-h-[400px] md:min-h-[460px] w-full flex flex-col justify-end p-5 sm:p-8 md:p-10">
               
               {/* Background Poster Image */}
-              <Image 
-                src={currentFeatured.image} 
-                alt={currentFeatured.title} 
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-center transition-transform duration-700"
-                unoptimized={true}
-              />
+              {currentFeatured.image && (
+                <Image 
+                  src={currentFeatured.image} 
+                  alt={currentFeatured.title || ''} 
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="object-cover object-center transition-transform duration-700"
+                  unoptimized={true}
+                />
+              )}
 
               {/* Bottom Dark Gradient for Text Legibility */}
               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/50 to-transparent" />
@@ -355,11 +357,11 @@ export default function Home({
                   </button>
 
                   <button 
-                    onClick={(e) => toggleWatchlist(currentFeatured.id.toString(), e)}
+                    onClick={(e) => currentFeatured.id && toggleWatchlist(currentFeatured.id.toString(), e)}
                     className="w-11 h-11 rounded-full bg-black/60 hover:bg-white/20 border border-white/15 backdrop-blur-md flex items-center justify-center text-white shadow-md transition active:scale-90"
                     title="Add to My List"
                   >
-                    {watchlistIds.includes(currentFeatured.id.toString()) ? (
+                    {currentFeatured.id && watchlistIds.includes(currentFeatured.id.toString()) ? (
                       <Check size={18} className="text-emerald-400" />
                     ) : (
                       <Plus size={20} />
