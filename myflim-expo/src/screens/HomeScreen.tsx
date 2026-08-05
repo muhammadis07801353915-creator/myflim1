@@ -160,20 +160,13 @@ export default function HomeScreen({ navigation }: any) {
     if (!item) return null;
 
     return (
-      <View style={[hero.wrapper]}>
-        <View style={[hero.card, { paddingTop: insets.top }]} {...heroPan.panHandlers}>
+      <View style={hero.wrapper}>
+        <View style={hero.card} {...heroPan.panHandlers}>
           {/* BG image */}
           {item.image ? (
             <Image source={{ uri: item.image }} style={hero.img} resizeMode="cover" />
           ) : null}
 
-          {/* Top-to-mid dark fade so header text is readable */}
-          <LinearGradient
-            colors={['rgba(10,10,15,0.75)', 'rgba(10,10,15,0.2)', 'transparent']}
-            style={[StyleSheet.absoluteFillObject, { zIndex: 1 }]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 0.45 }}
-          />
           {/* Bottom gradient */}
           <LinearGradient
             colors={['transparent', 'rgba(10,10,15,0.6)', 'rgba(10,10,15,0.97)']}
@@ -186,40 +179,6 @@ export default function HomeScreen({ navigation }: any) {
             end={{ x: 1, y: 0 }}
             style={StyleSheet.absoluteFillObject}
           />
-
-          {/* ── HEADER BAR (overlaid on hero, matches website) ── */}
-          <View style={[header.bar, { paddingTop: insets.top, zIndex: 10 }]}>
-            {/* Left: Logo + Brand name */}
-            <View style={header.brand}>
-              <Image
-                source={require('../../assets/app-logo-new.png')}
-                style={header.logo}
-                resizeMode="contain"
-              />
-              <View style={header.brandText}>
-                <Text style={header.brandBold}>Taban</Text>
-                <Text style={[header.brandBold, { color: '#CC222F' }]}>Play</Text>
-              </View>
-            </View>
-
-            {/* Right: Search + Bell */}
-            <View style={header.actions}>
-              <TouchableOpacity
-                style={header.iconBtn}
-                onPress={(e) => { (e as any).stopPropagation?.(); navigation.navigate('Search' as never); }}
-                activeOpacity={0.8}
-              >
-                <Search size={18} color="rgba(255,255,255,0.85)" />
-              </TouchableOpacity>
-              <View>
-                <TouchableOpacity style={header.iconBtn} activeOpacity={0.8}>
-                  <Bell size={18} color="rgba(255,255,255,0.85)" />
-                </TouchableOpacity>
-                {/* Red dot */}
-                <View style={header.notifDot} />
-              </View>
-            </View>
-          </View>
 
           {/* Content */}
           <View style={hero.content}>
@@ -323,6 +282,40 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <View style={styles.root}>
+
+      {/* ── STICKY HEADER BAR ──────────────────────────────────── */}
+      <View style={[header.bar, { paddingTop: insets.top + 4, backgroundColor: 'rgba(10,10,15,0.92)' }]}>
+        {/* Left: Logo + Brand */}
+        <View style={header.brand}>
+          <Image
+            source={require('../../assets/app-logo-new.png')}
+            style={header.logo}
+            resizeMode="contain"
+          />
+          <View style={header.brandText}>
+            <Text style={header.brandBold}>Taban</Text>
+            <Text style={[header.brandBold, { color: '#CC222F' }]}>Play</Text>
+          </View>
+        </View>
+
+        {/* Right: Search + Bell */}
+        <View style={header.actions}>
+          <TouchableOpacity
+            style={header.iconBtn}
+            onPress={() => navigation.navigate('Search' as never)}
+            activeOpacity={0.8}
+          >
+            <Search size={18} color="rgba(255,255,255,0.85)" />
+          </TouchableOpacity>
+          <View>
+            <TouchableOpacity style={header.iconBtn} activeOpacity={0.8}>
+              <Bell size={18} color="rgba(255,255,255,0.85)" />
+            </TouchableOpacity>
+            <View style={header.notifDot} />
+          </View>
+        </View>
+      </View>
+
       <ScrollView
         style={styles.root}
         refreshControl={
@@ -333,7 +326,7 @@ export default function HomeScreen({ navigation }: any) {
           />
         }
       >
-        {/* ── HERO ──────────────────────────────────────────────── */}
+        {/* ── HERO ───────────────────────────────────── */}
         {renderHero()}
 
         <View style={styles.body}>
