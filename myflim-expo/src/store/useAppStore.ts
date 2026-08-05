@@ -59,6 +59,25 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (code.toLowerCase() === 'myflim1') {
       set({ isUnlocked: true });
       await AsyncStorage.setItem('app_unlocked', 'true');
+
+      // Record this login in user_logins table
+      try {
+        // Get or create a unique device ID
+        let deviceId = await AsyncStorage.getItem('device_id');
+        if (!deviceId) {
+          deviceId = 'app_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+          await AsyncStorage.setItem('device_id', deviceId);
+        }
+        await supabase.from('user_logins').insert([{
+          source: 'app_code',
+          device_id: deviceId,
+          code_used: code.toLowerCase(),
+        }]);
+      } catch (e) {
+        // Safe to ignore if table not ready
+        console.warn('user_logins insert failed:', e);
+      }
+
       return true;
     }
     return false;

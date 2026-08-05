@@ -37,6 +37,31 @@ export default function ClientApp() {
     };
     recordVisit();
 
+    // Track Google sign-ins: record every new login to user_logins table
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const user = session.user;
+        const loginKey = `login_recorded_${user.id}`;
+        const lastLoginRecorded = localStorage.getItem(loginKey);
+        const now = Date.now();
+        // Record at most once every 60 minutes per user to avoid duplicates on page refresh
+        if (!lastLoginRecorded || now - parseInt(lastLoginRecorded) > 3600000) {
+          localStorage.setItem(loginKey, now.toString());
+          try {
+            await supabase.from('user_logins').insert([{
+              source: 'web_google',
+              email: user.email || null,
+              display_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Unknown',
+              user_id: user.id,
+            }]);
+          } catch (e) {
+            // Table may not exist yet — safe to ignore
+            console.warn('user_logins table not ready:', e);
+          }
+        }
+      }
+    });
+
     // Online Users Tracking (Presence)
     const channel = supabase.channel('online-users', {
       config: {
@@ -56,6 +81,7 @@ export default function ClientApp() {
       });
 
     return () => {
+      authListener.subscription.unsubscribe();
       channel.unsubscribe();
     };
   }, []);
