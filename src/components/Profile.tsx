@@ -1,3 +1,5 @@
+'use client';
+
 import { Bell, Download, Shield, FileText, Star, LogOut, ChevronRight, Crown, LayoutDashboard, Moon, Sun, Languages, Camera, Edit2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';

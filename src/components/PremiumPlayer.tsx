@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 import { Play, Pause, RotateCcw, RotateCw, Maximize, Minimize, Volume2, VolumeX, Type, ArrowLeft, Settings } from 'lucide-react';
