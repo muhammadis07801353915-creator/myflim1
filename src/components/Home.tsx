@@ -272,13 +272,13 @@ export default function Home({
 
       <div className="px-4 md:px-8 space-y-10 pt-4">
 
-        {/* 1. CINEMATIC HERO STAGE - Full Poster Showcase (No Cropping, No Plus Icon) */}
+        {/* 1. CINEMATIC HERO STAGE - Large Rich Poster Presentation */}
         {currentFeatured && (
-          <div className="relative w-full rounded-3xl overflow-hidden bg-[#12131c] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.9)]">
+          <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-[#141522] border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
             
-            {/* Ambient Blurred Poster Backdrop */}
+            {/* Ambient Rich Blurred Poster Backdrop (Eliminates empty gaps) */}
             {currentFeatured.image && (
-              <div className="absolute inset-0 overflow-hidden opacity-30 blur-2xl scale-110 pointer-events-none">
+              <div className="absolute inset-0 overflow-hidden opacity-60 blur-3xl scale-125 pointer-events-none">
                 <Image 
                   src={currentFeatured.image} 
                   alt="" 
@@ -289,31 +289,31 @@ export default function Home({
               </div>
             )}
 
-            {/* Dark Gradient Overlay for Contrast */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/80 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/90 via-[#0a0a0f]/50 to-transparent rtl:bg-gradient-to-l" />
+            {/* Dark Vignette Overlay for Readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/75 to-[#0a0a0f]/40" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/90 via-[#0a0a0f]/60 to-[#0a0a0f]/30 rtl:bg-gradient-to-l" />
 
             {/* Content Stage Container */}
-            <div className="relative z-10 p-5 sm:p-7 md:p-8 flex flex-col sm:flex-row items-center sm:items-end gap-6 md:gap-8">
+            <div className="relative z-10 p-4 sm:p-7 md:p-8 flex flex-col sm:flex-row items-center sm:items-end gap-5 md:gap-8">
               
-              {/* Full 2:3 Uncropped Vertical Poster Card */}
+              {/* Prominent Large 2:3 Vertical Poster Card */}
               {currentFeatured.image && (
-                <div className="relative w-36 sm:w-44 md:w-52 aspect-[2/3] shrink-0 rounded-2xl overflow-hidden shadow-2xl border border-white/15 group/poster">
+                <div className="relative w-44 sm:w-52 md:w-60 aspect-[2/3] shrink-0 rounded-2xl overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.8)] border border-white/20 ring-1 ring-white/10 group/poster">
                   <Image 
                     src={currentFeatured.image} 
                     alt={currentFeatured.title || ''} 
                     fill
                     priority
-                    sizes="(max-width: 768px) 180px, 220px"
+                    sizes="(max-width: 768px) 220px, 260px"
                     className="object-cover group-hover/poster:scale-105 transition-transform duration-700"
                     unoptimized={true}
                   />
-                  <div className="absolute inset-0 bg-black/20 group-hover/poster:opacity-0 transition-opacity" />
+                  <div className="absolute inset-0 bg-black/10 group-hover/poster:opacity-0 transition-opacity" />
                 </div>
               )}
 
               {/* Movie Details & Actions (No Plus Icon) */}
-              <div className="flex-1 space-y-3 text-center sm:text-left rtl:sm:text-right min-w-0">
+              <div className="flex-1 space-y-3 text-center sm:text-left rtl:sm:text-right min-w-0 w-full">
                 
                 {/* Meta Badges Row */}
                 <div className="flex items-center justify-center sm:justify-start flex-wrap gap-2">
@@ -323,18 +323,18 @@ export default function Home({
                     </span>
                   )}
                   {currentFeatured.rating && (
-                    <span className="px-2.5 py-0.5 rounded-md bg-black/70 backdrop-blur-md border border-white/10 text-yellow-400 font-bold text-[11px] flex items-center space-x-1">
+                    <span className="px-2.5 py-0.5 rounded-md bg-black/80 backdrop-blur-md border border-white/10 text-yellow-400 font-bold text-[11px] flex items-center space-x-1">
                       <Star size={11} className="fill-yellow-400 text-yellow-400" />
                       <span>{currentFeatured.rating}</span>
                     </span>
                   )}
                   {currentFeatured.year && (
-                    <span className="px-2.5 py-0.5 rounded-md bg-white/10 backdrop-blur-md text-neutral-300 font-semibold text-[11px]">
+                    <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-neutral-200 font-semibold text-[11px]">
                       {currentFeatured.year}
                     </span>
                   )}
                   {typeof currentFeatured.genre === 'string' && currentFeatured.genre.trim() && (
-                    <span className="px-2.5 py-0.5 rounded-md bg-white/10 backdrop-blur-md text-neutral-300 font-semibold text-[11px]">
+                    <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-neutral-200 font-semibold text-[11px]">
                       {currentFeatured.genre.split(',')[0]}
                     </span>
                   )}
@@ -352,11 +352,11 @@ export default function Home({
                   </p>
                 )}
 
-                {/* Action Button: ▶ PLAY ONLY (NO PLUS ICON) */}
+                {/* Action Button: ▶ PLAY ONLY */}
                 <div className="pt-2 flex items-center justify-center sm:justify-start">
                   <button 
                     onClick={() => onSelect(currentFeatured)}
-                    className="px-9 py-3.5 rounded-full bg-[#CC222F] hover:bg-red-700 text-white font-black text-xs sm:text-sm tracking-widest uppercase flex items-center space-x-2.5 shadow-xl shadow-red-600/50 hover:scale-105 active:scale-95 transition-all duration-300"
+                    className="w-full sm:w-auto px-10 py-3.5 rounded-full bg-[#CC222F] hover:bg-red-700 text-white font-black text-xs sm:text-sm tracking-widest uppercase flex items-center justify-center space-x-2.5 shadow-xl shadow-red-600/50 hover:scale-105 active:scale-95 transition-all duration-300"
                   >
                     <Play size={18} className="fill-white ml-0.5" />
                     <span>PLAY</span>
@@ -364,9 +364,9 @@ export default function Home({
                 </div>
               </div>
 
-              {/* Slide Navigation Bar (Bottom-Right or Bottom-Left in RTL) */}
+              {/* Slide Navigation Bar (Pill control) */}
               {featuredMovies.length > 1 && (
-                <div className="absolute top-4 right-4 sm:top-auto sm:bottom-4 sm:right-6 z-20 flex items-center space-x-2 rtl:space-x-reverse bg-black/70 backdrop-blur-md border border-white/15 px-3.5 py-1.5 rounded-full shadow-2xl">
+                <div className="absolute top-3 right-3 sm:top-auto sm:bottom-4 sm:right-6 z-20 flex items-center space-x-2 rtl:space-x-reverse bg-black/80 backdrop-blur-md border border-white/20 px-3.5 py-1.5 rounded-full shadow-2xl">
                   <button
                     onClick={prevFeatured}
                     className="p-1 text-neutral-300 hover:text-white transition active:scale-90"
