@@ -272,123 +272,95 @@ export default function Home({
 
       <div className="px-4 md:px-8 space-y-10 pt-4">
 
-        {/* 1. CINEMATIC HERO STAGE - Large Rich Poster Presentation */}
+        {/* 1. FULL-WIDTH BILLBOARD HERO BANNER */}
         {currentFeatured && (
-          <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-[#141522] border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.9)]">
+          <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-[#141522] shadow-[0_20px_50px_rgba(0,0,0,0.9)] border border-white/10">
             
-            {/* Ambient Rich Blurred Poster Backdrop (Eliminates empty gaps) */}
+            {/* Full-width background image (fills entire card) */}
             {currentFeatured.image && (
-              <div className="absolute inset-0 overflow-hidden opacity-60 blur-3xl scale-125 pointer-events-none">
-                <Image 
-                  src={currentFeatured.image} 
-                  alt="" 
-                  fill 
-                  className="object-cover" 
-                  unoptimized 
-                />
-              </div>
+              <Image 
+                src={currentFeatured.image} 
+                alt={currentFeatured.title || ''}
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-center scale-105 hover:scale-110 transition-transform duration-[3000ms] ease-out"
+                unoptimized={true}
+              />
             )}
 
-            {/* Dark Vignette Overlay for Readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/75 to-[#0a0a0f]/40" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/90 via-[#0a0a0f]/60 to-[#0a0a0f]/30 rtl:bg-gradient-to-l" />
+            {/* Bottom fade gradient — text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/60 to-transparent" />
+            {/* Left fade gradient */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/80 via-[#0a0a0f]/30 to-transparent rtl:bg-gradient-to-l" />
 
-            {/* Content Stage Container */}
-            <div className="relative z-10 p-4 sm:p-7 md:p-8 flex flex-col sm:flex-row items-center sm:items-end gap-5 md:gap-8">
-              
-              {/* Prominent Large 2:3 Vertical Poster Card */}
-              {currentFeatured.image && (
-                <div className="relative w-52 sm:w-64 md:w-72 aspect-[2/3] shrink-0 rounded-2xl overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.8)] border border-white/20 ring-1 ring-white/10 group/poster">
-                  <Image 
-                    src={currentFeatured.image} 
-                    alt={currentFeatured.title || ''} 
-                    fill
-                    priority
-                    sizes="(max-width: 768px) 260px, 310px"
-                    className="object-cover group-hover/poster:scale-105 transition-transform duration-700"
-                    unoptimized={true}
-                  />
-                  <div className="absolute inset-0 bg-black/10 group-hover/poster:opacity-0 transition-opacity" />
-                </div>
-              )}
+            {/* Content — fixed aspect ratio so the image is always visible */}
+            <div className="relative z-10 aspect-[16/9] sm:aspect-[21/9] md:aspect-[3/1] flex flex-col justify-end p-5 sm:p-8 md:p-10">
 
-              {/* Movie Details & Actions (No Plus Icon) */}
-              <div className="flex-1 space-y-3 text-center sm:text-left rtl:sm:text-right min-w-0 w-full">
-                
-                {/* Meta Badges Row */}
-                <div className="flex items-center justify-center sm:justify-start flex-wrap gap-2">
-                  {currentFeatured.type && (
-                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#CC222F] text-white shadow-md">
-                      {currentFeatured.type}
-                    </span>
-                  )}
-                  {currentFeatured.rating && (
-                    <span className="px-2.5 py-0.5 rounded-md bg-black/80 backdrop-blur-md border border-white/10 text-yellow-400 font-bold text-[11px] flex items-center space-x-1">
-                      <Star size={11} className="fill-yellow-400 text-yellow-400" />
-                      <span>{currentFeatured.rating}</span>
-                    </span>
-                  )}
-                  {currentFeatured.year && (
-                    <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-neutral-200 font-semibold text-[11px]">
-                      {currentFeatured.year}
-                    </span>
-                  )}
-                  {typeof currentFeatured.genre === 'string' && currentFeatured.genre.trim() && (
-                    <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-neutral-200 font-semibold text-[11px]">
-                      {currentFeatured.genre.split(',')[0]}
-                    </span>
-                  )}
-                </div>
-
-                {/* Movie Title */}
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-2xl line-clamp-2">
-                  {getLocalized(currentFeatured, 'title', language)}
-                </h1>
-
-                {/* Description Snippet if available */}
-                {currentFeatured.description && (
-                  <p className="text-xs sm:text-sm text-neutral-300 line-clamp-2 max-w-xl font-normal leading-relaxed opacity-90 hidden sm:block">
-                    {getLocalized(currentFeatured, 'description', language)}
-                  </p>
+              {/* Meta Badges Row */}
+              <div className="flex items-center flex-wrap gap-2 mb-2">
+                {currentFeatured.type && (
+                  <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#CC222F] text-white shadow-md">
+                    {currentFeatured.type}
+                  </span>
                 )}
-
-                {/* Action Button: ▶ PLAY ONLY */}
-                <div className="pt-2 flex items-center justify-center sm:justify-start">
-                  <button 
-                    onClick={() => onSelect(currentFeatured)}
-                    className="w-full sm:w-auto px-10 py-3.5 rounded-full bg-[#CC222F] hover:bg-red-700 text-white font-black text-xs sm:text-sm tracking-widest uppercase flex items-center justify-center space-x-2.5 shadow-xl shadow-red-600/50 hover:scale-105 active:scale-95 transition-all duration-300"
-                  >
-                    <Play size={18} className="fill-white ml-0.5" />
-                    <span>PLAY</span>
-                  </button>
-                </div>
+                {currentFeatured.rating && (
+                  <span className="px-2.5 py-0.5 rounded-md bg-black/70 backdrop-blur-md border border-white/10 text-yellow-400 font-bold text-[11px] flex items-center space-x-1">
+                    <Star size={11} className="fill-yellow-400 text-yellow-400" />
+                    <span>{currentFeatured.rating}</span>
+                  </span>
+                )}
+                {currentFeatured.year && (
+                  <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-neutral-200 font-semibold text-[11px]">
+                    {currentFeatured.year}
+                  </span>
+                )}
+                {typeof currentFeatured.genre === 'string' && currentFeatured.genre.trim() && (
+                  <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-neutral-200 font-semibold text-[11px]">
+                    {currentFeatured.genre.split(',')[0]}
+                  </span>
+                )}
               </div>
 
-              {/* Slide Navigation Bar (Pill control) */}
-              {featuredMovies.length > 1 && (
-                <div className="absolute top-3 right-3 sm:top-auto sm:bottom-4 sm:right-6 z-20 flex items-center space-x-2 rtl:space-x-reverse bg-black/80 backdrop-blur-md border border-white/20 px-3.5 py-1.5 rounded-full shadow-2xl">
-                  <button
-                    onClick={prevFeatured}
-                    className="p-1 text-neutral-300 hover:text-white transition active:scale-90"
-                    title="Previous"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
+              {/* Movie Title */}
+              <h1 className="text-xl sm:text-3xl md:text-5xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-2xl line-clamp-2 max-w-lg mb-3">
+                {getLocalized(currentFeatured, 'title', language)}
+              </h1>
 
-                  <span className="text-[11px] font-extrabold text-neutral-200 font-mono tracking-wider">
-                    {currentFeaturedIndex + 1} / {featuredMovies.length}
-                  </span>
-
-                  <button
-                    onClick={nextFeatured}
-                    className="p-1 text-neutral-300 hover:text-white transition active:scale-90"
-                    title="Next"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-              )}
+              {/* PLAY Button */}
+              <div>
+                <button 
+                  onClick={() => onSelect(currentFeatured)}
+                  className="px-8 py-3 rounded-full bg-[#CC222F] hover:bg-red-700 text-white font-black text-xs sm:text-sm tracking-widest uppercase flex items-center space-x-2.5 shadow-xl shadow-red-600/50 hover:scale-105 active:scale-95 transition-all duration-300"
+                >
+                  <Play size={18} className="fill-white ml-0.5" />
+                  <span>PLAY</span>
+                </button>
+              </div>
             </div>
+
+            {/* Slide Navigation Pill (top-right) */}
+            {featuredMovies.length > 1 && (
+              <div className="absolute top-3 right-3 z-20 flex items-center space-x-1 rtl:space-x-reverse bg-black/70 backdrop-blur-md border border-white/20 px-3 py-1.5 rounded-full shadow-2xl">
+                <button
+                  onClick={prevFeatured}
+                  className="p-1 text-neutral-300 hover:text-white transition active:scale-90"
+                  title="Previous"
+                >
+                  <ChevronLeft size={15} />
+                </button>
+                <span className="text-[11px] font-extrabold text-neutral-200 font-mono tracking-wider px-1">
+                  {currentFeaturedIndex + 1} / {featuredMovies.length}
+                </span>
+                <button
+                  onClick={nextFeatured}
+                  className="p-1 text-neutral-300 hover:text-white transition active:scale-90"
+                  title="Next"
+                >
+                  <ChevronRight size={15} />
+                </button>
+              </div>
+            )}
           </div>
         )}
 
