@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING } from '../theme/theme';
 import { useAppStore } from '../store/useAppStore';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Star, Flame, ChevronRight, Search, Bell } from 'lucide-react-native';
+import { Star, Flame, ChevronRight, ChevronLeft, Search, Bell } from 'lucide-react-native';
 import { translations } from '../utils/translations';
 import { getLocalized } from '../utils/localization';
 import FloatingSocialButton from '../components/FloatingSocialButton';
@@ -75,26 +75,31 @@ function PosterCard({
 // ─── Section header — matches web layout ──────────────────────────────────
 function SectionHeader({
   title,
+  showFlame,
   onSeeAll,
-  showFlame = false,
+  language,
 }: {
   title: string;
-  onSeeAll: () => void;
   showFlame?: boolean;
+  onSeeAll?: () => void;
+  language?: string;
 }) {
-  return (
-    <View style={sh.row}>
-      {/* Left: See All  (matches web "< See All") */}
-      <TouchableOpacity onPress={onSeeAll} style={sh.seeAllBtn}>
-        <ChevronRight size={14} color="#CC222F" style={{ transform: [{ rotate: '180deg' }] }} />
-        <Text style={sh.seeAllText}>See All</Text>
-      </TouchableOpacity>
+  const isRTL = language === 'ku' || language === 'ar';
+  const seeAllText = language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All';
 
-      {/* Right: Title + optional flame icon */}
-      <View style={sh.titleRow}>
+  return (
+    <View style={[sh.row, isRTL && { flexDirection: 'row-reverse' }]}>
+      {/* Title + optional flame icon */}
+      <View style={[sh.titleRow, isRTL && { flexDirection: 'row-reverse' }]}>
         <Text style={sh.titleText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>{title}</Text>
-        {showFlame ? <Flame size={18} color="#CC222F" style={{ marginLeft: 5 }} /> : null}
+        {showFlame ? <Flame size={18} color="#CC222F" style={isRTL ? { marginRight: 5 } : { marginLeft: 5 }} /> : null}
       </View>
+
+      {/* See All link */}
+      <TouchableOpacity style={[sh.seeAllBtn, isRTL && { flexDirection: 'row-reverse' }]} onPress={onSeeAll}>
+        <Text style={sh.seeAllText}>{seeAllText}</Text>
+        {isRTL ? <ChevronLeft size={14} color="#CC222F" /> : <ChevronRight size={14} color="#CC222F" />}
+      </TouchableOpacity>
     </View>
   );
 }
@@ -250,6 +255,7 @@ export default function HomeScreen({ navigation }: any) {
       <SectionHeader
         title={title}
         showFlame={showFlame}
+        language={language}
         onSeeAll={() => handleSeeAll(title, fullData || data, listName)}
       />
       <FlatList

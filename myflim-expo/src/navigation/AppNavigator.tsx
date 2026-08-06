@@ -26,8 +26,45 @@ const Stack = createNativeStackNavigator();
 function TabNavigator() {
   const insets = useSafeAreaInsets();
   const { language } = useAppStore();
-  const t = translations[language];
-  
+  const t = translations[language] || translations.en;
+  const isRTL = language === 'ku' || language === 'ar';
+
+  const screens = [
+    {
+      name: "HomeTab",
+      component: HomeScreen,
+      label: t.home,
+      icon: ({ color, size }: any) => <Home color={color} size={size} />,
+    },
+    {
+      name: "LiveTVTab",
+      component: LiveTVScreen,
+      label: t.liveTv,
+      icon: ({ color, size }: any) => <Tv color={color} size={size} />,
+    },
+    {
+      name: "SearchTab",
+      component: SearchScreen,
+      label: t.search,
+      icon: ({ color, size }: any) => <Search color={color} size={size} />,
+    },
+    {
+      name: "WatchlistTab",
+      component: WatchlistScreen,
+      label: t.watchlist,
+      icon: ({ color, size }: any) => <Bookmark color={color} size={size} />,
+    },
+    {
+      name: "ProfileTab",
+      component: ProfileScreen,
+      label: t.profile,
+      icon: ({ color, size }: any) => <User color={color} size={size} />,
+    },
+  ];
+
+  // In RTL mode (Kurdish / Arabic), reverse tab order so Home is on far right, Profile on far left
+  const orderedScreens = isRTL ? [...screens].reverse() : screens;
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -49,46 +86,17 @@ function TabNavigator() {
         tabBarInactiveTintColor: COLORS.textMuted,
       }}
     >
-      <Tab.Screen 
-        name="HomeTab" 
-        component={HomeScreen} 
-        options={{
-          tabBarLabel: t.home,
-          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
-        }}
-      />
-      <Tab.Screen 
-        name="LiveTVTab" 
-        component={LiveTVScreen} 
-        options={{
-          tabBarLabel: t.liveTv,
-          tabBarIcon: ({ color, size }) => <Tv color={color} size={size} />,
-        }}
-      />
-      <Tab.Screen 
-        name="SearchTab" 
-        component={SearchScreen} 
-        options={{
-          tabBarLabel: t.search,
-          tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
-        }}
-      />
-      <Tab.Screen 
-        name="WatchlistTab" 
-        component={WatchlistScreen} 
-        options={{
-          tabBarLabel: t.watchlist,
-          tabBarIcon: ({ color, size }) => <Bookmark color={color} size={size} />,
-        }}
-      />
-      <Tab.Screen 
-        name="ProfileTab" 
-        component={ProfileScreen} 
-        options={{
-          tabBarLabel: t.profile,
-          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
-        }}
-      />
+      {orderedScreens.map((s) => (
+        <Tab.Screen
+          key={s.name}
+          name={s.name}
+          component={s.component}
+          options={{
+            tabBarLabel: s.label,
+            tabBarIcon: s.icon,
+          }}
+        />
+      ))}
     </Tab.Navigator>
   );
 }
