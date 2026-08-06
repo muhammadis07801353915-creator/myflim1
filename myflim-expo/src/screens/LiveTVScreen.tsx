@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAppStore } from '../store/useAppStore';
-import { Play, Cast, Menu, X, Globe, CheckCircle } from 'lucide-react-native';
+import { Play, Cast, Menu, X, Globe, CheckCircle2 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 const FEATURED_W = width * 0.48;
@@ -163,7 +163,7 @@ export default function LiveTVScreen({ navigation }: any) {
               <Text style={[s.countryItemName, !selectedCountry && s.countryItemNameActive]}>
                 {language === 'ku' ? 'هەموو وڵاتەکان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}
               </Text>
-              {!selectedCountry && <CheckCircle size={18} color="#CC222F" />}
+              {!selectedCountry && <CheckCircle2 size={18} color="#CC222F" />}
             </TouchableOpacity>
 
             <View style={s.modalDivider} />
@@ -191,7 +191,7 @@ export default function LiveTVScreen({ navigation }: any) {
                     <Text style={[s.countryItemName, isSelected && s.countryItemNameActive]} numberOfLines={1}>
                       {getCountryName(item)}
                     </Text>
-                    {isSelected && <CheckCircle size={18} color="#CC222F" />}
+                    {isSelected && <CheckCircle2 size={18} color="#CC222F" />}
                   </TouchableOpacity>
                 );
               }}
