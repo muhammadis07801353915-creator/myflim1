@@ -242,58 +242,67 @@ export default function LiveTV() {
             </div>
           </div>
 
-          {/* ── CHANNEL LIST BELOW PLAYER (Matching Image 2 UX) ── */}
-          <div className="mt-6 pt-4 border-t border-white/10">
-            <div className="flex items-center justify-between mb-3" dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}>
-              <h3 className="text-base font-bold text-white tracking-tight">
-                {language === 'ku' ? 'کەناڵەکان' : language === 'ar' ? 'القنوات المتاحة' : 'Available Channels'}
-              </h3>
-              <span className="text-xs text-white/40">{channels.length} {language === 'ku' ? 'کەناڵ' : language === 'ar' ? 'قناة' : 'channels'}</span>
-            </div>
+          {/* ── CATEGORY-SPECIFIC CHANNEL LIST BELOW PLAYER ── */}
+          {(() => {
+            const categoryChannels = playingChannel?.category
+              ? channels.filter((c: any) => c.category === playingChannel.category)
+              : channels;
+            const displayChannels = categoryChannels.length > 0 ? categoryChannels : channels;
 
-            <div className="grid grid-cols-1 gap-2.5 max-h-[55vh] overflow-y-auto pr-1">
-              {channels.map((ch: any) => {
-                const isCurrent = ch.id === playingChannel.id;
-                return (
-                  <div
-                    key={ch.id}
-                    onClick={() => handleChannelSelect(ch)}
-                    className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl cursor-pointer transition border ${
-                      isCurrent
-                        ? 'bg-sky-500/20 border-sky-500/60 text-white font-bold shadow-lg shadow-sky-500/10'
-                        : 'bg-white/5 border-white/5 text-white/80 hover:bg-white/10 hover:border-white/10'
-                    }`}
-                    dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}
-                  >
-                    <div className="w-11 h-11 rounded-xl bg-neutral-900 border border-white/15 overflow-hidden flex items-center justify-center shrink-0 relative">
-                      {ch.image ? (
-                        <Image src={ch.image} alt={ch.name} fill sizes="44px" className="object-contain p-1" unoptimized />
-                      ) : (
-                        <span className="text-white font-bold text-sm">{ch.name[0]}</span>
-                      )}
-                      {isCurrent && <div className="absolute bottom-1 right-1 w-2.5 h-2.5 bg-sky-400 rounded-full border-2 border-black animate-ping" />}
-                    </div>
+            return (
+              <div className="mt-6 pt-4 border-t border-white/10">
+                <div className="flex items-center justify-between mb-3" dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}>
+                  <h3 className="text-base font-bold text-white tracking-tight">
+                    {language === 'ku' ? `کەناڵەکانی (${playingChannel?.category || 'دیاریبژێر'})` : language === 'ar' ? `قنوات (${playingChannel?.category || ''})` : `(${playingChannel?.category || ''}) Channels`}
+                  </h3>
+                  <span className="text-xs text-white/40">{displayChannels.length} {language === 'ku' ? 'کەناڵ' : language === 'ar' ? 'قناة' : 'channels'}</span>
+                </div>
 
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-bold truncate ${isCurrent ? 'text-sky-300' : 'text-white'}`}>{ch.name}</p>
-                      <p className="text-xs text-white/40 truncate">{ch.category}</p>
-                    </div>
+                <div className="grid grid-cols-1 gap-2.5 max-h-[55vh] overflow-y-auto pr-1">
+                  {displayChannels.map((ch: any) => {
+                    const isCurrent = ch.id === playingChannel.id;
+                    return (
+                      <div
+                        key={ch.id}
+                        onClick={() => handleChannelSelect(ch)}
+                        className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl cursor-pointer transition border ${
+                          isCurrent
+                            ? 'bg-sky-500/20 border-sky-500/60 text-white font-bold shadow-lg shadow-sky-500/10'
+                            : 'bg-white/5 border-white/5 text-white/80 hover:bg-white/10 hover:border-white/10'
+                        }`}
+                        dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}
+                      >
+                        <div className="w-11 h-11 rounded-xl bg-neutral-900 border border-white/15 overflow-hidden flex items-center justify-center shrink-0 relative">
+                          {ch.image ? (
+                            <Image src={ch.image} alt={ch.name} fill sizes="44px" className="object-contain p-1" unoptimized />
+                          ) : (
+                            <span className="text-white font-bold text-sm">{ch.name[0]}</span>
+                          )}
+                          {isCurrent && <div className="absolute bottom-1 right-1 w-2.5 h-2.5 bg-sky-400 rounded-full border-2 border-black animate-ping" />}
+                        </div>
 
-                    {isCurrent ? (
-                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-sky-500 text-black text-xs font-black shrink-0">
-                        <Play size={12} className="fill-black" />
-                        <span>{language === 'ku' ? 'دەکەوێت' : language === 'ar' ? 'يعمل' : 'Playing'}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-bold truncate ${isCurrent ? 'text-sky-300' : 'text-white'}`}>{ch.name}</p>
+                          <p className="text-xs text-white/40 truncate">{ch.category}</p>
+                        </div>
+
+                        {isCurrent ? (
+                          <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-sky-500 text-black text-xs font-black shrink-0">
+                            <Play size={12} className="fill-black" />
+                            <span>{language === 'ku' ? 'دەکەوێت' : language === 'ar' ? 'يعمل' : 'Playing'}</span>
+                          </div>
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-white/8 flex items-center justify-center text-white/50 hover:text-white shrink-0">
+                            <Play size={13} className="ml-0.5" />
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-white/8 flex items-center justify-center text-white/50 hover:text-white shrink-0">
-                        <Play size={13} className="ml-0.5" />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
     );

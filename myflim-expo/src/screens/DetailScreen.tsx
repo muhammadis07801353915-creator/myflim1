@@ -301,73 +301,83 @@ export default function DetailScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* ── CHANNEL LIST BELOW PLAYER (Matching Image 2 UX) ── */}
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 60 }}>
-          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 12 }}>
-            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
-              {language === 'ku' ? 'کەناڵەکان' : language === 'ar' ? 'القنوات المتاحة' : 'Available Channels'}
-            </Text>
-            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
-              {(liveTv || []).length} {language === 'ku' ? 'کەناڵ' : language === 'ar' ? 'قناة' : 'channels'}
-            </Text>
-          </View>
+        {/* ── CATEGORY-SPECIFIC CHANNEL LIST BELOW PLAYER ── */}
+        {(() => {
+          const categoryChannels = activeChannel?.category
+            ? (liveTv || []).filter((c: any) => c.category === activeChannel.category)
+            : (liveTv || []);
+          const displayChannels = categoryChannels.length > 0 ? categoryChannels : (liveTv || []);
+          const activeCatName = activeChannel?.category || '';
 
-          {(liveTv || []).map((ch: any) => {
-            const isCurrent = String(ch.id) === String(activeChannel.id);
-            return (
-              <TouchableOpacity
-                key={ch.id}
-                onPress={() => {
-                  setActiveChannel(ch);
-                  setCurrentVideoUrl(ch.stream_url);
-                  setIsPlaying(true);
-                }}
-                activeOpacity={0.8}
-                style={{
-                  flexDirection: isRTL ? 'row-reverse' : 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: 12,
-                  borderRadius: 16,
-                  marginBottom: 8,
-                  backgroundColor: isCurrent ? 'rgba(56, 189, 248, 0.18)' : 'rgba(255, 255, 255, 0.05)',
-                  borderWidth: 1,
-                  borderColor: isCurrent ? 'rgba(56, 189, 248, 0.5)' : 'rgba(255, 255, 255, 0.06)',
-                }}
-              >
-                <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#181820', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
-                  {ch.image ? (
-                    <Image source={{ uri: ch.image }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
-                  ) : (
-                    <Text style={{ color: 'white', fontWeight: 'bold' }}>{ch.name?.[0]}</Text>
-                  )}
-                </View>
+          return (
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 60 }}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 12 }}>
+                <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
+                  {language === 'ku' ? `کەناڵەکانی (${activeCatName})` : language === 'ar' ? `قنوات (${activeCatName})` : `(${activeCatName}) Channels`}
+                </Text>
+                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
+                  {displayChannels.length} {language === 'ku' ? 'کەناڵ' : language === 'ar' ? 'قناة' : 'channels'}
+                </Text>
+              </View>
 
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: isCurrent ? '#38bdf8' : 'white', fontSize: 15, fontWeight: 'bold', textAlign: isRTL ? 'right' : 'left' }}>
-                    {ch.name}
-                  </Text>
-                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }}>
-                    {ch.category}
-                  </Text>
-                </View>
+              {displayChannels.map((ch: any) => {
+                const isCurrent = String(ch.id) === String(activeChannel.id);
+                return (
+                  <TouchableOpacity
+                    key={ch.id}
+                    onPress={() => {
+                      setActiveChannel(ch);
+                      setCurrentVideoUrl(ch.stream_url);
+                      setIsPlaying(true);
+                    }}
+                    activeOpacity={0.8}
+                    style={{
+                      flexDirection: isRTL ? 'row-reverse' : 'row',
+                      alignItems: 'center',
+                      gap: 12,
+                      padding: 12,
+                      borderRadius: 16,
+                      marginBottom: 8,
+                      backgroundColor: isCurrent ? 'rgba(56, 189, 248, 0.18)' : 'rgba(255, 255, 255, 0.05)',
+                      borderWidth: 1,
+                      borderColor: isCurrent ? 'rgba(56, 189, 248, 0.5)' : 'rgba(255, 255, 255, 0.06)',
+                    }}
+                  >
+                    <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#181820', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+                      {ch.image ? (
+                        <Image source={{ uri: ch.image }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                      ) : (
+                        <Text style={{ color: 'white', fontWeight: 'bold' }}>{ch.name?.[0]}</Text>
+                      )}
+                    </View>
 
-                {isCurrent ? (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#38bdf8', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-                    <Play size={10} color="#000" fill="#000" />
-                    <Text style={{ color: '#000', fontSize: 11, fontWeight: '900' }}>
-                      {language === 'ku' ? 'دەکەوێت' : language === 'ar' ? 'يعمل' : 'Playing'}
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' }}>
-                    <Play size={14} color="rgba(255,255,255,0.6)" />
-                  </View>
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: isCurrent ? '#38bdf8' : 'white', fontSize: 15, fontWeight: 'bold', textAlign: isRTL ? 'right' : 'left' }}>
+                        {ch.name}
+                      </Text>
+                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }}>
+                        {ch.category}
+                      </Text>
+                    </View>
+
+                    {isCurrent ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#38bdf8', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                        <Play size={10} color="#000" fill="#000" />
+                        <Text style={{ color: '#000', fontSize: 11, fontWeight: '900' }}>
+                          {language === 'ku' ? 'دەکەوێت' : language === 'ar' ? 'يعمل' : 'Playing'}
+                        </Text>
+                      </View>
+                    ) : (
+                      <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' }}>
+                        <Play size={14} color="rgba(255,255,255,0.6)" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          );
+        })()}
       </View>
     );
   }
