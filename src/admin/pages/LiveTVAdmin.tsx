@@ -13,6 +13,7 @@ export default function LiveTVAdmin() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedCountryFilter, setSelectedCountryFilter] = useState<string>('All');
   
   const [formData, setFormData] = useState({
     name: '', category: '', status: 'Active', stream_url: '', image: '', is_pro: false, profile_link: '', country: ''
@@ -217,21 +218,32 @@ export default function LiveTVAdmin() {
           {/* Country field */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-neutral-300">Country (Optional)</label>
-              <select value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition">
-                <option value="">— No Country —</option>
-                {countries.map(c => (
-                  <option key={c.id} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
+              <label className="text-sm font-medium text-neutral-300">Country / وڵات (Optional)</label>
+              <select 
+                value={formData.country} 
+                onChange={e => setFormData({...formData, country: e.target.value})} 
+                className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition font-medium"
+              >
+                <option value="">— No Country / بێ وڵات —</option>
+                {countries.map(c => {
+                  const val = c.name_en || c.name_ku || c.name;
+                  const label = c.name_ku && c.name_en ? `${c.name_ku} — ${c.name_en}` : (c.name_ku || c.name_en || c.name);
+                  return (
+                    <option key={c.id} value={val}>
+                      {label}
+                    </option>
+                  );
+                })}
               </select>
               {formData.country && (() => {
-                const found = countries.find(c => c.name === formData.country);
-                return found?.flag_url ? (
-                  <div className="flex items-center gap-2 mt-1">
-                    <img src={found.flag_url} alt={found.name} className="w-8 h-5 object-cover rounded" />
-                    <span className="text-sm text-neutral-400">{found.name}</span>
+                const found = countries.find(c => (c.name_en || c.name_ku || c.name) === formData.country);
+                return found ? (
+                  <div className="flex items-center gap-2.5 mt-2 bg-neutral-900/60 p-2.5 rounded-lg border border-neutral-800">
+                    {found.flag_url ? (
+                      <img src={found.flag_url} alt={found.name_en} className="w-8 h-5 object-cover rounded border border-neutral-700 shrink-0" />
+                    ) : null}
+                    <span className="text-sm font-semibold text-neutral-200">{found.name_ku || found.name_en}</span>
+                    <span className="text-xs text-neutral-500">({found.name_en})</span>
                   </div>
                 ) : null;
               })()}
@@ -311,7 +323,11 @@ export default function LiveTVAdmin() {
     }
   };
 
-  const filteredChannels = channels.filter(c => selectedCategory === 'All' || c.category === selectedCategory);
+  const filteredChannels = channels.filter(c => {
+    const matchCat = selectedCategory === 'All' || c.category === selectedCategory;
+    const matchCountry = selectedCountryFilter === 'All' || c.country === selectedCountryFilter;
+    return matchCat && matchCountry;
+  });
 
   return (
     <div className="text-white space-y-6">
@@ -332,18 +348,35 @@ export default function LiveTVAdmin() {
               className="bg-transparent border-none outline-none text-sm ml-2 w-full text-white"
             />
           </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-neutral-400">Filter:</span>
-            <select 
-              value={selectedCategory} 
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-neutral-900 border border-neutral-800 text-white text-sm rounded-lg px-3 py-2 outline-none"
-            >
-              <option value="All">All Categories</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.name}>{cat.name}</option>
-              ))}
-            </select>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-neutral-400">Category:</span>
+              <select 
+                value={selectedCategory} 
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="bg-neutral-900 border border-neutral-800 text-white text-sm rounded-lg px-3 py-2 outline-none"
+              >
+                <option value="All">All Categories</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-neutral-400">Country:</span>
+              <select 
+                value={selectedCountryFilter} 
+                onChange={(e) => setSelectedCountryFilter(e.target.value)}
+                className="bg-neutral-900 border border-neutral-800 text-white text-sm rounded-lg px-3 py-2 outline-none"
+              >
+                <option value="All">All Countries</option>
+                {countries.map(c => {
+                  const val = c.name_en || c.name_ku || c.name;
+                  const label = c.name_ku ? `${c.name_ku} (${c.name_en || ''})` : (c.name_en || c.name);
+                  return <option key={c.id} value={val}>{label}</option>;
+                })}
+              </select>
+            </div>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -353,6 +386,7 @@ export default function LiveTVAdmin() {
                 <th className="px-6 py-4 font-medium">Order</th>
                 <th className="px-6 py-4 font-medium">Channel Name</th>
                 <th className="px-6 py-4 font-medium">Category</th>
+                <th className="px-6 py-4 font-medium">Country</th>
                 <th className="px-6 py-4 font-medium">Status</th>
                 <th className="px-6 py-4 font-medium text-right">Actions</th>
               </tr>
@@ -393,6 +427,20 @@ export default function LiveTVAdmin() {
                     <span>{item.name}</span>
                   </td>
                   <td className="px-6 py-4 text-neutral-400">{item.category}</td>
+                  <td className="px-6 py-4 text-neutral-400">
+                    {(() => {
+                      if (!item.country) return <span className="text-neutral-600">—</span>;
+                      const found = countries.find(c => (c.name_en || c.name_ku || c.name) === item.country);
+                      return (
+                        <div className="flex items-center space-x-2">
+                          {found?.flag_url ? (
+                            <img src={found.flag_url} alt="" className="w-5 h-3.5 object-cover rounded border border-neutral-700 shrink-0" />
+                          ) : null}
+                          <span>{found?.name_ku || item.country}</span>
+                        </div>
+                      );
+                    })()}
+                  </td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${item.status === 'Active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-neutral-500/10 text-neutral-400'}`}>
                       {item.status || 'Active'}
