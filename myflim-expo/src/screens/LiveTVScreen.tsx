@@ -233,8 +233,8 @@ export default function LiveTVScreen({ navigation }: any) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
 
         {/* ── CATEGORY TABS ──────────────────────────────────────────── */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabsScroll}>
-          {tabs.map((tab) => (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[s.tabsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
+          {(isRTL ? [...tabs].reverse() : tabs).map((tab) => (
             <TouchableOpacity
               key={tab.id}
               style={[s.tab, selectedCategory === tab.id && s.tabActive]}
@@ -261,7 +261,7 @@ export default function LiveTVScreen({ navigation }: any) {
             {/* ── FEATURED CHANNELS ─────────────────────────────────── */}
             {featured.length > 0 && (
               <View style={s.section}>
-                <View style={s.sectionRow}>
+                <View style={[s.sectionRow, isRTL && { flexDirection: 'row-reverse' }]}>
                   <Text style={s.sectionTitle}>
                     {language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched'}
                   </Text>
@@ -269,8 +269,8 @@ export default function LiveTVScreen({ navigation }: any) {
                     <Text style={s.seeAll}>{language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All'}</Text>
                   </TouchableOpacity>
                 </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.featuredScroll}>
-                  {featured.map((ch: any) => (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[s.featuredScroll, isRTL && { flexDirection: 'row-reverse' }]}>
+                  {(isRTL ? [...featured].reverse() : featured).map((ch: any) => (
                     <TouchableOpacity key={ch.id} style={s.featCard} onPress={() => handlePress(ch)} activeOpacity={0.85}>
                       <View style={s.featImgWrap}>
                         {ch.image ? (
@@ -299,7 +299,7 @@ export default function LiveTVScreen({ navigation }: any) {
               return (
                 <React.Fragment key={cat.id || cat.name}>
                   <View style={s.section}>
-                    <View style={s.sectionRow}>
+                    <View style={[s.sectionRow, isRTL && { flexDirection: 'row-reverse' }]}>
                       <Text style={s.sectionTitle}>{cat.name}</Text>
                       {catChannels.length > 6 && (
                         <TouchableOpacity onPress={() => handleViewAll(cat.name)}>
@@ -308,7 +308,7 @@ export default function LiveTVScreen({ navigation }: any) {
                       )}
                     </View>
                     {catChannels.slice(0, 6).map((ch: any) => (
-                      <TouchableOpacity key={ch.id} style={s.listRow} onPress={() => handlePress(ch)} activeOpacity={0.85}>
+                      <TouchableOpacity key={ch.id} style={[s.listRow, isRTL && { flexDirection: 'row-reverse' }]} onPress={() => handlePress(ch)} activeOpacity={0.85}>
                         <View style={s.listLogoWrap}>
                           {ch.image ? (
                             <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
@@ -318,8 +318,8 @@ export default function LiveTVScreen({ navigation }: any) {
                           <View style={s.listLiveDot} />
                         </View>
                         <View style={s.listInfo}>
-                          <Text numberOfLines={1} style={s.listName}>{ch.name}</Text>
-                          <Text style={s.listCat}>{ch.category}</Text>
+                          <Text numberOfLines={1} style={[s.listName, isRTL && { textAlign: 'right' }]}>{ch.name}</Text>
+                          <Text style={[s.listCat, isRTL && { textAlign: 'right' }]}>{ch.category}</Text>
                         </View>
                         <View style={s.playBtn}>
                           <Play size={16} color="#fff" fill="#fff" />

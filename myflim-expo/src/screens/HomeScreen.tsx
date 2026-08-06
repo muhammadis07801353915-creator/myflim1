@@ -242,7 +242,6 @@ export default function HomeScreen({ navigation }: any) {
     );
   };
 
-  // ── Generic section ──────────────────────────────────────────────────────
   const renderSection = (
     title: string,
     data: any[],
@@ -250,32 +249,36 @@ export default function HomeScreen({ navigation }: any) {
     listName?: string,
     showFlame = false,
     showType = false
-  ) => (
-    <View style={styles.section} key={title}>
-      <SectionHeader
-        title={title}
-        showFlame={showFlame}
-        language={language}
-        onSeeAll={() => handleSeeAll(title, fullData || data, listName)}
-      />
-      <FlatList
-        data={data}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.hList}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <PosterCard
-            item={item}
-            onPress={handlePress}
-            showRating
-            showType={showType}
-            language={language}
-          />
-        )}
-      />
-    </View>
-  );
+  ) => {
+    const isRTL = language === 'ku' || language === 'ar';
+    return (
+      <View style={styles.section} key={title}>
+        <SectionHeader
+          title={title}
+          showFlame={showFlame}
+          language={language}
+          onSeeAll={() => handleSeeAll(title, fullData || data, listName)}
+        />
+        <FlatList
+          data={data}
+          horizontal
+          inverted={isRTL}
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.hList}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <PosterCard
+              item={item}
+              onPress={handlePress}
+              showRating
+              showType={showType}
+              language={language}
+            />
+          )}
+        />
+      </View>
+    );
+  };
 
   // ── Loading ──────────────────────────────────────────────────────────────
   if (loading && movies.length === 0) {
