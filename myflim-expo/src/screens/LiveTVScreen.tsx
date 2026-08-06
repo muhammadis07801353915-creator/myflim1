@@ -25,6 +25,7 @@ const FEATURED_H = FEATURED_W * 0.68;
 export default function LiveTVScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { liveTv, channelCategories, banners, countries, loading, fetchInitialData, language, isUnlocked } = useAppStore();
+  const isRTL = language === 'ku' || language === 'ar';
 
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
