@@ -50,54 +50,8 @@ function App(): React.JSX.Element {
 
   useEffect(() => {
     if (!appIsReady) return;
-
-    // Hide native splash immediately — our animated splash takes over
     SplashScreen.hideAsync().catch(() => {});
-
-    // Phase 1: Logo fades + scales in (0 → 1s)
-    Animated.parallel([
-      Animated.spring(logoScale, {
-        toValue: 1,
-        friction: 7,
-        tension: 50,
-        useNativeDriver: true,
-      }),
-      Animated.timing(logoOpacity, {
-        toValue: 1,
-        duration: 700,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Phase 2: Text fades in after 600ms
-    setTimeout(() => {
-      Animated.timing(textOpacity, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }).start();
-    }, 600);
-
-    // Phase 3: Glow pulse loop
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowScale, { toValue: 1.12, duration: 1200, useNativeDriver: true }),
-        Animated.timing(glowScale, { toValue: 1.00, duration: 1200, useNativeDriver: true }),
-      ])
-    );
-    pulse.start();
-
-    // Phase 4: After 3.5s — fade out entire splash
-    setTimeout(() => {
-      pulse.stop();
-      Animated.timing(screenOpacity, {
-        toValue: 0,
-        duration: 600,
-        useNativeDriver: true,
-      }).start(() => {
-        setSplashDone(true);
-      });
-    }, 3500);
+    setSplashDone(true);
   }, [appIsReady]);
 
   if (!appIsReady) {
