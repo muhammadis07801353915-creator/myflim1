@@ -30,8 +30,9 @@ export default function DetailScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const serversRef = useRef<View>(null);
-  const { incrementViews, toggleWatchlist, watchlist, language } = useAppStore();
+  const { incrementViews, toggleWatchlist, watchlist, language, liveTv } = useAppStore();
   const t = translations[language];
+  const [activeChannel, setActiveChannel] = useState(item);
   
   const [isWatchlisted, setIsWatchlisted] = useState(
     watchlist.some(i => String(i.id) === String(item.id))
@@ -219,15 +220,19 @@ export default function DetailScreen({ route, navigation }: any) {
 
   // Live TV Specific Layout
   if (item.type === 'LiveTV') {
+    const isRTL = language === 'ku' || language === 'ar';
+    const liveVideoUrl = activeChannel.stream_url || item.stream_url;
+    const liveViewerCount = (850 + ((Number(activeChannel.id || 1) * 317) % 2400)).toLocaleString();
+
     return (
-      <View style={[styles.container, { backgroundColor: '#111' }]}>
+      <View style={[styles.container, { backgroundColor: '#0B0C10' }]}>
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
         
         {/* Top 16:9 Header area (Video Player) */}
         <View style={styles.liveVideoContainer}>
-          {isPlaying && activeVideoUrl ? (
+          {isPlaying && liveVideoUrl ? (
             <Video
-              source={{ uri: activeVideoUrl }}
+              source={{ uri: liveVideoUrl }}
               style={StyleSheet.absoluteFillObject}
               resizeMode={ResizeMode.CONTAIN}
               shouldPlay
@@ -235,39 +240,102 @@ export default function DetailScreen({ route, navigation }: any) {
             />
           ) : (
             <Image 
-              source={{ uri: item.image }} 
+              source={{ uri: activeChannel.image || item.image }} 
               style={styles.backdrop}
               resizeMode="cover"
             />
           )}
-          {!isPlaying && (
-            <View style={styles.liveVideoOverlay}>
-              <TouchableOpacity 
-                style={[styles.backArrow, { top: insets.top + 10 }]}
-                onPress={() => navigation.goBack()}
-              >
-                <ChevronLeft color="white" size={28} />
-              </TouchableOpacity>
-
-              <View style={[styles.liveBadgeCorner, { top: insets.top + 10 }]}>
-                <View style={styles.liveDotAnimated} />
-                <Text style={styles.liveBadgeCornerText}>LIVE</Text>
-              </View>
-            </View>
-          )}
+          
+          <TouchableOpacity 
+            style={[styles.backArrow, { top: insets.top + 10 }]}
+            onPress={() => navigation.goBack()}
+          >
+            <ChevronLeft color="white" size={28} />
+          </TouchableOpacity>
         </View>
 
+        {/* Channel Info & Live Viewer Count */}
         <View style={styles.liveInfoContainer}>
           <View style={styles.liveInfoLeft}>
-            <Text style={styles.liveTitle}>{getLocalized(item, 'title', language)}</Text>
-            <Text style={styles.liveCategory}>{item.category || 'News'}</Text>
+            <Text style={styles.liveTitle}>{activeChannel.name || getLocalized(item, 'title', language)}</Text>
+            <Text style={styles.liveCategory}>{activeChannel.category || item.category || 'Live TV'}</Text>
           </View>
           
           <TouchableOpacity style={styles.livePresenceButton}>
             <Users size={16} color="#E53935" />
             <Text style={styles.livePresenceText}>LIVE</Text>
+            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>•</Text>
+            <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{liveViewerCount}</Text>
           </TouchableOpacity>
         </View>
+
+        {/* ── CHANNEL LIST BELOW PLAYER (Matching Image 2 UX) ── */}
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 60 }}>
+          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 12 }}>
+            <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
+              {language === 'ku' ? 'کەناڵەکان' : language === 'ar' ? 'القنوات المتاحة' : 'Available Channels'}
+            </Text>
+            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
+              {(liveTv || []).length} {language === 'ku' ? 'کەناڵ' : language === 'ar' ? 'قناة' : 'channels'}
+            </Text>
+          </View>
+
+          {(liveTv || []).map((ch: any) => {
+            const isCurrent = String(ch.id) === String(activeChannel.id);
+            return (
+              <TouchableOpacity
+                key={ch.id}
+                onPress={() => {
+                  setActiveChannel(ch);
+                  setCurrentVideoUrl(ch.stream_url);
+                  setIsPlaying(true);
+                }}
+                activeOpacity={0.8}
+                style={{
+                  flexDirection: isRTL ? 'row-reverse' : 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: 12,
+                  borderRadius: 16,
+                  marginBottom: 8,
+                  backgroundColor: isCurrent ? 'rgba(56, 189, 248, 0.18)' : 'rgba(255, 255, 255, 0.05)',
+                  borderWidth: 1,
+                  borderColor: isCurrent ? 'rgba(56, 189, 248, 0.5)' : 'rgba(255, 255, 255, 0.06)',
+                }}
+              >
+                <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#181820', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
+                  {ch.image ? (
+                    <Image source={{ uri: ch.image }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+                  ) : (
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>{ch.name?.[0]}</Text>
+                  )}
+                </View>
+
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: isCurrent ? '#38bdf8' : 'white', fontSize: 15, fontWeight: 'bold', textAlign: isRTL ? 'right' : 'left' }}>
+                    {ch.name}
+                  </Text>
+                  <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }}>
+                    {ch.category}
+                  </Text>
+                </View>
+
+                {isCurrent ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#38bdf8', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                    <Play size={10} color="#000" fill="#000" />
+                    <Text style={{ color: '#000', fontSize: 11, fontWeight: '900' }}>
+                      {language === 'ku' ? 'دەکەوێت' : language === 'ar' ? 'يعمل' : 'Playing'}
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' }}>
+                    <Play size={14} color="rgba(255,255,255,0.6)" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
     );
   }
