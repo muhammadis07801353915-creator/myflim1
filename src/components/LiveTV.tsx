@@ -305,34 +305,47 @@ export default function LiveTV() {
         </button>
       </div>
 
-      {/* ── COUNTRY DRAWER ── */}
+      {/* ── COUNTRY DRAWER / BOTTOM SHEET ── */}
       {isCountryDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex" onClick={() => setIsCountryDrawerOpen(false)}>
+        <div className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-start" onClick={() => setIsCountryDrawerOpen(false)}>
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
-          {/* Drawer */}
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-md" />
+          
+          {/* Drawer Container (Bottom sheet on mobile, right sidebar on desktop) */}
           <div
-            className="relative z-10 ml-auto w-full max-w-md h-full bg-[#111118] border-l border-white/10 flex flex-col shadow-2xl"
+            className="relative z-10 w-full sm:ml-auto sm:max-w-md h-[88vh] sm:h-full bg-[#111118] border-t sm:border-t-0 sm:border-l border-white/10 rounded-t-[28px] sm:rounded-none flex flex-col shadow-2xl overflow-hidden transition-all duration-300"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
+            {/* Mobile Drag Indicator */}
+            <div className="w-12 h-1.5 bg-white/25 rounded-full mx-auto mt-3 mb-1 sm:hidden shrink-0" />
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0">
               <div>
                 <h2 className="text-xl font-black text-white tracking-tight">
                   {language === 'ku' ? 'وڵاتەکان' : language === 'ar' ? 'الدول' : 'Countries'}
                 </h2>
-                <p className="text-xs text-white/50 mt-1">
+                <p className="text-xs text-white/50 mt-0.5">
                   {language === 'ku' ? 'وڵاتێک هەلبژێرە بۆ فلتەرکردنی کەناڵ' : language === 'ar' ? 'اختر دولة لتصفية القنوات' : 'Select a country to filter channels'}
                 </p>
               </div>
-              <button onClick={() => setIsCountryDrawerOpen(false)} className="w-10 h-10 rounded-full bg-white/8 flex items-center justify-center hover:bg-white/15 transition text-white/70 hover:text-white">
+              <button 
+                onClick={() => setIsCountryDrawerOpen(false)} 
+                className="w-10 h-10 rounded-full bg-white/8 flex items-center justify-center hover:bg-white/15 transition text-white/70 hover:text-white"
+              >
                 <X size={20} />
               </button>
             </div>
-            <div className="overflow-y-auto flex-1 p-5 space-y-2 overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
+
+            {/* Scrollable list */}
+            <div 
+              className="overflow-y-auto flex-1 p-4 sm:p-5 space-y-2 overscroll-contain touch-pan-y" 
+              style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
+            >
               {/* All countries option */}
               <button
                 onClick={() => { setSelectedCountry(null); setIsCountryDrawerOpen(false); }}
-                className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl mb-4 transition text-left ${
+                className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl mb-3 transition text-left ${
                   !selectedCountry
                     ? 'bg-[#CC222F]/20 border border-[#CC222F]/50 text-[#CC222F] font-black'
                     : 'bg-white/5 border border-white/5 text-white/80 hover:bg-white/10 hover:text-white font-bold'
@@ -346,7 +359,7 @@ export default function LiveTV() {
               </button>
 
               {/* Country items */}
-              <div className="grid grid-cols-1 gap-2.5">
+              <div className="grid grid-cols-1 gap-2.5 pb-8">
                 {countries.map((c: any) => {
                   const isSelected = selectedCountry === c.name_en;
                   return (
