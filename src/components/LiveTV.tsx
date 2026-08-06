@@ -100,6 +100,18 @@ export default function LiveTV() {
     return acc;
   }, {} as Record<string, any[]>);
 
+  // Dynamic Most Watched channels: featured + News fallback + remaining channels
+  const featuredChannels = countryFilteredChannels.filter(c => c.is_featured);
+  const newsChannels = countryFilteredChannels.filter(c => 
+    (c.category === 'News' || c.category === 'هەواڵ' || c.category === 'الأخبار') &&
+    !featuredChannels.some(f => f.id === c.id)
+  );
+  const remainingChannels = countryFilteredChannels.filter(c => 
+    !featuredChannels.some(f => f.id === c.id) && 
+    !newsChannels.some(n => n.id === c.id)
+  );
+  const mostWatchedChannels = [...featuredChannels, ...newsChannels, ...remainingChannels];
+
   const categoriesToRender = selectedCategory === 'All' 
     ? categories
     : categories.filter(c => c.name === selectedCategory);
@@ -309,7 +321,12 @@ export default function LiveTV() {
   }
 
   if (viewAllCategory) {
-    const categoryChannels = channelsByCategory[viewAllCategory] || [];
+    const isMostWatched = viewAllCategory === 'Most Watched' || viewAllCategory === 'زۆرترین بیندراو' || viewAllCategory === 'الأكثر مشاهدة';
+    const categoryChannels = isMostWatched ? mostWatchedChannels : (channelsByCategory[viewAllCategory] || []);
+    const pageTitle = isMostWatched
+      ? (language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched')
+      : (getLocalized(viewAllCategory, 'name', language) || viewAllCategory);
+
     return (
       <div className="bg-[#1A1D24] light-mode:bg-gray-50 min-h-screen text-white light-mode:text-black pb-24 font-sans">
         {/* Header for View All */}
@@ -320,7 +337,7 @@ export default function LiveTV() {
           >
             <ArrowLeft size={24} className="rtl:rotate-180" />
           </button>
-          <h1 className="text-xl font-bold">{getLocalized(viewAllCategory, 'name', language)}</h1>
+          <h1 className="text-xl font-bold">{pageTitle}</h1>
         </div>
         
         {/* Grid of all channels in category */}
@@ -623,18 +640,23 @@ export default function LiveTV() {
           )}
 
           <div className="px-4 sm:px-6 space-y-10">
-            {/* Featured Channels */}
-            {channels.length > 0 && (
+            {/* Featured / Most Watched Channels */}
+            {mostWatchedChannels.length > 0 && (
               <section className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[18px] font-black tracking-tight">
                     {language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched'}
                   </h2>
-                  <span className="text-[#CC222F] text-sm font-bold">See All</span>
+                  <button 
+                    onClick={() => setViewAllCategory('Most Watched')} 
+                    className="text-[#CC222F] text-sm font-bold hover:text-red-400 transition"
+                  >
+                    {language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All'}
+                  </button>
                 </div>
                 <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-                  {(selectedCategory === 'All' ? channels : channels.filter(c => c.category === selectedCategory)).slice(0, 8).map(channel => (
-                      <div key={channel.id} onClick={() => handleChannelSelect(channel)} className="flex-none w-44 cursor-pointer group">
+                  {mostWatchedChannels.slice(0, 10).map(channel => (
+                    <div key={channel.id} onClick={() => handleChannelSelect(channel)} className="flex-none w-44 cursor-pointer group">
                       <div className="relative w-44 h-28 rounded-2xl bg-[#14151c] border border-white/8 overflow-hidden flex items-center justify-center mb-2 group-hover:border-[#CC222F]/40 transition-colors">
                         {channel.image
                           ? <Image src={channel.image} alt={channel.name} fill sizes="144px" className="object-contain p-3 group-hover:scale-105 transition-transform duration-300" unoptimized />

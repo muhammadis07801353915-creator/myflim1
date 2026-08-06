@@ -53,8 +53,17 @@ export default function LiveTVScreen({ navigation }: any) {
   const filteredChannels =
     selectedCategory === 'All' ? countryFiltered : countryFiltered.filter((c) => c.category === selectedCategory);
 
-  // ── Featured (top 6) ─────────────────────────────────────────────────────
-  const featured = filteredChannels.slice(0, 6);
+  // ── Featured / Most Watched (Featured + News fallback + remaining) ────────
+  const featuredChannelsList = countryFiltered.filter((c) => c.is_featured);
+  const newsChannelsList = countryFiltered.filter((c) =>
+    (c.category === 'News' || c.category === 'هەواڵ' || c.category === 'الأخبار') &&
+    !featuredChannelsList.some((f) => f.id === c.id)
+  );
+  const remainingChannelsList = countryFiltered.filter((c) =>
+    !featuredChannelsList.some((f) => f.id === c.id) &&
+    !newsChannelsList.some((n) => n.id === c.id)
+  );
+  const featured = [...featuredChannelsList, ...newsChannelsList, ...remainingChannelsList];
 
   // ── Banners ───────────────────────────────────────────────────────────────
   const topBanners = (banners || []).filter((b: any) => b.type?.toLowerCase() === 'top');
