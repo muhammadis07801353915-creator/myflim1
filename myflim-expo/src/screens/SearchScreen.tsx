@@ -64,16 +64,18 @@ export default function SearchScreen({ navigation }: any) {
     if (activeType === 'All') {
       pool = [
         ...movies, 
-        ...series, 
-        ...anime, 
         ...(liveTv || []).map(c => ({ ...c, type: 'LiveTV', title: c.name, rating: '8.5' }))
       ];
     } else if (activeType === 'Movie') {
       pool = movies.filter(m => m.type === 'Movie');
     } else if (activeType === 'Series') {
-      pool = series.filter(s => s.type === 'Series');
+      pool = movies.filter(s => s.type === 'Series');
     } else if (activeType === 'Anime') {
-      pool = anime;
+      pool = movies.filter(item => 
+        item.type === 'Anime' ||
+        (item.genre && /anime|animation|cartoon|کارتۆن|ئەنیمەیشن/i.test(item.genre)) ||
+        (item.list_name && /کارتۆن|ئەنیمەیشن|ئەنیمی|anime|cartoon/i.test(item.list_name))
+      );
     } else if (activeType === 'LiveTV') {
       pool = (liveTv || []).map(c => ({ ...c, type: 'LiveTV', title: c.name, rating: '8.5' }));
     }
@@ -193,7 +195,7 @@ export default function SearchScreen({ navigation }: any) {
 
       {/* ── RESULTS GRID ──────────────────────────────────────────── */}
       <FlatList
-        data={isUnlocked ? (query.length > 0 || activeType !== 'All' || activeGenre !== 'All' ? results : movies.slice(0, 16)) : []}
+        data={isUnlocked ? results : []}
         renderItem={({ item }) => (
           <MovieCard 
             item={item} 

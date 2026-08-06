@@ -142,9 +142,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       const movies = allMovies?.filter(item => item.type === 'Movie') || [];
       const series = allMovies?.filter(item => item.type === 'Series') || [];
       const anime = allMovies?.filter(item => 
-        item.genre?.includes('Anime') || 
-        item.genre?.includes('Animation') ||
-        item.type === 'Anime'
+        item.type === 'Anime' ||
+        (item.genre && /anime|animation|cartoon|کارتۆن|ئەنیمەیشن/i.test(item.genre)) ||
+        (item.list_name && /کارتۆن|ئەنیمەیشن|ئەنیمی|anime|cartoon/i.test(item.list_name))
       ) || [];
 
       // All content (movies + series + anime) for list-based filtering
