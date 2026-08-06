@@ -132,7 +132,7 @@ export default function LiveTVScreen({ navigation }: any) {
             onPress={() => setIsCountryModalOpen(true)}
             activeOpacity={0.8}
           >
-            <Menu size={15} color={selectedCountry ? '#CC222F' : 'rgba(255,255,255,0.7)'} />
+            <Menu size={17} color={selectedCountry ? '#CC222F' : 'rgba(255,255,255,0.85)'} />
             {selectedCountryObj?.flag_url ? (
               <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryBtnFlag} />
             ) : null}
@@ -383,9 +383,9 @@ const s = StyleSheet.create({
   // Header
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingBottom: 12, paddingTop: 6,
+    paddingHorizontal: 10, paddingBottom: 12, paddingTop: 6,
   },
-  headerLeft: { alignItems: 'flex-start', minWidth: 90 },
+  headerLeft: { alignItems: 'flex-start', minWidth: 105 },
   headerTitle: { color: '#fff', fontSize: 22, fontWeight: '900', letterSpacing: -0.5, flex: 1, textAlign: 'center' },
   castBtn: {
     width: 38, height: 38, borderRadius: 19,
@@ -397,16 +397,16 @@ const s = StyleSheet.create({
 
   // Country button
   countryBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 5,
-    paddingHorizontal: 10, paddingVertical: 7, borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
-    maxWidth: 130,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.09)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)',
+    maxWidth: 150, height: 38,
   },
-  countryBtnActive: { backgroundColor: 'rgba(204,34,47,0.12)', borderColor: 'rgba(204,34,47,0.35)' },
-  countryBtnText: { color: 'rgba(255,255,255,0.7)', fontSize: 12, fontWeight: '700', maxWidth: 70 },
+  countryBtnActive: { backgroundColor: 'rgba(204,34,47,0.16)', borderColor: 'rgba(204,34,47,0.45)' },
+  countryBtnText: { color: 'rgba(255,255,255,0.9)', fontSize: 14, fontWeight: '800', maxWidth: 95 },
   countryBtnTextActive: { color: '#CC222F' },
-  countryBtnFlag: { width: 22, height: 15, borderRadius: 3, borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.2)' },
+  countryBtnFlag: { width: 26, height: 17, borderRadius: 4, borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.25)' },
 
   // Country Modal
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
