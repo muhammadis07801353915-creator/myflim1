@@ -75,7 +75,9 @@ export default function LiveTVScreen({ navigation }: any) {
     navigation.navigate('Detail', { item: { ...item, type: 'LiveTV' } });
 
   const handleViewAll = (category: string) => {
-    const data = channelsByCategory[category] || [];
+    const data = (category === 'Most Watched' || category === 'زۆرترین بیندراو' || category === 'الأكثر مشاهدة')
+      ? featured
+      : (channelsByCategory[category] || []);
     navigation.navigate('Category', { title: category, data, type: 'LiveTV' });
   };
 
@@ -113,11 +115,11 @@ export default function LiveTVScreen({ navigation }: any) {
     <View style={[s.root, { paddingTop: insets.top }]}>
 
       {/* ── HEADER ─────────────────────────────────────────────────── */}
-      <View style={s.header}>
+      <View style={[s.header, isRTL && { flexDirection: 'row-reverse' }]}>
         <View style={s.headerLeft}>
           {/* ☰ Country filter button — always visible */}
           <TouchableOpacity
-            style={[s.countryBtn, selectedCountry && s.countryBtnActive]}
+            style={[s.countryBtn, selectedCountry && s.countryBtnActive, isRTL && { flexDirection: 'row-reverse' }]}
             onPress={() => setIsCountryModalOpen(true)}
             activeOpacity={0.8}
           >
@@ -266,7 +268,7 @@ export default function LiveTVScreen({ navigation }: any) {
                   <Text style={s.sectionTitle}>
                     {language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched'}
                   </Text>
-                  <TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleViewAll(language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched')}>
                     <Text style={s.seeAll}>{language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All'}</Text>
                   </TouchableOpacity>
                 </View>
