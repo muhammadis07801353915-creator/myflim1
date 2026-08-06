@@ -65,10 +65,8 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
   }, [movies.length]);
 
   useEffect(() => {
-    // Initial fetch if no initial data
-    if (!initialData) {
-      fetchData();
-    }
+    // Always fetch fresh data on mount (ensures new tables like channel_countries load)
+    fetchData();
 
     // Subscribe to realtime changes for all tables
     const moviesSub = supabase.channel('movies-all')
@@ -91,14 +89,19 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
       .on('postgres_changes', { event: '*', schema: 'public', table: 'channel_categories' }, () => fetchData(true))
       .subscribe();
 
+    const countriesSub = supabase.channel('countries-all')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'channel_countries' }, () => fetchData(true))
+      .subscribe();
+
     return () => {
       supabase.removeChannel(moviesSub);
       supabase.removeChannel(channelsSub);
       supabase.removeChannel(listsSub);
       supabase.removeChannel(bannersSub);
       supabase.removeChannel(categoriesSub);
+      supabase.removeChannel(countriesSub);
     };
-  }, [initialData, fetchData]);
+  }, [fetchData]);
 
   return (
     <DataContext.Provider value={{ movies, movieLists, channels, categories, banners, countries, loading, refreshData: fetchData }}>

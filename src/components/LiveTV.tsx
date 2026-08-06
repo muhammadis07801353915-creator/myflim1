@@ -245,36 +245,34 @@ export default function LiveTV() {
       {/* ── HEADER ── */}
       <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/5 px-4 sm:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {/* ☰ Country filter button */}
-          {countries.length > 0 && (
-            <button
-              onClick={() => setIsCountryDrawerOpen(true)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition text-sm font-bold ${
-                selectedCountry
-                  ? 'bg-[#CC222F]/15 border-[#CC222F]/40 text-[#CC222F]'
-                  : 'bg-white/7 border-white/8 text-white/70 hover:text-white hover:bg-white/12'
-              }`}
-            >
-              <Menu size={16} />
-              {selectedCountry ? (
-                <>
+          {/* ☰ Country filter button — always visible */}
+          <button
+            onClick={() => setIsCountryDrawerOpen(true)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition text-sm font-bold ${
+              selectedCountry
+                ? 'bg-[#CC222F]/15 border-[#CC222F]/40 text-[#CC222F]'
+                : 'bg-white/7 border-white/8 text-white/70 hover:text-white hover:bg-white/12'
+            }`}
+          >
+            <Menu size={16} />
+            {selectedCountry ? (
+              <>
+                {(() => {
+                  const c = countries.find((x: any) => x.name_en === selectedCountry || x.name_ku === selectedCountry);
+                  return c?.flag_url ? <img src={c.flag_url} alt="" className="w-5 h-3.5 object-cover rounded-sm" /> : null;
+                })()}
+                <span className="max-w-[80px] truncate">
                   {(() => {
                     const c = countries.find((x: any) => x.name_en === selectedCountry || x.name_ku === selectedCountry);
-                    return c?.flag_url ? <img src={c.flag_url} alt="" className="w-5 h-3.5 object-cover rounded-sm" /> : null;
+                    return c ? getCountryName(c) : selectedCountry;
                   })()}
-                  <span className="max-w-[80px] truncate">
-                    {(() => {
-                      const c = countries.find((x: any) => x.name_en === selectedCountry || x.name_ku === selectedCountry);
-                      return c ? getCountryName(c) : selectedCountry;
-                    })()}
-                  </span>
-                  <X size={12} className="shrink-0" onClick={(e) => { e.stopPropagation(); setSelectedCountry(null); }} />
-                </>
-              ) : (
-                <span>{language === 'ku' ? 'وڵات' : language === 'ar' ? 'الدولة' : 'Country'}</span>
-              )}
-            </button>
-          )}
+                </span>
+                <X size={12} className="shrink-0" onClick={(e) => { e.stopPropagation(); setSelectedCountry(null); }} />
+              </>
+            ) : (
+              <span>{language === 'ku' ? 'وڵات' : language === 'ar' ? 'الدولة' : 'Country'}</span>
+            )}
+          </button>
           <h1 className="text-xl font-black tracking-tight">
             {language === 'ku' ? 'تەلەڤیزیۆنی ڕاستەوخۆ' : language === 'ar' ? 'التلفزيون المباشر' : 'Live TV'}
           </h1>

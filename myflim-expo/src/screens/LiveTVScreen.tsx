@@ -103,27 +103,25 @@ export default function LiveTVScreen({ navigation }: any) {
       {/* ── HEADER ─────────────────────────────────────────────────── */}
       <View style={s.header}>
         <View style={s.headerLeft}>
-          {/* ☰ Country filter */}
-          {countries.length > 0 && (
-            <TouchableOpacity
-              style={[s.countryBtn, selectedCountry && s.countryBtnActive]}
-              onPress={() => setIsCountryModalOpen(true)}
-              activeOpacity={0.8}
-            >
-              <Menu size={15} color={selectedCountry ? '#CC222F' : 'rgba(255,255,255,0.7)'} />
-              {selectedCountryObj?.flag_url ? (
-                <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryBtnFlag} />
-              ) : null}
-              <Text style={[s.countryBtnText, selectedCountry && s.countryBtnTextActive]} numberOfLines={1}>
-                {selectedCountryObj ? getCountryName(selectedCountryObj) : (language === 'ku' ? 'وڵات' : language === 'ar' ? 'الدولة' : 'Country')}
-              </Text>
-              {selectedCountry && (
-                <TouchableOpacity onPress={() => setSelectedCountry(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <X size={12} color="#CC222F" />
-                </TouchableOpacity>
-              )}
-            </TouchableOpacity>
-          )}
+          {/* ☰ Country filter button — always visible */}
+          <TouchableOpacity
+            style={[s.countryBtn, selectedCountry && s.countryBtnActive]}
+            onPress={() => setIsCountryModalOpen(true)}
+            activeOpacity={0.8}
+          >
+            <Menu size={15} color={selectedCountry ? '#CC222F' : 'rgba(255,255,255,0.7)'} />
+            {selectedCountryObj?.flag_url ? (
+              <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryBtnFlag} />
+            ) : null}
+            <Text style={[s.countryBtnText, selectedCountry && s.countryBtnTextActive]} numberOfLines={1}>
+              {selectedCountryObj ? getCountryName(selectedCountryObj) : (language === 'ku' ? 'وڵات' : language === 'ar' ? 'الدولة' : 'Country')}
+            </Text>
+            {selectedCountry && (
+              <TouchableOpacity onPress={() => setSelectedCountry(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <X size={12} color="#CC222F" />
+              </TouchableOpacity>
+            )}
+          </TouchableOpacity>
         </View>
         <Text style={s.headerTitle}>
           {language === 'ku' ? 'تەلەڤیزیۆنی ڕاستەوخۆ' : language === 'ar' ? 'التلفزيون المباشر' : 'Live TV'}
