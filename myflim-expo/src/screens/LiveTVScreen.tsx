@@ -158,12 +158,12 @@ export default function LiveTVScreen({ navigation }: any) {
               activeOpacity={0.8}
             >
               <View style={s.countryItemFlag}>
-                <Globe size={18} color="rgba(255,255,255,0.5)" />
+                <Globe size={22} color="rgba(255,255,255,0.6)" />
               </View>
               <Text style={[s.countryItemName, !selectedCountry && s.countryItemNameActive]}>
                 {language === 'ku' ? 'هەموو وڵاتەکان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}
               </Text>
-              {!selectedCountry && <CheckCircle2 size={18} color="#CC222F" />}
+              {!selectedCountry && <CheckCircle2 size={20} color="#CC222F" />}
             </TouchableOpacity>
 
             <View style={s.modalDivider} />
@@ -172,7 +172,7 @@ export default function LiveTVScreen({ navigation }: any) {
             <FlatList
               data={countries}
               keyExtractor={(item: any) => String(item.id)}
-              contentContainerStyle={{ paddingBottom: 40 }}
+              contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: 4 }}
               renderItem={({ item }: any) => {
                 const isSelected = selectedCountry === item.name_en;
                 return (
@@ -185,13 +185,13 @@ export default function LiveTVScreen({ navigation }: any) {
                       {item.flag_url ? (
                         <Image source={{ uri: item.flag_url }} style={s.flagImg} resizeMode="cover" />
                       ) : (
-                        <Globe size={16} color="rgba(255,255,255,0.4)" />
+                        <Globe size={20} color="rgba(255,255,255,0.4)" />
                       )}
                     </View>
                     <Text style={[s.countryItemName, isSelected && s.countryItemNameActive]} numberOfLines={1}>
                       {getCountryName(item)}
                     </Text>
-                    {isSelected && <CheckCircle2 size={18} color="#CC222F" />}
+                    {isSelected && <CheckCircle2 size={20} color="#CC222F" />}
                   </TouchableOpacity>
                 );
               }}
@@ -387,22 +387,26 @@ const s = StyleSheet.create({
 
   // Country list item
   countryItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 16, paddingVertical: 12,
-    marginHorizontal: 8, marginVertical: 2,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    paddingHorizontal: 18, paddingVertical: 14,
+    marginHorizontal: 8, marginVertical: 4,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
   },
-  countryItemActive: { backgroundColor: 'rgba(204,34,47,0.1)' },
+  countryItemActive: {
+    backgroundColor: 'rgba(204,34,47,0.18)',
+    borderColor: 'rgba(204,34,47,0.45)',
+  },
   countryItemFlag: {
-    width: 44, height: 30, borderRadius: 6, overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    width: 54, height: 36, borderRadius: 8, overflow: 'hidden',
+    backgroundColor: '#1c1c28',
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
   },
   flagImg: { width: '100%', height: '100%' },
-  countryItemName: { flex: 1, color: 'rgba(255,255,255,0.7)', fontSize: 15, fontWeight: '600' },
-  countryItemNameActive: { color: '#CC222F', fontWeight: '800' },
+  countryItemName: { flex: 1, color: 'rgba(255,255,255,0.85)', fontSize: 17, fontWeight: '700' },
+  countryItemNameActive: { color: '#fff', fontWeight: '900' },
 
   // Tabs
   tabsScroll: { paddingHorizontal: 16, paddingBottom: 16, gap: 8 },

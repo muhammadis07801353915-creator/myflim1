@@ -289,59 +289,67 @@ export default function LiveTV() {
       {isCountryDrawerOpen && (
         <div className="fixed inset-0 z-50 flex" onClick={() => setIsCountryDrawerOpen(false)}>
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
           {/* Drawer */}
           <div
-            className="relative z-10 ml-auto w-full max-w-sm h-full bg-[#111118] border-l border-white/8 flex flex-col shadow-2xl"
+            className="relative z-10 ml-auto w-full max-w-md h-full bg-[#111118] border-l border-white/10 flex flex-col shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
               <div>
-                <h2 className="text-lg font-black">
+                <h2 className="text-xl font-black text-white tracking-tight">
                   {language === 'ku' ? 'وڵاتەکان' : language === 'ar' ? 'الدول' : 'Countries'}
                 </h2>
-                <p className="text-xs text-white/40 mt-0.5">
+                <p className="text-xs text-white/50 mt-1">
                   {language === 'ku' ? 'وڵاتێک هەلبژێرە بۆ فلتەرکردنی کەناڵ' : language === 'ar' ? 'اختر دولة لتصفية القنوات' : 'Select a country to filter channels'}
                 </p>
               </div>
-              <button onClick={() => setIsCountryDrawerOpen(false)} className="w-9 h-9 rounded-full bg-white/7 flex items-center justify-center hover:bg-white/12 transition">
-                <X size={18} />
+              <button onClick={() => setIsCountryDrawerOpen(false)} className="w-10 h-10 rounded-full bg-white/8 flex items-center justify-center hover:bg-white/15 transition text-white/70 hover:text-white">
+                <X size={20} />
               </button>
             </div>
-            <div className="overflow-y-auto flex-1 p-4">
+            <div className="overflow-y-auto flex-1 p-5 space-y-2">
               {/* All countries option */}
               <button
                 onClick={() => { setSelectedCountry(null); setIsCountryDrawerOpen(false); }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-3 transition font-bold ${
-                  !selectedCountry ? 'bg-[#CC222F]/15 text-[#CC222F]' : 'bg-white/5 text-white/70 hover:bg-white/8 hover:text-white'
+                className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl mb-4 transition text-left ${
+                  !selectedCountry
+                    ? 'bg-[#CC222F]/20 border border-[#CC222F]/50 text-[#CC222F] font-black'
+                    : 'bg-white/5 border border-white/5 text-white/80 hover:bg-white/10 hover:text-white font-bold'
                 }`}
               >
-                <Globe size={20} className="shrink-0" />
-                <span>{language === 'ku' ? 'هەموو وڵاتەکان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}</span>
+                <div className="w-14 h-9 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                  <Globe size={22} className="text-white/60" />
+                </div>
+                <span className="text-[17px] flex-1">{language === 'ku' ? 'هەموو وڵاتەکان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}</span>
+                {!selectedCountry && <CheckCircle2 size={20} className="text-[#CC222F] shrink-0" />}
               </button>
-              {/* Country grid */}
-              <div className="grid grid-cols-1 gap-1.5">
+
+              {/* Country items */}
+              <div className="grid grid-cols-1 gap-2.5">
                 {countries.map((c: any) => {
                   const isSelected = selectedCountry === c.name_en;
                   return (
                     <button
                       key={c.id}
                       onClick={() => { setSelectedCountry(c.name_en); setIsCountryDrawerOpen(false); }}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition ${
-                        isSelected ? 'bg-[#CC222F]/15 text-[#CC222F] font-bold' : 'bg-white/4 text-white/70 hover:bg-white/8 hover:text-white'
+                      className={`flex items-center gap-4 px-5 py-3.5 rounded-2xl transition border ${
+                        isSelected
+                          ? 'bg-[#CC222F]/20 border-[#CC222F]/50 text-white font-bold shadow-lg shadow-[#CC222F]/10'
+                          : 'bg-white/5 border-white/5 text-white/80 hover:bg-white/10 hover:border-white/10 hover:text-white'
                       }`}
                     >
-                      {c.flag_url ? (
-                        <img src={c.flag_url} alt={c.name_en} className="w-9 h-6 object-cover rounded shrink-0 border border-white/10" />
-                      ) : (
-                        <div className="w-9 h-6 bg-white/10 rounded shrink-0 flex items-center justify-center">
-                          <Globe size={12} className="text-white/40" />
-                        </div>
-                      )}
-                      <span className="text-[14px] font-semibold text-right flex-1" dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}>
+                      <div className="w-14 h-9.5 rounded-lg overflow-hidden bg-neutral-900 shrink-0 border border-white/15 flex items-center justify-center shadow-sm">
+                        {c.flag_url ? (
+                          <img src={c.flag_url} alt={c.name_en} className="w-full h-full object-cover" />
+                        ) : (
+                          <Globe size={18} className="text-white/40" />
+                        )}
+                      </div>
+                      <span className="text-[17px] font-bold text-right flex-1 tracking-tight" dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}>
                         {getCountryName(c)}
                       </span>
-                      {isSelected && <CheckCircle2 size={16} className="text-[#CC222F] shrink-0" />}
+                      {isSelected && <CheckCircle2 size={20} className="text-[#CC222F] shrink-0" />}
                     </button>
                   );
                 })}
