@@ -54,6 +54,47 @@ export default function SearchScreen({ navigation }: any) {
     { id: 'زنجیرەی کوردی دۆبلاژ', label: language === 'ku' ? 'کوردی دۆبلاژ' : language === 'ar' ? 'مدبلج كودي' : 'Kurdish Dubbed' },
   ];
 
+  const isAnimeItem = (m: any) => {
+    return (
+      m.type === 'Anime' ||
+      (m.genre && /animation|anime|cartoon|کارتۆن|ئەنیمەیشن/i.test(m.genre)) ||
+      (m.list_name && /کارتۆن|ئەنیمەیشن|ئەنیمی|anime|cartoon/i.test(m.list_name)) ||
+      (m.category && /کارتۆن|ئەنیمەیشن|anime|cartoon/i.test(m.category))
+    );
+  };
+
+  const matchesGenreOrList = (m: any, genreId: string) => {
+    if (genreId === 'All') return true;
+    const genreStr = (m.genre || '').toLowerCase();
+    const listStr = (m.list_name || '').toLowerCase();
+    const catStr = (m.category || '').toLowerCase();
+    const titleStr = (m.title || m.name || '').toLowerCase();
+
+    if (genreId === 'زنجیرەی کوردی دۆبلاژ' || genreId === 'کوردی دۆبلاژ') {
+      return (
+        listStr.includes('دۆبلاژ') || 
+        genreStr.includes('دۆبلاژ') || 
+        genreStr.includes('کوردی') || 
+        titleStr.includes('دۆبلاژ')
+      );
+    }
+
+    if (genreId === 'Action') return /action|ئەکشن/i.test(genreStr);
+    if (genreId === 'Comedy') return /comedy|کۆمیدی/i.test(genreStr);
+    if (genreId === 'Drama') return /drama|دراما/i.test(genreStr);
+    if (genreId === 'Horror') return /horror|ترسناک/i.test(genreStr);
+    if (genreId === 'Romance') return /romance|رۆمانسی/i.test(genreStr);
+    if (genreId === 'Sci-Fi') return /science|sci-fi|زانستی/i.test(genreStr);
+    if (genreId === 'Crime') return /crime|تاوان/i.test(genreStr);
+    if (genreId === 'Animation') return isAnimeItem(m);
+
+    return (
+      genreStr.includes(genreId.toLowerCase()) || 
+      listStr.includes(genreId.toLowerCase()) || 
+      catStr.includes(genreId.toLowerCase())
+    );
+  };
+
   useEffect(() => {
     if (!isUnlocked) {
       setResults([]);
@@ -67,15 +108,11 @@ export default function SearchScreen({ navigation }: any) {
         ...(liveTv || []).map(c => ({ ...c, type: 'LiveTV', title: c.name, rating: '8.5' }))
       ];
     } else if (activeType === 'Movie') {
-      pool = movies.filter(m => m.type === 'Movie');
+      pool = movies.filter(m => m.type === 'Movie' || !m.type);
     } else if (activeType === 'Series') {
-      pool = movies.filter(s => s.type === 'Series');
+      pool = movies.filter(s => s.type === 'Series' || s.list_name?.includes('زنجیرە'));
     } else if (activeType === 'Anime') {
-      pool = movies.filter(item => 
-        item.type === 'Anime' ||
-        (item.genre && /anime|animation|cartoon|کارتۆن|ئەنیمەیشن/i.test(item.genre)) ||
-        (item.list_name && /کارتۆن|ئەنیمەیشن|ئەنیمی|anime|cartoon/i.test(item.list_name))
-      );
+      pool = movies.filter(isAnimeItem);
     } else if (activeType === 'LiveTV') {
       pool = (liveTv || []).map(c => ({ ...c, type: 'LiveTV', title: c.name, rating: '8.5' }));
     }
@@ -100,12 +137,9 @@ export default function SearchScreen({ navigation }: any) {
       });
     }
 
-    // 2. Genre filter
+    // 2. Genre & List Filter
     if (activeGenre !== 'All') {
-      filtered = filtered.filter(item => {
-        const genreStr = (item.genre || item.category || item.list_name || '').toLowerCase();
-        return genreStr.includes(activeGenre.toLowerCase());
-      });
+      filtered = filtered.filter(item => matchesGenreOrList(item, activeGenre));
     }
 
     // 3. Sorting
