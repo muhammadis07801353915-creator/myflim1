@@ -273,8 +273,8 @@ export default function LiveTV() {
               <span>{language === 'ku' ? 'وڵات' : language === 'ar' ? 'الدولة' : 'Country'}</span>
             )}
           </button>
-          <h1 className="text-xl font-black tracking-tight">
-            {language === 'ku' ? 'تەلەڤیزیۆنی ڕاستەوخۆ' : language === 'ar' ? 'التلفزيون المباشر' : 'Live TV'}
+          <h1 className="text-xl font-black tracking-tight whitespace-nowrap">
+            {language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
           </h1>
         </div>
         <button

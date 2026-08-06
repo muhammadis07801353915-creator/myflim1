@@ -123,8 +123,8 @@ export default function LiveTVScreen({ navigation }: any) {
             )}
           </TouchableOpacity>
         </View>
-        <Text style={s.headerTitle}>
-          {language === 'ku' ? 'تەلەڤیزیۆنی ڕاستەوخۆ' : language === 'ar' ? 'التلفزيون المباشر' : 'Live TV'}
+        <Text style={s.headerTitle} numberOfLines={1}>
+          {language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
         </Text>
         <TouchableOpacity style={s.castBtn}>
           <Cast size={20} color="rgba(255,255,255,0.75)" />
@@ -339,14 +339,14 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingBottom: 12, paddingTop: 6,
   },
-  headerLeft: { flex: 1, alignItems: 'flex-start' },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: '900', letterSpacing: -0.5, flex: 1, textAlign: 'center' },
+  headerLeft: { alignItems: 'flex-start', minWidth: 90 },
+  headerTitle: { color: '#fff', fontSize: 22, fontWeight: '900', letterSpacing: -0.5, flex: 1, textAlign: 'center' },
   castBtn: {
     width: 38, height: 38, borderRadius: 19,
     backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center', justifyContent: 'center',
-    flex: 1, alignSelf: 'flex-end', maxWidth: 38,
+    alignSelf: 'center',
   },
 
   // Country button
