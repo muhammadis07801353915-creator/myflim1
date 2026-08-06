@@ -29,6 +29,7 @@ export default function SearchScreen({ navigation }: any) {
   const [query, setQuery] = useState('');
   const [activeType, setActiveType] = useState('All');
   const [activeGenre, setActiveGenre] = useState('All');
+  const [activeYear, setActiveYear] = useState('All');
   const [sortBy, setSortBy] = useState<'newest' | 'rating' | 'popular'>('newest');
   const [results, setResults] = useState<any[]>([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -52,6 +53,23 @@ export default function SearchScreen({ navigation }: any) {
     { id: 'Crime', label: language === 'ku' ? 'تاوان کاری' : language === 'ar' ? 'جريمة' : 'Crime' },
     { id: 'Animation', label: language === 'ku' ? 'ئەنیمەیشن' : language === 'ar' ? 'رسوم متحركة' : 'Animation' },
     { id: 'زنجیرەی کوردی دۆبلاژ', label: language === 'ku' ? 'کوردی دۆبلاژ' : language === 'ar' ? 'مدبلج كودي' : 'Kurdish Dubbed' },
+  ];
+
+  const yearsList = [
+    { id: 'All', label: language === 'ku' ? 'هەموو ساڵەکان' : language === 'ar' ? 'جميع السنوات' : 'All Years' },
+    { id: '2026', label: '2026' },
+    { id: '2025', label: '2025' },
+    { id: '2024', label: '2024' },
+    { id: '2023', label: '2023' },
+    { id: '2022', label: '2022' },
+    { id: '2021', label: '2021' },
+    { id: '2020', label: '2020' },
+    { id: '2019', label: '2019' },
+    { id: '2018', label: '2018' },
+    { id: '2015', label: '2015' },
+    { id: '2010', label: '2010' },
+    { id: '2000s', label: language === 'ku' ? 'ساڵانی 2000' : '2000s' },
+    { id: '1990s', label: language === 'ku' ? 'ساڵانی 1990' : '1990s' },
   ];
 
   const isAnimeItem = (m: any) => {
@@ -142,7 +160,18 @@ export default function SearchScreen({ navigation }: any) {
       filtered = filtered.filter(item => matchesGenreOrList(item, activeGenre));
     }
 
-    // 3. Sorting
+    // 3. Year Filter
+    if (activeYear !== 'All') {
+      filtered = filtered.filter(item => {
+        const itemYear = Number(item.year);
+        if (!itemYear) return false;
+        if (activeYear === '2000s') return itemYear >= 2000 && itemYear < 2010;
+        if (activeYear === '1990s') return itemYear >= 1990 && itemYear < 2000;
+        return String(item.year) === activeYear;
+      });
+    }
+
+    // 4. Sorting
     filtered.sort((a, b) => {
       if (sortBy === 'rating') {
         return (Number(b.rating) || 0) - (Number(a.rating) || 0);
@@ -154,7 +183,7 @@ export default function SearchScreen({ navigation }: any) {
     });
 
     setResults(filtered);
-  }, [query, activeType, activeGenre, sortBy, movies, series, anime, liveTv, isUnlocked]);
+  }, [query, activeType, activeGenre, activeYear, sortBy, movies, series, anime, liveTv, isUnlocked]);
 
   const handlePress = (item: any) => {
     navigation.navigate('Detail', { item });
@@ -210,7 +239,7 @@ export default function SearchScreen({ navigation }: any) {
       </View>
 
       {/* ── GENRE FILTER PILLS ────────────────────────────────────── */}
-      <View style={{ marginBottom: 12 }}>
+      <View style={{ marginBottom: 8 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
           {(isRTL ? [...genresList].reverse() : genresList).map((g) => (
             <TouchableOpacity
@@ -221,6 +250,24 @@ export default function SearchScreen({ navigation }: any) {
             >
               <Text style={[styles.genrePillText, activeGenre === g.id && styles.genrePillTextActive]}>
                 {g.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* ── YEAR FILTER PILLS ─────────────────────────────────────── */}
+      <View style={{ marginBottom: 12 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
+          {(isRTL ? [...yearsList].reverse() : yearsList).map((y) => (
+            <TouchableOpacity
+              key={y.id}
+              style={[styles.genrePill, activeYear === y.id && { backgroundColor: 'rgba(245, 158, 11, 0.2)', borderColor: 'rgba(245, 158, 11, 0.5)' }]}
+              onPress={() => setActiveYear(y.id)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.genrePillText, activeYear === y.id && { color: '#fbbf24', fontWeight: 'bold' }]}>
+                {y.label}
               </Text>
             </TouchableOpacity>
           ))}

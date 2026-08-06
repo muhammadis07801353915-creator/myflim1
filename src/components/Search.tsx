@@ -13,6 +13,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
   const [query, setQuery] = useState('');
   const [activeType, setActiveType] = useState('All');
   const [activeGenre, setActiveGenre] = useState('All');
+  const [activeYear, setActiveYear] = useState('All');
   const [sortBy, setSortBy] = useState<'newest' | 'rating' | 'popular'>('newest');
 
   const typeOptions = [
@@ -21,6 +22,23 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
     { id: 'Series', label: language === 'ku' ? 'زنجیرەکان' : language === 'ar' ? 'مسلسلات' : 'Series' },
     { id: 'Anime', label: language === 'ku' ? 'ئەنیمەیشن' : language === 'ar' ? 'أنيمي' : 'Anime' },
     { id: 'LiveTV', label: language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'Live TV' },
+  ];
+
+  const yearsList = [
+    { id: 'All', label: language === 'ku' ? 'هەموو ساڵەکان' : language === 'ar' ? 'جميع السنوات' : 'All Years' },
+    { id: '2026', label: '2026' },
+    { id: '2025', label: '2025' },
+    { id: '2024', label: '2024' },
+    { id: '2023', label: '2023' },
+    { id: '2022', label: '2022' },
+    { id: '2021', label: '2021' },
+    { id: '2020', label: '2020' },
+    { id: '2019', label: '2019' },
+    { id: '2018', label: '2018' },
+    { id: '2015', label: '2015' },
+    { id: '2010', label: '2010' },
+    { id: '2000s', label: language === 'ku' ? 'ساڵانی 2000' : '2000s' },
+    { id: '1990s', label: language === 'ku' ? 'ساڵانی 1990' : '1990s' },
   ];
 
   const genresList = [
@@ -117,7 +135,18 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
       filtered = filtered.filter(item => matchesGenreOrList(item, activeGenre));
     }
 
-    // 3. Sorting
+    // 3. Year Filter
+    if (activeYear !== 'All') {
+      filtered = filtered.filter(item => {
+        const itemYear = Number(item.year);
+        if (!itemYear) return false;
+        if (activeYear === '2000s') return itemYear >= 2000 && itemYear < 2010;
+        if (activeYear === '1990s') return itemYear >= 1990 && itemYear < 2000;
+        return String(item.year) === activeYear;
+      });
+    }
+
+    // 4. Sorting
     filtered.sort((a, b) => {
       if (sortBy === 'rating') {
         return (Number(b.rating) || 0) - (Number(a.rating) || 0);
@@ -129,7 +158,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
     });
 
     return filtered;
-  }, [query, activeType, activeGenre, sortBy, movies, channels]);
+  }, [query, activeType, activeGenre, activeYear, sortBy, movies, channels]);
 
   return (
     <div className="p-4 sm:p-6 pt-6 pb-28 max-w-7xl mx-auto font-sans" dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}>
@@ -155,12 +184,12 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
       </div>
 
       {/* ── CONTENT TYPE PILLS ── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2 scrollbar-hide">
         {typeOptions.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveType(t.id)}
-            className={`px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+            className={`px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
               activeType === t.id 
                 ? 'bg-[#CC222F] text-white shadow-lg shadow-red-600/25' 
                 : 'bg-white/7 border border-white/8 text-white/60 hover:text-white hover:bg-white/12'
@@ -172,7 +201,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
       </div>
 
       {/* ── GENRE PILLS ── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 scrollbar-hide">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-2 scrollbar-hide">
         {genresList.map(g => (
           <button
             key={g.id}
@@ -184,6 +213,23 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
             }`}
           >
             {g.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── YEAR PILLS ── */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 scrollbar-hide">
+        {yearsList.map(y => (
+          <button
+            key={y.id}
+            onClick={() => setActiveYear(y.id)}
+            className={`px-3.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${
+              activeYear === y.id 
+                ? 'bg-amber-500/20 border-amber-500/60 text-amber-400' 
+                : 'bg-white/4 border-white/6 text-white/40 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            {y.label}
           </button>
         ))}
       </div>
