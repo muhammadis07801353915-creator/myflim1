@@ -177,23 +177,23 @@ export default function HomeScreen({ navigation }: any) {
             colors={['transparent', 'rgba(10,10,15,0.6)', 'rgba(10,10,15,0.97)']}
             style={StyleSheet.absoluteFillObject}
           />
-          {/* Left gradient */}
+          {/* Left/Right gradient */}
           <LinearGradient
-            colors={['rgba(10,10,15,0.8)', 'rgba(10,10,15,0.3)', 'transparent']}
+            colors={isRTL ? ['transparent', 'rgba(10,10,15,0.3)', 'rgba(10,10,15,0.8)'] : ['rgba(10,10,15,0.8)', 'rgba(10,10,15,0.3)', 'transparent']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={StyleSheet.absoluteFillObject}
           />
 
           {/* Content */}
-          <View style={hero.content}>
+          <View style={[hero.content, isRTL && { alignItems: 'flex-end' }]}>
             {/* Title */}
-            <Text style={hero.title} numberOfLines={2}>
+            <Text style={[hero.title, isRTL && { textAlign: 'right' }]} numberOfLines={2}>
               {getLocalized(item, 'title', language)}
             </Text>
 
             {/* Badges row: Type · Rating · Year · Genre */}
-            <View style={hero.metaRow}>
+            <View style={[hero.metaRow, isRTL && { flexDirection: 'row-reverse' }]}>
               {item.type ? (
                 <View style={[hero.badge, hero.typeBadge]}>
                   <Text style={[hero.badgeText, { color: '#fff' }]}>
@@ -202,9 +202,9 @@ export default function HomeScreen({ navigation }: any) {
                 </View>
               ) : null}
               {item.rating ? (
-                <View style={[hero.badge, hero.ratingBadge]}>
+                <View style={[hero.badge, hero.ratingBadge, isRTL && { flexDirection: 'row-reverse' }]}>
                   <Star size={10} color="#FBBF24" fill="#FBBF24" />
-                  <Text style={[hero.badgeText, { color: '#FBBF24', marginLeft: 3 }]}>
+                  <Text style={[hero.badgeText, { color: '#FBBF24', marginLeft: isRTL ? 0 : 3, marginRight: isRTL ? 3 : 0 }]}>
                     {item.rating}
                   </Text>
                 </View>
@@ -223,7 +223,7 @@ export default function HomeScreen({ navigation }: any) {
 
             {/* Dots */}
             {featured.length > 1 ? (
-              <View style={hero.dotsRow}>
+              <View style={[hero.dotsRow, isRTL && { flexDirection: 'row-reverse' }]}>
                 {featured.map((_, i) => (
                   <TouchableOpacity
                     key={i}
@@ -250,7 +250,6 @@ export default function HomeScreen({ navigation }: any) {
     showFlame = false,
     showType = false
   ) => {
-    const isRTL = language === 'ku' || language === 'ar';
     return (
       <View style={styles.section} key={title}>
         <SectionHeader
@@ -292,23 +291,23 @@ export default function HomeScreen({ navigation }: any) {
   return (
     <View style={styles.root}>
 
-      {/* ── STICKY HEADER BAR ──────────────────────────────────── */}
-      <View style={[styles.headerBar, { paddingTop: insets.top + 6 }]}>
-        {/* Left: Logo + Brand */}
-        <View style={header.brand}>
+      {/* ── STICKY HEADER BAR (RTL Dynamic) ─────────────────────────── */}
+      <View style={[styles.headerBar, { paddingTop: insets.top + 6 }, isRTL && { flexDirection: 'row-reverse' }]}>
+        {/* Logo + Brand */}
+        <View style={[header.brand, isRTL && { flexDirection: 'row-reverse' }]}>
           <Image
             source={require('../../assets/app-logo-new.png')}
             style={header.logo}
             resizeMode="contain"
           />
-          <View style={header.brandText}>
+          <View style={[header.brandText, isRTL && { flexDirection: 'row-reverse' }]}>
             <Text style={header.brandBold}>Taban</Text>
             <Text style={[header.brandBold, { color: '#CC222F' }]}>Play</Text>
           </View>
         </View>
 
         {/* Right: Search + Bell */}
-        <View style={header.actions}>
+        <View style={[header.actions, isRTL && { flexDirection: 'row-reverse' }]}>
           <TouchableOpacity
             style={header.iconBtn}
             onPress={() => navigation.navigate('Search' as never)}
@@ -319,8 +318,8 @@ export default function HomeScreen({ navigation }: any) {
           <View>
             <TouchableOpacity style={header.iconBtn} activeOpacity={0.8}>
               <Bell size={18} color="rgba(255,255,255,0.85)" />
+              <View style={header.bellDot} />
             </TouchableOpacity>
-            <View style={header.notifDot} />
           </View>
         </View>
       </View>
