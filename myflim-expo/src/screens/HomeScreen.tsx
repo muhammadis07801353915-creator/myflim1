@@ -118,6 +118,7 @@ export default function HomeScreen({ navigation }: any) {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const t = translations[language];
+  const isRTL = language === 'ku' || language === 'ar';
 
   const featured = isUnlocked ? movies.filter((m) => m.is_featured) : [];
   const topContents = isUnlocked
