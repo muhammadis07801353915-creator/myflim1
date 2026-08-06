@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   Image,
   TouchableOpacity,
   ActivityIndicator,
@@ -22,7 +21,15 @@ const FEATURED_H = FEATURED_W * 0.68;
 
 export default function LiveTVScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { liveTv, channelCategories, loading, fetchInitialData, language, isUnlocked } = useAppStore();
+  const {
+    liveTv,
+    channelCategories,
+    banners,
+    loading,
+    fetchInitialData,
+    language,
+    isUnlocked,
+  } = useAppStore();
 
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -32,7 +39,7 @@ export default function LiveTVScreen({ navigation }: any) {
     }, [fetchInitialData])
   );
 
-  // ── Category tabs: All + real categories ──────────────────────────────────
+  // ── Category tabs ─────────────────────────────────────────────────────────
   const tabs = [
     { id: 'All', label: language === 'ku' ? 'هەموو' : language === 'ar' ? 'الكل' : 'All' },
     ...channelCategories.map((c) => ({ id: c.name, label: c.name })),
@@ -40,21 +47,37 @@ export default function LiveTVScreen({ navigation }: any) {
 
   // ── Filtered channels ─────────────────────────────────────────────────────
   const filteredChannels =
-    selectedCategory === 'All'
-      ? liveTv
-      : liveTv.filter((c) => c.category === selectedCategory);
+    selectedCategory === 'All' ? liveTv : liveTv.filter((c) => c.category === selectedCategory);
 
-  // ── Featured: first 6 channels ───────────────────────────────────────────
+  // ── Featured (top 6 of filtered) ─────────────────────────────────────────
   const featured = filteredChannels.slice(0, 6);
 
-  // ── Group remaining by category ───────────────────────────────────────────
-  const allChannelsList =
+  // ── Top & interspersed banners ────────────────────────────────────────────
+  const topBanners = (banners || []).filter((b: any) => b.type?.toLowerCase() === 'top');
+  const interspersedBanners = (banners || []).filter(
+    (b: any) => b.type?.toLowerCase() !== 'top'
+  );
+
+  // ── Categories to render (for grouped list) ───────────────────────────────
+  const categoriesToRender =
     selectedCategory === 'All'
-      ? liveTv
-      : filteredChannels;
+      ? channelCategories
+      : channelCategories.filter((c) => c.name === selectedCategory);
+
+  // ── Channels by category map ──────────────────────────────────────────────
+  const channelsByCategory = liveTv.reduce((acc: any, ch: any) => {
+    if (!acc[ch.category]) acc[ch.category] = [];
+    acc[ch.category].push(ch);
+    return acc;
+  }, {} as Record<string, any[]>);
 
   const handlePress = (item: any) =>
     navigation.navigate('Detail', { item: { ...item, type: 'LiveTV' } });
+
+  const handleViewAll = (category: string) => {
+    const data = channelsByCategory[category] || [];
+    navigation.navigate('Category', { title: category, data, type: 'LiveTV' });
+  };
 
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading && liveTv.length === 0) {
@@ -102,8 +125,22 @@ export default function LiveTVScreen({ navigation }: any) {
 
         {isUnlocked ? (
           <>
-            {/* ── FEATURED CHANNELS ─────────────────────────────────────── */}
-            {featured.length > 0 ? (
+            {/* ── TOP BANNER ─────────────────────────────────────────── */}
+            {topBanners.length > 0 && topBanners.map((banner: any) => (
+              <TouchableOpacity
+                key={banner.id}
+                style={s.bannerWrap}
+                activeOpacity={0.95}
+                onPress={() => {
+                  if (banner.link) Linking.openURL(banner.link).catch(() => {});
+                }}
+              >
+                <Image source={{ uri: banner.image }} style={s.bannerImg} resizeMode="cover" />
+              </TouchableOpacity>
+            ))}
+
+            {/* ── FEATURED CHANNELS ─────────────────────────────────── */}
+            {featured.length > 0 && (
               <View style={s.section}>
                 <View style={s.sectionRow}>
                   <Text style={s.sectionTitle}>
@@ -116,7 +153,7 @@ export default function LiveTVScreen({ navigation }: any) {
                   </TouchableOpacity>
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.featuredScroll}>
-                  {featured.map((ch) => (
+                  {featured.map((ch: any) => (
                     <TouchableOpacity
                       key={ch.id}
                       style={s.featCard}
@@ -129,54 +166,90 @@ export default function LiveTVScreen({ navigation }: any) {
                         ) : (
                           <Text style={s.featName} numberOfLines={2}>{ch.name}</Text>
                         )}
-                        {/* LIVE badge */}
                         <View style={s.liveBadge}>
                           <View style={s.liveDot} />
                           <Text style={s.liveText}>LIVE</Text>
                         </View>
                       </View>
                       <Text numberOfLines={1} style={s.featTitle}>{ch.name}</Text>
+                      <Text style={s.featCat}>{ch.category}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>
-            ) : null}
+            )}
 
-            {/* ── ALL CHANNELS LIST ─────────────────────────────────────── */}
-            <View style={s.section}>
-              <Text style={s.sectionTitle}>
-                {language === 'ku' ? 'هەموو چەناڵەکان' : language === 'ar' ? 'جميع القنوات' : 'All Channels'}
-              </Text>
-              {allChannelsList.map((ch) => (
-                <TouchableOpacity
-                  key={ch.id}
-                  style={s.listRow}
-                  onPress={() => handlePress(ch)}
-                  activeOpacity={0.85}
-                >
-                  {/* Logo */}
-                <View style={s.listLogoWrap}>
-                  {ch.image ? (
-                    <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
-                  ) : (
-                    <Text style={s.listLogoFallback} numberOfLines={1}>{ch.name[0]}</Text>
-                  )}
-                  <View style={s.listLiveDot} />
-                </View>
+            {/* ── ALL CHANNELS — grouped by category ─────────────────── */}
+            {categoriesToRender.map((cat: any) => {
+              const catChannels = channelsByCategory[cat.name] || [];
+              if (catChannels.length === 0) return null;
 
-                {/* Info */}
-                <View style={s.listInfo}>
-                  <Text numberOfLines={1} style={s.listName}>{ch.name}</Text>
-                  <Text style={s.listCat}>{ch.category}</Text>
-                </View>
+              // find interspersed banners after this category
+              const catBanners = interspersedBanners.filter(
+                (b: any) => b.placement_after === cat.name
+              );
 
-                {/* Play button */}
-                <View style={s.playBtn}>
-                  <Play size={16} color="#fff" fill="#fff" />
-                </View>
-                </TouchableOpacity>
-              ))}
-            </View>
+              return (
+                <React.Fragment key={cat.id || cat.name}>
+                  <View style={s.section}>
+                    <View style={s.sectionRow}>
+                      <Text style={s.sectionTitle}>{cat.name}</Text>
+                      {catChannels.length > 6 && (
+                        <TouchableOpacity onPress={() => handleViewAll(cat.name)}>
+                          <Text style={s.seeAll}>
+                            {language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    {catChannels.slice(0, 6).map((ch: any) => (
+                      <TouchableOpacity
+                        key={ch.id}
+                        style={s.listRow}
+                        onPress={() => handlePress(ch)}
+                        activeOpacity={0.85}
+                      >
+                        {/* Logo */}
+                        <View style={s.listLogoWrap}>
+                          {ch.image ? (
+                            <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
+                          ) : (
+                            <Text style={s.listLogoFallback} numberOfLines={1}>{ch.name[0]}</Text>
+                          )}
+                          <View style={s.listLiveDot} />
+                        </View>
+
+                        {/* Info */}
+                        <View style={s.listInfo}>
+                          <Text numberOfLines={1} style={s.listName}>{ch.name}</Text>
+                          <Text style={s.listCat}>{ch.category}</Text>
+                        </View>
+
+                        {/* Play button */}
+                        <View style={s.playBtn}>
+                          <Play size={16} color="#fff" fill="#fff" />
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {/* Interspersed banners after this category */}
+                  {catBanners.map((banner: any) => (
+                    <TouchableOpacity
+                      key={banner.id}
+                      style={s.bannerWrap}
+                      activeOpacity={0.95}
+                      onPress={() => {
+                        if (banner.link) Linking.openURL(banner.link).catch(() => {});
+                      }}
+                    >
+                      <Image source={{ uri: banner.image }} style={s.bannerImg} resizeMode="cover" />
+                    </TouchableOpacity>
+                  ))}
+                </React.Fragment>
+              );
+            })}
           </>
         ) : (
           <View style={s.locked}>
@@ -223,9 +296,23 @@ const s = StyleSheet.create({
   tabLabel: { color: 'rgba(255,255,255,0.55)', fontSize: 13, fontWeight: '700' },
   tabLabelActive: { color: '#fff' },
 
+  // Banner
+  bannerWrap: {
+    marginHorizontal: 16,
+    marginBottom: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
+    height: 160,
+    backgroundColor: '#1a1a22',
+  },
+  bannerImg: { width: '100%', height: '100%' },
+
   // Sections
-  section: { marginBottom: 28 },
-  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginBottom: 14 },
+  section: { marginBottom: 24 },
+  sectionRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 16, marginBottom: 14,
+  },
   sectionTitle: { color: '#fff', fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
   seeAll: { color: '#CC222F', fontSize: 13, fontWeight: '700' },
 
@@ -242,7 +329,8 @@ const s = StyleSheet.create({
   },
   featImg: { width: '70%', height: '70%' },
   featName: { color: '#fff', fontSize: 12, fontWeight: '700', textAlign: 'center', paddingHorizontal: 8 },
-  featTitle: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  featTitle: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  featCat: { color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 },
 
   // LIVE badge
   liveBadge: {
