@@ -25,6 +25,18 @@ export default function LiveTV() {
   const [viewAllCategory, setViewAllCategory] = useState<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Lock body scroll when country drawer is open on web/mobile browser
+  useEffect(() => {
+    if (isCountryDrawerOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isCountryDrawerOpen]);
   
   // Player State
   const [playingChannel, setPlayingChannel] = useState<any | null>(null);
@@ -259,7 +271,15 @@ export default function LiveTV() {
               <>
                 {(() => {
                   const c = countries.find((x: any) => x.name_en === selectedCountry || x.name_ku === selectedCountry);
-                  return c?.flag_url ? <img src={c.flag_url} alt="" className="w-5 h-3.5 object-cover rounded-sm" /> : null;
+                  return c?.flag_url ? (
+                    <img 
+                      src={c.flag_url} 
+                      alt="" 
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { (e.currentTarget as HTMLElement).style.display = 'none'; }}
+                      className="w-5 h-3.5 object-cover rounded-sm" 
+                    />
+                  ) : null;
                 })()}
                 <span className="max-w-[80px] truncate">
                   {(() => {
@@ -308,7 +328,7 @@ export default function LiveTV() {
                 <X size={20} />
               </button>
             </div>
-            <div className="overflow-y-auto flex-1 p-5 space-y-2">
+            <div className="overflow-y-auto flex-1 p-5 space-y-2 overscroll-contain touch-pan-y" style={{ WebkitOverflowScrolling: 'touch' }}>
               {/* All countries option */}
               <button
                 onClick={() => { setSelectedCountry(null); setIsCountryDrawerOpen(false); }}
@@ -339,9 +359,17 @@ export default function LiveTV() {
                           : 'bg-white/5 border-white/5 text-white/80 hover:bg-white/10 hover:border-white/10 hover:text-white'
                       }`}
                     >
-                      <div className="w-14 h-9.5 rounded-lg overflow-hidden bg-neutral-900 shrink-0 border border-white/15 flex items-center justify-center shadow-sm">
+                      <div className="w-14 h-9.5 rounded-lg overflow-hidden bg-neutral-900 shrink-0 border border-white/15 flex items-center justify-center shadow-sm relative">
                         {c.flag_url ? (
-                          <img src={c.flag_url} alt={c.name_en} className="w-full h-full object-cover" />
+                          <img 
+                            src={c.flag_url} 
+                            alt="" 
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              (e.currentTarget as HTMLElement).style.display = 'none';
+                            }}
+                            className="w-full h-full object-cover" 
+                          />
                         ) : (
                           <Globe size={18} className="text-white/40" />
                         )}
