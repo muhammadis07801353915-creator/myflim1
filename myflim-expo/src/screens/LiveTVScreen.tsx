@@ -275,31 +275,34 @@ export default function LiveTVScreen({ navigation }: any) {
                 </View>
 
                 <View style={[s.gridContainer, isRTL && { flexDirection: 'row-reverse' }]}>
-                  {featured.slice(0, 6).map((ch: any) => (
-                    <TouchableOpacity 
-                      key={ch.id} 
-                      style={[s.gridCard, { width: (width - 32 - 24) / 3, height: (width - 32 - 24) / 3 }]} 
-                      onPress={() => handlePress(ch)} 
-                      activeOpacity={0.85}
-                    >
-                      {ch.image ? (
-                        <Image source={{ uri: ch.image }} style={s.gridImg} resizeMode="cover" />
-                      ) : (
-                        <Text style={s.featName} numberOfLines={2}>{ch.name}</Text>
-                      )}
+                  {featured.slice(0, 6).map((ch: any) => {
+                    const cardW = Math.floor((width - 32 - 20) / 3);
+                    return (
+                      <TouchableOpacity 
+                        key={ch.id} 
+                        style={[s.gridCard, { width: cardW, height: cardW }]} 
+                        onPress={() => handlePress(ch)} 
+                        activeOpacity={0.85}
+                      >
+                        {ch.image ? (
+                          <Image source={{ uri: ch.image }} style={s.gridImg} resizeMode="contain" />
+                        ) : (
+                          <Text style={s.featName} numberOfLines={2}>{ch.name}</Text>
+                        )}
 
-                      {/* LIVE Badge */}
-                      <View style={s.liveBadge}>
-                        <View style={s.liveDot} />
-                        <Text style={s.liveText}>LIVE</Text>
-                      </View>
+                        {/* LIVE Badge */}
+                        <View style={s.liveBadge}>
+                          <View style={s.liveDot} />
+                          <Text style={s.liveText}>LIVE</Text>
+                        </View>
 
-                      {/* Title Overlay at Bottom */}
-                      <View style={s.gridTitleOverlay}>
-                        <Text numberOfLines={1} style={s.gridTitleText}>{ch.name}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
+                        {/* Title Overlay at Bottom */}
+                        <View style={s.gridTitleOverlay}>
+                          <Text numberOfLines={1} style={s.gridTitleText}>{ch.name}</Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               </View>
             )}
@@ -485,7 +488,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: 16,
-    gap: 12,
+    gap: 10,
   },
   gridCard: {
     backgroundColor: '#161722',
@@ -498,8 +501,8 @@ const s = StyleSheet.create({
     justifyContent: 'center',
   },
   gridImg: {
-    width: '100%',
-    height: '100%',
+    width: '82%',
+    height: '82%',
   },
   gridTitleOverlay: {
     position: 'absolute',
