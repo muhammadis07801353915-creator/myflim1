@@ -11,11 +11,12 @@ import {
   Linking,
   Modal,
   FlatList,
+  TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAppStore } from '../store/useAppStore';
-import { Play, Cast, Menu, X, Globe, CheckCircle2 } from 'lucide-react-native';
+import { Play, Cast, Menu, X, Globe, CheckCircle2, Search } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 const FEATURED_W = width * 0.48;
@@ -28,6 +29,7 @@ export default function LiveTVScreen({ navigation }: any) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
+  const [countrySearchQuery, setCountrySearchQuery] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -75,6 +77,15 @@ export default function LiveTVScreen({ navigation }: any) {
     const data = channelsByCategory[category] || [];
     navigation.navigate('Category', { title: category, data, type: 'LiveTV' });
   };
+
+  // ── Filtered countries list by search ────────────────────────────────────
+  const filteredCountries = countrySearchQuery.trim()
+    ? countries.filter((c: any) =>
+        (c.name_ku && c.name_ku.toLowerCase().includes(countrySearchQuery.toLowerCase())) ||
+        (c.name_ar && c.name_ar.toLowerCase().includes(countrySearchQuery.toLowerCase())) ||
+        (c.name_en && c.name_en.toLowerCase().includes(countrySearchQuery.toLowerCase()))
+      )
+    : countries;
 
   // ── Country name helper ───────────────────────────────────────────────────
   const getCountryName = (c: any) => {
@@ -146,31 +157,50 @@ export default function LiveTVScreen({ navigation }: any) {
                   {language === 'ku' ? 'وڵاتێک هەلبژێرە' : language === 'ar' ? 'اختر دولة' : 'Select a country to filter'}
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setIsCountryModalOpen(false)} style={s.modalClose}>
+              <TouchableOpacity onPress={() => { setIsCountryModalOpen(false); setCountrySearchQuery(''); }} style={s.modalClose}>
                 <X size={20} color="rgba(255,255,255,0.7)" />
               </TouchableOpacity>
             </View>
 
-            {/* All Countries option */}
-            <TouchableOpacity
-              style={[s.countryItem, !selectedCountry && s.countryItemActive]}
-              onPress={() => { setSelectedCountry(null); setIsCountryModalOpen(false); }}
-              activeOpacity={0.8}
-            >
-              <View style={s.countryItemFlag}>
-                <Globe size={22} color="rgba(255,255,255,0.6)" />
-              </View>
-              <Text style={[s.countryItemName, !selectedCountry && s.countryItemNameActive]}>
-                {language === 'ku' ? 'هەموو وڵاتەکان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}
-              </Text>
-              {!selectedCountry && <CheckCircle2 size={20} color="#CC222F" />}
-            </TouchableOpacity>
+            {/* Country Search Bar */}
+            <View style={s.modalSearchWrap}>
+              <Search size={16} color="rgba(255,255,255,0.4)" />
+              <TextInput
+                style={s.modalSearchInput}
+                placeholder={language === 'ku' ? 'گەڕان بۆ وڵات...' : language === 'ar' ? 'البحث عن دولة...' : 'Search country...'}
+                placeholderTextColor="rgba(255,255,255,0.35)"
+                value={countrySearchQuery}
+                onChangeText={setCountrySearchQuery}
+              />
+              {countrySearchQuery ? (
+                <TouchableOpacity onPress={() => setCountrySearchQuery('')}>
+                  <X size={16} color="rgba(255,255,255,0.4)" />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+
+            {/* All Countries option (when not searching) */}
+            {!countrySearchQuery.trim() && (
+              <TouchableOpacity
+                style={[s.countryItem, !selectedCountry && s.countryItemActive]}
+                onPress={() => { setSelectedCountry(null); setIsCountryModalOpen(false); }}
+                activeOpacity={0.8}
+              >
+                <View style={s.countryItemFlag}>
+                  <Globe size={22} color="rgba(255,255,255,0.6)" />
+                </View>
+                <Text style={[s.countryItemName, !selectedCountry && s.countryItemNameActive]}>
+                  {language === 'ku' ? 'هەموو وڵاتەکان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}
+                </Text>
+                {!selectedCountry && <CheckCircle2 size={20} color="#CC222F" />}
+              </TouchableOpacity>
+            )}
 
             <View style={s.modalDivider} />
 
             {/* Country list */}
             <FlatList
-              data={countries}
+              data={filteredCountries}
               keyExtractor={(item: any) => String(item.id)}
               contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: 4 }}
               renderItem={({ item }: any) => {
@@ -178,7 +208,7 @@ export default function LiveTVScreen({ navigation }: any) {
                 return (
                   <TouchableOpacity
                     style={[s.countryItem, isSelected && s.countryItemActive]}
-                    onPress={() => { setSelectedCountry(item.name_en); setIsCountryModalOpen(false); }}
+                    onPress={() => { setSelectedCountry(item.name_en); setIsCountryModalOpen(false); setCountrySearchQuery(''); }}
                     activeOpacity={0.8}
                   >
                     <View style={s.countryItemFlag}>
@@ -384,6 +414,14 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   modalDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginVertical: 4 },
+  modalSearchWrap: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    marginHorizontal: 12, marginTop: 10, marginBottom: 8,
+    paddingHorizontal: 12, height: 42, borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+  },
+  modalSearchInput: { flex: 1, color: '#fff', fontSize: 14, paddingVertical: 0 },
 
   // Country list item
   countryItem: {

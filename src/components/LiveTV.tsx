@@ -21,6 +21,7 @@ export default function LiveTV() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [isCountryDrawerOpen, setIsCountryDrawerOpen] = useState(false);
+  const [countrySearchQuery, setCountrySearchQuery] = useState('');
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [viewAllCategory, setViewAllCategory] = useState<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -79,12 +80,21 @@ export default function LiveTV() {
   const topBanners = banners.filter(b => b.type === 'top');
   const interspersedBanners = banners.filter(b => b.type === 'interspersed');
 
-  // Helper: localized country name
+  // Localized country name helper
   const getCountryName = (c: any) => {
     if (language === 'ku') return c.name_ku || c.name_en;
     if (language === 'ar') return c.name_ar || c.name_en;
     return c.name_en;
   };
+
+  // Filtered countries based on search query
+  const filteredCountries = countrySearchQuery.trim()
+    ? countries.filter((c: any) =>
+        (c.name_ku && c.name_ku.toLowerCase().includes(countrySearchQuery.toLowerCase())) ||
+        (c.name_ar && c.name_ar.toLowerCase().includes(countrySearchQuery.toLowerCase())) ||
+        (c.name_en && c.name_en.toLowerCase().includes(countrySearchQuery.toLowerCase()))
+      )
+    : countries;
 
   useEffect(() => {
     if (topBanners.length <= 1) return;
@@ -330,11 +340,30 @@ export default function LiveTV() {
                 </p>
               </div>
               <button 
-                onClick={() => setIsCountryDrawerOpen(false)} 
+                onClick={() => { setIsCountryDrawerOpen(false); setCountrySearchQuery(''); }} 
                 className="w-10 h-10 rounded-full bg-white/8 flex items-center justify-center hover:bg-white/15 transition text-white/70 hover:text-white"
               >
                 <X size={20} />
               </button>
+            </div>
+
+            {/* Country Search Bar */}
+            <div className="px-5 pt-3 pb-1 shrink-0">
+              <div className="relative">
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
+                <input
+                  type="text"
+                  placeholder={language === 'ku' ? 'گەڕان بۆ وڵات...' : language === 'ar' ? 'البحث عن دولة...' : 'Search country...'}
+                  value={countrySearchQuery}
+                  onChange={(e) => setCountrySearchQuery(e.target.value)}
+                  className="w-full bg-white/7 border border-white/10 rounded-xl pl-10 pr-9 py-2.5 text-sm text-white placeholder-white/35 outline-none focus:border-[#CC222F]/50 transition"
+                />
+                {countrySearchQuery ? (
+                  <button onClick={() => setCountrySearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+                    <X size={14} />
+                  </button>
+                ) : null}
+              </div>
             </div>
 
             {/* Scrollable list */}
@@ -342,30 +371,32 @@ export default function LiveTV() {
               className="overflow-y-auto flex-1 p-4 sm:p-5 space-y-2 overscroll-contain touch-pan-y" 
               style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}
             >
-              {/* All countries option */}
-              <button
-                onClick={() => { setSelectedCountry(null); setIsCountryDrawerOpen(false); }}
-                className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl mb-3 transition text-left ${
-                  !selectedCountry
-                    ? 'bg-[#CC222F]/20 border border-[#CC222F]/50 text-[#CC222F] font-black'
-                    : 'bg-white/5 border border-white/5 text-white/80 hover:bg-white/10 hover:text-white font-bold'
-                }`}
-              >
-                <div className="w-14 h-9 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
-                  <Globe size={22} className="text-white/60" />
-                </div>
-                <span className="text-[17px] flex-1">{language === 'ku' ? 'هەموو وڵاتەکان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}</span>
-                {!selectedCountry && <CheckCircle2 size={20} className="text-[#CC222F] shrink-0" />}
-              </button>
+              {/* All countries option (when not searching) */}
+              {!countrySearchQuery.trim() && (
+                <button
+                  onClick={() => { setSelectedCountry(null); setIsCountryDrawerOpen(false); }}
+                  className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl mb-3 transition text-left ${
+                    !selectedCountry
+                      ? 'bg-[#CC222F]/20 border border-[#CC222F]/50 text-[#CC222F] font-black'
+                      : 'bg-white/5 border border-white/5 text-white/80 hover:bg-white/10 hover:text-white font-bold'
+                  }`}
+                >
+                  <div className="w-14 h-9 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+                    <Globe size={22} className="text-white/60" />
+                  </div>
+                  <span className="text-[17px] flex-1">{language === 'ku' ? 'هەموو وڵاتەکان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}</span>
+                  {!selectedCountry && <CheckCircle2 size={20} className="text-[#CC222F] shrink-0" />}
+                </button>
+              )}
 
               {/* Country items */}
               <div className="grid grid-cols-1 gap-2.5 pb-8">
-                {countries.map((c: any) => {
+                {filteredCountries.map((c: any) => {
                   const isSelected = selectedCountry === c.name_en;
                   return (
                     <button
                       key={c.id}
-                      onClick={() => { setSelectedCountry(c.name_en); setIsCountryDrawerOpen(false); }}
+                      onClick={() => { setSelectedCountry(c.name_en); setIsCountryDrawerOpen(false); setCountrySearchQuery(''); }}
                       className={`flex items-center gap-4 px-5 py-3.5 rounded-2xl transition border ${
                         isSelected
                           ? 'bg-[#CC222F]/20 border-[#CC222F]/50 text-white font-bold shadow-lg shadow-[#CC222F]/10'
@@ -394,6 +425,11 @@ export default function LiveTV() {
                     </button>
                   );
                 })}
+                {filteredCountries.length === 0 && (
+                  <div className="text-center py-10 text-white/40 text-sm">
+                    {language === 'ku' ? 'هیچ وڵاتێک نەدۆزرایەوە' : language === 'ar' ? 'لم يتم العثور على دولة' : 'No countries found'}
+                  </div>
+                )}
               </div>
             </div>
           </div>
