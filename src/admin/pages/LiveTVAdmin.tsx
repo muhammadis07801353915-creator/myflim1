@@ -7,6 +7,7 @@ import ImageUpload from '../../components/ImageUpload';
 export default function LiveTVAdmin() {
   const [channels, setChannels] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [countries, setCountries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'list' | 'form'>('list');
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -14,13 +15,19 @@ export default function LiveTVAdmin() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   
   const [formData, setFormData] = useState({
-    name: '', category: '', status: 'Active', stream_url: '', image: '', is_pro: false, profile_link: ''
+    name: '', category: '', status: 'Active', stream_url: '', image: '', is_pro: false, profile_link: '', country: ''
   });
 
   useEffect(() => {
     fetchChannels();
     fetchCategories();
+    fetchCountries();
   }, []);
+
+  const fetchCountries = async () => {
+    const { data } = await supabase.from('channel_countries').select('*').order('order_index', { ascending: true });
+    if (data) setCountries(data);
+  };
 
   const fetchCategories = async () => {
     const { data } = await supabase.from('channel_categories').select('*').order('order_index', { ascending: true });
@@ -57,7 +64,8 @@ export default function LiveTVAdmin() {
       stream_url: '', 
       image: '',
       is_pro: false,
-      profile_link: ''
+      profile_link: '',
+      country: ''
     });
     setEditingId(null);
     setErrorMsg(null);
@@ -85,7 +93,8 @@ export default function LiveTVAdmin() {
       stream_url: finalStreamUrl,
       image: item.image || '',
       is_pro: item.is_pro || false,
-      profile_link: profileLink
+      profile_link: profileLink,
+      country: item.country || ''
     });
     setEditingId(item.id);
     setErrorMsg(null);
@@ -129,7 +138,8 @@ export default function LiveTVAdmin() {
         ? JSON.stringify({ url: formData.stream_url, profile_link: formData.profile_link }) 
         : formData.stream_url,
       image: formData.image,
-      is_pro: formData.is_pro
+      is_pro: formData.is_pro,
+      country: formData.country || null
     };
 
     if (!editingId) {
@@ -201,6 +211,30 @@ export default function LiveTVAdmin() {
                   </>
                 )}
               </select>
+            </div>
+          </div>
+
+          {/* Country field */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-neutral-300">Country (Optional)</label>
+              <select value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition">
+                <option value="">— No Country —</option>
+                {countries.map(c => (
+                  <option key={c.id} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              {formData.country && (() => {
+                const found = countries.find(c => c.name === formData.country);
+                return found?.flag_url ? (
+                  <div className="flex items-center gap-2 mt-1">
+                    <img src={found.flag_url} alt={found.name} className="w-8 h-5 object-cover rounded" />
+                    <span className="text-sm text-neutral-400">{found.name}</span>
+                  </div>
+                ) : null;
+              })()}
             </div>
           </div>
 

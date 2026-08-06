@@ -17,7 +17,8 @@ import {
   BarChart,
   WifiOff,
   MessageSquare,
-  AlertTriangle
+  AlertTriangle,
+  Globe
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/src/lib/supabase';
@@ -113,6 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Movie Lists', path: '/portal-control-center/movie-lists', icon: <ListIcon size={20} /> },
     { name: 'Live TV Categories', path: '/portal-control-center/livetv-categories', icon: <ListIcon size={20} /> },
     { name: 'Live TV', path: '/portal-control-center/livetv', icon: <Tv size={20} /> },
+    { name: 'Countries', path: '/portal-control-center/countries', icon: <Globe size={20} /> },
     { name: 'Banners & Ads', path: '/portal-control-center/banners', icon: <ImageIcon size={20} /> },
     { name: 'Settings', path: '/portal-control-center/settings', icon: <Settings size={20} /> },
   ];

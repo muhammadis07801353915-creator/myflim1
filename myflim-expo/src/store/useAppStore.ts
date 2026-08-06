@@ -9,6 +9,7 @@ interface AppState {
   categories: any[];
   liveTv: any[];
   channelCategories: any[];
+  countries: any[];
   banners: any[];
   watchlist: any[];
   user: {
@@ -46,6 +47,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   categories: [],
   liveTv: [],
   channelCategories: [],
+  countries: [],
   banners: [],
   watchlist: [],
   user: DEFAULT_USER,
@@ -120,13 +122,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         { data: movieLists, error: listsError },
         { data: channels, error: channelsError },
         { data: channelCats, error: catError },
-        { data: bannersData, error: bannersError }
+        { data: bannersData, error: bannersError },
+        { data: countriesData, error: countriesError }
       ] = await Promise.all([
         fetchAllRows('movies', 'id', false),
         supabase.from('movie_lists').select('*').order('order_index', { ascending: true }),
         supabase.from('channels').select('*').order('order_index', { ascending: true }),
         supabase.from('channel_categories').select('*').order('order_index', { ascending: true }),
-        supabase.from('banners').select('*').order('order_index', { ascending: true })
+        supabase.from('banners').select('*').order('order_index', { ascending: true }),
+        supabase.from('channel_countries').select('*').eq('is_active', true).order('order_index', { ascending: true })
       ]);
 
       if (listsError) throw listsError;
@@ -183,6 +187,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         liveTv: channels || [],
         channelCategories: channelCats || [],
         banners: bannersData || [],
+        countries: countriesData || [],
         watchlist: storedWatchlist,
         user: storedUser,
         theme: storedTheme,

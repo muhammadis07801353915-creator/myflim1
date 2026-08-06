@@ -9,6 +9,7 @@ interface DataContextType {
   channels: any[];
   categories: any[];
   banners: any[];
+  countries: any[];
   loading: boolean;
   refreshData: () => Promise<void>;
 }
@@ -21,6 +22,7 @@ interface InitialData {
   channels: any[];
   categories: any[];
   banners: any[];
+  countries: any[];
 }
 
 export function DataProvider({ children, initialData }: { children: React.ReactNode; initialData?: InitialData }) {
@@ -29,6 +31,7 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
   const [channels, setChannels] = useState<any[]>(initialData?.channels || []);
   const [categories, setCategories] = useState<any[]>(initialData?.categories || []);
   const [banners, setBanners] = useState<any[]>(initialData?.banners || []);
+  const [countries, setCountries] = useState<any[]>(initialData?.countries || []);
   const [loading, setLoading] = useState(!initialData);
 
   const fetchData = useCallback(async (isSilent = false) => {
@@ -39,11 +42,12 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
       
       const moviesData = await fetchAllRows(supabase, 'movies', 'created_at');
       
-      const [listsRes, channelsRes, categoriesRes, bannersRes] = await Promise.all([
+      const [listsRes, channelsRes, categoriesRes, bannersRes, countriesRes] = await Promise.all([
         supabase.from('movie_lists').select('*').order('order_index', { ascending: true }),
         supabase.from('channels').select('*').order('order_index', { ascending: true }),
         supabase.from('channel_categories').select('*').order('order_index', { ascending: true }),
-        supabase.from('banners').select('*').order('order_index', { ascending: true })
+        supabase.from('banners').select('*').order('order_index', { ascending: true }),
+        supabase.from('channel_countries').select('*').eq('is_active', true).order('order_index', { ascending: true })
       ]);
 
       setMovies(moviesData);
@@ -51,6 +55,7 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
       if (channelsRes.data) setChannels(channelsRes.data);
       if (categoriesRes.data) setCategories(categoriesRes.data);
       if (bannersRes.data) setBanners(bannersRes.data);
+      if (countriesRes.data) setCountries(countriesRes.data);
     } catch (error) {
       console.error('Error fetching global data:', error);
     } finally {
@@ -96,7 +101,7 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
   }, [initialData, fetchData]);
 
   return (
-    <DataContext.Provider value={{ movies, movieLists, channels, categories, banners, loading, refreshData: fetchData }}>
+    <DataContext.Provider value={{ movies, movieLists, channels, categories, banners, countries, loading, refreshData: fetchData }}>
       {children}
     </DataContext.Provider>
   );
