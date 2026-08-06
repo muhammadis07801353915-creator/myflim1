@@ -262,15 +262,7 @@ export default function LiveTVScreen({ navigation }: any) {
 
         {isUnlocked ? (
           <>
-            {/* ── TOP BANNER ─────────────────────────────────────────── */}
-            {topBanners.length > 0 && topBanners.map((banner: any) => (
-              <TouchableOpacity key={banner.id} style={s.bannerWrap} activeOpacity={0.95}
-                onPress={() => { if (banner.link) Linking.openURL(banner.link).catch(() => {}); }}>
-                <Image source={{ uri: banner.image }} style={s.bannerImg} resizeMode="cover" />
-              </TouchableOpacity>
-            ))}
-
-            {/* ── FEATURED CHANNELS ─────────────────────────────────── */}
+            {/* ── FEATURED / MOST WATCHED CHANNELS (3 Column x 2 Row Grid) ─────────── */}
             {featured.length > 0 && (
               <View style={s.section}>
                 <View style={[s.sectionRow, isRTL && { flexDirection: 'row-reverse' }]}>
@@ -281,25 +273,34 @@ export default function LiveTVScreen({ navigation }: any) {
                     <Text style={s.seeAll}>{language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All'}</Text>
                   </TouchableOpacity>
                 </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[s.featuredScroll, isRTL && { flexDirection: 'row-reverse' }]}>
-                  {(isRTL ? [...featured].reverse() : featured).map((ch: any) => (
-                    <TouchableOpacity key={ch.id} style={s.featCard} onPress={() => handlePress(ch)} activeOpacity={0.85}>
-                      <View style={s.featImgWrap}>
-                        {ch.image ? (
-                          <Image source={{ uri: ch.image }} style={s.featImg} resizeMode="contain" />
-                        ) : (
-                          <Text style={s.featName} numberOfLines={2}>{ch.name}</Text>
-                        )}
-                        <View style={s.liveBadge}>
-                          <View style={s.liveDot} />
-                          <Text style={s.liveText}>LIVE</Text>
-                        </View>
+
+                <View style={[s.gridContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+                  {featured.slice(0, 6).map((ch: any) => (
+                    <TouchableOpacity 
+                      key={ch.id} 
+                      style={[s.gridCard, { width: (width - 32 - 24) / 3, height: (width - 32 - 24) / 3 }]} 
+                      onPress={() => handlePress(ch)} 
+                      activeOpacity={0.85}
+                    >
+                      {ch.image ? (
+                        <Image source={{ uri: ch.image }} style={s.gridImg} resizeMode="cover" />
+                      ) : (
+                        <Text style={s.featName} numberOfLines={2}>{ch.name}</Text>
+                      )}
+
+                      {/* LIVE Badge */}
+                      <View style={s.liveBadge}>
+                        <View style={s.liveDot} />
+                        <Text style={s.liveText}>LIVE</Text>
                       </View>
-                      <Text numberOfLines={1} style={s.featTitle}>{ch.name}</Text>
-                      <Text style={s.featCat}>{ch.category}</Text>
+
+                      {/* Title Overlay at Bottom */}
+                      <View style={s.gridTitleOverlay}>
+                        <Text numberOfLines={1} style={s.gridTitleText}>{ch.name}</Text>
+                      </View>
                     </TouchableOpacity>
                   ))}
-                </ScrollView>
+                </View>
               </View>
             )}
 
@@ -479,24 +480,49 @@ const s = StyleSheet.create({
   sectionTitle: { color: '#fff', fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
   seeAll: { color: '#CC222F', fontSize: 13, fontWeight: '700' },
 
-  // Featured
-  featuredScroll: { paddingLeft: 16, paddingRight: 8, gap: 12 },
-  featCard: { width: FEATURED_W, marginRight: 4 },
-  featImgWrap: {
-    width: FEATURED_W, height: FEATURED_H, backgroundColor: '#1c1c28',
-    borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center', justifyContent: 'center', marginBottom: 8,
+  // Grid cards (3 col x 2 row)
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    gap: 12,
   },
-  featImg: { width: '70%', height: '70%' },
-  featName: { color: '#fff', fontSize: 12, fontWeight: '700', textAlign: 'center', paddingHorizontal: 8 },
-  featTitle: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  featCat: { color: 'rgba(255,255,255,0.4)', fontSize: 11, marginTop: 2 },
+  gridCard: {
+    backgroundColor: '#161722',
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.09)',
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gridImg: {
+    width: '100%',
+    height: '100%',
+  },
+  gridTitleOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    paddingVertical: 5,
+    paddingHorizontal: 4,
+    alignItems: 'center',
+  },
+  gridTitleText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
 
   // LIVE badge
   liveBadge: {
     position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.7)',
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 7, paddingVertical: 3,
-    borderRadius: 6, gap: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 6, gap: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', zIndex: 10,
   },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#E53935' },
   liveText: { color: '#fff', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },

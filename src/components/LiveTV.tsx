@@ -617,32 +617,10 @@ export default function LiveTV() {
         </div>
       ) : (
         <>
-          {/* Top Banner */}
-          {topBanners.length > 0 && (
-            <div className="relative w-full h-44 md:h-56 overflow-hidden bg-neutral-900 group mb-2">
-              <AnimatePresence mode="wait">
-                <motion.div key={topBanners[currentTopBannerIndex].id}
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }} className="absolute inset-0 cursor-pointer"
-                  onClick={() => topBanners[currentTopBannerIndex].link && window.open(topBanners[currentTopBannerIndex].link, '_blank')}>
-                  <Image src={topBanners[currentTopBannerIndex].image} alt="Promo" fill priority sizes="100vw" className="object-cover" unoptimized />
-                  <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0a0a0f] to-transparent" />
-                </motion.div>
-              </AnimatePresence>
-              {topBanners.length > 1 && (
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                  {topBanners.map((_, i) => (
-                    <div key={i} className={`h-1.5 rounded-full transition-all ${i === currentTopBannerIndex ? 'bg-red-500 w-4' : 'bg-white/30 w-1.5'}`} />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          <div className="px-4 sm:px-6 space-y-10">
-            {/* Featured / Most Watched Channels */}
+          <div className="px-4 sm:px-6 space-y-8 pt-2">
+            {/* Featured / Most Watched Channels — 3 Column x 2 Row Grid */}
             {mostWatchedChannels.length > 0 && (
-              <section className="space-y-4">
+              <section className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[18px] font-black tracking-tight">
                     {language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched'}
@@ -654,20 +632,30 @@ export default function LiveTV() {
                     {language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All'}
                   </button>
                 </div>
-                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-                  {mostWatchedChannels.slice(0, 10).map(channel => (
-                    <div key={channel.id} onClick={() => handleChannelSelect(channel)} className="flex-none w-44 cursor-pointer group">
-                      <div className="relative w-44 h-28 rounded-2xl bg-[#14151c] border border-white/8 overflow-hidden flex items-center justify-center mb-2 group-hover:border-[#CC222F]/40 transition-colors">
-                        {channel.image
-                          ? <Image src={channel.image} alt={channel.name} fill sizes="144px" className="object-contain p-3 group-hover:scale-105 transition-transform duration-300" unoptimized />
-                          : <span className="text-white font-bold text-sm text-center px-2">{channel.name}</span>}
-                        <div className="absolute top-2 right-2 bg-black/70 px-2 py-0.5 rounded-md text-[10px] flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                          <span className="font-bold">LIVE</span>
-                        </div>
+
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                  {mostWatchedChannels.slice(0, 6).map(channel => (
+                    <div 
+                      key={channel.id} 
+                      onClick={() => handleChannelSelect(channel)} 
+                      className="relative aspect-square rounded-2xl bg-[#14151c] border border-white/10 overflow-hidden cursor-pointer group hover:border-[#CC222F]/60 hover:scale-[1.03] transition-all duration-300 shadow-lg flex flex-col items-center justify-center p-2"
+                    >
+                      {channel.image ? (
+                        <Image src={channel.image} alt={channel.name} fill sizes="(max-width: 768px) 33vw, 16vw" className="object-cover group-hover:scale-105 transition-transform duration-300" unoptimized />
+                      ) : (
+                        <span className="text-white font-bold text-sm text-center px-1">{channel.name}</span>
+                      )}
+
+                      {/* LIVE Badge */}
+                      <div className="absolute top-2 right-2 bg-red-600/90 backdrop-blur-md text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow flex items-center gap-1 border border-white/20 z-10">
+                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                        <span>LIVE</span>
                       </div>
-                      <p className="text-[12px] font-bold truncate group-hover:text-[#CC222F] transition-colors">{channel.name}</p>
-                      <p className="text-[11px] text-white/40">{channel.category}</p>
+
+                      {/* Bottom Name Gradient Overlay */}
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 pt-6 flex flex-col justify-end z-10">
+                        <p className="text-[12px] font-bold text-white truncate text-center group-hover:text-[#CC222F] transition-colors">{channel.name}</p>
+                      </div>
                     </div>
                   ))}
                 </div>
