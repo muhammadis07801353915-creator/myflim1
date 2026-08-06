@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -22,6 +22,7 @@ import { useAppStore } from '../store/useAppStore';
 import CommentSection from '../components/CommentSection';
 import { getLocalized } from '../utils/localization';
 import { translations } from '../utils/translations';
+import { supabase } from '../api/supabase';
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,6 +34,37 @@ export default function DetailScreen({ route, navigation }: any) {
   const { incrementViews, toggleWatchlist, watchlist, language, liveTv } = useAppStore();
   const t = translations[language];
   const [activeChannel, setActiveChannel] = useState(item);
+  const [realLiveViewers, setRealLiveViewers] = useState<number>(1);
+
+  // Real-time Supabase Presence for live viewers count in app
+  useEffect(() => {
+    if (item.type !== 'LiveTV' || !activeChannel?.id) return;
+
+    const channelKey = `channel_live_watchers_${activeChannel.id}`;
+    const presenceChannel = supabase.channel(channelKey, {
+      config: {
+        presence: {
+          key: `app_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        },
+      },
+    });
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        const count = Object.keys(state).length;
+        setRealLiveViewers(count > 0 ? count : 1);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ online_at: new Date().toISOString() });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(presenceChannel);
+    };
+  }, [item.type, activeChannel?.id]);
   
   const [isWatchlisted, setIsWatchlisted] = useState(
     watchlist.some(i => String(i.id) === String(item.id))
@@ -265,7 +297,7 @@ export default function DetailScreen({ route, navigation }: any) {
             <Users size={16} color="#E53935" />
             <Text style={styles.livePresenceText}>LIVE</Text>
             <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>•</Text>
-            <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{liveViewerCount}</Text>
+            <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{realLiveViewers.toLocaleString()}</Text>
           </TouchableOpacity>
         </View>
 

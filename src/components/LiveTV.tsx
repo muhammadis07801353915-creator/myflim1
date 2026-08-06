@@ -41,7 +41,38 @@ export default function LiveTV() {
   
   // Player State
   const [playingChannel, setPlayingChannel] = useState<any | null>(null);
+  const [realLiveViewers, setRealLiveViewers] = useState<number>(1);
   const [showProModal, setShowProModal] = useState(false);
+
+  // Real-time Supabase Presence for live channel viewers
+  useEffect(() => {
+    if (!playingChannel?.id) return;
+
+    const channelKey = `channel_live_watchers_${playingChannel.id}`;
+    const presenceChannel = supabase.channel(channelKey, {
+      config: {
+        presence: {
+          key: `web_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        },
+      },
+    });
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        const count = Object.keys(state).length;
+        setRealLiveViewers(count > 0 ? count : 1);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ online_at: new Date().toISOString() });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(presenceChannel);
+    };
+  }, [playingChannel?.id]);
 
   const handleChannelSelect = (channel: any) => {
     const streamData = (() => {
@@ -200,12 +231,12 @@ export default function LiveTV() {
                   <span>Profile</span>
                 </a>
               )}
-              {/* Dynamic Live Viewers Badge */}
+              {/* Dynamic Real Live Viewers Badge */}
               <div className="flex items-center gap-1.5 bg-red-500/15 border border-red-500/30 px-3.5 py-1.5 rounded-xl text-red-400 text-xs font-bold">
-                <Users size={14} className="text-red-500" />
+                <Users size={14} className="text-red-500 animate-pulse" />
                 <span>LIVE</span>
                 <span className="opacity-40">•</span>
-                <span className="text-white font-mono">{ (850 + ((Number(playingChannel.id || 1) * 317) % 2400)).toLocaleString() }</span>
+                <span className="text-white font-mono">{realLiveViewers.toLocaleString()}</span>
                 <span className="text-[11px] text-white/60 font-normal">{language === 'ku' ? 'بینەر' : language === 'ar' ? 'مشاهد' : 'viewers'}</span>
               </div>
             </div>
