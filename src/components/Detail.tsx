@@ -647,29 +647,29 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       {/* Servers Modal */}
       {showServersModal && (
         <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4">
-          <div className="bg-[#1a1d24] light-mode:bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col max-h-[80vh] border border-neutral-800 light-mode:border-slate-200 shadow-2xl animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
-            <div className="p-5 border-b border-neutral-800 light-mode:border-slate-100 flex justify-between items-center bg-[#22252D] light-mode:bg-slate-50">
+          <div className="bg-[#1a1d24] light-mode:!bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col max-h-[80vh] border border-neutral-800 light-mode:!border-slate-200 shadow-2xl animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-300">
+            <div className="p-5 border-b border-neutral-800 light-mode:!border-slate-200 flex justify-between items-center bg-[#22252D] light-mode:!bg-slate-100">
               <div>
-                <h3 className="text-xl font-extrabold text-white light-mode:text-slate-900">
+                <h3 className="text-xl font-extrabold text-white light-mode:!text-slate-900">
                   {language === 'ku' ? 'سێرڤەر هەڵبژێرە' : language === 'ar' ? 'اختر السيرفر' : 'Choose Server'}
                 </h3>
-                <p className="text-sm text-neutral-400 light-mode:text-slate-500 font-bold mt-1">
+                <p className="text-sm text-neutral-400 light-mode:!text-slate-600 font-bold mt-1">
                   {servers.length} {language === 'ku' ? 'سێرڤەر بەردەستە' : language === 'ar' ? 'سيرفر متاح' : 'servers available'}
                 </p>
               </div>
               <button 
                 onClick={() => setShowServersModal(false)}
-                className="w-8 h-8 bg-neutral-800 light-mode:bg-slate-200 hover:bg-neutral-700 light-mode:hover:bg-slate-300 rounded-full flex items-center justify-center text-neutral-400 light-mode:text-slate-700 hover:text-white transition"
+                className="w-8 h-8 bg-neutral-800 light-mode:!bg-slate-200 hover:bg-neutral-700 light-mode:hover:!bg-slate-300 rounded-full flex items-center justify-center text-neutral-400 light-mode:!text-slate-700 hover:text-white transition"
               >
                 <X size={18} />
               </button>
             </div>
             
-            <div className="overflow-y-auto p-4 space-y-3 bg-[#1a1d24] light-mode:bg-slate-50/50">
+            <div className="overflow-y-auto p-4 space-y-3 bg-[#1a1d24] light-mode:!bg-slate-50">
               {servers.map((server: any, index: number) => {
                 const displayName = (() => {
                   let n = server?.name || '';
-                  if (n === 'Server MBox' || n === 'MBox' || n === 'Default Server' || (index === 0 && !n)) return 'Server 1';
+                  if (n === 'Server MBox' || n === 'MBox' || n === 'Default Server' || (index === 0 && (!n || n === 'Default Server'))) return 'Server 1';
                   if (n === 'Server My flim' || n === 'Server My film' || n === 'My flim' || n === 'Myfilm' || (index === 1 && !n)) return 'Server 2';
                   if (n === 'ok') return 'OK.ru';
                   if (n === 'VK') return 'VK.com';
@@ -686,17 +686,17 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                   <button
                     key={index}
                     onClick={() => handleServerSelect(server.url)}
-                    className="w-full flex items-center justify-between p-4 rounded-xl bg-neutral-900 light-mode:bg-white hover:bg-neutral-800 light-mode:hover:bg-slate-100 border border-neutral-800 light-mode:border-slate-200 hover:border-red-500/50 light-mode:hover:border-red-500/50 shadow-sm transition group"
+                    className="w-full flex items-center justify-between p-4 rounded-xl bg-neutral-900 light-mode:!bg-white hover:bg-neutral-800 light-mode:hover:!bg-slate-100 border border-neutral-800 light-mode:!border-slate-200 hover:border-red-500/50 light-mode:hover:!border-red-500/50 shadow-sm transition group"
                   >
                     <div className="flex items-center space-x-4 rtl:space-x-reverse">
-                      <div className="w-10 h-10 rounded-full bg-red-500/10 light-mode:bg-red-50 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-red-500/10 light-mode:!bg-red-50 flex items-center justify-center text-red-500 group-hover:bg-red-500 group-hover:text-white transition shrink-0">
                         <Server size={20} />
                       </div>
                       <div className="text-left rtl:text-right">
-                        <p className="font-bold text-base text-white light-mode:text-slate-900">
+                        <p className="font-bold text-base text-white light-mode:!text-slate-900">
                           {displayName}
                         </p>
-                        <p className="text-xs text-neutral-400 light-mode:text-slate-500 mt-0.5 font-medium">
+                        <p className="text-xs text-neutral-400 light-mode:!text-slate-600 mt-0.5 font-medium">
                           {server.url?.includes('youtube') ? 'YouTube' : 
                            server.url?.includes('drive.google.com') ? 'Google Drive' : 
                            server.url?.includes('t.me') ? 'Telegram' : 
@@ -705,7 +705,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                         </p>
                       </div>
                     </div>
-                    <div className="bg-neutral-800 light-mode:bg-red-50 group-hover:bg-neutral-700 light-mode:group-hover:bg-red-100 px-3 py-1 rounded-full text-xs font-bold text-neutral-300 light-mode:text-red-600 border border-transparent light-mode:border-red-200 transition">
+                    <div className="bg-neutral-800 light-mode:!bg-red-100 group-hover:bg-neutral-700 light-mode:group-hover:!bg-red-200 px-3 py-1 rounded-full text-xs font-bold text-neutral-300 light-mode:!text-red-700 border border-transparent light-mode:!border-red-300 transition">
                       {server.quality || 'Auto'}
                     </div>
                   </button>
@@ -713,10 +713,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
               })}
             </div>
 
-            <div className="p-4 border-t border-neutral-800 light-mode:border-slate-200 bg-[#22252D] light-mode:bg-white">
+            <div className="p-4 border-t border-neutral-800 light-mode:!border-slate-200 bg-[#22252D] light-mode:!bg-slate-100">
               <button 
                 onClick={() => setShowServersModal(false)}
-                className="w-full py-3.5 bg-neutral-800 light-mode:bg-slate-100 text-white light-mode:text-slate-900 hover:bg-neutral-700 light-mode:hover:bg-slate-200 rounded-xl font-bold transition border border-transparent light-mode:border-slate-300"
+                className="w-full py-3.5 bg-neutral-800 light-mode:!bg-slate-200 text-white light-mode:!text-slate-900 hover:bg-neutral-700 light-mode:hover:!bg-slate-300 rounded-xl font-bold transition border border-transparent light-mode:!border-slate-300"
               >
                 {language === 'ku' ? 'داخستن' : language === 'ar' ? 'إلغاء' : 'Cancel'}
               </button>
