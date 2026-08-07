@@ -54,18 +54,35 @@ export default function LiveTV() {
     if (!playingChannel?.stream_url) return;
 
     // Helper to parse multi-line or single-line URLs into structured playlist items
-    const parseChannelPlaylist = (rawStreamUrl: string): Array<{ url: string; duration: number }> => {
+    const parseChannelPlaylist = (rawStreamUrl: any): Array<{ url: string; duration: number }> => {
       if (!rawStreamUrl) return [];
-      let input = rawStreamUrl.trim();
+      let input = '';
+      if (typeof rawStreamUrl === 'string') {
+        input = rawStreamUrl.trim();
+      } else if (typeof rawStreamUrl === 'object') {
+        if (Array.isArray(rawStreamUrl)) {
+          return rawStreamUrl
+            .map(item => typeof item === 'string' ? { url: item, duration: 7200 } : { url: item?.url || '', duration: item?.duration || 7200 })
+            .filter(x => x.url);
+        } else if (rawStreamUrl.url && typeof rawStreamUrl.url === 'string') {
+          input = rawStreamUrl.url.trim();
+        } else {
+          return [];
+        }
+      } else {
+        return [];
+      }
       
       try {
         if (input.startsWith('{')) {
           const parsed = JSON.parse(input);
-          if (parsed.url) input = parsed.url;
+          if (parsed.url && typeof parsed.url === 'string') input = parsed.url;
         } else if (input.startsWith('[')) {
           const parsed = JSON.parse(input);
           if (Array.isArray(parsed)) {
-            return parsed.map(item => typeof item === 'string' ? { url: item, duration: 7200 } : { url: item.url, duration: item.duration || 7200 });
+            return parsed
+              .map(item => typeof item === 'string' ? { url: item, duration: 7200 } : { url: item?.url || '', duration: item?.duration || 7200 })
+              .filter(x => x.url);
           }
         }
       } catch (e) {}
@@ -76,11 +93,11 @@ export default function LiveTV() {
       return lines.map(line => {
         if (line.includes('|')) {
           const [urlPart, durPart] = line.split('|');
-          const parsedDur = parseFloat(durPart.trim());
+          const parsedDur = parseFloat(durPart ? durPart.trim() : '');
           const durationSeconds = !isNaN(parsedDur) && parsedDur > 0 ? parsedDur * 60 : 7200;
           return { url: urlPart.trim(), duration: durationSeconds };
         }
-        return { url: line, duration: 7200 }; // 2 hours default per link
+        return { url: line, duration: 7200 };
       });
     };
 
