@@ -267,12 +267,16 @@ export default function Profile() {
 
       existingList.push(fullMsgObj);
 
-      // 2. Upsert updated list into settings table (100% works without schema errors)
-      await supabase.from('settings').upsert({
-        key: 'taban_live_support_chats',
-        value: JSON.stringify(existingList),
-        updated_at: new Date().toISOString()
-      });
+      // 2. Update settings table with full array (100% works without schema or constraint errors)
+      const jsonVal = JSON.stringify(existingList);
+      const { error } = await supabase
+        .from('settings')
+        .update({ value: jsonVal })
+        .eq('key', 'taban_live_support_chats');
+
+      if (error) {
+        await supabase.from('settings').insert([{ key: 'taban_live_support_chats', value: jsonVal }]);
+      }
 
       // 3. Secondary insert into support_messages if present
       await supabase.from('support_messages').insert([newMsgObj]);

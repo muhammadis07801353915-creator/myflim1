@@ -28,22 +28,23 @@ export default function AdminSupportMessagesPage() {
   useEffect(() => {
     fetchMessages();
 
-    // Subscribe to real-time additions on settings table
+    // Polling fallback every 3 seconds for instant admin delivery
+    const interval = setInterval(() => {
+      fetchMessages(false);
+    }, 3000);
+
+    // Realtime subscription on settings table
     const channel = supabase
-      .channel('admin_support_chat_settings')
+      .channel('admin_support_chat_settings_channel')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'settings', filter: 'key=eq.taban_live_support_chats' },
-        () => fetchMessages()
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'comments' },
-        () => fetchMessages()
+        () => fetchMessages(false)
       )
       .subscribe();
 
     return () => {
+      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, []);
@@ -52,56 +53,35 @@ export default function AdminSupportMessagesPage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, selectedUserId]);
 
-  const fetchMessages = async () => {
-    setLoading(true);
+  const fetchMessages = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     try {
-      let allMsgs: SupportMessage[] = [];
-
-      // Source 1: Query settings table where key = 'taban_live_support_chats' (100% Reliable Supabase Store)
-      const { data: settingsData } = await supabase
+      const { data } = await supabase
         .from('settings')
         .select('value')
         .eq('key', 'taban_live_support_chats')
-        .maybeSingle();
+        .single();
 
-      if (settingsData?.value) {
+      if (data?.value) {
         try {
-          const parsed = JSON.parse(settingsData.value);
+          const parsed = JSON.parse(data.value);
           if (Array.isArray(parsed)) {
-            allMsgs = parsed;
+            parsed.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+            setMessages(parsed);
+
+            if (parsed.length > 0 && !selectedUserId) {
+              const firstUser = parsed.find((m: any) => m.sender === 'user')?.user_id || parsed[0].user_id;
+              setSelectedUserId(firstUser);
+            }
           }
         } catch (e) {
           console.warn(e);
         }
       }
-
-      // Source 2: Fallback query support_messages
-      const { data: smData } = await supabase
-        .from('support_messages')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (smData && smData.length > 0) {
-        smData.forEach((m: any) => {
-          if (!allMsgs.some(x => x.message === m.message && x.created_at === m.created_at)) {
-            allMsgs.push(m as SupportMessage);
-          }
-        });
-      }
-
-      // Sort all messages chronologically
-      allMsgs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-
-      setMessages(allMsgs);
-
-      if (allMsgs.length > 0 && !selectedUserId) {
-        const firstUser = allMsgs.find(m => m.sender === 'user')?.user_id || allMsgs[0].user_id;
-        setSelectedUserId(firstUser);
-      }
     } catch (e) {
       console.error('Error fetching admin messages:', e);
     }
-    setLoading(false);
+    if (showLoading) setLoading(false);
   };
 
   // Group messages by user_id
@@ -155,20 +135,19 @@ export default function AdminSupportMessagesPage() {
       created_at: new Date().toISOString()
     };
 
-    // Optimistic UI update
     const updated = [...messages, newMsgObj];
     setMessages(updated);
 
     try {
-      // 1. Update settings table with full array
-      await supabase.from('settings').upsert({
-        key: 'taban_live_support_chats',
-        value: JSON.stringify(updated),
-        updated_at: new Date().toISOString()
-      });
+      const jsonVal = JSON.stringify(updated);
+      const { error } = await supabase
+        .from('settings')
+        .update({ value: jsonVal })
+        .eq('key', 'taban_live_support_chats');
 
-      // 2. Insert into support_messages if present
-      await supabase.from('support_messages').insert([newMsgObj]);
+      if (error) {
+        await supabase.from('settings').insert([{ key: 'taban_live_support_chats', value: jsonVal }]);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -194,7 +173,7 @@ export default function AdminSupportMessagesPage() {
           </div>
         </div>
         <button 
-          onClick={fetchMessages}
+          onClick={() => fetchMessages(true)}
           className="p-2.5 bg-[#CC222F] hover:bg-red-700 text-white rounded-xl transition flex items-center gap-2 text-xs font-bold shadow-lg"
         >
           <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
