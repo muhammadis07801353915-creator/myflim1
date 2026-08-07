@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/src/lib/supabase';
 import { 
-  MessageSquare, Send, User, Search, 
-  Clock, CheckCheck, RefreshCw, AlertCircle
+  MessageSquare, Send, Search, 
+  RefreshCw, CheckCircle2, User
 } from 'lucide-react';
 
 interface SupportMessage {
@@ -28,23 +28,18 @@ export default function AdminSupportMessagesPage() {
   useEffect(() => {
     fetchMessages();
 
-    // Subscribe to real-time updates for new messages
+    // Subscribe to real-time additions on comments table (support_chat)
     const channel = supabase
-      .channel('support_messages_changes_admin')
+      .channel('admin_support_chat_realtime')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'support_messages' },
-        (payload) => {
-          const newMsg = payload.new as SupportMessage;
-          setMessages((prev) => [...prev, newMsg]);
-        }
+        { event: 'INSERT', schema: 'public', table: 'comments', filter: 'movie_id=eq.support_chat' },
+        () => fetchMessages()
       )
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'reports', filter: 'movie_id=eq.support_chat' },
-        () => {
-          fetchMessages();
-        }
+        { event: 'INSERT', schema: 'public', table: 'support_messages' },
+        () => fetchMessages()
       )
       .subscribe();
 
@@ -62,17 +57,52 @@ export default function AdminSupportMessagesPage() {
     try {
       let allMsgs: SupportMessage[] = [];
 
-      // Primary: support_messages
-      const { data: smData, error: smError } = await supabase
+      // Source 1: Query comments table with movie_id = 'support_chat' (Guaranteed working Supabase table)
+      const { data: commentsData } = await supabase
+        .from('comments')
+        .select('*')
+        .eq('movie_id', 'support_chat')
+        .order('created_at', { ascending: true });
+
+      if (commentsData && commentsData.length > 0) {
+        commentsData.forEach((c: any) => {
+          try {
+            const parsed = JSON.parse(c.content);
+            if (parsed && parsed.user_id && parsed.message) {
+              allMsgs.push({ id: String(c.id), ...parsed });
+            }
+          } catch (e) {
+            // Plain text comment fallback
+            if (c.content && c.user_id) {
+              allMsgs.push({
+                id: String(c.id),
+                user_id: c.user_id,
+                user_name: 'Bexawer User',
+                user_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
+                message: c.content,
+                sender: 'user',
+                created_at: c.created_at
+              });
+            }
+          }
+        });
+      }
+
+      // Source 2: Query support_messages table if exists
+      const { data: smData } = await supabase
         .from('support_messages')
         .select('*')
         .order('created_at', { ascending: true });
 
-      if (!smError && smData) {
-        allMsgs = smData as SupportMessage[];
+      if (smData && smData.length > 0) {
+        smData.forEach((m: any) => {
+          if (!allMsgs.some(x => x.message === m.message && x.created_at === m.created_at)) {
+            allMsgs.push(m as SupportMessage);
+          }
+        });
       }
 
-      // Secondary fallback: reports table
+      // Source 3: Query reports table fallback
       const { data: repData } = await supabase
         .from('reports')
         .select('*')
@@ -80,14 +110,14 @@ export default function AdminSupportMessagesPage() {
         .order('created_at', { ascending: true });
 
       if (repData && repData.length > 0) {
-        repData.forEach(r => {
+        repData.forEach((r: any) => {
           try {
             const parsed = JSON.parse(r.reason);
             if (parsed && parsed.user_id && !allMsgs.some(m => m.message === parsed.message && m.created_at === parsed.created_at)) {
               allMsgs.push({ id: String(r.id), ...parsed });
             }
           } catch (e) {
-            // ignore plain text reports
+            // ignore
           }
         });
       }
@@ -96,12 +126,13 @@ export default function AdminSupportMessagesPage() {
       allMsgs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
       setMessages(allMsgs);
+
       if (allMsgs.length > 0 && !selectedUserId) {
         const firstUser = allMsgs.find(m => m.sender === 'user')?.user_id || allMsgs[0].user_id;
         setSelectedUserId(firstUser);
       }
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching admin messages:', e);
     }
     setLoading(false);
   };
@@ -147,12 +178,12 @@ export default function AdminSupportMessagesPage() {
     const text = replyText.trim();
     setReplyText('');
 
-    const newMsgObj = {
+    const newMsgObj: Omit<SupportMessage, 'id'> = {
       user_id: selectedUserId,
-      user_name: selectedUserInfo?.user_name || 'User',
-      user_avatar: selectedUserInfo?.user_avatar || '',
+      user_name: 'Admin',
+      user_avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
       message: text,
-      sender: 'admin' as const,
+      sender: 'admin',
       created_at: new Date().toISOString()
     };
 
@@ -160,15 +191,15 @@ export default function AdminSupportMessagesPage() {
     setMessages(prev => [...prev, { id: 'temp-' + Date.now(), ...newMsgObj }]);
 
     try {
-      const { error } = await supabase.from('support_messages').insert([newMsgObj]);
-      if (error) {
-        // Fallback insert
-        await supabase.from('reports').insert([{
-          movie_id: 'support_chat',
-          reason: JSON.stringify(newMsgObj),
-          created_at: new Date().toISOString()
-        }]);
-      }
+      // 1. Insert into comments table with movie_id: 'support_chat'
+      await supabase.from('comments').insert([{
+        movie_id: 'support_chat',
+        user_id: selectedUserId,
+        content: JSON.stringify(newMsgObj)
+      }]);
+
+      // 2. Insert into support_messages if present
+      await supabase.from('support_messages').insert([newMsgObj]);
     } catch (err) {
       console.error(err);
     }
@@ -195,7 +226,7 @@ export default function AdminSupportMessagesPage() {
         </div>
         <button 
           onClick={fetchMessages}
-          className="p-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl transition flex items-center gap-2 text-xs font-bold"
+          className="p-2 bg-[#CC222F] hover:bg-red-700 text-white rounded-xl transition flex items-center gap-2 text-xs font-bold shadow-lg"
         >
           <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           <span>نوێکردنەوە</span>
@@ -223,7 +254,7 @@ export default function AdminSupportMessagesPage() {
           <div className="flex-1 overflow-y-auto divide-y divide-neutral-800/50">
             {userList.length === 0 ? (
               <div className="p-8 text-center text-neutral-500 text-xs font-medium">
-                {loading ? 'بارکردن...' : 'هیچ پەیامێک نەدۆزرایەوە'}
+                {loading ? 'بارکردنی پەیامەکان...' : 'هیچ پەیامێک نەدۆزرایەوە'}
               </div>
             ) : (
               userList.map((u) => {
