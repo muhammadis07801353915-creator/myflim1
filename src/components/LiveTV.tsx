@@ -377,10 +377,10 @@ export default function LiveTV() {
   }
 
   return (
-    <div className="bg-[#0a0a0f] min-h-screen text-white pb-32 font-sans">
+    <div className="bg-[#0a0a0f] light-mode:bg-white min-h-screen text-white light-mode:text-black pb-32 font-sans">
 
       {/* ── HEADER ── */}
-      <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/5 px-4 sm:px-6 py-4 flex items-center justify-between">
+      <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 light-mode:bg-white/95 backdrop-blur-xl border-b border-white/5 light-mode:border-neutral-200 px-4 sm:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* ☰ Country filter button — always visible */}
           <button
@@ -388,7 +388,7 @@ export default function LiveTV() {
             className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition text-sm font-bold ${
               selectedCountry
                 ? 'bg-[#CC222F]/15 border-[#CC222F]/40 text-[#CC222F]'
-                : 'bg-white/7 border-white/8 text-white/70 hover:text-white hover:bg-white/12'
+                : 'bg-white/7 light-mode:bg-neutral-100 border-white/8 light-mode:border-neutral-200 text-white/70 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black'
             }`}
           >
             <Menu size={16} />
@@ -418,13 +418,13 @@ export default function LiveTV() {
               <span>{language === 'ku' ? 'وڵات' : language === 'ar' ? 'الدولة' : 'Country'}</span>
             )}
           </button>
-          <h1 className="text-xl font-black tracking-tight whitespace-nowrap">
+          <h1 className="text-xl font-black tracking-tight whitespace-nowrap text-white light-mode:text-black">
             {language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
           </h1>
         </div>
         <button
           onClick={() => setIsSearchOpen(!isSearchOpen)}
-          className="w-10 h-10 rounded-full bg-white/7 border border-white/8 flex items-center justify-center hover:bg-white/12 transition"
+          className="w-10 h-10 rounded-full bg-white/7 light-mode:bg-neutral-100 border border-white/8 light-mode:border-neutral-200 text-white light-mode:text-neutral-700 flex items-center justify-center hover:bg-white/12 light-mode:hover:bg-neutral-200 transition"
         >
           {isSearchOpen ? <X size={18} /> : <Search size={18} />}
         </button>

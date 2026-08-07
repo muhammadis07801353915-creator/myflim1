@@ -269,13 +269,7 @@ export default function Home({
         </div>
 
         {/* Header Right Tools */}
-        <div className="flex items-center space-x-6 gap-6 rtl:space-x-reverse">
-          <button 
-            onClick={() => onChangeTab ? onChangeTab('search') : router.push('/search')}
-            className="p-2.5 rounded-full bg-[#14151c] light-mode:bg-neutral-100 hover:bg-neutral-800 light-mode:hover:bg-neutral-200 text-neutral-300 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black border border-white/10 light-mode:border-neutral-200 transition"
-          >
-            <Search size={18} />
-          </button>
+        <div className="flex items-center space-x-3 rtl:space-x-reverse">
           <div className="relative">
             <button className="p-2.5 rounded-full bg-[#14151c] light-mode:bg-neutral-100 hover:bg-neutral-800 light-mode:hover:bg-neutral-200 text-neutral-300 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black border border-white/10 light-mode:border-neutral-200 transition">
               <Bell size={18} />
