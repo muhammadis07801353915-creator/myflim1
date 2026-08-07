@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -19,6 +19,7 @@ import { COLORS, SPACING, SIZES, getColors } from '../theme/theme';
 import { useAppStore } from '../store/useAppStore';
 import { translations } from '../utils/translations';
 import { checkForAvailableUpdate, downloadAndInstallUpdate, getCurrentVersion, type AppUpdateInfo } from '../utils/appUpdate';
+import { supabase } from '../api/supabase';
 import { 
   Crown, 
   ChevronRight,
@@ -35,7 +36,8 @@ import {
   User,
   Play,
   Sun,
-  Moon
+  Moon,
+  CheckCircle2
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -52,6 +54,8 @@ export default function ProfileScreen({ navigation }: any) {
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [showSavedModal, setShowSavedModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
+  const [aboutText, setAboutText] = useState('');
   const [unlockCode, setUnlockCode] = useState('');
   const [newName, setNewName] = useState(user.name);
   const [availableUpdate, setAvailableUpdate] = useState<AppUpdateInfo | null>(null);
@@ -60,6 +64,18 @@ export default function ProfileScreen({ navigation }: any) {
   const currentVersion = getCurrentVersion();
 
   const historyItems = watchHistory ? Object.values(watchHistory).sort((a, b) => b.updatedAt - a.updatedAt) : [];
+
+  useEffect(() => {
+    async function fetchAbout() {
+      try {
+        const { data } = await supabase.from('settings').select('value').eq('key', 'about_taban_play').single();
+        if (data?.value) setAboutText(data.value);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+    fetchAbout();
+  }, []);
 
   const handleUnlockSubmit = async () => {
     const normalized = unlockCode.trim().toLowerCase();
@@ -280,16 +296,21 @@ export default function ProfileScreen({ navigation }: any) {
             () => setShowNameModal(true)
           )}
 
+          {/* Subscription Option (Free Notification) */}
           {renderMenuItem(
             <Crown size={20} color="#FBBF24" />,
             language === 'ku' ? 'ئابوونەبوون' : language === 'ar' ? 'الاشتراك' : 'Subscription',
             undefined,
-            () => Alert.alert('Subscription', language === 'ku' ? 'بەشی ئابوونەبوون' : 'Subscription view')
+            () => Alert.alert(
+              language === 'ku' ? 'ئابوونەبوون' : 'Subscription',
+              language === 'ku' ? 'ئابوونەبوون لە تابان پڵەی لەئێستادا بەخۆڕاییە بۆ سەرجەم بەکارهێنەران!' : 'Subscription is currently FREE for all users!'
+            )
           )}
 
+          {/* Language Menu Option (گۆڕینی زمان) */}
           {renderMenuItem(
             <Languages size={20} color={themeColors.text} />,
-            language === 'ku' ? 'زمانی ئەپەکە' : language === 'ar' ? 'لغة التطبيق' : 'Language',
+            language === 'ku' ? 'گۆڕینی زمان' : language === 'ar' ? 'تغيير اللغة' : 'Change Language',
             language.toUpperCase(),
             () => setShowLangModal(true)
           )}
@@ -302,7 +323,8 @@ export default function ProfileScreen({ navigation }: any) {
           {renderMenuItem(
             <Info size={20} color={themeColors.text} />,
             language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play',
-            `v${currentVersion}`
+            `v${currentVersion}`,
+            () => setShowAboutModal(true)
           )}
         </View>
 
@@ -344,6 +366,45 @@ export default function ProfileScreen({ navigation }: any) {
         </View>
 
       </ScrollView>
+
+      {/* ── ABOUT TABAN PLAY MODAL ───────────────────────────────── */}
+      <Modal visible={showAboutModal} transparent animationType="fade" onRequestClose={() => setShowAboutModal(false)}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowAboutModal(false)}>
+          <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+            <View style={[styles.modalSheetHeader, { borderBottomColor: themeColors.border, paddingHorizontal: 0, paddingVertical: 10, marginBottom: 12 }, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={[styles.modalTitleRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Image source={require('../../assets/app-logo-new.png')} style={{ width: 32, height: 32, borderRadius: 8 }} resizeMode="contain" />
+                <Text style={[styles.modalSheetTitle, { color: themeColors.text }]}>Taban Play</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowAboutModal(false)} style={[styles.closeBtn, { backgroundColor: themeColors.surfaceLight }]}>
+                <X size={18} color={themeColors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={{ color: themeColors.text, fontSize: 14, lineHeight: 22, fontWeight: '500', marginBottom: 14 }}>
+              {aboutText || (language === 'ku' 
+                ? 'پلاتفۆرمی تابان پڵەی (Taban Play) پلاتفۆرمێکی سەردەمیانەی ژێرنووس و دۆبلاژی کوردییە بۆ سەیرکردنی نوێترین فیلم، زنجیرە، ئەنیمەیشن، و پەخشی ڕاستەوخۆی کەناڵە تەلەڤیزیۆنییەکان بە بەرزترین کوالێتی HD و بێ پچڕان.'
+                : 'Taban Play is the premier Kurdish streaming platform for movies, series, animation, and live TV channels in high definition.')}
+            </Text>
+
+            <View style={{ backgroundColor: themeColors.surfaceLight, padding: 12, borderRadius: 14, gap: 8, marginBottom: 14 }}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 8 }}>
+                <CheckCircle2 size={16} color="#CC222F" />
+                <Text style={{ color: themeColors.text, fontSize: 12, fontWeight: '600' }}>{language === 'ku' ? 'نوێترین فیلم و زنجیرە ژێرنووس و دۆبلاژکراوەکان' : 'Latest dubbed & subtitled movies & series'}</Text>
+              </View>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 8 }}>
+                <CheckCircle2 size={16} color="#CC222F" />
+                <Text style={{ color: themeColors.text, fontSize: 12, fontWeight: '600' }}>{language === 'ku' ? 'پەخشی ڕاستەوخۆی کەناڵە ناوخۆیی و جیهانییەکان' : 'Live streaming of local & international TV channels'}</Text>
+              </View>
+            </View>
+
+            <View style={{ flexDirection: 'row', justify: 'space-between', borderTopWidth: 1, borderTopColor: themeColors.border, paddingTop: 10 }}>
+              <Text style={{ color: themeColors.textMuted, fontSize: 11 }}>Version {currentVersion}</Text>
+              <Text style={{ color: themeColors.textMuted, fontSize: 11 }}>© 2026 Taban Play</Text>
+            </View>
+          </View>
+        </Pressable>
+      </Modal>
 
       {/* ── SAVED ITEMS (WATCHLIST) MODAL ──────────────────────────── */}
       <Modal visible={showSavedModal} animationType="slide" transparent onRequestClose={() => setShowSavedModal(false)}>
@@ -480,7 +541,7 @@ export default function ProfileScreen({ navigation }: any) {
       <Modal visible={showLangModal} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={() => setShowLangModal(false)}>
           <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>{t.language}</Text>
+            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>{language === 'ku' ? 'گۆڕینی زمان' : language === 'ar' ? 'تغيير اللغة' : 'Change Language'}</Text>
             
             <TouchableOpacity 
               style={[styles.langOption, { backgroundColor: themeColors.surfaceLight }, language === 'ku' && styles.langOptionActive]} 

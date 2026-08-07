@@ -22,20 +22,20 @@ import {
   User,
   Key,
   X,
-  Play
+  Play,
+  CheckCircle2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
-import ProSubscriptionModal from './ProSubscriptionModal';
 import { getProStatusLocal } from '../lib/pro';
 import { useLanguage } from '../lib/LanguageContext';
 import { getLocalized } from '../lib/translations';
+import { supabase } from '../lib/supabase';
 
 export default function Profile() {
   const navigate = useRouter();
   const { t, language, setLanguage } = useLanguage();
-  const [showProModal, setShowProModal] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isPro, setIsPro] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false);
@@ -43,6 +43,8 @@ export default function Profile() {
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [showSavedModal, setShowSavedModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
+  const [aboutText, setAboutText] = useState('');
   const [unlockCode, setUnlockCode] = useState('');
   const [watchlistItems, setWatchlistItems] = useState<any[]>([]);
   const [historyItems, setHistoryItems] = useState<any[]>([]);
@@ -61,31 +63,64 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (document.documentElement.classList.contains('light-mode')) {
+    // Theme persistence check
+    const savedTheme = localStorage.getItem('myfilm_theme');
+    if (savedTheme === 'light' || document.documentElement.classList.contains('light-mode')) {
+      document.documentElement.classList.add('light-mode');
+      document.body.classList.add('light-mode');
       setIsDarkMode(false);
+    } else {
+      document.documentElement.classList.remove('light-mode');
+      document.body.classList.remove('light-mode');
+      setIsDarkMode(true);
     }
+
     setIsPro(getProStatusLocal());
 
-    // Load watchlist & history from localStorage
-    try {
-      const saved = JSON.parse(localStorage.getItem('myfilm_watchlist') || '[]');
-      setWatchlistItems(saved);
+    // Watchlist & history sync
+    const loadState = () => {
+      try {
+        const saved = JSON.parse(localStorage.getItem('myfilm_watchlist') || '[]');
+        setWatchlistItems(saved);
 
-      const hist = JSON.parse(localStorage.getItem('myfilm_history') || '{}');
-      setHistoryItems(Object.values(hist).sort((a: any, b: any) => b.updatedAt - a.updatedAt));
-    } catch (e) {
-      console.warn(e);
-    }
+        const hist = JSON.parse(localStorage.getItem('myfilm_history') || '{}');
+        setHistoryItems(Object.values(hist).sort((a: any, b: any) => b.updatedAt - a.updatedAt));
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+    loadState();
+
+    window.addEventListener('storage', loadState);
+    window.addEventListener('watchlistUpdated', loadState);
+
+    // Fetch About text from Supabase
+    const fetchAbout = async () => {
+      try {
+        const { data } = await supabase.from('settings').select('value').eq('key', 'about_taban_play').single();
+        if (data?.value) setAboutText(data.value);
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+    fetchAbout();
+
+    return () => {
+      window.removeEventListener('storage', loadState);
+      window.removeEventListener('watchlistUpdated', loadState);
+    };
   }, []);
 
   const toggleTheme = () => {
     if (isDarkMode) {
       document.documentElement.classList.add('light-mode');
-      document.documentElement.classList.remove('dark');
+      document.body.classList.add('light-mode');
+      localStorage.setItem('myfilm_theme', 'light');
       setIsDarkMode(false);
     } else {
       document.documentElement.classList.remove('light-mode');
-      document.documentElement.classList.add('dark');
+      document.body.classList.remove('light-mode');
+      localStorage.setItem('myfilm_theme', 'dark');
       setIsDarkMode(true);
     }
   };
@@ -259,12 +294,19 @@ export default function Profile() {
         <ChevronRight size={20} className="text-[#CC222F] rtl:rotate-180 shrink-0" />
       </div>
 
-      {/* ── 4. CLEAN MENU ITEMS LIST (Duplicated items removed) ───────── */}
+      {/* ── 4. MENU ITEMS LIST ─────────────────────────────────────── */}
       <div className="space-y-2.5">
         <ProfileMenuItem icon={User} label={language === 'ku' ? 'ڕێکخستنەکانی هەژمار' : language === 'ar' ? 'إعدادات الحساب' : 'Account Settings'} onClick={() => { setTempName(userName); setShowNameModal(true); }} />
-        <ProfileMenuItem icon={Crown} label={language === 'ku' ? 'ئابوونەبوون' : language === 'ar' ? 'الاشتراك' : 'Subscription'} textClass="text-amber-400" onClick={() => setShowProModal(true)} />
         
-        {/* Language Menu Item */}
+        {/* Subscription Item (Temporarily Free Notification) */}
+        <ProfileMenuItem 
+          icon={Crown} 
+          label={language === 'ku' ? 'ئابوونەبوون' : language === 'ar' ? 'الاشتراك' : 'Subscription'} 
+          textClass="text-amber-400" 
+          onClick={() => alert(language === 'ku' ? 'ئابوونەبوون لە تابان پڵەی لەئێستادا بەخۆڕاییە بۆ سەرجەم بەکارهێنەران!' : language === 'ar' ? 'الاشتراك مجاني حالياً لجميع المستخدمين!' : 'Subscription is currently FREE for all users!')} 
+        />
+        
+        {/* Language Menu Item (گۆڕینی زمان) */}
         <div className="relative">
           <button 
             onClick={() => setShowLangMenu(!showLangMenu)}
@@ -272,7 +314,7 @@ export default function Profile() {
           >
             <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
               <Languages size={20} className="text-white/80" />
-              <span className="font-bold text-sm text-white">{language === 'ku' ? 'زمانی وێب‌سایت' : language === 'ar' ? 'لغة الموقع' : 'Language'}</span>
+              <span className="font-bold text-sm text-white">{language === 'ku' ? 'گۆڕینی زمان' : language === 'ar' ? 'تغيير اللغة' : 'Change Language'}</span>
             </div>
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <span className="text-xs text-white/50 uppercase font-bold">{language}</span>
@@ -303,9 +345,52 @@ export default function Profile() {
         </button>
 
         <ProfileMenuItem icon={HelpCircle} label={language === 'ku' ? 'یارمەتی و پشتیوانی' : language === 'ar' ? 'المساعدة والدعم' : 'Help & Support'} />
-        <ProfileMenuItem icon={Info} label={language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play'} />
+        <ProfileMenuItem icon={Info} label={language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play'} onClick={() => setShowAboutModal(true)} />
         <ProfileMenuItem icon={LogOut} label={t.logout} textClass="text-red-500" onClick={handleLogout} />
       </div>
+
+      {/* ── ABOUT TABAN PLAY MODAL ───────────────────────────────── */}
+      {showAboutModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={() => setShowAboutModal(false)}>
+          <div className="bg-[#14151c] border border-white/10 w-full max-w-md rounded-3xl p-6 shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3">
+                <Image src="/app-logo-new.png" alt="Taban Play" width={32} height={32} className="rounded-lg object-contain" unoptimized />
+                <h3 className="text-lg font-extrabold text-white">Taban Play</h3>
+              </div>
+              <button onClick={() => setShowAboutModal(false)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white"><X size={18} /></button>
+            </div>
+
+            <div className="space-y-4 text-sm text-white/80 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
+              <p className="font-medium text-white">
+                {aboutText || (language === 'ku' 
+                  ? 'پلاتفۆرمی تابان پڵەی (Taban Play) پلاتفۆرمێکی سەردەمیانەی ژێرنووس و دۆبلاژی کوردییە بۆ سەیرکردنی نوێترین فیلم، زنجیرە، ئەنیمەیشن، و پەخشی ڕاستەوخۆی کەناڵە تەلەڤیزیۆنییەکان بە بەرزترین کوالێتی HD و بێ پچڕان.'
+                  : 'Taban Play is the premier Kurdish streaming platform for movies, series, animation, and live TV channels in high definition.')}
+              </p>
+
+              <div className="space-y-2 bg-[#1c1e28] p-4 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-2.5 text-xs text-white/90 font-semibold">
+                  <CheckCircle2 size={16} className="text-[#CC222F]" />
+                  <span>{language === 'ku' ? 'نوێترین فیلم و زنجیرە ژێرنووس و دۆبلاژکراوەکان' : 'Latest dubbed & subtitled movies & series'}</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-white/90 font-semibold">
+                  <CheckCircle2 size={16} className="text-[#CC222F]" />
+                  <span>{language === 'ku' ? 'پەخشی ڕاستەوخۆی کەناڵە ناوخۆیی و جیهانییەکان' : 'Live streaming of local & international TV channels'}</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-white/90 font-semibold">
+                  <CheckCircle2 size={16} className="text-[#CC222F]" />
+                  <span>{language === 'ku' ? 'لێدانی خێرا بە کوالێتی Full HD / 4K' : 'Fast HD / 4K playback experience'}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-white/40 pt-2 border-t border-white/10">
+                <span>Version 2.0.0</span>
+                <span>© 2026 Taban Play</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── SAVED ITEMS MODAL ────────────────────────────────────── */}
       {showSavedModal && (
@@ -326,7 +411,7 @@ export default function Profile() {
             ) : (
               <div className="space-y-3 overflow-y-auto pr-1">
                 {watchlistItems.map((movie) => (
-                  <div key={movie.id} onClick={() => { setShowSavedModal(false); navigate.push(`/watch/${movie.id}`); }} className="bg-[#1c1e28] hover:bg-white/10 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border border-white/5">
+                  <div key={movie.id} onClick={() => { setShowSavedModal(false); navigate.push(`/?movie=${movie.id}`); }} className="bg-[#1c1e28] hover:bg-white/10 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border border-white/5">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-16 relative rounded-xl overflow-hidden bg-black shrink-0">
                         {movie.image ? <Image src={movie.image} alt="" fill className="object-cover" unoptimized /> : null}
@@ -366,7 +451,7 @@ export default function Profile() {
             ) : (
               <div className="space-y-3 overflow-y-auto pr-1">
                 {historyItems.map((h: any) => (
-                  <div key={h.item.id} onClick={() => { setShowHistoryModal(false); navigate.push(`/watch/${h.item.id}?t=${Math.floor(h.timestamp)}`); }} className="bg-[#1c1e28] hover:bg-white/10 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border border-white/5">
+                  <div key={h.item.id} onClick={() => { setShowHistoryModal(false); navigate.push(`/?movie=${h.item.id}&t=${Math.floor(h.timestamp)}`); }} className="bg-[#1c1e28] hover:bg-white/10 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border border-white/5">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-16 relative rounded-xl overflow-hidden bg-black shrink-0">
                         {h.item.image ? <Image src={h.item.image} alt="" fill className="object-cover" unoptimized /> : null}
@@ -455,7 +540,6 @@ export default function Profile() {
         </div>
       )}
 
-      <ProSubscriptionModal isOpen={showProModal} onClose={() => setShowProModal(false)} />
     </div>
   );
 }

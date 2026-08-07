@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Bell, DollarSign, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Plus, Trash2, Edit, Key, Share2, Loader2, Check } from 'lucide-react';
+import { Save, Bell, DollarSign, Smartphone, Settings as SettingsIcon, Image as ImageIcon, Plus, Trash2, Edit, Key, Share2, Loader2, Check, Info } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 export default function SettingsAdmin() {
@@ -9,8 +9,34 @@ export default function SettingsAdmin() {
   const [newDuration, setNewDuration] = useState(30);
   const [generating, setGenerating] = useState(false);
 
+  const [aboutText, setAboutText] = useState('');
+  const [savingAbout, setSavingAbout] = useState(false);
+
+  const fetchAboutText = async () => {
+    const { data } = await supabase.from('settings').select('value').eq('key', 'about_taban_play').single();
+    if (data?.value) setAboutText(data.value);
+  };
+
+  const saveAboutText = async () => {
+    setSavingAbout(true);
+    try {
+      const { data } = await supabase.from('settings').select('id').eq('key', 'about_taban_play').single();
+      if (data) {
+        await supabase.from('settings').update({ value: aboutText }).eq('key', 'about_taban_play');
+      } else {
+        await supabase.from('settings').insert([{ key: 'about_taban_play', value: aboutText }]);
+      }
+      alert('About text saved successfully!');
+    } catch (e: any) {
+      alert('Error saving about text: ' + e.message);
+    } finally {
+      setSavingAbout(false);
+    }
+  };
+
   const tabs = [
     { id: 'general', name: 'General Settings', icon: <SettingsIcon size={18} /> },
+    { id: 'about', name: 'About Taban Play', icon: <Info size={18} /> },
     { id: 'ads', name: 'Ads Management', icon: <DollarSign size={18} /> },
     { id: 'pro_codes', name: 'PRO Codes', icon: <Key size={18} /> },
     { id: 'notifications', name: 'Push Notifications', icon: <Bell size={18} /> },
@@ -19,6 +45,9 @@ export default function SettingsAdmin() {
   ];
 
   useEffect(() => {
+    if (activeTab === 'about') {
+      fetchAboutText();
+    }
     if (activeTab === 'pro_codes') {
       fetchCodes();
     }
@@ -146,6 +175,37 @@ export default function SettingsAdmin() {
         {/* Tab Content */}
         <div className="flex-1 bg-[#1a1d24] border border-neutral-800 rounded-xl p-6">
           
+          {/* About Taban Play Tab */}
+          {activeTab === 'about' && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h3 className="text-lg font-medium">About Taban Play Content</h3>
+                  <p className="text-xs text-neutral-400">Manage the text displayed when users click "About Taban Play" in the app & web.</p>
+                </div>
+                <button 
+                  onClick={saveAboutText}
+                  disabled={savingAbout}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center space-x-2 disabled:opacity-50"
+                >
+                  {savingAbout ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                  <span>{savingAbout ? 'Saving...' : 'Save Content'}</span>
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-neutral-300">Custom About Text / Description</label>
+                <textarea 
+                  rows={8} 
+                  value={aboutText} 
+                  onChange={e => setAboutText(e.target.value)}
+                  placeholder="بپلاتفۆرمی پێشەنگی تابان پڵەی بۆ بینینی نوێترین فیلم، زنجیرە، ئەنیمەیشن و کەناڵە ڕاستەوخۆکان بە بەرزترین کوالێتی HD..." 
+                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-4 text-white outline-none focus:border-red-500 transition text-sm leading-relaxed"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Ads Management Tab */}
           {activeTab === 'ads' && (
             <div className="space-y-8">
