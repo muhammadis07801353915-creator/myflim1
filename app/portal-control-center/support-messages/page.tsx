@@ -28,10 +28,10 @@ export default function AdminSupportMessagesPage() {
   useEffect(() => {
     fetchMessages();
 
-    // Polling fallback every 3 seconds for instant admin delivery
+    // Fast 2-second polling for instant admin sync
     const interval = setInterval(() => {
       fetchMessages(false);
-    }, 3000);
+    }, 2000);
 
     // Realtime subscription on settings table
     const channel = supabase
@@ -60,7 +60,7 @@ export default function AdminSupportMessagesPage() {
         .from('settings')
         .select('value')
         .eq('key', 'taban_live_support_chats')
-        .single();
+        .maybeSingle();
 
       if (data?.value) {
         try {
@@ -84,24 +84,25 @@ export default function AdminSupportMessagesPage() {
     if (showLoading) setLoading(false);
   };
 
-  // Group messages by user_id
+  // Group messages by user_id or user_name
   const usersMap: Record<string, { user_id: string; user_name: string; user_avatar: string; lastMessage: string; lastTime: string; unread: boolean }> = {};
 
   messages.forEach((msg) => {
-    if (!usersMap[msg.user_id]) {
-      usersMap[msg.user_id] = {
-        user_id: msg.user_id,
-        user_name: msg.user_name || 'Bexawer User',
+    const key = msg.user_name || msg.user_id;
+    if (!usersMap[key]) {
+      usersMap[key] = {
+        user_id: key,
+        user_name: msg.user_name || key,
         user_avatar: msg.user_avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
         lastMessage: msg.message,
         lastTime: msg.created_at,
         unread: msg.sender === 'user',
       };
     } else {
-      usersMap[msg.user_id].lastMessage = msg.message;
-      usersMap[msg.user_id].lastTime = msg.created_at;
+      usersMap[key].lastMessage = msg.message;
+      usersMap[key].lastTime = msg.created_at;
       if (msg.sender === 'user') {
-        usersMap[msg.user_id].unread = true;
+        usersMap[key].unread = true;
       }
     }
   });
@@ -113,7 +114,7 @@ export default function AdminSupportMessagesPage() {
   );
 
   const selectedUserMessages = selectedUserId 
-    ? messages.filter(m => m.user_id === selectedUserId)
+    ? messages.filter(m => (m.user_name || m.user_id) === selectedUserId || m.user_id === selectedUserId)
     : [];
 
   const selectedUserInfo = selectedUserId ? usersMap[selectedUserId] : null;
