@@ -23,7 +23,9 @@ export default function ClientApp() {
 
   // URL-based navigation
   const movieId = searchParams ? searchParams.get('movie') : null;
-  const selectedItem = movies.find(m => m.id.toString() === movieId);
+  const selectedItem = (movieId && Array.isArray(movies)) 
+    ? movies.find(m => m && m.id != null && String(m.id) === movieId) 
+    : null;
 
   useEffect(() => {
     const recordVisit = async () => {
