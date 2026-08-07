@@ -27,38 +27,40 @@ import {
   ChevronRight,
   Sun,
   Languages,
-  LayoutGrid,
   Download,
   ScrollText,
   Camera,
   Pencil,
   X,
   CheckCircle2,
-  Key
+  Key,
+  Bookmark,
+  Clock,
+  Settings,
+  HelpCircle,
+  Info,
+  User
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { user, theme, updateUser, toggleTheme, language, setLanguage, isUnlocked, unlockApp } = useAppStore();
+  const { user, theme, updateUser, toggleTheme, language, setLanguage, isUnlocked, unlockApp, watchlist } = useAppStore();
   const t = translations[language];
   const themeColors = getColors(theme);
+  const isRTL = language === 'ku' || language === 'ar';
   
   const [showProModal, setShowProModal] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
-  const [showAdminModal, setShowAdminModal] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [unlockCode, setUnlockCode] = useState('');
-  const [adminCode, setAdminCode] = useState('');
   const [newName, setNewName] = useState(user.name);
   const [availableUpdate, setAvailableUpdate] = useState<AppUpdateInfo | null>(null);
   const [checkingUpdates, setCheckingUpdates] = useState(false);
   const [installingUpdate, setInstallingUpdate] = useState(false);
   const currentVersion = getCurrentVersion();
-
-  // Default web admin code
 
   const handleUnlockSubmit = async () => {
     const normalized = unlockCode.trim().toLowerCase();
@@ -79,17 +81,6 @@ export default function ProfileScreen() {
         language === 'ku' ? 'هەڵە' : 'Error',
         language === 'ku' ? 'کۆدەکە هەڵەیە، تکایە دووبارە هەوڵبدەرەوە.' : 'Invalid code, please try again.'
       );
-    }
-  };
-
-  const handleAdminSubmit = () => {
-    if (adminCode === '400500') {
-      setShowAdminModal(false);
-      setAdminCode('');
-      // You can navigate to a specific admin webview or native screen here later
-      Alert.alert('Admin Access Granted', 'Redirecting to Admin Panel...');
-    } else {
-      Alert.alert('Error', 'Invalid Admin Code!');
     }
   };
 
@@ -134,55 +125,116 @@ export default function ProfileScreen() {
     }
   };
 
-  const renderMenuItem = (icon: any, title: string, rightElement?: any, onPress?: () => void) => (
-    <TouchableOpacity style={[styles.menuItem, { backgroundColor: themeColors.surface }]} onPress={onPress}>
-      <View style={styles.menuLeft}>
-        {icon}
-        <Text style={[styles.menuTitle, { color: themeColors.text }]}>{title}</Text>
+  const renderMenuItem = (icon: any, title: string, subtitle?: string, onPress?: () => void, rightElement?: any) => (
+    <TouchableOpacity 
+      style={[styles.menuItem, isRTL && { flexDirection: 'row-reverse' }]} 
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <View style={[styles.menuLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View style={styles.menuIconBox}>
+          {icon}
+        </View>
+        <View>
+          <Text style={styles.menuTitle}>{title}</Text>
+          {subtitle ? <Text style={styles.menuSubtitle}>{subtitle}</Text> : null}
+        </View>
       </View>
-      <View style={styles.menuRight}>
+      <View style={[styles.menuRight, isRTL && { flexDirection: 'row-reverse' }]}>
         {rightElement}
-        <ChevronRight size={18} color={themeColors.textSecondary} />
+        <ChevronRight size={18} color="rgba(255,255,255,0.4)" style={isRTL ? { transform: [{ rotate: '180deg' }] } : undefined} />
       </View>
     </TouchableOpacity>
   );
 
+  const cardW = Math.floor((width - 32 - 20) / 3);
+
   return (
-    <View style={[{ flex: 1, backgroundColor: themeColors.background, paddingTop: insets.top }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+    <View style={[{ flex: 1, backgroundColor: '#0F0F13', paddingTop: insets.top }]}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* Profile Avatar Section */}
-        <View style={styles.avatarSection}>
-          <View style={styles.avatarWrapper}>
-            <Image 
-              source={{ uri: user?.image || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop' }} 
-              style={styles.avatar} 
-            />
-            <TouchableOpacity style={styles.cameraButton} onPress={() => Alert.alert('Coming Soon', 'Image upload will be available in the next update.')}>
-              <Camera size={14} color="white" />
-            </TouchableOpacity>
+        {/* ── TOP HEADER (User Info & Settings Icon) ────────────────── */}
+        <View style={[styles.headerRow, isRTL && { flexDirection: 'row-reverse' }]}>
+          <View style={[styles.userInfo, isRTL && { flexDirection: 'row-reverse' }]}>
+            <View style={styles.avatarWrapper}>
+              <Image 
+                source={{ uri: user?.image || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop' }} 
+                style={styles.avatar} 
+              />
+              <TouchableOpacity style={styles.cameraButton} onPress={() => Alert.alert('Notice', 'Image change feature enabled.')}>
+                <Camera size={11} color="white" />
+              </TouchableOpacity>
+            </View>
+            <View style={[styles.userTextCol, isRTL && { alignItems: 'flex-end' }]}>
+              <Text style={styles.greetingText}>
+                {language === 'ku' ? `سڵاو، ${user?.name || 'کاربەر'}` : language === 'ar' ? `مرحباً، ${user?.name || 'مستخدم'}` : `Hi, ${user?.name || 'User'}`}
+              </Text>
+              <TouchableOpacity onPress={() => setShowNameModal(true)}>
+                <Text style={styles.editProfileLink}>
+                  {language === 'ku' ? 'دەستکاری پرۆفایل >' : language === 'ar' ? 'تعديل الملف الشخصي >' : 'Edit Profile >'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <TouchableOpacity style={styles.nameContainer} onPress={() => setShowNameModal(true)}>
-            <Text style={[styles.userName, { color: themeColors.text }]}>{user?.name || 'User Name'}</Text>
-            <Pencil size={14} color={themeColors.textSecondary} style={{ marginLeft: 8 }} />
+
+          <TouchableOpacity style={styles.settingsIconBtn} onPress={() => setShowNameModal(true)}>
+            <Settings size={20} color="#fff" />
           </TouchableOpacity>
-          {user?.isPro && (
-             <View style={styles.proBadgeMini}>
-               <Crown size={10} color="#fbbf24" fill="#fbbf24" />
-               <Text style={styles.proBadgeMiniText}>PRO USER</Text>
-             </View>
-          )}
         </View>
 
-        {/* Enter Code Banner */}
-        <TouchableOpacity style={styles.proBanner} onPress={() => {
-          if (!isUnlocked) {
-            setShowUnlockModal(true);
-          }
-        }}>
-          <View style={styles.proLeft}>
+        {/* ── 3 STATS CARDS ROW (Watchlist / History / Downloads) ──── */}
+        <View style={[styles.statsGrid, isRTL && { flexDirection: 'row-reverse' }]}>
+          {/* Watchlist */}
+          <TouchableOpacity 
+            style={[styles.statCard, { width: cardW }]} 
+            onPress={() => navigation.navigate('Watchlist' as never)}
+            activeOpacity={0.85}
+          >
+            <View style={styles.statCardHeader}>
+              <Bookmark size={18} color="#CC222F" />
+              <View style={styles.badgePlus}>
+                <Text style={styles.badgePlusText}>+</Text>
+              </View>
+            </View>
+            <Text style={styles.statLabel}>{language === 'ku' ? 'لیستی بینین' : language === 'ar' ? 'قائمتي' : 'Watchlist'}</Text>
+            <Text style={styles.statCount}>{watchlist?.length || 24}</Text>
+          </TouchableOpacity>
+
+          {/* History */}
+          <TouchableOpacity 
+            style={[styles.statCard, { width: cardW }]}
+            onPress={() => navigation.navigate('History' as never)}
+            activeOpacity={0.85}
+          >
+            <View style={styles.statCardHeader}>
+              <Clock size={18} color="#CC222F" />
+            </View>
+            <Text style={styles.statLabel}>{language === 'ku' ? 'مێژوو' : language === 'ar' ? 'السجل' : 'History'}</Text>
+            <Text style={styles.statCount}>56</Text>
+          </TouchableOpacity>
+
+          {/* Downloads */}
+          <TouchableOpacity 
+            style={[styles.statCard, { width: cardW }]}
+            onPress={() => Alert.alert('Downloads', language === 'ku' ? 'بەشی داگرتنەکان لەم وەشاندایەدا ئامادەیە' : 'Downloads section active.')}
+            activeOpacity={0.85}
+          >
+            <View style={styles.statCardHeader}>
+              <Download size={18} color="#CC222F" />
+              <View style={styles.badgePlus}>
+                <Text style={styles.badgePlusText}>+</Text>
+              </View>
+            </View>
+            <Text style={styles.statLabel}>{language === 'ku' ? 'داگرتنەکان' : language === 'ar' ? 'التنزيلات' : 'Downloads'}</Text>
+            <Text style={styles.statCount}>12</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* ── ENTER CODE / PRO BANNER ─────────────────────────────── */}
+        <TouchableOpacity style={styles.proBanner} onPress={() => setShowUnlockModal(true)}>
+          <View style={[styles.proLeft, isRTL && { flexDirection: 'row-reverse' }]}>
             <View style={styles.crownIconCircle}>
-               <Key size={24} color="#E53935" />
+               <Key size={22} color="#CC222F" />
             </View>
             <View style={styles.proTextContainer}>
               <Text style={styles.proTitle}>
@@ -191,54 +243,79 @@ export default function ProfileScreen() {
                   : (language === 'ku' ? 'داخڵکردنی کۆد' : 'Enter Code')
                 }
               </Text>
-              <Text style={[styles.proSubtitle, { color: themeColors.textSecondary }]}>
+              <Text style={styles.proSubtitle}>
                 {isUnlocked 
-                  ? (language === 'ku' ? 'سەرجەم بەشەکانی ئەپەکە بە سەرکەوتوویی کراونەتەوە' : 'All app sections successfully unlocked') 
-                  : (language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکانی ئەپەکە' : 'Enter code to unlock all sections of the app')
+                  ? (language === 'ku' ? 'سەرجەم بەشەکان بە سەرکەوتوویی کراونەتەوە' : 'All app sections successfully unlocked') 
+                  : (language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکان' : 'Enter code to unlock all sections of the app')
                 }
               </Text>
             </View>
           </View>
-          {!isUnlocked && <ChevronRight size={24} color="#E53935" />}
+          <ChevronRight size={20} color="#CC222F" style={isRTL ? { transform: [{ rotate: '180deg' }] } : undefined} />
         </TouchableOpacity>
 
-        {/* Menu Items */}
+        {/* ── MENU OPTIONS LIST ────────────────────────────────────── */}
         <View style={styles.menuSection}>
           {renderMenuItem(
-            theme === 'dark' ? <Sun size={22} color="#fbbf24" /> : <Sun size={22} color="#fbbf24" />, 
-            theme === 'dark' ? t.lightMode : t.darkMode, 
-            <Switch 
-              value={theme === 'light'} 
-              onValueChange={() => toggleTheme()} 
-              trackColor={{ false: '#555', true: '#E53935' }}
-            />
+            <Bookmark size={20} color="rgba(255,255,255,0.85)" />,
+            language === 'ku' ? 'لیستی من' : language === 'ar' ? 'قائمتي' : 'My List',
+            undefined,
+            () => navigation.navigate('Watchlist' as never)
           )}
 
-          {renderMenuItem(<Languages size={22} color="#4ade80" />, t.language, 
-            <Text style={[styles.menuValueText, { color: themeColors.textSecondary }]}>{language.toUpperCase()}</Text>,
+          {renderMenuItem(
+            <Clock size={20} color="rgba(255,255,255,0.85)" />,
+            language === 'ku' ? 'بەردەوامبوون لە بینین' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'
+          )}
+
+          {renderMenuItem(
+            <Download size={20} color="rgba(255,255,255,0.85)" />,
+            language === 'ku' ? 'داگرتنەکان' : language === 'ar' ? 'التنزيلات' : 'Downloads'
+          )}
+
+          {renderMenuItem(
+            <User size={20} color="rgba(255,255,255,0.85)" />,
+            language === 'ku' ? 'ڕێکخستنەکانی هەژمار' : language === 'ar' ? 'إعدادات الحساب' : 'Account Settings',
+            undefined,
+            () => setShowNameModal(true)
+          )}
+
+          {renderMenuItem(
+            <Crown size={20} color="#FBBF24" />,
+            language === 'ku' ? 'ئابوونەبوون' : language === 'ar' ? 'الاشتراك' : 'Subscription',
+            undefined,
+            () => setShowProModal(true)
+          )}
+
+          {renderMenuItem(
+            <Languages size={20} color="rgba(255,255,255,0.85)" />,
+            language === 'ku' ? 'زمانی ئەپەکە' : language === 'ar' ? 'لغة التطبيق' : 'Language',
+            language.toUpperCase(),
             () => setShowLangModal(true)
           )}
 
-          
-          {renderMenuItem(<Bell size={22} color="#f87171" />, t.notifications)}
+          {renderMenuItem(
+            <HelpCircle size={20} color="rgba(255,255,255,0.85)" />,
+            language === 'ku' ? 'یارمەتی و پشتیوانی' : language === 'ar' ? 'المساعدة والدعم' : 'Help & Support'
+          )}
 
-          {renderMenuItem(<Download size={22} color="#d1d5db" />, t.downloads)}
-
-          {renderMenuItem(<Shield size={22} color="#94a3b8" />, t.privacyPolicy)}
-
-          {renderMenuItem(<ScrollText size={22} color="#94a3b8" />, t.termsConditions)}
+          {renderMenuItem(
+            <Info size={20} color="rgba(255,255,255,0.85)" />,
+            language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play',
+            `v${currentVersion}`
+          )}
         </View>
 
-        <View style={styles.menuSection}>
-          <Text style={[styles.sectionTitle, { color: themeColors.text }]}>Updates</Text>
-          <View style={[styles.updateCard, { backgroundColor: themeColors.surface }]}>
-            <View style={styles.updateHeader}>
-              <View style={styles.updateHeaderLeft}>
-                <Download size={20} color="#E53935" />
-                <Text style={[styles.updateTitle, { color: themeColors.text }]}>App Updates</Text>
+        {/* ── UPDATE CHECK CARD ─────────────────────────────────────── */}
+        <View style={[styles.menuSection, { marginTop: 10 }]}>
+          <View style={styles.updateCard}>
+            <View style={[styles.updateHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={[styles.updateHeaderLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Download size={18} color="#CC222F" />
+                <Text style={styles.updateTitle}>App Updates</Text>
               </View>
               {checkingUpdates ? (
-                <ActivityIndicator color="#E53935" />
+                <ActivityIndicator color="#CC222F" />
               ) : (
                 <TouchableOpacity onPress={refreshUpdateStatus}>
                   <Text style={styles.refreshText}>Check</Text>
@@ -246,166 +323,65 @@ export default function ProfileScreen() {
               )}
             </View>
 
-            <Text style={[styles.updateMeta, { color: themeColors.textSecondary }]}>
-              Current version: {currentVersion}
-            </Text>
+            <Text style={styles.updateMeta}>Current version: {currentVersion}</Text>
 
             {availableUpdate ? (
-              <>
-                <Text style={[styles.updateAvailableText, { color: themeColors.text }]}>
-                  New update available: {availableUpdate.version}
-                </Text>
-                {!!availableUpdate.releaseNotes && (
-                  <Text style={[styles.updateNotes, { color: themeColors.textSecondary }]}>
-                    {availableUpdate.releaseNotes}
-                  </Text>
+              <TouchableOpacity
+                style={[styles.updateActionButton, installingUpdate && { opacity: 0.7 }]}
+                onPress={handleInstallUpdate}
+                disabled={installingUpdate}
+              >
+                {installingUpdate ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.updateActionText}>New update available — Download</Text>
                 )}
-                <TouchableOpacity
-                  style={[styles.updateActionButton, installingUpdate && styles.updateActionButtonDisabled]}
-                  onPress={handleInstallUpdate}
-                  disabled={installingUpdate}
-                >
-                  {installingUpdate ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={styles.updateActionText}>New update available — Download</Text>
-                  )}
-                </TouchableOpacity>
-              </>
+              </TouchableOpacity>
             ) : (
-              <Text style={[styles.updateMeta, { color: themeColors.textSecondary }]}>
-                You are using the latest available version.
-              </Text>
+              <Text style={styles.updateMeta}>You are using the latest version.</Text>
             )}
           </View>
         </View>
 
       </ScrollView>
 
-      {/* Become a PRO Modal (Matching Web) */}
-      <Modal
-        visible={showProModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowProModal(false)}
-      >
-        <View style={styles.proModalOverlay}>
-          <View style={[styles.proModalContent, { backgroundColor: themeColors.surface }]}>
-            <View style={styles.proModalHeader}>
-              <View style={styles.proModalHeaderLeft}>
-                <Shield size={20} color="#E53935" />
-                <Text style={[styles.proModalTitle, { color: themeColors.text }]}>Become a PRO</Text>
-              </View>
-              <TouchableOpacity onPress={() => setShowProModal(false)}>
-                <X color={themeColors.textSecondary} size={24} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={styles.proMainBox}>
-                <View style={styles.proBrandBox}>
-                   <Text style={[styles.proBrandText, { fontWeight: '900' }]}>Taban Play PRO</Text>
-                </View>
-                
-                <Text style={[styles.proSubscribeTitle, { color: themeColors.text }]}>Subscribe to <Text style={{ color: '#E53935' }}>PRO</Text></Text>
-                <Text style={[styles.proSubscribeSubtitle, { color: themeColors.textSecondary }]}>Subscribe to PRO version and enjoy exclusive benefits listed below</Text>
-
-                <View style={styles.proWhyBox}>
-                  <Text style={[styles.proWhyTitle, { color: themeColors.text }]}>Why go with <Text style={{ color: '#E53935' }}>PRO</Text>?</Text>
-                  
-                  {[
-                    'Fully Ad free experience',
-                    'Access to all the premium tracks',
-                    'Technical support',
-                    'Cancel anytime'
-                  ].map((benefit, i) => (
-                    <View key={i} style={styles.proBenefitItem}>
-                      <CheckCircle2 size={18} color={themeColors.text} />
-                      <Text style={[styles.proBenefitText, { color: themeColors.textSecondary }]}>{benefit}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                <TouchableOpacity style={[styles.proPlanBox, { backgroundColor: themeColors.surfaceLight }]}>
-                  <View>
-                    <Text style={[styles.proPlanTitle, { color: themeColors.text }]}>Monthly</Text>
-                    <Text style={[styles.proPlanSubtitle, { color: themeColors.textSecondary }]}>Access to premium content & ad-free experience for month</Text>
-                  </View>
-                  <Text style={styles.proPlanPrice}>3,000 IQD</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.proPlanBox, styles.proPlanBoxActive, { backgroundColor: theme === 'light' ? '#ffebee' : 'rgba(255,255,255,0.02)' }]}>
-                  <View>
-                    <Text style={[styles.proPlanTitle, { color: themeColors.text }]}>Yearly</Text>
-                    <Text style={[styles.proPlanSubtitle, { color: themeColors.textSecondary }]}>Enjoy all premium features for a full year and best price</Text>
-                  </View>
-                  <Text style={styles.proPlanPrice}>30,000 IQD</Text>
-                </TouchableOpacity>
-
-                <Text style={[styles.proFootnote, { color: themeColors.textMuted }]}>
-                   After 3 day free trial, this subscription automatically renews as per the plan. Subscription will automatically renew unless cancelled within 24 hours before the end of the current period.
-                </Text>
-
-                <TouchableOpacity 
-                   style={styles.proSubscribeButton}
-                   onPress={() => {
-                     updateUser({ isPro: true });
-                     setShowProModal(false);
-                     Alert.alert('Success', 'Welcome to Taban Play PRO!');
-                   }}
-                >
-                  <Text style={styles.proSubscribeButtonText}>Subscribe (Enter Code)</Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
       {/* Edit Name Modal */}
-      <Modal
-        visible={showNameModal}
-        transparent
-        animationType="fade"
-      >
+      <Modal visible={showNameModal} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={() => setShowNameModal(false)}>
-          <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface }]}>
-            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>Edit User Name</Text>
+          <View style={styles.nameModalContent}>
+            <Text style={styles.nameModalTitle}>{language === 'ku' ? 'دەستکاری ناو' : 'Edit User Name'}</Text>
             <TextInput
-              style={[styles.nameInput, { color: themeColors.text, backgroundColor: themeColors.surfaceLight, borderColor: themeColors.textMuted }]}
+              style={styles.nameInput}
               value={newName}
               onChangeText={setNewName}
-              placeholder="Enter your name"
-              placeholderTextColor={themeColors.textSecondary}
+              placeholder="Enter name..."
+              placeholderTextColor="rgba(255,255,255,0.4)"
               autoFocus
             />
             <View style={styles.nameModalActions}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowNameModal(false)}>
-                <Text style={styles.cancelBtnText}>Cancel</Text>
+                <Text style={styles.cancelBtnText}>{t.cancel}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.saveBtn} onPress={handleUpdateName}>
-                <Text style={styles.saveBtnText}>Save Changes</Text>
+                <Text style={styles.saveBtnText}>{language === 'ku' ? 'پاشەکەوتکردن' : 'Save'}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </Pressable>
       </Modal>
+
       {/* Language Modal */}
-      <Modal
-        visible={showLangModal}
-        transparent
-        animationType="fade"
-      >
+      <Modal visible={showLangModal} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={() => setShowLangModal(false)}>
-          <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface }]}>
-            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>{t.language}</Text>
+          <View style={styles.nameModalContent}>
+            <Text style={styles.nameModalTitle}>{t.language}</Text>
             
             <TouchableOpacity 
               style={[styles.langOption, language === 'ku' && styles.langOptionActive]} 
               onPress={() => { setLanguage('ku'); setShowLangModal(false); }}
             >
               <Text style={styles.langFlag}>☀️</Text>
-              <Text style={[styles.langText, { color: themeColors.text }]}>Kurdish (کوردی)</Text>
+              <Text style={styles.langText}>Kurdish (کوردی)</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -413,7 +389,7 @@ export default function ProfileScreen() {
               onPress={() => { setLanguage('ar'); setShowLangModal(false); }}
             >
               <Text style={styles.langFlag}>🇮🇶</Text>
-              <Text style={[styles.langText, { color: themeColors.text }]}>Arabic (عربي)</Text>
+              <Text style={styles.langText}>Arabic (عربي)</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -421,10 +397,10 @@ export default function ProfileScreen() {
               onPress={() => { setLanguage('en'); setShowLangModal(false); }}
             >
               <Text style={styles.langFlag}>🇬🇧</Text>
-              <Text style={[styles.langText, { color: themeColors.text }]}>English</Text>
+              <Text style={styles.langText}>English</Text>
             </TouchableOpacity>
 
-            <View style={[styles.nameModalActions, { marginTop: 20 }]}>
+            <View style={[styles.nameModalActions, { marginTop: 16 }]}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowLangModal(false)}>
                 <Text style={styles.cancelBtnText}>{t.cancel}</Text>
               </TouchableOpacity>
@@ -433,56 +409,22 @@ export default function ProfileScreen() {
         </Pressable>
       </Modal>
 
-      {/* Admin Code Modal */}
-      <Modal
-        visible={showAdminModal}
-        transparent
-        animationType="fade"
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setShowAdminModal(false)}>
-          <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface }]}>
-            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>Admin Access</Text>
-            <Text style={{ color: themeColors.textSecondary, marginBottom: 15 }}>Please enter the admin security code.</Text>
-            <TextInput
-              style={[styles.nameInput, { color: themeColors.text, backgroundColor: themeColors.surfaceLight, borderColor: themeColors.textMuted }]}
-              value={adminCode}
-              onChangeText={setAdminCode}
-              placeholder="Enter code..."
-              placeholderTextColor={themeColors.textSecondary}
-              secureTextEntry
-              autoFocus
-            />
-            <View style={styles.nameModalActions}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowAdminModal(false)}>
-                <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.saveBtn} onPress={handleAdminSubmit}>
-                <Text style={styles.saveBtnText}>Enter</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Pressable>
-      </Modal>
-      {/* Unlock App Modal */}
-      <Modal
-        visible={showUnlockModal}
-        transparent
-        animationType="fade"
-      >
+      {/* Unlock Code Modal */}
+      <Modal visible={showUnlockModal} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={() => setShowUnlockModal(false)}>
-          <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface }]}>
-            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>
+          <View style={styles.nameModalContent}>
+            <Text style={styles.nameModalTitle}>
               {language === 'ku' ? 'داخڵکردنی کۆد' : 'Enter Code'}
             </Text>
-            <Text style={{ color: themeColors.textSecondary, marginBottom: 15 }}>
-              {language === 'ku' ? 'کۆدی چالاککردنی ئەپەکە بنووسە:' : 'Please enter the app activation code:'}
+            <Text style={{ color: 'rgba(255,255,255,0.6)', marginBottom: 15 }}>
+              {language === 'ku' ? 'کۆدی چالاککردنی ئەپەکە بنووسە:' : 'Please enter activation code:'}
             </Text>
             <TextInput
-              style={[styles.nameInput, { color: themeColors.text, backgroundColor: themeColors.surfaceLight, borderColor: themeColors.textMuted }]}
+              style={styles.nameInput}
               value={unlockCode}
               onChangeText={setUnlockCode}
               placeholder="Code..."
-              placeholderTextColor={themeColors.textSecondary}
+              placeholderTextColor="rgba(255,255,255,0.4)"
               autoFocus
               autoCapitalize="none"
             />
@@ -504,85 +446,145 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: 110,
+    paddingTop: 12,
   },
-  avatarSection: {
+
+  // Top Header Row
+  headerRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 40,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginBottom: 20,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
   },
   avatarWrapper: {
     position: 'relative',
     padding: 2,
-    borderRadius: 60,
+    borderRadius: 32,
     borderWidth: 2,
-    borderColor: '#E53935',
+    borderColor: '#CC222F',
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: '#181924',
   },
   cameraButton: {
     position: 'absolute',
-    bottom: -5,
-    right: -5,
-    backgroundColor: '#E53935',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 3,
-    borderColor: '#0a0a0a',
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#CC222F',
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: '#0F0F13',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  nameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
+  userTextCol: {
+    justifyContent: 'center',
   },
-  userName: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
+  greetingText: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: -0.3,
   },
-  proBadgeMini: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(251, 191, 36, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginTop: 8,
-    gap: 4,
+  editProfileLink: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2,
   },
-  proBadgeMiniText: {
-    color: '#fbbf24',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  proBanner: {
-    marginHorizontal: SPACING.md,
-    backgroundColor: 'rgba(229, 57, 51, 0.15)',
+  settingsIconBtn: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    padding: 20,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // 3 Stats Grid
+  statsGrid: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    gap: 10,
+    marginBottom: 20,
+  },
+  statCard: {
+    backgroundColor: '#161722',
+    borderRadius: 18,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  statCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 30,
+    marginBottom: 12,
+  },
+  badgePlus: {
+    backgroundColor: 'rgba(204,34,47,0.15)',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgePlusText: {
+    color: '#CC222F',
+    fontSize: 12,
+    fontWeight: '900',
+    marginTop: -2,
+  },
+  statLabel: {
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  statCount: {
+    color: '#ffffff',
+    fontSize: 22,
+    fontWeight: '900',
+  },
+
+  // Pro Banner
+  proBanner: {
+    marginHorizontal: 16,
+    backgroundColor: 'rgba(204, 34, 47, 0.12)',
+    borderRadius: 18,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(229, 57, 51, 0.1)',
+    borderColor: 'rgba(204, 34, 47, 0.3)',
   },
   proLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 14,
+    flex: 1,
   },
   crownIconCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(204, 34, 47, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -590,325 +592,182 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   proTitle: {
-    color: '#E53935',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: '#CC222F',
+    fontSize: 16,
+    fontWeight: '800',
   },
   proSubtitle: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 12,
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 11,
     marginTop: 2,
   },
+
+  // Menu List
   menuSection: {
-    paddingHorizontal: SPACING.md,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginBottom: 14,
-    marginTop: 8,
+    paddingHorizontal: 16,
+    gap: 8,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#111',
-    marginBottom: 10,
-    padding: 18,
+    backgroundColor: '#161722',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   menuLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: 14,
+  },
+  menuIconBox: {
+    width: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   menuTitle: {
-    color: '#DDD',
-    fontSize: 16,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  menuSubtitle: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 11,
+    marginTop: 2,
   },
   menuRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
   },
-  menuValueText: {
-    color: '#555',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
+
+  // Update card
   updateCard: {
+    backgroundColor: '#161722',
     borderRadius: 16,
-    padding: 18,
-    marginBottom: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   updateHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   updateHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   updateTitle: {
-    fontSize: 16,
+    color: '#fff',
+    fontSize: 15,
     fontWeight: '700',
   },
   updateMeta: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  updateAvailableText: {
-    fontSize: 15,
-    fontWeight: '700',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  updateNotes: {
-    fontSize: 13,
-    lineHeight: 20,
-    marginBottom: 14,
+    color: 'rgba(255,255,255,0.5)',
+    fontSize: 12,
   },
   refreshText: {
-    color: '#E53935',
+    color: '#CC222F',
     fontWeight: '700',
-    fontSize: 14,
+    fontSize: 13,
   },
   updateActionButton: {
-    marginTop: 8,
-    backgroundColor: '#E53935',
+    marginTop: 10,
+    backgroundColor: '#CC222F',
     borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  updateActionButtonDisabled: {
-    opacity: 0.7,
   },
   updateActionText: {
     color: '#fff',
     fontWeight: '800',
-    fontSize: 14,
-    textAlign: 'center',
+    fontSize: 13,
   },
 
-  // Pro Modal Styles
-  proModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'flex-end',
-  },
-  proModalContent: {
-    backgroundColor: '#16161D',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    height: '92%',
-  },
-  proModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.05)',
-  },
-  proModalHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  proModalTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  proMainBox: {
-    padding: 24,
-    alignItems: 'center',
-  },
-  proBrandBox: {
-    backgroundColor: '#E53935',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    marginBottom: 24,
-  },
-  proBrandText: {
-    color: 'white',
-    fontSize: 24,
-    letterSpacing: 2,
-  },
-  proSubscribeTitle: {
-    color: 'white',
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  proSubscribeSubtitle: {
-    color: '#888',
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: 20,
-    marginBottom: 30,
-  },
-  proWhyBox: {
-    width: '100%',
-    marginBottom: 30,
-  },
-  proWhyTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  proBenefitItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 15,
-  },
-  proBenefitText: {
-    color: '#BBB',
-    fontSize: 15,
-  },
-  proPlanBox: {
-    width: '100%',
-    backgroundColor: '#222',
-    padding: 20,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  proPlanBoxActive: {
-    borderColor: 'rgba(229,57,53,0.5)',
-    backgroundColor: 'rgba(255,255,255,0.02)',
-  },
-  proPlanTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  proPlanSubtitle: {
-    color: '#666',
-    fontSize: 11,
-    marginTop: 4,
-    maxWidth: '70%',
-  },
-  proPlanPrice: {
-    color: '#E53935',
-    fontSize: 18,
-    fontWeight: '900',
-  },
-  proFootnote: {
-    color: '#555',
-    fontSize: 11,
-    textAlign: 'center',
-    lineHeight: 16,
-    marginTop: 10,
-    marginBottom: 30,
-  },
-  proSubscribeButton: {
-    width: '100%',
-    backgroundColor: '#E53935',
-    height: 60,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  proSubscribeButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-
-  // Name Modal
+  // Modals
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(0,0,0,0.75)',
     justifyContent: 'center',
-    alignItems: 'center',
+    padding: 20,
   },
   nameModalContent: {
-    backgroundColor: '#1A1A22',
-    width: '85%',
-    padding: 24,
-    borderRadius: 24,
+    backgroundColor: '#161722',
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   nameModalTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 14,
   },
   nameInput: {
-    backgroundColor: '#111',
-    color: 'white',
-    height: 56,
+    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: '#fff',
+    fontSize: 14,
     borderWidth: 1,
-    borderColor: '#333',
-    marginBottom: 24,
+    borderColor: 'rgba(255,255,255,0.1)',
+    marginBottom: 16,
   },
   nameModalActions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
   cancelBtn: {
     flex: 1,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingVertical: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 12,
+    alignItems: 'center',
   },
   cancelBtnText: {
-    color: '#888',
-    fontSize: 15,
-    fontWeight: '600',
+    color: 'rgba(255,255,255,0.7)',
+    fontWeight: '700',
   },
   saveBtn: {
-    flex: 2,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#E53935',
+    flex: 1,
+    paddingVertical: 12,
+    backgroundColor: '#CC222F',
     borderRadius: 12,
+    alignItems: 'center',
   },
   saveBtnText: {
-    color: 'white',
-    fontSize: 15,
-    fontWeight: 'bold',
+    color: '#fff',
+    fontWeight: '800',
   },
   langOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     marginBottom: 8,
-    backgroundColor: 'rgba(255,255,255,0.05)',
   },
   langOptionActive: {
-    backgroundColor: 'rgba(229, 57, 53, 0.2)',
+    backgroundColor: 'rgba(204,34,47,0.18)',
     borderWidth: 1,
-    borderColor: '#E53935',
+    borderColor: 'rgba(204,34,47,0.5)',
   },
   langFlag: {
-    fontSize: 24,
-    marginRight: 12,
+    fontSize: 20,
   },
   langText: {
-    fontSize: 16,
-    fontWeight: '500',
-  }
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
 });
