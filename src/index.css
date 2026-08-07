@@ -83,7 +83,21 @@ body.light-mode,
   border-color: #e2e8f0 !important;
 }
 
-/* 2. TEXT CONTRAST IN LIGHT MODE (MAKE ALL TEXT DARK & READABLE) */
+/* 2. INPUT BOXES IN LIGHT MODE (CRITICAL FIX FOR INVISIBLE TYPED TEXT) */
+.light-mode input,
+.light-mode textarea,
+.light-mode select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light-mode input::placeholder,
+.light-mode textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* 3. TEXT CONTRAST IN LIGHT MODE (MAKE ALL TEXT DARK & READABLE) */
 .light-mode h1, 
 .light-mode h2, 
 .light-mode h3, 
@@ -117,7 +131,7 @@ body.light-mode,
   color: #1e293b !important;
 }
 
-/* 3. BOTTOM NAVIGATION BAR IN LIGHT MODE */
+/* 4. BOTTOM NAVIGATION BAR IN LIGHT MODE */
 .light-mode .fixed.bottom-0,
 .light-mode nav.fixed {
   background-color: #ffffff !important;
@@ -139,7 +153,7 @@ body.light-mode,
   fill: #CC222F !important;
 }
 
-/* 4. POPUP MODALS IN LIGHT MODE */
+/* 5. POPUP MODALS IN LIGHT MODE */
 .light-mode .fixed.inset-0 {
   background-color: rgba(0, 0, 0, 0.6) !important;
 }
@@ -163,18 +177,7 @@ body.light-mode,
   color: #0f172a !important;
 }
 
-.light-mode .fixed.inset-0 input,
-.light-mode .fixed.inset-0 textarea {
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
-}
-
-.light-mode .fixed.inset-0 input::placeholder {
-  color: #94a3b8 !important;
-}
-
-/* 5. EXCEPTIONS: TEXT ON RED/BLUE BUTTONS & POSTER OVERLAYS REMAIN WHITE */
+/* 6. EXCEPTIONS: TEXT ON RED/BLUE BUTTONS & POSTER OVERLAYS REMAIN WHITE */
 .light-mode .bg-\[\#CC222F\],
 .light-mode .bg-\[\#CC222F\] *,
 .light-mode .bg-red-600,

@@ -553,18 +553,18 @@ export default function LiveTV() {
 
       {/* ── SEARCH BAR ── */}
       {isSearchOpen && (
-        <div className="px-4 sm:px-6 py-3 border-b border-white/5">
-          <div className="flex items-center gap-3 bg-white/7 border border-white/8 rounded-2xl px-4 h-11">
-            <Search size={16} className="text-white/40 shrink-0" />
+        <div className="px-4 sm:px-6 py-3 border-b border-white/5 light-mode:border-neutral-200">
+          <div className="flex items-center gap-3 bg-white/7 light-mode:bg-white border border-white/8 light-mode:border-neutral-300 rounded-2xl px-4 h-11">
+            <Search size={16} className="text-white/40 light-mode:text-neutral-500 shrink-0" />
             <input
               type="text"
               autoFocus
               placeholder={t.searchChannels}
-              className="flex-1 bg-transparent text-white placeholder-white/35 text-[15px] outline-none"
+              className="flex-1 bg-transparent text-white light-mode:text-black placeholder-white/35 light-mode:placeholder-neutral-500 text-[15px] outline-none"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            {searchQuery && <button onClick={() => setSearchQuery('')}><X size={16} className="text-white/40" /></button>}
+            {searchQuery && <button onClick={() => setSearchQuery('')}><X size={16} className="text-white/40 light-mode:text-neutral-500" /></button>}
           </div>
         </div>
       )}
