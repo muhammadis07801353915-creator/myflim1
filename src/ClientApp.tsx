@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Home from './components/Home';
 import Search from './components/Search';
 import LiveTV from './components/LiveTV';
+import Posts from './components/Posts';
 import Watchlist from './components/Watchlist';
 import Profile from './components/Profile';
 import Detail from './components/Detail';
@@ -139,6 +140,9 @@ export default function ClientApp() {
               </div>
               <div className={currentTab === 'livetv' ? 'block' : 'hidden'}>
                 <LiveTV />
+              </div>
+              <div className={currentTab === 'posts' ? 'block' : 'hidden'}>
+                <Posts />
               </div>
               <div className={currentTab === 'watchlist' ? 'block' : 'hidden'}>
                 <Watchlist onSelect={handleSelectItem} />
