@@ -132,26 +132,42 @@ export default function Profile() {
     }
   };
 
-  // Fetch & listen to Live Chat Messages
+  // Fetch & sync persistent Live Chat Messages
   useEffect(() => {
-    if (!showChatModal || !userAccount) return;
+    if (!userAccount) return;
+
+    const storageKey = `myfilm_chat_history_${userAccount.id}`;
 
     const fetchChatMessages = async () => {
       try {
         let msgs: ChatMessage[] = [];
 
-        // Source 1: support_messages
-        const { data, error } = await supabase
+        // 1. Load local persistent cache first
+        try {
+          const cached = localStorage.getItem(storageKey);
+          if (cached) {
+            msgs = JSON.parse(cached);
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+
+        // 2. Fetch from Supabase support_messages
+        const { data } = await supabase
           .from('support_messages')
           .select('*')
           .eq('user_id', userAccount.id)
           .order('created_at', { ascending: true });
 
-        if (!error && data) {
-          msgs = data as ChatMessage[];
+        if (data && data.length > 0) {
+          data.forEach((m: any) => {
+            if (!msgs.some(x => x.message === m.message && x.created_at === m.created_at)) {
+              msgs.push(m as ChatMessage);
+            }
+          });
         }
 
-        // Source 2: fallback reports table
+        // 3. Fetch from Supabase reports fallback
         const { data: repData } = await supabase
           .from('reports')
           .select('*')
@@ -173,6 +189,7 @@ export default function Profile() {
 
         msgs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         setChatMessages(msgs);
+        localStorage.setItem(storageKey, JSON.stringify(msgs));
       } catch (e) {
         console.warn(e);
       }
@@ -189,8 +206,10 @@ export default function Profile() {
         (payload) => {
           const newMsg = payload.new as ChatMessage;
           setChatMessages((prev) => {
-            if (prev.some(m => m.id === newMsg.id)) return prev;
-            return [...prev, newMsg];
+            if (prev.some(m => m.id === newMsg.id || (m.message === newMsg.message && m.created_at === newMsg.created_at))) return prev;
+            const updated = [...prev, newMsg];
+            localStorage.setItem(storageKey, JSON.stringify(updated));
+            return updated;
           });
         }
       )
@@ -229,20 +248,27 @@ export default function Profile() {
       created_at: new Date().toISOString()
     };
 
-    // Optimistic UI insert
-    const tempId = 'temp_' + Date.now();
-    setChatMessages((prev) => [...prev, { id: tempId, ...newMsgObj }]);
+    const tempId = 'msg_' + Date.now();
+    const fullMsgObj: ChatMessage = { id: tempId, ...newMsgObj };
+
+    // Update local state and persistent localStorage immediately
+    const storageKey = `myfilm_chat_history_${userAccount.id}`;
+    setChatMessages((prev) => {
+      const updated = [...prev, fullMsgObj];
+      localStorage.setItem(storageKey, JSON.stringify(updated));
+      return updated;
+    });
 
     try {
+      // Dual-pathway insert into Supabase to guarantee arrival at Admin Panel
       const { error } = await supabase.from('support_messages').insert([newMsgObj]);
-      if (error) {
-        // Fallback insert into reports table
-        await supabase.from('reports').insert([{
-          movie_id: 'support_chat',
-          reason: JSON.stringify(newMsgObj),
-          created_at: new Date().toISOString()
-        }]);
-      }
+      
+      // Secondary fallback insert into reports table
+      await supabase.from('reports').insert([{
+        movie_id: 'support_chat',
+        reason: JSON.stringify(newMsgObj),
+        created_at: new Date().toISOString()
+      }]);
     } catch (err) {
       console.error(err);
     } finally {
@@ -369,7 +395,7 @@ export default function Profile() {
               }} 
               className="text-xs font-semibold text-[#CC222F] hover:underline transition flex items-center gap-1 mt-0.5"
             >
-              <span>{userAccount ? (language === 'ku' ? 'دەستکاری پرۆفایل >' : 'Edit Profile >') : (language === 'ku' ? 'دروستکردنی ئەکاونت / داخڵکردنی کۆد >' : 'Register Account / Code >')}</span>
+              <span>{userAccount ? (language === 'ku' ? 'دەستکاری پرۆفایل >' : 'Edit Profile >') : (language === 'ku' ? 'دروستکردنی ئەکاونت / چوونە ژوورەوە >' : 'Register Account / Login >')}</span>
             </button>
           </div>
         </div>
@@ -420,32 +446,28 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* ── ENTER CODE / PRO BANNER ─────────────────────────────────── */}
-      <div 
-        onClick={() => setShowAuthModal(true)}
-        className="mb-6 p-4 rounded-2xl bg-[#CC222F]/10 light-mode:bg-red-50 border border-[#CC222F]/30 light-mode:border-red-200 flex items-center justify-between cursor-pointer hover:bg-[#CC222F]/15 transition group"
-      >
-        <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
-          <div className="w-11 h-11 rounded-full bg-[#CC222F]/20 flex items-center justify-center text-[#CC222F]">
-            <Key size={22} />
+      {/* ── ENTER CODE / PRO BANNER (SHOWN ONLY WHEN NOT LOGGED IN) ────── */}
+      {!userAccount && (
+        <div 
+          onClick={() => setShowAuthModal(true)}
+          className="mb-6 p-4 rounded-2xl bg-[#CC222F]/10 light-mode:bg-red-50 border border-[#CC222F]/30 light-mode:border-red-200 flex items-center justify-between cursor-pointer hover:bg-[#CC222F]/15 transition group"
+        >
+          <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
+            <div className="w-11 h-11 rounded-full bg-[#CC222F]/20 flex items-center justify-center text-[#CC222F]">
+              <Key size={22} />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-sm text-[#CC222F]">
+                {language === 'ku' ? 'داخڵکردنی کۆد (Taban Play1)' : 'Enter Code (Taban Play1)'}
+              </h3>
+              <p className="text-xs text-white/50 light-mode:text-neutral-600 mt-0.5">
+                {language === 'ku' ? 'کۆدەکە بنووسە یان چوونە ژوورەوە بکە بۆ دروستکردنی ئەکاونت' : 'Enter code or log in to create account'}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-extrabold text-sm text-[#CC222F]">
-              {userAccount 
-                ? (language === 'ku' ? `کۆد چالاککراوە: Taban Play1 (${userAccount.name})` : `Activated: Taban Play1 (${userAccount.name})`) 
-                : (language === 'ku' ? 'داخڵکردنی کۆد (Taban Play1)' : 'Enter Code (Taban Play1)')
-              }
-            </h3>
-            <p className="text-xs text-white/50 light-mode:text-neutral-600 mt-0.5">
-              {userAccount 
-                ? (language === 'ku' ? 'سەرجەم بەشەکان بە سەرکەوتوویی کراونەتەوە' : 'All app sections successfully unlocked') 
-                : (language === 'ku' ? 'کۆدەکە بنووسە یان چوونە ژوورەوە بکە بۆ ڕاستەوخۆ دەستکاریکردنی سەرجەم بەشەکان' : 'Enter code or log in to unlock all features')
-              }
-            </p>
-          </div>
+          <ChevronRight size={18} className="text-[#CC222F] rtl:rotate-180 group-hover:translate-x-1 transition-transform" />
         </div>
-        <ChevronRight size={18} className="text-[#CC222F] rtl:rotate-180 group-hover:translate-x-1 transition-transform" />
-      </div>
+      )}
 
       {/* ── MENU OPTIONS LIST ────────────────────────────────────────── */}
       <div className="space-y-2.5">
