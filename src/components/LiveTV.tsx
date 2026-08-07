@@ -964,12 +964,14 @@ export default function LiveTV() {
             {/* All Channels by Category */}
             {categoriesToRender.length === 0 ? (
               <div className="text-center text-white/30 py-10">{t.noChannels}</div>
-            ) : categoriesToRender.map((catObj) => {
-              const category = typeof catObj === 'string' ? catObj : catObj.name;
-              const categoryChannels = channelsByCategory[category] || [];
+            ) : categoriesToRender.map((catObj: any, catIdx: number) => {
+              if (!catObj) return null;
+              const category = typeof catObj === 'string' ? catObj : (catObj?.name || '');
+              if (!category) return null;
+              const categoryChannels = (channelsByCategory[category] || []).filter(Boolean);
               if (categoryChannels.length === 0) return null;
               return (
-                <section key={category} className="space-y-3">
+                <section key={catObj?.id || category || catIdx} className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h2 className="text-[18px] font-black tracking-tight">{getLocalized(catObj, 'name', language) || category}</h2>
                     {categoryChannels.length > 6 && (
@@ -978,17 +980,17 @@ export default function LiveTV() {
                   </div>
                   <div className="space-y-1">
                     {categoryChannels.slice(0, 6).map(channel => (
-                      <div key={channel.id} onClick={() => handleChannelSelect(channel)}
+                      <div key={channel.id || Math.random()} onClick={() => handleChannelSelect(channel)}
                         className="flex items-center gap-4 py-3 border-b border-white/5 cursor-pointer group hover:bg-white/2 rounded-xl px-2 -mx-2 transition">
                         <div className="w-16 h-16 relative rounded-2xl bg-[#14151c] border border-white/8 overflow-hidden flex items-center justify-center shrink-0">
-                          {channel.image
-                            ? <Image src={channel.image} alt={channel.name} fill sizes="64px" className="object-contain p-1.5" unoptimized />
-                            : <span className="text-white font-bold text-lg">{channel.name[0]}</span>}
+                          {channel?.image
+                            ? <Image src={channel.image} alt={channel?.name || ''} fill sizes="64px" className="object-contain p-1.5" unoptimized />
+                            : <span className="text-white font-bold text-lg">{(channel?.name || '?')[0]}</span>}
                           <div className="absolute bottom-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0a0a0f]" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-bold text-[16px] truncate group-hover:text-[#CC222F] transition-colors">{channel.name}</p>
-                          <p className="text-[13px] text-white/40 mt-0.5">{channel.category}</p>
+                          <p className="font-bold text-[16px] truncate group-hover:text-[#CC222F] transition-colors">{channel?.name}</p>
+                          <p className="text-[13px] text-white/40 mt-0.5">{channel?.category}</p>
                         </div>
                         <div className="w-10 h-10 rounded-full bg-[#CC222F] flex items-center justify-center shrink-0 shadow-lg shadow-red-600/25 group-hover:scale-110 transition-transform">
                           <Play size={16} className="fill-white text-white ml-0.5" />
