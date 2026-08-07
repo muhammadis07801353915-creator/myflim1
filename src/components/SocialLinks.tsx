@@ -43,7 +43,6 @@ export function FloatingSocialButton() {
         className="fixed bottom-24 right-6 w-14 h-14 bg-[#24A1DE] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-95 transition-transform z-[100] shadow-blue-500/20"
       >
         <Send size={28} fill="white" className="-rotate-12 ml-[-2px] mt-[-2px]" />
-        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-[#1A1D24] animate-pulse"></span>
       </button>
 
       <AnimatePresence>
