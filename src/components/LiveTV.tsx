@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronDown, CheckCircle2, ArrowLeft, Search, X, Users, Play, Tv, ChevronLeft, ChevronRight, ExternalLink, Menu, Globe } from 'lucide-react';
+import { ChevronDown, CheckCircle2, ArrowLeft, Search, X, Users, Play, Tv, ChevronLeft, ChevronRight, ExternalLink, Menu, Globe, Sparkles, Crown } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { liveCategories } from '../data/mockData';
@@ -88,8 +88,17 @@ export default function LiveTV() {
 
   // Apply country filter to channels
   const countryFilteredChannels = selectedCountry
-    ? channels.filter(c => c.country === selectedCountry)
+    ? (selectedCountry === 'Taban Play VIP'
+        ? channels.filter(c => c.country === 'Taban Play VIP' || c.category === 'Taban Play VIP' || c.is_pro === true)
+        : channels.filter(c => c.country === selectedCountry))
     : channels;
+
+  // Dedicated Taban Play VIP channels list
+  const vipChannels = channels.filter(c => 
+    c.country === 'Taban Play VIP' || 
+    c.category === 'Taban Play VIP' || 
+    c.is_pro === true
+  );
 
   // Group channels by category (country-filtered)
   const channelsByCategory = countryFilteredChannels.reduce((acc, channel) => {
@@ -407,10 +416,15 @@ export default function LiveTV() {
 
   if (viewAllCategory) {
     const isMostWatched = viewAllCategory === 'Most Watched' || viewAllCategory === 'زۆرترین بیندراو' || viewAllCategory === 'الأكثر مشاهدة';
-    const categoryChannels = isMostWatched ? mostWatchedChannels : (channelsByCategory[viewAllCategory] || []);
+    const isVip = viewAllCategory === 'Taban Play VIP' || viewAllCategory === 'تابان پڵەی VIP';
+    const categoryChannels = isMostWatched 
+      ? mostWatchedChannels 
+      : (isVip ? vipChannels : (channelsByCategory[viewAllCategory] || []));
     const pageTitle = isMostWatched
       ? (language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched')
-      : (getLocalized(viewAllCategory, 'name', language) || viewAllCategory);
+      : (isVip 
+          ? (language === 'ku' ? 'تابان پڵەی VIP' : language === 'ar' ? 'تابان بلاي VIP' : 'Taban Play VIP')
+          : (getLocalized(viewAllCategory, 'name', language) || viewAllCategory));
 
     return (
       <div className="bg-[#1A1D24] light-mode:bg-gray-50 min-h-screen text-white light-mode:text-black pb-24 font-sans">
@@ -589,6 +603,26 @@ export default function LiveTV() {
                 </button>
               )}
 
+              {/* ── TABAN PLAY VIP COUNTRY BUTTON (POSITIONED ABOVE KURDISTAN REGION) ── */}
+              {(!countrySearchQuery.trim() || 'taban play vip'.includes(countrySearchQuery.toLowerCase()) || 'تابان پڵەی vip'.includes(countrySearchQuery.toLowerCase())) && (
+                <button
+                  onClick={() => { setSelectedCountry('Taban Play VIP'); setIsCountryDrawerOpen(false); setCountrySearchQuery(''); }}
+                  className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl mb-3 transition text-left ${
+                    selectedCountry === 'Taban Play VIP'
+                      ? 'bg-gradient-to-r from-amber-500/30 to-yellow-500/20 border border-amber-400/60 text-amber-300 font-black shadow-lg shadow-amber-500/20'
+                      : 'bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-600/15 border border-amber-400/30 text-amber-300 hover:bg-amber-500/25 font-black'
+                  }`}
+                >
+                  <div className="w-14 h-9.5 rounded-lg overflow-hidden bg-gradient-to-r from-amber-500 to-yellow-400 shrink-0 border border-amber-300/50 flex items-center justify-center shadow-md">
+                    <Sparkles size={20} className="text-black fill-black" />
+                  </div>
+                  <span className="text-[17px] font-black text-amber-300 tracking-tight flex-1 text-right" dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}>
+                    {language === 'ku' ? 'تابان پڵەی VIP' : language === 'ar' ? 'تابان بلاي VIP' : 'Taban Play VIP'}
+                  </span>
+                  {selectedCountry === 'Taban Play VIP' && <CheckCircle2 size={20} className="text-amber-400 shrink-0" />}
+                </button>
+              )}
+
               {/* Country items */}
               <div className="grid grid-cols-1 gap-2.5 pb-8">
                 {filteredCountries.map((c: any) => {
@@ -740,6 +774,54 @@ export default function LiveTV() {
                       {/* Bottom Name Gradient Overlay */}
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 pt-6 flex flex-col justify-end z-10">
                         <p className="text-[12px] font-bold text-white truncate text-center group-hover:text-[#CC222F] transition-colors">{channel.name}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ── TABAN PLAY VIP CHANNELS SECTION (BELOW MOST WATCHED / NEWS) ── */}
+            {vipChannels.length > 0 && (!selectedCategory || selectedCategory === 'All') && (
+              <section className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-black font-black shadow-md shadow-amber-500/20">
+                      <Sparkles size={16} className="fill-black" />
+                    </div>
+                    <h2 className="text-[18px] font-black tracking-tight text-amber-400">
+                      {language === 'ku' ? 'تابان پڵەی VIP' : language === 'ar' ? 'تابان بلاي VIP' : 'Taban Play VIP'}
+                    </h2>
+                  </div>
+                  {vipChannels.length > 6 && (
+                    <button 
+                      onClick={() => setViewAllCategory('Taban Play VIP')} 
+                      className="text-amber-400 text-sm font-bold hover:text-amber-300 transition"
+                    >
+                      {language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All'}
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  {vipChannels.slice(0, 6).map(channel => (
+                    <div key={channel.id} onClick={() => handleChannelSelect(channel)}
+                      className="flex items-center gap-4 py-3 border-b border-amber-500/10 cursor-pointer group hover:bg-amber-500/5 rounded-xl px-2 -mx-2 transition">
+                      <div className="w-16 h-16 relative rounded-2xl bg-[#14151c] border border-amber-500/30 overflow-hidden flex items-center justify-center shrink-0">
+                        {channel.image
+                          ? <Image src={channel.image} alt={channel.name} fill sizes="64px" className="object-contain p-1.5" unoptimized />
+                          : <span className="text-white font-bold text-lg">{channel.name[0]}</span>}
+                        <div className="absolute bottom-1 right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-[#0a0a0f]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-[16px] truncate group-hover:text-amber-400 transition-colors text-white">{channel.name}</p>
+                          <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 text-[10px] font-extrabold border border-amber-500/30">VIP</span>
+                        </div>
+                        <p className="text-[13px] text-white/40 mt-0.5">{channel.category}</p>
+                      </div>
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-500 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
+                        <Play size={16} className="fill-black text-black ml-0.5" />
                       </div>
                     </div>
                   ))}

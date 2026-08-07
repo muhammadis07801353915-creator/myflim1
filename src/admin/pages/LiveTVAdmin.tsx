@@ -225,6 +225,7 @@ export default function LiveTVAdmin() {
                 className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition font-medium"
               >
                 <option value="">— No Country / بێ وڵات —</option>
+                <option value="Taban Play VIP">⭐ تابان پڵەی VIP (Taban Play VIP)</option>
                 {countries.map(c => {
                   const val = c.name_en || c.name_ku || c.name;
                   const label = c.name_ku && c.name_en ? `${c.name_ku} — ${c.name_en}` : (c.name_ku || c.name_en || c.name);
