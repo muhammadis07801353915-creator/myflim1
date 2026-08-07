@@ -163,7 +163,13 @@ export default function Profile() {
           try {
             const parsed = JSON.parse(setRes.value);
             if (Array.isArray(parsed)) {
-              const userFiltered = parsed.filter((m: any) => m.user_id === userAccount.id);
+              // Match by user_id (real ID) OR user_id === username OR user_name === username
+              // This catches admin replies where user_id is set to the username string
+              const userFiltered = parsed.filter((m: any) =>
+                m.user_id === userAccount.id ||
+                m.user_id === userAccount.name ||
+                m.user_name === userAccount.name
+              );
               userFiltered.forEach((m: any) => {
                 if (!msgs.some(x => x.message === m.message && x.created_at === m.created_at)) {
                   msgs.push(m as ChatMessage);
@@ -200,6 +206,11 @@ export default function Profile() {
 
     fetchChatMessages();
 
+    // Poll every 3 seconds so admin replies appear instantly for the user
+    const pollInterval = setInterval(() => {
+      fetchChatMessages();
+    }, 3000);
+
     // Subscribe to real-time additions on settings table
     const channel = supabase
       .channel(`user_chat_settings_${userAccount.id}`)
@@ -211,6 +222,7 @@ export default function Profile() {
       .subscribe();
 
     return () => {
+      clearInterval(pollInterval);
       supabase.removeChannel(channel);
     };
   }, [showChatModal, userAccount]);
