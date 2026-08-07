@@ -43,19 +43,19 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
       const moviesData = await fetchAllRows(supabase, 'movies', 'created_at');
       
       const [listsRes, channelsRes, categoriesRes, bannersRes, countriesRes] = await Promise.all([
-        supabase.from('movie_lists').select('*').order('order_index', { ascending: true }),
-        supabase.from('channels').select('*').order('order_index', { ascending: true }),
-        supabase.from('channel_categories').select('*').order('order_index', { ascending: true }),
-        supabase.from('banners').select('*').order('order_index', { ascending: true }),
-        supabase.from('channel_countries').select('*').eq('is_active', true).order('order_index', { ascending: true })
+        supabase.from('movie_lists').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
+        supabase.from('channels').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
+        supabase.from('channel_categories').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
+        supabase.from('banners').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
+        supabase.from('channel_countries').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e }))
       ]);
 
-      setMovies(moviesData);
-      if (listsRes.data) setMovieLists(listsRes.data);
-      if (channelsRes.data) setChannels(channelsRes.data);
-      if (categoriesRes.data) setCategories(categoriesRes.data);
-      if (bannersRes.data) setBanners(bannersRes.data);
-      if (countriesRes.data) setCountries(countriesRes.data);
+      setMovies(moviesData || []);
+      if (listsRes?.data) setMovieLists(listsRes.data);
+      if (channelsRes?.data) setChannels(channelsRes.data);
+      if (categoriesRes?.data) setCategories(categoriesRes.data);
+      if (bannersRes?.data) setBanners(bannersRes.data);
+      if (countriesRes?.data) setCountries(countriesRes.data);
     } catch (error) {
       console.error('Error fetching global data:', error);
     } finally {

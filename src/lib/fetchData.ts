@@ -14,19 +14,21 @@ export async function fetchAllData() {
 
     const moviesData = await fetchAllRows(supabase, 'movies', 'created_at');
 
-    const [listsRes, channelsRes, categoriesRes, bannersRes] = await Promise.all([
-      supabase.from('movie_lists').select('*').order('order_index', { ascending: true }),
-      supabase.from('channels').select('*').order('order_index', { ascending: true }),
-      supabase.from('channel_categories').select('*').order('order_index', { ascending: true }),
-      supabase.from('banners').select('*').order('order_index', { ascending: true })
+    const [listsRes, channelsRes, categoriesRes, bannersRes, countriesRes] = await Promise.all([
+      supabase.from('movie_lists').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
+      supabase.from('channels').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
+      supabase.from('channel_categories').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
+      supabase.from('banners').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
+      supabase.from('channel_countries').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e }))
     ]);
 
     return {
       movies: moviesData || [],
-      movieLists: listsRes.data || [],
-      channels: channelsRes.data || [],
-      categories: categoriesRes.data || [],
-      banners: bannersRes.data || [],
+      movieLists: listsRes?.data || [],
+      channels: channelsRes?.data || [],
+      categories: categoriesRes?.data || [],
+      banners: bannersRes?.data || [],
+      countries: countriesRes?.data || [],
     };
   } catch (e) {
     console.error('Error fetching initial data in fetchAllData:', e);
@@ -36,6 +38,7 @@ export async function fetchAllData() {
       channels: [],
       categories: [],
       banners: [],
+      countries: [],
     };
   }
 }
