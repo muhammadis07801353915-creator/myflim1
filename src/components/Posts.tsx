@@ -167,22 +167,29 @@ export default function Posts() {
     if (!userAccount) { setShowAuthModal(true); return; }
     if (!newPostText.trim() && !newPostImage) return;
     setPublishing(true);
+
+    const newPost: Post = {
+      id: `post_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      user_id: userAccount.id,
+      user_name: userAccount.name,
+      user_avatar: userAccount.avatar,
+      text: newPostText.trim(),
+      image: newPostImage || undefined,
+      likes: [],
+      comments: [],
+      created_at: new Date().toISOString(),
+    };
+
+    // 1. Instant Optimistic UI Update (0ms delay)
+    setPosts(prev => [newPost, ...prev]);
+    setNewPostText('');
+    setNewPostImage(null);
+
     try {
       const allPosts = await fetchAllPostsFromDB();
-      const newPost: Post = {
-        id: `post_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-        user_id: userAccount.id,
-        user_name: userAccount.name,
-        user_avatar: userAccount.avatar,
-        text: newPostText.trim(),
-        image: newPostImage || undefined,
-        likes: [],
-        comments: [],
-        created_at: new Date().toISOString(),
-      };
       await saveAllPostsToDB([newPost, ...allPosts]);
-      setNewPostText('');
-      setNewPostImage(null);
+    } catch (e) {
+      console.error("Publish error:", e);
       loadPosts();
     } finally {
       setPublishing(false);
@@ -191,45 +198,88 @@ export default function Posts() {
 
   const handleLike = async (postId: string) => {
     if (!userAccount) { setShowAuthModal(true); return; }
-    const allPosts = await fetchAllPostsFromDB();
-    const updated = allPosts.map((p) => {
-      if (p.id !== postId) return p;
-      const hasLiked = p.likes.includes(userAccount.id);
-      return { ...p, likes: hasLiked ? p.likes.filter(id => id !== userAccount.id) : [...p.likes, userAccount.id] };
-    });
-    await saveAllPostsToDB(updated);
-    loadPosts();
+
+    // 1. INSTANT OPTIMISTIC UI UPDATE (0ms delay!)
+    setPosts(prevPosts =>
+      prevPosts.map(p => {
+        if (p.id !== postId) return p;
+        const hasLiked = p.likes.includes(userAccount.id);
+        const newLikes = hasLiked
+          ? p.likes.filter(id => id !== userAccount.id)
+          : [...p.likes, userAccount.id];
+        return { ...p, likes: newLikes };
+      })
+    );
+
+    // 2. Persist to DB asynchronously in background
+    try {
+      const allPosts = await fetchAllPostsFromDB();
+      const updated = allPosts.map(p => {
+        if (p.id !== postId) return p;
+        const hasLiked = p.likes.includes(userAccount.id);
+        return {
+          ...p,
+          likes: hasLiked
+            ? p.likes.filter(id => id !== userAccount.id)
+            : [...p.likes, userAccount.id]
+        };
+      });
+      await saveAllPostsToDB(updated);
+    } catch (e) {
+      console.error('Like error:', e);
+      loadPosts();
+    }
   };
 
   const handleComment = async (postId: string) => {
     if (!userAccount) { setShowAuthModal(true); return; }
     const text = commentInputs[postId]?.trim();
     if (!text) return;
-    const allPosts = await fetchAllPostsFromDB();
-    const updated = allPosts.map((p) => {
-      if (p.id !== postId) return p;
-      const comment: PostComment = {
-        id: `cmt_${Date.now()}`,
-        user_id: userAccount.id,
-        user_name: userAccount.name,
-        user_avatar: userAccount.avatar,
-        text,
-        created_at: new Date().toISOString(),
-      };
-      return { ...p, comments: [...p.comments, comment] };
-    });
-    await saveAllPostsToDB(updated);
+
+    const newComment: PostComment = {
+      id: `cmt_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      user_id: userAccount.id,
+      user_name: userAccount.name,
+      user_avatar: userAccount.avatar,
+      text,
+      created_at: new Date().toISOString(),
+    };
+
+    // 1. INSTANT OPTIMISTIC COMMENT UPDATE (0ms delay!)
+    setPosts(prevPosts =>
+      prevPosts.map(p => {
+        if (p.id !== postId) return p;
+        return { ...p, comments: [...p.comments, newComment] };
+      })
+    );
     setCommentInputs(prev => ({ ...prev, [postId]: '' }));
-    loadPosts();
+
+    // 2. Persist to DB asynchronously in background
+    try {
+      const allPosts = await fetchAllPostsFromDB();
+      const updated = allPosts.map(p => {
+        if (p.id !== postId) return p;
+        return { ...p, comments: [...p.comments, newComment] };
+      });
+      await saveAllPostsToDB(updated);
+    } catch (e) {
+      console.error('Comment error:', e);
+      loadPosts();
+    }
   };
 
   const handleDeletePost = async (postId: string) => {
     if (!userAccount) return;
-    const allPosts = await fetchAllPostsFromDB();
-    const post = allPosts.find(p => p.id === postId);
-    if (!post || post.user_id !== userAccount.id) return;
-    await saveAllPostsToDB(allPosts.filter(p => p.id !== postId));
-    loadPosts();
+    setPosts(prev => prev.filter(p => p.id !== postId));
+    try {
+      const allPosts = await fetchAllPostsFromDB();
+      const post = allPosts.find(p => p.id === postId);
+      if (!post || post.user_id !== userAccount.id) return;
+      await saveAllPostsToDB(allPosts.filter(p => p.id !== postId));
+    } catch (e) {
+      console.error('Delete post error:', e);
+      loadPosts();
+    }
   };
 
   if (!mounted) return <PostsSkeleton />;
