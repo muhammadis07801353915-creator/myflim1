@@ -291,7 +291,7 @@ export default function Home({
         // Swipe gesture tracking refs (inline via data attributes handled in JSX)
         return (
           <div
-            className="relative w-full overflow-hidden bg-[#141522] shadow-[0_20px_50px_rgba(0,0,0,0.9)] cursor-pointer select-none"
+            className="relative w-full overflow-hidden cursor-pointer select-none"
             onClick={() => onSelect(currentFeatured)}
             onTouchStart={(e) => {
               const t = e.touches[0];
@@ -323,9 +323,6 @@ export default function Home({
                 unoptimized={true}
               />
             )}
-
-            {/* Subtle clean overlay without dark shapes */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent pointer-events-none" />
 
             {/* Content overlay */}
             <div className="relative z-10 aspect-[16/10] sm:aspect-[21/9] md:aspect-[3/1] flex flex-col justify-end px-5 pt-5 pb-8 sm:px-8 sm:pb-10 md:px-10">

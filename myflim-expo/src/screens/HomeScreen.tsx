@@ -173,11 +173,7 @@ export default function HomeScreen({ navigation }: any) {
             <Image source={{ uri: item.image }} style={hero.img} resizeMode="cover" />
           ) : null}
 
-          {/* Subtle clean overlay without dark shapes */}
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.15)', 'rgba(0,0,0,0.45)']}
-            style={StyleSheet.absoluteFillObject}
-          />
+
 
           {/* Content */}
           <View style={[hero.content, isRTL && { alignItems: 'flex-end' }]}>
