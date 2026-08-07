@@ -404,12 +404,12 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           </div>
         ) : (
           <>
-            <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 light-mode:from-white via-neutral-950/20 to-transparent z-10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-10" />
             <Image 
               src={item.backdrop || item.image || ''} 
               alt={item.title} 
               fill 
-              className="object-cover opacity-70" 
+              className="object-cover opacity-80" 
               priority 
               unoptimized={true}
             />
@@ -419,16 +419,16 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                 onClick={onBack} 
                 className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md transition pointer-events-auto active:scale-90"
               >
-                <ArrowLeft size={20} />
+                <ArrowLeft size={20} className="text-white" />
               </button>
               <div className="flex space-x-3 pointer-events-auto">
                 <button 
                   onClick={() => toggleWatchlist(item)}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition ${isBookmarked ? 'bg-red-600 text-white' : 'bg-black/40 hover:bg-black/60'}`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition ${isBookmarked ? 'bg-red-600 text-white' : 'bg-black/40 hover:bg-black/60 text-white'}`}
                 >
                   {isBookmarked ? <BookmarkCheck size={20} /> : <BookmarkPlus size={20} />}
                 </button>
-                <button className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md transition">
+                <button className="w-10 h-10 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center backdrop-blur-md transition">
                   <Share2 size={20} />
                 </button>
               </div>
@@ -439,16 +439,16 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                 onClick={handlePlayClick}
                 className="w-16 h-16 bg-red-600/90 hover:bg-red-600 rounded-full flex items-center justify-center pl-1 backdrop-blur-sm shadow-[0_0_30px_rgba(220,38,38,0.5)] transition hover:scale-105"
               >
-                <Play size={28} className="fill-white" />
+                <Play size={28} className="fill-white text-white" />
               </button>
             </div>
           </>
         )}
       </div>
 
-      <div className="px-5 -mt-8 relative z-30">
+      <div className="px-5 -mt-10 relative z-30">
         <h1 
-          className="text-3xl font-extrabold mb-3 text-white drop-shadow-lg"
+          className="text-3xl font-black mb-3 text-white !text-white drop-shadow-xl tracking-tight"
           style={{ color: '#ffffff' }}
         >
           {getLocalized(item, 'title', language)}
@@ -473,9 +473,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
               onClick={handlePlayClick}
               className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl transition flex items-center justify-center space-x-3 shadow-xl shadow-red-600/30 group active:scale-95"
             >
-              <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition">
-                <Plus size={20} className="rotate-45 text-white" />
-              </div>
+              <Play size={22} className="fill-white text-white" />
               <span className="text-xl uppercase tracking-widest text-white !text-white font-black" style={{ color: '#ffffff' }}>
                 {language === 'ku' ? 'ئێستا ببینە' : 'Watch Now'}
               </span>
