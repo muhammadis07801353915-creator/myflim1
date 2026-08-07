@@ -12,13 +12,135 @@
 
 body {
   font-family: "Cairo", system-ui, -apple-system, sans-serif;
+  background-color: #0a0a0f;
+  color: #ffffff;
+}
+
+/* ── LIGHT MODE STYLES & CONTRAST OVERRIDES ────────────────── */
+html.light-mode, 
+body.light-mode {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.light-mode {
+  color-scheme: light;
+}
+
+.light-mode body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Background overrides in light mode */
+.light-mode .bg-\[\#0a0a0f\],
+.light-mode .bg-\[\#0F0F13\],
+.light-mode .bg-black {
+  background-color: #f8fafc !important;
+}
+
+.light-mode .bg-\[\#14151c\],
+.light-mode .bg-\[\#161722\],
+.light-mode .bg-\[\#181924\],
+.light-mode .bg-\[\#1c1e28\],
+.light-mode .bg-neutral-900,
+.light-mode .bg-neutral-950 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Text overrides in light mode */
+.light-mode h1, 
+.light-mode h2, 
+.light-mode h3, 
+.light-mode h4,
+.light-mode .text-white {
+  color: #0f172a !important;
+}
+
+.light-mode .text-white\/90,
+.light-mode .text-white\/80,
+.light-mode .text-white\/70,
+.light-mode .text-white\/60,
+.light-mode .text-neutral-200,
+.light-mode .text-neutral-300 {
+  color: #334155 !important;
+}
+
+.light-mode .text-white\/50,
+.light-mode .text-white\/40,
+.light-mode .text-white\/35,
+.light-mode .text-white\/30,
+.light-mode .text-white\/20,
+.light-mode .text-neutral-400,
+.light-mode .text-neutral-500 {
+  color: #64748b !important;
+}
+
+/* Input boxes in light mode */
+.light-mode input,
+.light-mode textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+.light-mode input::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Filter pills & buttons in light mode */
+.light-mode .bg-white\/4,
+.light-mode .bg-white\/5,
+.light-mode .bg-white\/6,
+.light-mode .bg-white\/7,
+.light-mode .bg-white\/8,
+.light-mode .bg-white\/10 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+.light-mode .border-white\/5,
+.light-mode .border-white\/6,
+.light-mode .border-white\/8,
+.light-mode .border-white\/10,
+.light-mode .border-white\/15,
+.light-mode .border-white\/20 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Active red buttons & accents preserve white text */
+.light-mode .bg-\[\#CC222F\],
+.light-mode .bg-red-600,
+.light-mode .bg-red-500 {
+  background-color: #CC222F !important;
+  color: #ffffff !important;
+}
+
+.light-mode .bg-\[\#CC222F\] *,
+.light-mode .bg-red-600 *,
+.light-mode .bg-red-500 * {
+  color: #ffffff !important;
+}
+
+.light-mode .text-\[\#CC222F\],
+.light-mode .text-red-500,
+.light-mode .text-red-600 {
+  color: #CC222F !important;
+}
+
+/* Bottom Nav in light mode */
+.light-mode .fixed.bottom-0 {
+  background-color: #ffffff !important;
+  border-top-color: #e2e8f0 !important;
+  box-shadow: 0 -4px 15px -1px rgba(0, 0, 0, 0.05);
 }
 
 @layer utilities {
   .scrollbar-hide {
-    /* IE and Edge */
     -ms-overflow-style: none;
-    /* Firefox */
     scrollbar-width: none;
   }
   .scrollbar-hide::-webkit-scrollbar {

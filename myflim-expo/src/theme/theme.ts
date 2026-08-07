@@ -1,13 +1,14 @@
 export const getColors = (theme: 'dark' | 'light') => {
   if (theme === 'light') {
     return {
-      primary: '#dc2626',
-      background: '#f5f5f5',
-      surface: '#ffffff',
-      surfaceLight: '#e5e5e5',
-      text: '#0a0a0a',
-      textSecondary: '#525252',
-      textMuted: '#737373',
+      primary: '#CC222F',
+      background: '#F8FAFC',
+      surface: '#FFFFFF',
+      surfaceLight: '#F1F5F9',
+      text: '#0F172A',
+      textSecondary: '#475569',
+      textMuted: '#64748B',
+      border: '#E2E8F0',
       error: '#ef4444',
       success: '#22c55e',
       warning: '#f59e0b',
@@ -18,13 +19,14 @@ export const getColors = (theme: 'dark' | 'light') => {
   }
 
   return {
-    primary: '#dc2626',
-    background: '#0a0a0a',
-    surface: '#1a1d24',
-    surfaceLight: '#262a33',
+    primary: '#CC222F',
+    background: '#0F0F13',
+    surface: '#161722',
+    surfaceLight: '#1C1E28',
     text: '#ffffff',
-    textSecondary: '#a3a3a3',
-    textMuted: '#737373',
+    textSecondary: 'rgba(255,255,255,0.7)',
+    textMuted: 'rgba(255,255,255,0.4)',
+    border: 'rgba(255,255,255,0.08)',
     error: '#ef4444',
     success: '#22c55e',
     warning: '#f59e0b',
@@ -34,7 +36,7 @@ export const getColors = (theme: 'dark' | 'light') => {
   };
 };
 
-export const COLORS = getColors('dark'); // Default fallback
+export const COLORS = getColors('dark');
 
 export const SPACING = {
   xs: 4,

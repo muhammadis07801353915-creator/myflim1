@@ -34,15 +34,17 @@ import {
   Info,
   User,
   Play,
-  Trash2
+  Sun,
+  Moon
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
 export default function ProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { user, theme, updateUser, language, setLanguage, isUnlocked, unlockApp, watchlist, watchHistory, toggleWatchlist } = useAppStore();
+  const { user, theme, toggleTheme, updateUser, language, setLanguage, isUnlocked, unlockApp, watchlist, watchHistory } = useAppStore();
   const t = translations[language];
+  const themeColors = getColors(theme);
   const isRTL = language === 'ku' || language === 'ar';
   
   const [showNameModal, setShowNameModal] = useState(false);
@@ -131,7 +133,11 @@ export default function ProfileScreen({ navigation }: any) {
 
   const renderMenuItem = (icon: any, title: string, subtitle?: string, onPress?: () => void, rightElement?: any) => (
     <TouchableOpacity 
-      style={[styles.menuItem, isRTL && { flexDirection: 'row-reverse' }]} 
+      style={[
+        styles.menuItem, 
+        { backgroundColor: themeColors.surface, borderColor: themeColors.border },
+        isRTL && { flexDirection: 'row-reverse' }
+      ]} 
       onPress={onPress}
       activeOpacity={0.8}
     >
@@ -140,13 +146,13 @@ export default function ProfileScreen({ navigation }: any) {
           {icon}
         </View>
         <View>
-          <Text style={styles.menuTitle}>{title}</Text>
-          {subtitle ? <Text style={styles.menuSubtitle}>{subtitle}</Text> : null}
+          <Text style={[styles.menuTitle, { color: themeColors.text }]}>{title}</Text>
+          {subtitle ? <Text style={[styles.menuSubtitle, { color: themeColors.textSecondary }]}>{subtitle}</Text> : null}
         </View>
       </View>
       <View style={[styles.menuRight, isRTL && { flexDirection: 'row-reverse' }]}>
         {rightElement}
-        <ChevronRight size={18} color="rgba(255,255,255,0.4)" style={isRTL ? { transform: [{ rotate: '180deg' }] } : undefined} />
+        <ChevronRight size={18} color={themeColors.textMuted} style={isRTL ? { transform: [{ rotate: '180deg' }] } : undefined} />
       </View>
     </TouchableOpacity>
   );
@@ -154,7 +160,7 @@ export default function ProfileScreen({ navigation }: any) {
   const cardW = Math.floor((width - 32 - 20) / 3);
 
   return (
-    <View style={[{ flex: 1, backgroundColor: '#0F0F13', paddingTop: insets.top }]}>
+    <View style={[{ flex: 1, backgroundColor: themeColors.background, paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
         {/* ── TOP HEADER (User Info & Settings Icon) ────────────────── */}
@@ -170,19 +176,19 @@ export default function ProfileScreen({ navigation }: any) {
               </TouchableOpacity>
             </View>
             <View style={[styles.userTextCol, isRTL && { alignItems: 'flex-end' }]}>
-              <Text style={styles.greetingText}>
+              <Text style={[styles.greetingText, { color: themeColors.text }]}>
                 {language === 'ku' ? `سڵاو، ${user?.name || 'کاربەر'}` : language === 'ar' ? `مرحباً، ${user?.name || 'مستخدم'}` : `Hi, ${user?.name || 'User'}`}
               </Text>
               <TouchableOpacity onPress={() => setShowNameModal(true)}>
-                <Text style={styles.editProfileLink}>
+                <Text style={[styles.editProfileLink, { color: themeColors.textSecondary }]}>
                   {language === 'ku' ? 'دەستکاری پرۆفایل >' : language === 'ar' ? 'تعديل الملف الشخصي >' : 'Edit Profile >'}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          <TouchableOpacity style={styles.settingsIconBtn} onPress={() => setShowNameModal(true)}>
-            <Settings size={20} color="#fff" />
+          <TouchableOpacity style={[styles.settingsIconBtn, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]} onPress={() => setShowNameModal(true)}>
+            <Settings size={20} color={themeColors.text} />
           </TouchableOpacity>
         </View>
 
@@ -190,7 +196,7 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={[styles.statsGrid, isRTL && { flexDirection: 'row-reverse' }]}>
           {/* Card 1: Saved Items (سەیڤکراوەکان) */}
           <TouchableOpacity 
-            style={[styles.statCard, { width: cardW }]} 
+            style={[styles.statCard, { width: cardW, backgroundColor: themeColors.surface, borderColor: themeColors.border }]} 
             onPress={() => setShowSavedModal(true)}
             activeOpacity={0.85}
           >
@@ -200,26 +206,26 @@ export default function ProfileScreen({ navigation }: any) {
                 <Text style={styles.badgePlusText}>+</Text>
               </View>
             </View>
-            <Text style={styles.statLabel}>{language === 'ku' ? 'سەیڤکراوەکان' : language === 'ar' ? 'المحفوظات' : 'Saved'}</Text>
-            <Text style={styles.statCount}>{watchlist?.length || 0}</Text>
+            <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>{language === 'ku' ? 'سەیڤکراوەکان' : language === 'ar' ? 'المحفوظات' : 'Saved'}</Text>
+            <Text style={[styles.statCount, { color: themeColors.text }]}>{watchlist?.length || 0}</Text>
           </TouchableOpacity>
 
           {/* Card 2: History / Resume Playback (لە هەمان شوێن) */}
           <TouchableOpacity 
-            style={[styles.statCard, { width: cardW }]}
+            style={[styles.statCard, { width: cardW, backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={() => setShowHistoryModal(true)}
             activeOpacity={0.85}
           >
             <View style={styles.statCardHeader}>
               <Clock size={18} color="#CC222F" />
             </View>
-            <Text style={styles.statLabel}>{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</Text>
-            <Text style={styles.statCount}>{historyItems.length}</Text>
+            <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</Text>
+            <Text style={[styles.statCount, { color: themeColors.text }]}>{historyItems.length}</Text>
           </TouchableOpacity>
 
           {/* Card 3: Downloads (دابەزاندن — Count: بەمزوانە) */}
           <TouchableOpacity 
-            style={[styles.statCard, { width: cardW }]}
+            style={[styles.statCard, { width: cardW, backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={() => Alert.alert('Downloads', language === 'ku' ? 'بەشی دابەزاندن بەمزوانە بەردەست دەبێت!' : 'Downloads section coming soon!')}
             activeOpacity={0.85}
           >
@@ -229,7 +235,7 @@ export default function ProfileScreen({ navigation }: any) {
                 <Text style={styles.badgePlusText}>+</Text>
               </View>
             </View>
-            <Text style={styles.statLabel}>{language === 'ku' ? 'دابەزاندن' : language === 'ar' ? 'التنزيلات' : 'Downloads'}</Text>
+            <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>{language === 'ku' ? 'دابەزاندن' : language === 'ar' ? 'التنزيلات' : 'Downloads'}</Text>
             <Text style={styles.statCountSmall}>{language === 'ku' ? 'بەمزوانە' : language === 'ar' ? 'قريباً' : 'Coming Soon'}</Text>
           </TouchableOpacity>
         </View>
@@ -247,7 +253,7 @@ export default function ProfileScreen({ navigation }: any) {
                   : (language === 'ku' ? 'داخڵکردنی کۆد' : 'Enter Code')
                 }
               </Text>
-              <Text style={styles.proSubtitle}>
+              <Text style={[styles.proSubtitle, { color: theme === 'light' ? '#64748B' : 'rgba(255,255,255,0.55)' }]}>
                 {isUnlocked 
                   ? (language === 'ku' ? 'سەرجەم بەشەکان بە سەرکەوتوویی کراونەتەوە' : 'All app sections successfully unlocked') 
                   : (language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکان' : 'Enter code to unlock all sections of the app')
@@ -258,10 +264,17 @@ export default function ProfileScreen({ navigation }: any) {
           <ChevronRight size={20} color="#CC222F" style={isRTL ? { transform: [{ rotate: '180deg' }] } : undefined} />
         </TouchableOpacity>
 
-        {/* ── CLEAN MENU OPTIONS LIST (Removed duplicated items) ───── */}
+        {/* ── MENU OPTIONS LIST ────────────────────────────────────── */}
         <View style={styles.menuSection}>
           {renderMenuItem(
-            <User size={20} color="rgba(255,255,255,0.85)" />,
+            theme === 'dark' ? <Sun size={20} color="#FBBF24" /> : <Moon size={20} color="#6366F1" />,
+            theme === 'dark' ? t.lightMode : t.darkMode,
+            undefined,
+            toggleTheme
+          )}
+
+          {renderMenuItem(
+            <User size={20} color={themeColors.text} />,
             language === 'ku' ? 'ڕێکخستنەکانی هەژمار' : language === 'ar' ? 'إعدادات الحساب' : 'Account Settings',
             undefined,
             () => setShowNameModal(true)
@@ -275,19 +288,19 @@ export default function ProfileScreen({ navigation }: any) {
           )}
 
           {renderMenuItem(
-            <Languages size={20} color="rgba(255,255,255,0.85)" />,
+            <Languages size={20} color={themeColors.text} />,
             language === 'ku' ? 'زمانی ئەپەکە' : language === 'ar' ? 'لغة التطبيق' : 'Language',
             language.toUpperCase(),
             () => setShowLangModal(true)
           )}
 
           {renderMenuItem(
-            <HelpCircle size={20} color="rgba(255,255,255,0.85)" />,
+            <HelpCircle size={20} color={themeColors.text} />,
             language === 'ku' ? 'یارمەتی و پشتیوانی' : language === 'ar' ? 'المساعدة والدعم' : 'Help & Support'
           )}
 
           {renderMenuItem(
-            <Info size={20} color="rgba(255,255,255,0.85)" />,
+            <Info size={20} color={themeColors.text} />,
             language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play',
             `v${currentVersion}`
           )}
@@ -295,11 +308,11 @@ export default function ProfileScreen({ navigation }: any) {
 
         {/* ── UPDATE CHECK CARD ─────────────────────────────────────── */}
         <View style={[styles.menuSection, { marginTop: 10 }]}>
-          <View style={styles.updateCard}>
+          <View style={[styles.updateCard, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
             <View style={[styles.updateHeader, isRTL && { flexDirection: 'row-reverse' }]}>
               <View style={[styles.updateHeaderLeft, isRTL && { flexDirection: 'row-reverse' }]}>
                 <Download size={18} color="#CC222F" />
-                <Text style={styles.updateTitle}>App Updates</Text>
+                <Text style={[styles.updateTitle, { color: themeColors.text }]}>App Updates</Text>
               </View>
               {checkingUpdates ? (
                 <ActivityIndicator color="#CC222F" />
@@ -310,7 +323,7 @@ export default function ProfileScreen({ navigation }: any) {
               )}
             </View>
 
-            <Text style={styles.updateMeta}>Current version: {currentVersion}</Text>
+            <Text style={[styles.updateMeta, { color: themeColors.textSecondary }]}>Current version: {currentVersion}</Text>
 
             {availableUpdate ? (
               <TouchableOpacity
@@ -325,7 +338,7 @@ export default function ProfileScreen({ navigation }: any) {
                 )}
               </TouchableOpacity>
             ) : (
-              <Text style={styles.updateMeta}>You are using the latest version.</Text>
+              <Text style={[styles.updateMeta, { color: themeColors.textSecondary }]}>You are using the latest version.</Text>
             )}
           </View>
         </View>
@@ -335,28 +348,28 @@ export default function ProfileScreen({ navigation }: any) {
       {/* ── SAVED ITEMS (WATCHLIST) MODAL ──────────────────────────── */}
       <Modal visible={showSavedModal} animationType="slide" transparent onRequestClose={() => setShowSavedModal(false)}>
         <View style={styles.modalSheetOverlay}>
-          <View style={styles.modalSheetContent}>
-            <View style={[styles.modalSheetHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+          <View style={[styles.modalSheetContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+            <View style={[styles.modalSheetHeader, { borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}>
               <View style={[styles.modalTitleRow, isRTL && { flexDirection: 'row-reverse' }]}>
                 <Bookmark size={20} color="#CC222F" />
-                <Text style={styles.modalSheetTitle}>{language === 'ku' ? 'سەیڤکراوەکان' : language === 'ar' ? 'المحفوظات' : 'Saved Items'}</Text>
+                <Text style={[styles.modalSheetTitle, { color: themeColors.text }]}>{language === 'ku' ? 'سەیڤکراوەکان' : language === 'ar' ? 'المحفوظات' : 'Saved Items'}</Text>
               </View>
-              <TouchableOpacity onPress={() => setShowSavedModal(false)} style={styles.closeBtn}>
-                <X size={20} color="#fff" />
+              <TouchableOpacity onPress={() => setShowSavedModal(false)} style={[styles.closeBtn, { backgroundColor: themeColors.surfaceLight }]}>
+                <X size={20} color={themeColors.text} />
               </TouchableOpacity>
             </View>
 
             {watchlist.length === 0 ? (
               <View style={styles.emptyWrap}>
-                <Bookmark size={40} color="rgba(255,255,255,0.2)" />
-                <Text style={styles.emptyText}>{language === 'ku' ? 'هیچ بەرهەمێک سەیڤ نەکراوە' : 'No items saved yet'}</Text>
+                <Bookmark size={40} color={themeColors.textMuted} />
+                <Text style={[styles.emptyText, { color: themeColors.textMuted }]}>{language === 'ku' ? 'هیچ بەرهەمێک سەیڤ نەکراوە' : 'No items saved yet'}</Text>
               </View>
             ) : (
               <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
                 {watchlist.map((item: any) => (
                   <TouchableOpacity 
                     key={item.id} 
-                    style={[styles.itemCardRow, isRTL && { flexDirection: 'row-reverse' }]}
+                    style={[styles.itemCardRow, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}
                     onPress={() => {
                       setShowSavedModal(false);
                       navigation.navigate('Detail', { item });
@@ -364,8 +377,8 @@ export default function ProfileScreen({ navigation }: any) {
                   >
                     <Image source={{ uri: item.image }} style={styles.itemCardImg} resizeMode="cover" />
                     <View style={[styles.itemCardInfo, isRTL && { alignItems: 'flex-end' }]}>
-                      <Text style={styles.itemCardTitle} numberOfLines={1}>{item.title || item.name}</Text>
-                      <Text style={styles.itemCardSub}>{item.year || item.type}</Text>
+                      <Text style={[styles.itemCardTitle, { color: themeColors.text }]} numberOfLines={1}>{item.title || item.name}</Text>
+                      <Text style={[styles.itemCardSub, { color: themeColors.textSecondary }]}>{item.year || item.type}</Text>
                     </View>
                     <TouchableOpacity 
                       style={styles.playMiniBtn}
@@ -387,28 +400,28 @@ export default function ProfileScreen({ navigation }: any) {
       {/* ── CONTINUE WATCHING (HISTORY) MODAL ───────────────────────── */}
       <Modal visible={showHistoryModal} animationType="slide" transparent onRequestClose={() => setShowHistoryModal(false)}>
         <View style={styles.modalSheetOverlay}>
-          <View style={styles.modalSheetContent}>
-            <View style={[styles.modalSheetHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+          <View style={[styles.modalSheetContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+            <View style={[styles.modalSheetHeader, { borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}>
               <View style={[styles.modalTitleRow, isRTL && { flexDirection: 'row-reverse' }]}>
                 <Clock size={20} color="#CC222F" />
-                <Text style={styles.modalSheetTitle}>{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</Text>
+                <Text style={[styles.modalSheetTitle, { color: themeColors.text }]}>{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</Text>
               </View>
-              <TouchableOpacity onPress={() => setShowHistoryModal(false)} style={styles.closeBtn}>
-                <X size={20} color="#fff" />
+              <TouchableOpacity onPress={() => setShowHistoryModal(false)} style={[styles.closeBtn, { backgroundColor: themeColors.surfaceLight }]}>
+                <X size={20} color={themeColors.text} />
               </TouchableOpacity>
             </View>
 
             {historyItems.length === 0 ? (
               <View style={styles.emptyWrap}>
-                <Clock size={40} color="rgba(255,255,255,0.2)" />
-                <Text style={styles.emptyText}>{language === 'ku' ? 'هیچ سەیرکردنێکی پێشوو نییە' : 'No watch history yet'}</Text>
+                <Clock size={40} color={themeColors.textMuted} />
+                <Text style={[styles.emptyText, { color: themeColors.textMuted }]}>{language === 'ku' ? 'هیچ سەیرکردنێکی پێشوو نییە' : 'No watch history yet'}</Text>
               </View>
             ) : (
               <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
                 {historyItems.map((h: any) => (
                   <TouchableOpacity 
                     key={h.item.id} 
-                    style={[styles.itemCardRow, isRTL && { flexDirection: 'row-reverse' }]}
+                    style={[styles.itemCardRow, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}
                     onPress={() => {
                       setShowHistoryModal(false);
                       navigation.navigate('Detail', { item: h.item, resumeTime: h.timestamp });
@@ -416,7 +429,7 @@ export default function ProfileScreen({ navigation }: any) {
                   >
                     <Image source={{ uri: h.item.image }} style={styles.itemCardImg} resizeMode="cover" />
                     <View style={[styles.itemCardInfo, isRTL && { alignItems: 'flex-end' }]}>
-                      <Text style={styles.itemCardTitle} numberOfLines={1}>{h.item.title || h.item.name}</Text>
+                      <Text style={[styles.itemCardTitle, { color: themeColors.text }]} numberOfLines={1}>{h.item.title || h.item.name}</Text>
                       <Text style={{ color: '#CC222F', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
                         {language === 'ku' ? `بەردەوامبوون لە ${formatTime(h.timestamp)}` : `Resume at ${formatTime(h.timestamp)}`}
                       </Text>
@@ -441,19 +454,19 @@ export default function ProfileScreen({ navigation }: any) {
       {/* Edit Name Modal */}
       <Modal visible={showNameModal} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={() => setShowNameModal(false)}>
-          <View style={styles.nameModalContent}>
-            <Text style={styles.nameModalTitle}>{language === 'ku' ? 'دەستکاری ناو' : 'Edit User Name'}</Text>
+          <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>{language === 'ku' ? 'دەستکاری ناو' : 'Edit User Name'}</Text>
             <TextInput
-              style={styles.nameInput}
+              style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border }]}
               value={newName}
               onChangeText={setNewName}
               placeholder="Enter name..."
-              placeholderTextColor="rgba(255,255,255,0.4)"
+              placeholderTextColor={themeColors.textMuted}
               autoFocus
             />
             <View style={styles.nameModalActions}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowNameModal(false)}>
-                <Text style={styles.cancelBtnText}>{t.cancel}</Text>
+              <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={() => setShowNameModal(false)}>
+                <Text style={[styles.cancelBtnText, { color: themeColors.textSecondary }]}>{t.cancel}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.saveBtn} onPress={handleUpdateName}>
                 <Text style={styles.saveBtnText}>{language === 'ku' ? 'پاشەکەوتکردن' : 'Save'}</Text>
@@ -466,36 +479,36 @@ export default function ProfileScreen({ navigation }: any) {
       {/* Language Modal */}
       <Modal visible={showLangModal} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={() => setShowLangModal(false)}>
-          <View style={styles.nameModalContent}>
-            <Text style={styles.nameModalTitle}>{t.language}</Text>
+          <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>{t.language}</Text>
             
             <TouchableOpacity 
-              style={[styles.langOption, language === 'ku' && styles.langOptionActive]} 
+              style={[styles.langOption, { backgroundColor: themeColors.surfaceLight }, language === 'ku' && styles.langOptionActive]} 
               onPress={() => { setLanguage('ku'); setShowLangModal(false); }}
             >
               <Text style={styles.langFlag}>☀️</Text>
-              <Text style={styles.langText}>Kurdish (کوردی)</Text>
+              <Text style={[styles.langText, { color: themeColors.text }]}>Kurdish (کوردی)</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.langOption, language === 'ar' && styles.langOptionActive]} 
+              style={[styles.langOption, { backgroundColor: themeColors.surfaceLight }, language === 'ar' && styles.langOptionActive]} 
               onPress={() => { setLanguage('ar'); setShowLangModal(false); }}
             >
               <Text style={styles.langFlag}>🇮🇶</Text>
-              <Text style={styles.langText}>Arabic (عربي)</Text>
+              <Text style={[styles.langText, { color: themeColors.text }]}>Arabic (عربي)</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={[styles.langOption, language === 'en' && styles.langOptionActive]} 
+              style={[styles.langOption, { backgroundColor: themeColors.surfaceLight }, language === 'en' && styles.langOptionActive]} 
               onPress={() => { setLanguage('en'); setShowLangModal(false); }}
             >
               <Text style={styles.langFlag}>🇬🇧</Text>
-              <Text style={styles.langText}>English</Text>
+              <Text style={[styles.langText, { color: themeColors.text }]}>English</Text>
             </TouchableOpacity>
 
             <View style={[styles.nameModalActions, { marginTop: 16 }]}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowLangModal(false)}>
-                <Text style={styles.cancelBtnText}>{t.cancel}</Text>
+              <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={() => setShowLangModal(false)}>
+                <Text style={[styles.cancelBtnText, { color: themeColors.textSecondary }]}>{t.cancel}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -505,25 +518,25 @@ export default function ProfileScreen({ navigation }: any) {
       {/* Unlock Code Modal */}
       <Modal visible={showUnlockModal} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={() => setShowUnlockModal(false)}>
-          <View style={styles.nameModalContent}>
-            <Text style={styles.nameModalTitle}>
+          <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>
               {language === 'ku' ? 'داخڵکردنی کۆد' : 'Enter Code'}
             </Text>
-            <Text style={{ color: 'rgba(255,255,255,0.6)', marginBottom: 15 }}>
+            <Text style={{ color: themeColors.textSecondary, marginBottom: 15 }}>
               {language === 'ku' ? 'کۆدی چالاککردنی ئەپەکە بنووسە:' : 'Please enter activation code:'}
             </Text>
             <TextInput
-              style={styles.nameInput}
+              style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border }]}
               value={unlockCode}
               onChangeText={setUnlockCode}
               placeholder="Code..."
-              placeholderTextColor="rgba(255,255,255,0.4)"
+              placeholderTextColor={themeColors.textMuted}
               autoFocus
               autoCapitalize="none"
             />
             <View style={styles.nameModalActions}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowUnlockModal(false)}>
-                <Text style={styles.cancelBtnText}>{t.cancel}</Text>
+              <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={() => setShowUnlockModal(false)}>
+                <Text style={[styles.cancelBtnText, { color: themeColors.textSecondary }]}>{t.cancel}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.saveBtn} onPress={handleUnlockSubmit}>
                 <Text style={styles.saveBtnText}>{language === 'ku' ? 'چالاککردن' : 'Activate'}</Text>
@@ -586,13 +599,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   greetingText: {
-    color: '#ffffff',
     fontSize: 20,
     fontWeight: '900',
     letterSpacing: -0.3,
   },
   editProfileLink: {
-    color: 'rgba(255,255,255,0.5)',
     fontSize: 12,
     fontWeight: '600',
     marginTop: 2,
@@ -601,9 +612,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.07)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -616,11 +625,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   statCard: {
-    backgroundColor: '#161722',
     borderRadius: 18,
     padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
   },
   statCardHeader: {
     flexDirection: 'row',
@@ -643,13 +650,11 @@ const styles = StyleSheet.create({
     marginTop: -2,
   },
   statLabel: {
-    color: 'rgba(255,255,255,0.5)',
     fontSize: 11,
     fontWeight: '600',
     marginBottom: 4,
   },
   statCount: {
-    color: '#ffffff',
     fontSize: 22,
     fontWeight: '900',
   },
@@ -696,7 +701,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   proSubtitle: {
-    color: 'rgba(255,255,255,0.55)',
     fontSize: 11,
     marginTop: 2,
   },
@@ -710,12 +714,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#161722',
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
   },
   menuLeft: {
     flexDirection: 'row',
@@ -728,12 +730,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   menuTitle: {
-    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '700',
   },
   menuSubtitle: {
-    color: 'rgba(255,255,255,0.4)',
     fontSize: 11,
     marginTop: 2,
   },
@@ -745,11 +745,9 @@ const styles = StyleSheet.create({
 
   // Update card
   updateCard: {
-    backgroundColor: '#161722',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
   },
   updateHeader: {
     flexDirection: 'row',
@@ -763,12 +761,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   updateTitle: {
-    color: '#fff',
     fontSize: 15,
     fontWeight: '700',
   },
   updateMeta: {
-    color: 'rgba(255,255,255,0.5)',
     fontSize: 12,
   },
   refreshText: {
@@ -797,27 +793,21 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   nameModalContent: {
-    backgroundColor: '#161722',
     borderRadius: 20,
     padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
   },
   nameModalTitle: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: '800',
     marginBottom: 14,
   },
   nameInput: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    color: '#fff',
     fontSize: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
     marginBottom: 16,
   },
   nameModalActions: {
@@ -827,12 +817,10 @@ const styles = StyleSheet.create({
   cancelBtn: {
     flex: 1,
     paddingVertical: 12,
-    backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 12,
     alignItems: 'center',
   },
   cancelBtnText: {
-    color: 'rgba(255,255,255,0.7)',
     fontWeight: '700',
   },
   saveBtn: {
@@ -853,7 +841,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
     marginBottom: 8,
   },
   langOptionActive: {
@@ -865,7 +852,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   langText: {
-    color: '#fff',
     fontSize: 15,
     fontWeight: '700',
   },
@@ -877,13 +863,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalSheetContent: {
-    backgroundColor: '#14151c',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '80%',
     minHeight: '40%',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
   },
   modalSheetHeader: {
     flexDirection: 'row',
@@ -892,7 +876,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.08)',
   },
   modalTitleRow: {
     flexDirection: 'row',
@@ -900,7 +883,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   modalSheetTitle: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: '800',
   },
@@ -908,7 +890,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -919,19 +900,16 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyText: {
-    color: 'rgba(255,255,255,0.4)',
     fontSize: 14,
     fontWeight: '600',
   },
   itemCardRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a1c26',
     borderRadius: 16,
     padding: 10,
     gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.06)',
   },
   itemCardImg: {
     width: 50,
@@ -943,12 +921,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   itemCardTitle: {
-    color: '#fff',
     fontSize: 15,
     fontWeight: '700',
   },
   itemCardSub: {
-    color: 'rgba(255,255,255,0.4)',
     fontSize: 12,
     marginTop: 2,
   },
