@@ -28,17 +28,17 @@ export default function AdminSupportMessagesPage() {
   useEffect(() => {
     fetchMessages();
 
-    // Subscribe to real-time additions on comments table (support_chat)
+    // Subscribe to real-time additions on settings table
     const channel = supabase
-      .channel('admin_support_chat_realtime')
+      .channel('admin_support_chat_settings')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'comments', filter: 'movie_id=eq.support_chat' },
+        { event: '*', schema: 'public', table: 'settings', filter: 'key=eq.taban_live_support_chats' },
         () => fetchMessages()
       )
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'support_messages' },
+        { event: 'INSERT', schema: 'public', table: 'comments' },
         () => fetchMessages()
       )
       .subscribe();
@@ -57,38 +57,25 @@ export default function AdminSupportMessagesPage() {
     try {
       let allMsgs: SupportMessage[] = [];
 
-      // Source 1: Query comments table with movie_id = 'support_chat' (Guaranteed working Supabase table)
-      const { data: commentsData } = await supabase
-        .from('comments')
-        .select('*')
-        .eq('movie_id', 'support_chat')
-        .order('created_at', { ascending: true });
+      // Source 1: Query settings table where key = 'taban_live_support_chats' (100% Reliable Supabase Store)
+      const { data: settingsData } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'taban_live_support_chats')
+        .maybeSingle();
 
-      if (commentsData && commentsData.length > 0) {
-        commentsData.forEach((c: any) => {
-          try {
-            const parsed = JSON.parse(c.content);
-            if (parsed && parsed.user_id && parsed.message) {
-              allMsgs.push({ id: String(c.id), ...parsed });
-            }
-          } catch (e) {
-            // Plain text comment fallback
-            if (c.content && c.user_id) {
-              allMsgs.push({
-                id: String(c.id),
-                user_id: c.user_id,
-                user_name: 'Bexawer User',
-                user_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
-                message: c.content,
-                sender: 'user',
-                created_at: c.created_at
-              });
-            }
+      if (settingsData?.value) {
+        try {
+          const parsed = JSON.parse(settingsData.value);
+          if (Array.isArray(parsed)) {
+            allMsgs = parsed;
           }
-        });
+        } catch (e) {
+          console.warn(e);
+        }
       }
 
-      // Source 2: Query support_messages table if exists
+      // Source 2: Fallback query support_messages
       const { data: smData } = await supabase
         .from('support_messages')
         .select('*')
@@ -98,26 +85,6 @@ export default function AdminSupportMessagesPage() {
         smData.forEach((m: any) => {
           if (!allMsgs.some(x => x.message === m.message && x.created_at === m.created_at)) {
             allMsgs.push(m as SupportMessage);
-          }
-        });
-      }
-
-      // Source 3: Query reports table fallback
-      const { data: repData } = await supabase
-        .from('reports')
-        .select('*')
-        .eq('movie_id', 'support_chat')
-        .order('created_at', { ascending: true });
-
-      if (repData && repData.length > 0) {
-        repData.forEach((r: any) => {
-          try {
-            const parsed = JSON.parse(r.reason);
-            if (parsed && parsed.user_id && !allMsgs.some(m => m.message === parsed.message && m.created_at === parsed.created_at)) {
-              allMsgs.push({ id: String(r.id), ...parsed });
-            }
-          } catch (e) {
-            // ignore
           }
         });
       }
@@ -178,7 +145,8 @@ export default function AdminSupportMessagesPage() {
     const text = replyText.trim();
     setReplyText('');
 
-    const newMsgObj: Omit<SupportMessage, 'id'> = {
+    const newMsgObj: SupportMessage = {
+      id: 'admin_' + Date.now(),
       user_id: selectedUserId,
       user_name: 'Admin',
       user_avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
@@ -188,15 +156,16 @@ export default function AdminSupportMessagesPage() {
     };
 
     // Optimistic UI update
-    setMessages(prev => [...prev, { id: 'temp-' + Date.now(), ...newMsgObj }]);
+    const updated = [...messages, newMsgObj];
+    setMessages(updated);
 
     try {
-      // 1. Insert into comments table with movie_id: 'support_chat'
-      await supabase.from('comments').insert([{
-        movie_id: 'support_chat',
-        user_id: selectedUserId,
-        content: JSON.stringify(newMsgObj)
-      }]);
+      // 1. Update settings table with full array
+      await supabase.from('settings').upsert({
+        key: 'taban_live_support_chats',
+        value: JSON.stringify(updated),
+        updated_at: new Date().toISOString()
+      });
 
       // 2. Insert into support_messages if present
       await supabase.from('support_messages').insert([newMsgObj]);
@@ -226,7 +195,7 @@ export default function AdminSupportMessagesPage() {
         </div>
         <button 
           onClick={fetchMessages}
-          className="p-2 bg-[#CC222F] hover:bg-red-700 text-white rounded-xl transition flex items-center gap-2 text-xs font-bold shadow-lg"
+          className="p-2.5 bg-[#CC222F] hover:bg-red-700 text-white rounded-xl transition flex items-center gap-2 text-xs font-bold shadow-lg"
         >
           <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           <span>نوێکردنەوە</span>

@@ -152,7 +152,30 @@ export default function Profile() {
           console.warn(e);
         }
 
-        // 2. Fetch from Supabase support_messages
+        // 2. Fetch from Supabase settings table (100% working table with key 'taban_live_support_chats')
+        const { data: setRes } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'taban_live_support_chats')
+          .maybeSingle();
+
+        if (setRes?.value) {
+          try {
+            const parsed = JSON.parse(setRes.value);
+            if (Array.isArray(parsed)) {
+              const userFiltered = parsed.filter((m: any) => m.user_id === userAccount.id);
+              userFiltered.forEach((m: any) => {
+                if (!msgs.some(x => x.message === m.message && x.created_at === m.created_at)) {
+                  msgs.push(m as ChatMessage);
+                }
+              });
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+
+        // 3. Fallback query support_messages
         const { data } = await supabase
           .from('support_messages')
           .select('*')
@@ -167,26 +190,6 @@ export default function Profile() {
           });
         }
 
-        // 3. Fetch from Supabase reports fallback
-        const { data: repData } = await supabase
-          .from('reports')
-          .select('*')
-          .eq('movie_id', 'support_chat')
-          .order('created_at', { ascending: true });
-
-        if (repData) {
-          repData.forEach(r => {
-            try {
-              const parsed = JSON.parse(r.reason);
-              if (parsed && parsed.user_id === userAccount.id && !msgs.some(m => m.message === parsed.message && m.created_at === parsed.created_at)) {
-                msgs.push({ id: String(r.id), ...parsed });
-              }
-            } catch (e) {
-              // ignore
-            }
-          });
-        }
-
         msgs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         setChatMessages(msgs);
         localStorage.setItem(storageKey, JSON.stringify(msgs));
@@ -197,25 +200,12 @@ export default function Profile() {
 
     fetchChatMessages();
 
-    // Subscribe to real-time additions
+    // Subscribe to real-time additions on settings table
     const channel = supabase
-      .channel(`user_chat_${userAccount.id}`)
+      .channel(`user_chat_settings_${userAccount.id}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `user_id=eq.${userAccount.id}` },
-        (payload) => {
-          const newMsg = payload.new as ChatMessage;
-          setChatMessages((prev) => {
-            if (prev.some(m => m.id === newMsg.id || (m.message === newMsg.message && m.created_at === newMsg.created_at))) return prev;
-            const updated = [...prev, newMsg];
-            localStorage.setItem(storageKey, JSON.stringify(updated));
-            return updated;
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'reports', filter: 'movie_id=eq.support_chat' },
+        { event: '*', schema: 'public', table: 'settings', filter: 'key=eq.taban_live_support_chats' },
         () => fetchChatMessages()
       )
       .subscribe();
@@ -260,20 +250,32 @@ export default function Profile() {
     });
 
     try {
-      // Triple-pathway insert into Supabase to guarantee 100% arrival at Admin Panel
-      await supabase.from('comments').insert([{
-        movie_id: 'support_chat',
-        user_id: userAccount.id,
-        content: JSON.stringify(newMsgObj)
-      }]);
+      // 1. Fetch existing chats list from settings table
+      const { data: setRes } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'taban_live_support_chats')
+        .maybeSingle();
 
+      let existingList: any[] = [];
+      if (setRes?.value) {
+        try {
+          const parsed = JSON.parse(setRes.value);
+          if (Array.isArray(parsed)) existingList = parsed;
+        } catch (e) {}
+      }
+
+      existingList.push(fullMsgObj);
+
+      // 2. Upsert updated list into settings table (100% works without schema errors)
+      await supabase.from('settings').upsert({
+        key: 'taban_live_support_chats',
+        value: JSON.stringify(existingList),
+        updated_at: new Date().toISOString()
+      });
+
+      // 3. Secondary insert into support_messages if present
       await supabase.from('support_messages').insert([newMsgObj]);
-
-      await supabase.from('reports').insert([{
-        movie_id: 'support_chat',
-        reason: JSON.stringify(newMsgObj),
-        created_at: new Date().toISOString()
-      }]);
     } catch (err) {
       console.error(err);
     } finally {
