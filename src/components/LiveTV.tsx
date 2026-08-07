@@ -42,7 +42,115 @@ export default function LiveTV() {
   // Player State
   const [playingChannel, setPlayingChannel] = useState<any | null>(null);
   const [realLiveViewers, setRealLiveViewers] = useState<number>(1);
-  const [showProModal, setShowProModal] = useState(false);
+  // ── 24/7 REAL-TIME LIVE PLAYLIST SCHEDULER ENGINE ──
+  const [liveSyncState, setLiveSyncState] = useState<{
+    currentUrl: string;
+    seekOffset: number;
+    linkIndex: number;
+    totalLinks: number;
+  }>({ currentUrl: '', seekOffset: 0, linkIndex: 0, totalLinks: 1 });
+
+  useEffect(() => {
+    if (!playingChannel?.stream_url) return;
+
+    // Helper to parse multi-line or single-line URLs into structured playlist items
+    const parseChannelPlaylist = (rawStreamUrl: string): Array<{ url: string; duration: number }> => {
+      if (!rawStreamUrl) return [];
+      let input = rawStreamUrl.trim();
+      
+      try {
+        if (input.startsWith('{')) {
+          const parsed = JSON.parse(input);
+          if (parsed.url) input = parsed.url;
+        } else if (input.startsWith('[')) {
+          const parsed = JSON.parse(input);
+          if (Array.isArray(parsed)) {
+            return parsed.map(item => typeof item === 'string' ? { url: item, duration: 7200 } : { url: item.url, duration: item.duration || 7200 });
+          }
+        }
+      } catch (e) {}
+
+      const lines = input.split(/[\r\n]+/).map(l => l.trim()).filter(l => l.length > 0);
+      if (lines.length === 0) return [];
+
+      return lines.map(line => {
+        if (line.includes('|')) {
+          const [urlPart, durPart] = line.split('|');
+          const parsedDur = parseFloat(durPart.trim());
+          const durationSeconds = !isNaN(parsedDur) && parsedDur > 0 ? parsedDur * 60 : 7200;
+          return { url: urlPart.trim(), duration: durationSeconds };
+        }
+        return { url: line, duration: 7200 }; // 2 hours default per link
+      });
+    };
+
+    // Calculate real wall-clock live stream position across the globe
+    const getLiveStreamState = (playlist: Array<{ url: string; duration: number }>, channelCreatedAt?: string) => {
+      if (!playlist || playlist.length === 0) {
+        return { currentUrl: '', seekOffset: 0, nextSwitchMs: 0, linkIndex: 0, totalLinks: 0 };
+      }
+
+      if (playlist.length === 1) {
+        return { currentUrl: playlist[0].url, seekOffset: 0, nextSwitchMs: 0, linkIndex: 0, totalLinks: 1 };
+      }
+
+      const totalCycleSeconds = playlist.reduce((sum, item) => sum + item.duration, 0);
+      if (totalCycleSeconds <= 0) {
+        return { currentUrl: playlist[0].url, seekOffset: 0, nextSwitchMs: 0, linkIndex: 0, totalLinks: playlist.length };
+      }
+
+      const channelStartMs = channelCreatedAt ? new Date(channelCreatedAt).getTime() : 1700000000000;
+      const nowMs = Date.now();
+      const elapsedMs = Math.max(0, nowMs - channelStartMs);
+      const cycleMs = totalCycleSeconds * 1000;
+      const currentCycleOffsetMs = elapsedMs % cycleMs;
+      const currentCycleOffsetSec = currentCycleOffsetMs / 1000;
+
+      let accumulated = 0;
+      for (let i = 0; i < playlist.length; i++) {
+        const item = playlist[i];
+        if (currentCycleOffsetSec >= accumulated && currentCycleOffsetSec < accumulated + item.duration) {
+          const seekOffset = currentCycleOffsetSec - accumulated;
+          const remainingSec = item.duration - seekOffset;
+          return {
+            currentUrl: item.url,
+            seekOffset: Math.floor(seekOffset),
+            nextSwitchMs: Math.max(1000, Math.floor(remainingSec * 1000)),
+            linkIndex: i,
+            totalLinks: playlist.length
+          };
+        }
+        accumulated += item.duration;
+      }
+
+      return { currentUrl: playlist[0].url, seekOffset: 0, nextSwitchMs: 0, linkIndex: 0, totalLinks: playlist.length };
+    };
+
+    const playlist = parseChannelPlaylist(playingChannel.stream_url);
+    let timer: NodeJS.Timeout;
+
+    const syncChannel = () => {
+      const state = getLiveStreamState(playlist, playingChannel.created_at);
+      setLiveSyncState({
+        currentUrl: state.currentUrl,
+        seekOffset: state.seekOffset,
+        linkIndex: state.linkIndex,
+        totalLinks: state.totalLinks,
+      });
+
+      if (state.nextSwitchMs > 0 && state.totalLinks > 1) {
+        timer = setTimeout(() => {
+          syncChannel();
+        }, state.nextSwitchMs);
+      }
+    };
+
+    syncChannel();
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [playingChannel?.id, playingChannel?.stream_url, playingChannel?.created_at]);
 
   // Real-time Supabase Presence for live channel viewers
   useEffect(() => {
@@ -182,9 +290,9 @@ export default function LiveTV() {
 
         <div className="w-full bg-black relative aspect-video md:h-[70vh] md:aspect-auto overflow-hidden">
           {(() => {
-            const rawUrl = playingChannel.stream_url || '';
+            const activeUrl = liveSyncState.currentUrl || playingChannel.stream_url || '';
 
-            const getLiveEmbedUrl = (url: string) => {
+            const getLiveEmbedUrl = (url: string, offsetSec: number = 0) => {
               if (!url) return '';
               let finalUrl = url.trim();
               finalUrl = finalUrl.replace(/^\/+/, ''); 
@@ -233,29 +341,34 @@ export default function LiveTV() {
 
               if (finalUrl.includes('youtube.com/watch?v=')) {
                 const videoId = finalUrl.split('v=')[1]?.split('&')[0];
-                return `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&disablekb=1&modestbranding=1`;
+                return `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&disablekb=1&modestbranding=1${offsetSec > 0 ? `&start=${offsetSec}` : ''}`;
               }
 
               if (finalUrl.includes('youtu.be/')) {
                 const videoId = finalUrl.split('youtu.be/')[1]?.split('?')[0];
-                return `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&disablekb=1&modestbranding=1`;
+                return `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&disablekb=1&modestbranding=1${offsetSec > 0 ? `&start=${offsetSec}` : ''}`;
               }
 
               return finalUrl;
             };
 
-            const isM3u8 = rawUrl.toLowerCase().includes('.m3u8');
-            const isDirectVideo = rawUrl.toLowerCase().endsWith('.mp4') || rawUrl.toLowerCase().endsWith('.webm');
-            const embedUrl = getLiveEmbedUrl(rawUrl);
+            const isM3u8 = activeUrl.toLowerCase().includes('.m3u8');
+            const isDirectVideo = activeUrl.toLowerCase().endsWith('.mp4') || activeUrl.toLowerCase().endsWith('.webm');
+            const embedUrl = getLiveEmbedUrl(activeUrl, liveSyncState.seekOffset);
             const isIframe = !isM3u8 && !isDirectVideo && embedUrl !== '';
 
-            return !rawUrl ? (
+            const liveLabelText = liveSyncState.totalLinks > 1 
+              ? (language === 'ku' ? `پەخشی ڕاستەوخۆ • (لینکی ${liveSyncState.linkIndex + 1} لە ${liveSyncState.totalLinks})` : language === 'ar' ? `بث مباشر • (رابط ${liveSyncState.linkIndex + 1} من ${liveSyncState.totalLinks})` : `LIVE BROADCAST • (${liveSyncState.linkIndex + 1}/${liveSyncState.totalLinks})`)
+              : (language === 'ku' ? 'پەخشی ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'LIVE BROADCAST');
+
+            return !activeUrl ? (
               <div className="w-full h-full flex items-center justify-center bg-neutral-900 text-neutral-400 absolute inset-0">
                 No stream URL available
               </div>
             ) : isIframe ? (
               <div className="w-full h-full relative bg-black flex items-center justify-center overflow-hidden">
                 <iframe 
+                  key={activeUrl}
                   src={embedUrl} 
                   className="w-full h-full border-0 absolute inset-0 z-10"
                   allowFullScreen
@@ -269,7 +382,7 @@ export default function LiveTV() {
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
                     <span className="text-xs font-black tracking-widest text-white uppercase">
-                      {language === 'ku' ? 'پەخشی ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'LIVE BROADCAST'}
+                      {liveLabelText}
                     </span>
                   </div>
                 </div>
@@ -277,7 +390,8 @@ export default function LiveTV() {
             ) : isM3u8 ? (
               <div className="w-full h-full relative bg-black">
                 <HlsPlayer 
-                  url={rawUrl} 
+                  key={activeUrl}
+                  url={activeUrl} 
                   className="w-full h-full absolute inset-0 object-contain bg-black"
                   autoPlay={true}
                   controls={false}
@@ -286,7 +400,7 @@ export default function LiveTV() {
                 <div className="absolute bottom-3 left-4 z-20 flex items-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
                   <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
                   <span className="text-xs font-black tracking-widest text-white uppercase">
-                    {language === 'ku' ? 'پەخشی ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'LIVE BROADCAST'}
+                    {liveLabelText}
                   </span>
                 </div>
               </div>
@@ -296,7 +410,8 @@ export default function LiveTV() {
                   const Player = ReactPlayer as any;
                   return (
                     <Player 
-                      url={rawUrl} 
+                      key={activeUrl}
+                      url={activeUrl} 
                       width="100%" 
                       height="100%" 
                       controls={false}
@@ -308,6 +423,15 @@ export default function LiveTV() {
                 })()}
                 {/* Live Badge Overlay */}
                 <div className="absolute bottom-3 left-4 z-20 flex items-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
+                  <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
+                  <span className="text-xs font-black tracking-widest text-white uppercase">
+                    {liveLabelText}
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
                   <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
                   <span className="text-xs font-black tracking-widest text-white uppercase">
                     {language === 'ku' ? 'پەخشی ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'LIVE BROADCAST'}

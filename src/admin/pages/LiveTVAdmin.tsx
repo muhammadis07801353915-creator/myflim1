@@ -253,8 +253,19 @@ export default function LiveTVAdmin() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-neutral-300">Stream / Broadcast URL (m3u8, mp4, vidsrc://, ok.ru, youtube, etc.)</label>
-              <input type="text" value={formData.stream_url} onChange={e => setFormData({...formData, stream_url: e.target.value})} placeholder="https://... OR vidsrc://movie/5550 OR ok.ru/..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
+              <label className="text-sm font-medium text-neutral-300">
+                Stream / Broadcast URLs (تەک یان چەندین لینک بۆ پەخشی بەردەوام)
+              </label>
+              <p className="text-xs text-neutral-400">
+                دەتوانیت تەنها ۱ لینک یان چەندین لینک (لە هەر دێڕێکدا ۱ لینک) دابنێیت بۆ ئەوەی دوای یەک بەشێوەی لایڤی بەردەوام کاربکەن:
+              </p>
+              <textarea 
+                rows={4}
+                value={formData.stream_url} 
+                onChange={e => setFormData({...formData, stream_url: e.target.value})} 
+                placeholder="vidsrc://movie/5550&#10;https://ok.ru/videoembed/12345&#10;https://example.com/stream.m3u8" 
+                className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white font-mono text-sm outline-none focus:border-red-500 transition resize-y" 
+              />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-neutral-300">Profile / External Link (Optional)</label>
