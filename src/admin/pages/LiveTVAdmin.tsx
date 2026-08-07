@@ -252,8 +252,8 @@ export default function LiveTVAdmin() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-neutral-300">Stream URL (m3u8)</label>
-              <input type="text" value={formData.stream_url} onChange={e => setFormData({...formData, stream_url: e.target.value})} placeholder="https://..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
+              <label className="text-sm font-medium text-neutral-300">Stream / Broadcast URL (m3u8, mp4, vidsrc://, ok.ru, youtube, etc.)</label>
+              <input type="text" value={formData.stream_url} onChange={e => setFormData({...formData, stream_url: e.target.value})} placeholder="https://... OR vidsrc://movie/5550 OR ok.ru/..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-neutral-300">Profile / External Link (Optional)</label>

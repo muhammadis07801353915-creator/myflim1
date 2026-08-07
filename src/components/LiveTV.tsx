@@ -171,55 +171,140 @@ export default function LiveTV() {
           </div>
         </div>
 
-        <div className="w-full bg-black relative aspect-video md:h-[70vh] md:aspect-auto">
+        <div className="w-full bg-black relative aspect-video md:h-[70vh] md:aspect-auto overflow-hidden">
           {(() => {
-            const isIframeLink = playingChannel.stream_url?.includes('t.me') || 
-                                 playingChannel.stream_url?.includes('telegram.me') ||
-                                 playingChannel.stream_url?.includes('ok.ru');
-            
-            const getEmbedUrl = (url: string) => {
+            const rawUrl = playingChannel.stream_url || '';
+
+            const getLiveEmbedUrl = (url: string) => {
               if (!url) return '';
-              if (url.includes('t.me') || url.includes('telegram.me')) {
-                if (url.includes('embed=1')) return url;
-                const separator = url.includes('?') ? '&' : '?';
-                return `${url}${separator}embed=1`;
+              let finalUrl = url.trim();
+              finalUrl = finalUrl.replace(/^\/+/, ''); 
+              
+              if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://') && !finalUrl.startsWith('vidsrc://')) {
+                finalUrl = 'https://' + finalUrl;
               }
-              return url;
+
+              if (finalUrl.startsWith('vidsrc://')) {
+                const parts = finalUrl.replace('vidsrc://', '').split('/');
+                const type = parts[0];
+                const id = parts[1];
+                if (type === 'movie') {
+                  return `https://vidsrc.pm/embed/movie/${id}`;
+                } else {
+                  const season = parts[2] || '1';
+                  const ep = parts[3] || '1';
+                  return `https://vidsrc.pm/embed/tv/${id}/${season}/${ep}`;
+                }
+              }
+
+              if (finalUrl.includes('drive.google.com') || finalUrl.includes('docs.google.com')) {
+                if (finalUrl.includes('/view')) return finalUrl.replace('/view', '/preview');
+                if (finalUrl.includes('/edit')) return finalUrl.replace('/edit', '/preview');
+                if (!finalUrl.endsWith('/preview')) {
+                  const parts = finalUrl.split('?')[0].split('/');
+                  const id = parts[parts.indexOf('d') + 1];
+                  if (id) return `https://drive.google.com/file/d/${id}/preview`;
+                }
+                return finalUrl;
+              }
+
+              if (finalUrl.includes('t.me') || finalUrl.includes('telegram.me')) {
+                if (finalUrl.includes('embed=1')) return finalUrl;
+                const separator = finalUrl.includes('?') ? '&' : '?';
+                return `${finalUrl}${separator}embed=1`;
+              }
+
+              if (finalUrl.includes('ok.ru/video/')) {
+                return finalUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
+              }
+
+              if (finalUrl.includes('dailymotion.com/video/')) {
+                return finalUrl.replace('dailymotion.com/video/', 'dailymotion.com/embed/video/');
+              }
+
+              if (finalUrl.includes('youtube.com/watch?v=')) {
+                const videoId = finalUrl.split('v=')[1]?.split('&')[0];
+                return `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&disablekb=1&modestbranding=1`;
+              }
+
+              if (finalUrl.includes('youtu.be/')) {
+                const videoId = finalUrl.split('youtu.be/')[1]?.split('?')[0];
+                return `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&disablekb=1&modestbranding=1`;
+              }
+
+              return finalUrl;
             };
 
-            const isM3u8 = playingChannel.stream_url?.toLowerCase().includes('.m3u8');
+            const isM3u8 = rawUrl.toLowerCase().includes('.m3u8');
+            const isDirectVideo = rawUrl.toLowerCase().endsWith('.mp4') || rawUrl.toLowerCase().endsWith('.webm');
+            const embedUrl = getLiveEmbedUrl(rawUrl);
+            const isIframe = !isM3u8 && !isDirectVideo && embedUrl !== '';
 
-            return !playingChannel.stream_url ? (
+            return !rawUrl ? (
               <div className="w-full h-full flex items-center justify-center bg-neutral-900 text-neutral-400 absolute inset-0">
                 No stream URL available
               </div>
-            ) : isIframeLink ? (
-              <iframe 
-                src={getEmbedUrl(playingChannel.stream_url)} 
-                className="w-full h-full border-0 absolute inset-0"
-                allowFullScreen
-              ></iframe>
+            ) : isIframe ? (
+              <div className="w-full h-full relative bg-black flex items-center justify-center overflow-hidden">
+                <iframe 
+                  src={embedUrl} 
+                  className="w-full h-full border-0 absolute inset-0 z-10"
+                  allowFullScreen
+                  allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                />
+                {/* Live Stream Protection Overlay — disables seeking/timeline manipulation while broadcast plays live */}
+                <div 
+                  className="absolute bottom-0 left-0 right-0 h-12 z-20 pointer-events-auto bg-gradient-to-t from-black/95 via-black/60 to-transparent flex items-center justify-between px-4"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
+                    <span className="text-xs font-black tracking-widest text-white uppercase">
+                      {language === 'ku' ? 'پەخشی ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'LIVE BROADCAST'}
+                    </span>
+                  </div>
+                </div>
+              </div>
             ) : isM3u8 ? (
-              <HlsPlayer 
-                url={playingChannel.stream_url} 
-                className="w-full h-full absolute inset-0 object-contain bg-black"
-                autoPlay 
-                controls 
-              />
+              <div className="w-full h-full relative bg-black">
+                <HlsPlayer 
+                  url={rawUrl} 
+                  className="w-full h-full absolute inset-0 object-contain bg-black"
+                  autoPlay={true}
+                  controls={false}
+                />
+                {/* Live Badge Overlay */}
+                <div className="absolute bottom-3 left-4 z-20 flex items-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
+                  <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
+                  <span className="text-xs font-black tracking-widest text-white uppercase">
+                    {language === 'ku' ? 'پەخشی ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'LIVE BROADCAST'}
+                  </span>
+                </div>
+              </div>
             ) : (
-              (() => {
-                const Player = ReactPlayer as any;
-                return (
-                  <Player 
-                    url={playingChannel.stream_url} 
-                    width="100%" 
-                    height="100%" 
-                    controls 
-                    playing 
-                    className="absolute inset-0"
-                  />
-                );
-              })()
+              <div className="w-full h-full relative bg-black">
+                {(() => {
+                  const Player = ReactPlayer as any;
+                  return (
+                    <Player 
+                      url={rawUrl} 
+                      width="100%" 
+                      height="100%" 
+                      controls={false}
+                      playing={true}
+                      loop={true}
+                      className="absolute inset-0"
+                    />
+                  );
+                })()}
+                {/* Live Badge Overlay */}
+                <div className="absolute bottom-3 left-4 z-20 flex items-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
+                  <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
+                  <span className="text-xs font-black tracking-widest text-white uppercase">
+                    {language === 'ku' ? 'پەخشی ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'LIVE BROADCAST'}
+                  </span>
+                </div>
+              </div>
             );
           })()}
         </div>
