@@ -432,15 +432,6 @@ export default function LiveTV() {
             );
           })()}
         </div>
-                  <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
-                  <span className="text-xs font-black tracking-widest text-white uppercase">
-                    {language === 'ku' ? 'پەخشی ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'LIVE BROADCAST'}
-                  </span>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
 
         <div className="p-4 sm:p-5 bg-neutral-900 border-t border-neutral-800 z-10 flex-1 overflow-y-auto">
           {/* Header Row */}
