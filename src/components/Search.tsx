@@ -98,55 +98,36 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
   const filteredItems = useMemo(() => {
     let pool: any[] = [];
     if (activeType === 'All') {
-      pool = [
-        ...movies, 
-        ...(channels || []).map(c => ({ ...c, type: 'LiveTV', title: c.name, rating: '8.5' }))
-      ];
-    } else if (activeType === 'Movie') {
-      pool = movies.filter(m => m.type === 'Movie' || !m.type);
-    } else if (activeType === 'Series') {
-      pool = movies.filter(s => s.type === 'Series' || s.list_name?.includes('زنجیرە'));
+      pool = [...movies, ...channels];
+    } else if (activeType === 'LiveTV') {
+      pool = channels;
     } else if (activeType === 'Anime') {
       pool = movies.filter(isAnimeItem);
-    } else if (activeType === 'LiveTV') {
-      pool = (channels || []).map(c => ({ ...c, type: 'LiveTV', title: c.name, rating: '8.5' }));
+    } else {
+      pool = movies.filter(m => m.type === activeType && !isAnimeItem(m));
     }
 
-    let filtered = Array.from(new Map(pool.map(item => [item.id, item])).values());
+    let filtered = pool.filter(item => {
+      const title = (getLocalized(item, 'title', language) || item.title || item.name || '').toLowerCase();
+      const genre = (item.genre || item.category || '').toLowerCase();
+      const cast = (item.cast || '').toLowerCase();
+      const director = (item.director || '').toLowerCase();
+      const q = query.toLowerCase().trim();
 
-    // 1. Text Search Filter across 3 languages & description
-    if (query.trim()) {
-      const q = query.trim().toLowerCase();
-      filtered = filtered.filter(item => {
-        const title = (item.title || item.name || '').toLowerCase();
-        const titleKu = (item.title_ku || item.name_ku || '').toLowerCase();
-        const titleAr = (item.title_ar || item.name_ar || '').toLowerCase();
-        const titleEn = (item.title_en || item.name_en || '').toLowerCase();
-        const genre = (item.genre || item.category || '').toLowerCase();
-        const year = String(item.year || '');
+      const matchesQuery = !q || title.includes(q) || genre.includes(q) || cast.includes(q) || director.includes(q);
+      const matchesGenre = matchesGenreOrList(item, activeGenre);
+      
+      let matchesYear = true;
+      if (activeYear !== 'All') {
+        const itemYear = parseInt(item.year);
+        if (activeYear === '2000s') matchesYear = itemYear >= 2000 && itemYear <= 2009;
+        else if (activeYear === '1990s') matchesYear = itemYear >= 1990 && itemYear <= 1999;
+        else matchesYear = item.year === activeYear;
+      }
 
-        return title.includes(q) || titleKu.includes(q) || titleAr.includes(q) || 
-               titleEn.includes(q) || genre.includes(q) || year.includes(q);
-      });
-    }
+      return matchesQuery && matchesGenre && matchesYear;
+    });
 
-    // 2. Genre & List Filter
-    if (activeGenre !== 'All') {
-      filtered = filtered.filter(item => matchesGenreOrList(item, activeGenre));
-    }
-
-    // 3. Year Filter
-    if (activeYear !== 'All') {
-      filtered = filtered.filter(item => {
-        const itemYear = Number(item.year);
-        if (!itemYear) return false;
-        if (activeYear === '2000s') return itemYear >= 2000 && itemYear < 2010;
-        if (activeYear === '1990s') return itemYear >= 1990 && itemYear < 2000;
-        return String(item.year) === activeYear;
-      });
-    }
-
-    // 4. Sorting
     filtered.sort((a, b) => {
       if (sortBy === 'rating') {
         return (Number(b.rating) || 0) - (Number(a.rating) || 0);
@@ -158,25 +139,25 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
     });
 
     return filtered;
-  }, [query, activeType, activeGenre, activeYear, sortBy, movies, channels]);
+  }, [query, activeType, activeGenre, activeYear, sortBy, movies, channels, language]);
 
   return (
-    <div className="search-page p-4 sm:p-6 pt-6 pb-28 max-w-7xl mx-auto font-sans" dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="p-4 sm:p-6 pt-6 pb-28 max-w-7xl mx-auto font-sans" dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}>
       
       {/* ── SEARCH INPUT BAR ── */}
       <div className="relative mb-4">
-        <SearchIcon className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-white/40" size={20} />
+        <SearchIcon className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-white/40 light-mode:text-neutral-500" size={20} />
         <input
           type="text"
           placeholder={language === 'ku' ? 'گەڕان بۆ فیلم، زنجیرە، لایڤ تەلەڤیزیۆن...' : language === 'ar' ? 'البحث عن فيلم، مسلسل، بث مباشر...' : 'Search movies, series, live TV...'}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full bg-white/7 border border-white/10 text-white placeholder-white/40 rounded-2xl py-4 pl-12 pr-10 rtl:pl-10 rtl:pr-12 focus:outline-none focus:border-[#CC222F]/60 transition-colors shadow-lg text-base"
+          className="w-full bg-white/7 light-mode:bg-white border border-white/10 light-mode:border-neutral-300 text-white light-mode:text-black placeholder-white/40 light-mode:placeholder-neutral-400 rounded-2xl py-4 pl-12 pr-10 rtl:pl-10 rtl:pr-12 focus:outline-none focus:border-[#CC222F]/60 transition-colors shadow-lg text-base"
         />
         {query && (
           <button 
             onClick={() => setQuery('')}
-            className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+            className="absolute right-4 rtl:right-auto rtl:left-4 top-1/2 -translate-y-1/2 text-white/40 light-mode:text-neutral-500 hover:text-white light-mode:hover:text-black"
           >
             <X size={18} />
           </button>
@@ -192,7 +173,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
             className={`px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
               activeType === t.id 
                 ? 'bg-[#CC222F] text-white shadow-lg shadow-red-600/25' 
-                : 'bg-white/7 border border-white/8 text-white/60 hover:text-white hover:bg-white/12'
+                : 'bg-white/7 light-mode:bg-neutral-100 border border-white/8 light-mode:border-neutral-200 text-white/60 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black'
             }`}
           >
             {t.label}
@@ -209,7 +190,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
             className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
               activeGenre === g.id 
                 ? 'bg-[#CC222F]/20 border-[#CC222F]/60 text-[#CC222F]' 
-                : 'bg-white/4 border-white/6 text-white/45 hover:text-white hover:bg-white/10'
+                : 'bg-white/4 light-mode:bg-neutral-100 border-white/6 light-mode:border-neutral-200 text-white/45 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black'
             }`}
           >
             {g.label}
@@ -226,7 +207,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
             className={`px-3.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${
               activeYear === y.id 
                 ? 'bg-amber-500/20 border-amber-500/60 text-amber-400' 
-                : 'bg-white/4 border-white/6 text-white/40 hover:text-white hover:bg-white/10'
+                : 'bg-white/4 light-mode:bg-neutral-100 border-white/6 light-mode:border-neutral-200 text-white/40 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black'
             }`}
           >
             {y.label}
@@ -236,7 +217,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
 
       {/* ── HEADER ROW (Result count & Sort selector) ── */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-bold text-white tracking-tight">
+        <h2 className="text-base font-bold text-white light-mode:text-black tracking-tight">
           {query || activeType !== 'All' || activeGenre !== 'All'
             ? `${language === 'ku' ? 'ئەنجامەکان' : language === 'ar' ? 'النتائج' : 'Results'} (${filteredItems.length})`
             : (language === 'ku' ? 'ناو بەرز و دیارەکان' : language === 'ar' ? 'الرائج الآن' : 'Trending Now')}
@@ -245,7 +226,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
         {/* Sort Button */}
         <button
           onClick={() => setSortBy(prev => prev === 'newest' ? 'rating' : prev === 'rating' ? 'popular' : 'newest')}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/7 border border-white/8 text-xs font-bold text-white/70 hover:text-white transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/7 light-mode:bg-neutral-100 border border-white/8 light-mode:border-neutral-200 text-xs font-bold text-white/70 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black transition"
         >
           <ArrowUpDown size={14} className="text-[#CC222F]" />
           <span>
@@ -268,7 +249,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           {filteredItems.map(item => (
             <div 
               key={item.id} 
-              className="bg-neutral-900 border border-white/8 hover:border-[#CC222F]/50 rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-[1.02] flex flex-col" 
+              className="bg-neutral-900 light-mode:bg-white border border-white/8 light-mode:border-neutral-200 hover:border-[#CC222F]/50 rounded-2xl overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-[1.02] flex flex-col shadow-sm" 
               onClick={() => onSelect(item)}
             >
               <div className="relative aspect-[2/3] w-full bg-neutral-950 overflow-hidden">
@@ -291,18 +272,12 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
               </div>
               <div className="p-3 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-bold text-sm text-white truncate group-hover:text-[#CC222F] transition-colors">{getLocalized(item, 'title', language) || item.title || item.name}</h3>
-                  <p className="text-xs text-white/40 mt-0.5 truncate">{item.genre || item.category || item.year}</p>
+                  <h3 className="font-bold text-sm text-white light-mode:text-black truncate group-hover:text-[#CC222F] transition-colors">{getLocalized(item, 'title', language) || item.title || item.name}</h3>
+                  <p className="text-xs text-white/40 light-mode:text-neutral-500 mt-0.5 truncate">{item.genre || item.category || item.year}</p>
                 </div>
               </div>
             </div>
           ))}
-
-          {filteredItems.length === 0 && (
-            <div className="col-span-full text-center py-20 text-white/30 text-sm">
-              {language === 'ku' ? 'هیچ ئەنجامێک نەدۆزرایەوە' : language === 'ar' ? 'لم يتم العثور على نتائج' : 'No results found'}
-            </div>
-          )}
         </div>
       )}
     </div>
