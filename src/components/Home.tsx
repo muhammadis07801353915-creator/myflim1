@@ -324,10 +324,8 @@ export default function Home({
               />
             )}
 
-            {/* Bottom fade gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/60 to-transparent pointer-events-none" />
-            {/* Left fade gradient */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f]/80 via-[#0a0a0f]/30 to-transparent pointer-events-none" />
+            {/* Subtle clean overlay without dark shapes */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent pointer-events-none" />
 
             {/* Content overlay */}
             <div className="relative z-10 aspect-[16/10] sm:aspect-[21/9] md:aspect-[3/1] flex flex-col justify-end px-5 pt-5 pb-8 sm:px-8 sm:pb-10 md:px-10">

@@ -173,16 +173,9 @@ export default function HomeScreen({ navigation }: any) {
             <Image source={{ uri: item.image }} style={hero.img} resizeMode="cover" />
           ) : null}
 
-          {/* Bottom gradient */}
+          {/* Subtle clean overlay without dark shapes */}
           <LinearGradient
-            colors={['transparent', 'rgba(10,10,15,0.6)', 'rgba(10,10,15,0.97)']}
-            style={StyleSheet.absoluteFillObject}
-          />
-          {/* Left/Right gradient */}
-          <LinearGradient
-            colors={isRTL ? ['transparent', 'rgba(10,10,15,0.3)', 'rgba(10,10,15,0.8)'] : ['rgba(10,10,15,0.8)', 'rgba(10,10,15,0.3)', 'transparent']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+            colors={['transparent', 'rgba(0,0,0,0.15)', 'rgba(0,0,0,0.45)']}
             style={StyleSheet.absoluteFillObject}
           />
 
