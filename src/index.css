@@ -127,19 +127,17 @@ body.light-mode,
   color: #64748b !important;
 }
 
-/* 3. TEXT CONTRAST IN LIGHT MODE (MAKE ALL TEXT DARK & READABLE) */
-.light-mode h1, 
-.light-mode h2, 
-.light-mode h3, 
-.light-mode h4, 
-.light-mode h5, 
-.light-mode h6, 
-.light-mode p,
-.light-mode span,
-.light-mode div,
-.light-mode label,
-.light-mode a,
-.light-mode button {
+/* 3. TEXT CONTRAST IN LIGHT MODE (MAKE ALL TEXT DARK & READABLE EXCEPT WHITE TEXT) */
+.light-mode h1:not(.text-white):not([style*="color"]), 
+.light-mode h2:not(.text-white):not([style*="color"]), 
+.light-mode h3:not(.text-white):not([style*="color"]), 
+.light-mode h4:not(.text-white):not([style*="color"]), 
+.light-mode h5:not(.text-white):not([style*="color"]), 
+.light-mode h6:not(.text-white):not([style*="color"]), 
+.light-mode p:not(.text-white):not([style*="color"]),
+.light-mode span:not(.text-white):not([style*="color"]),
+.light-mode label:not(.text-white):not([style*="color"]),
+.light-mode a:not(.text-white):not([style*="color"]) {
   color: #0f172a;
 }
 
