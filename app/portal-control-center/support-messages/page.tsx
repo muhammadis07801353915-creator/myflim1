@@ -30,13 +30,20 @@ export default function AdminSupportMessagesPage() {
 
     // Subscribe to real-time updates for new messages
     const channel = supabase
-      .channel('support_messages_changes')
+      .channel('support_messages_changes_admin')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'support_messages' },
         (payload) => {
           const newMsg = payload.new as SupportMessage;
           setMessages((prev) => [...prev, newMsg]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'reports', filter: 'movie_id=eq.support_chat' },
+        () => {
+          fetchMessages();
         }
       )
       .subscribe();
@@ -53,18 +60,45 @@ export default function AdminSupportMessagesPage() {
   const fetchMessages = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let allMsgs: SupportMessage[] = [];
+
+      // Primary: support_messages
+      const { data: smData, error: smError } = await supabase
         .from('support_messages')
         .select('*')
         .order('created_at', { ascending: true });
 
-      if (!error && data) {
-        setMessages(data as SupportMessage[]);
-        if (data.length > 0 && !selectedUserId) {
-          // Select first user automatically
-          const firstUser = data.find(m => m.sender === 'user')?.user_id || data[0].user_id;
-          setSelectedUserId(firstUser);
-        }
+      if (!smError && smData) {
+        allMsgs = smData as SupportMessage[];
+      }
+
+      // Secondary fallback: reports table
+      const { data: repData } = await supabase
+        .from('reports')
+        .select('*')
+        .eq('movie_id', 'support_chat')
+        .order('created_at', { ascending: true });
+
+      if (repData && repData.length > 0) {
+        repData.forEach(r => {
+          try {
+            const parsed = JSON.parse(r.reason);
+            if (parsed && parsed.user_id && !allMsgs.some(m => m.message === parsed.message && m.created_at === parsed.created_at)) {
+              allMsgs.push({ id: String(r.id), ...parsed });
+            }
+          } catch (e) {
+            // ignore plain text reports
+          }
+        });
+      }
+
+      // Sort all messages chronologically
+      allMsgs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+      setMessages(allMsgs);
+      if (allMsgs.length > 0 && !selectedUserId) {
+        const firstUser = allMsgs.find(m => m.sender === 'user')?.user_id || allMsgs[0].user_id;
+        setSelectedUserId(firstUser);
       }
     } catch (e) {
       console.error(e);
@@ -128,7 +162,12 @@ export default function AdminSupportMessagesPage() {
     try {
       const { error } = await supabase.from('support_messages').insert([newMsgObj]);
       if (error) {
-        console.error('Error sending reply:', error);
+        // Fallback insert
+        await supabase.from('reports').insert([{
+          movie_id: 'support_chat',
+          reason: JSON.stringify(newMsgObj),
+          created_at: new Date().toISOString()
+        }]);
       }
     } catch (err) {
       console.error(err);

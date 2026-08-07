@@ -2,7 +2,6 @@
 
 import { 
   User, 
-  Crown, 
   ChevronRight, 
   Languages, 
   Sun, 
@@ -28,17 +27,9 @@ import Image from 'next/image';
 import { useLanguage } from '../lib/LanguageContext';
 import { getLocalized } from '../lib/translations';
 import { useRouter } from 'next/navigation';
-import { getProStatusLocal, setProStatus } from '../lib/pro';
 import { supabase } from '../lib/supabase';
-
-const DEFAULT_AVATARS = [
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?q=80&w=200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
-];
+import { getUserAccount, UserAccount, DEFAULT_AVATARS, logoutUserAccount } from '../lib/userAuth';
+import AuthModal from './AuthModal';
 
 interface ChatMessage {
   id: string;
@@ -55,22 +46,18 @@ export default function Profile() {
   const navigate = useRouter();
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
-  const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSavedModal, setShowSavedModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showChatModal, setShowChatModal] = useState(false);
   const [aboutText, setAboutText] = useState('');
 
-  const [userName, setUserName] = useState('User');
+  const [userAccount, setUserAccount] = useState<UserAccount | null>(null);
   const [tempName, setTempName] = useState('User');
-  const [userAvatar, setUserAvatar] = useState(DEFAULT_AVATARS[0]);
   const [tempAvatar, setTempAvatar] = useState(DEFAULT_AVATARS[0]);
-  const [userId, setUserId] = useState('');
 
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [isPro, setIsPro] = useState(false);
-  const [unlockCode, setUnlockCode] = useState('');
 
   const [watchlistItems, setWatchlistItems] = useState<any[]>([]);
   const [historyItems, setHistoryItems] = useState<any[]>([]);
@@ -82,25 +69,10 @@ export default function Profile() {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Generate or retrieve persistent User ID
-    let uid = localStorage.getItem('myfilm_user_id');
-    if (!uid) {
-      uid = 'user_' + Math.random().toString(36).substring(2, 10);
-      localStorage.setItem('myfilm_user_id', uid);
-    }
-    setUserId(uid);
+    syncUser();
 
-    const savedName = localStorage.getItem('myfilm_user_name');
-    if (savedName) {
-      setUserName(savedName);
-      setTempName(savedName);
-    }
-    
-    const savedAvatar = localStorage.getItem('myfilm_user_avatar');
-    if (savedAvatar) {
-      setUserAvatar(savedAvatar);
-      setTempAvatar(savedAvatar);
-    }
+    const handleUserUpdate = () => syncUser();
+    window.addEventListener('userAccountUpdated', handleUserUpdate);
 
     // Theme persistence check
     const savedTheme = localStorage.getItem('myfilm_theme');
@@ -113,8 +85,6 @@ export default function Profile() {
       document.body.classList.remove('light-mode');
       setIsDarkMode(true);
     }
-
-    setIsPro(getProStatusLocal());
 
     // Watchlist & history sync
     const loadState = () => {
@@ -146,27 +116,63 @@ export default function Profile() {
     fetchAbout();
 
     return () => {
+      window.removeEventListener('userAccountUpdated', handleUserUpdate);
       window.removeEventListener('storage', loadState);
       window.removeEventListener('watchlistUpdated', loadState);
       window.removeEventListener('historyUpdated', loadState);
     };
   }, []);
 
+  const syncUser = () => {
+    const acc = getUserAccount();
+    setUserAccount(acc);
+    if (acc) {
+      setTempName(acc.name);
+      setTempAvatar(acc.avatar);
+    }
+  };
+
   // Fetch & listen to Live Chat Messages
   useEffect(() => {
-    if (!showChatModal || !userId) return;
+    if (!showChatModal || !userAccount) return;
 
     const fetchChatMessages = async () => {
       try {
+        let msgs: ChatMessage[] = [];
+
+        // Source 1: support_messages
         const { data, error } = await supabase
           .from('support_messages')
           .select('*')
-          .eq('user_id', userId)
+          .eq('user_id', userAccount.id)
           .order('created_at', { ascending: true });
 
         if (!error && data) {
-          setChatMessages(data as ChatMessage[]);
+          msgs = data as ChatMessage[];
         }
+
+        // Source 2: fallback reports table
+        const { data: repData } = await supabase
+          .from('reports')
+          .select('*')
+          .eq('movie_id', 'support_chat')
+          .order('created_at', { ascending: true });
+
+        if (repData) {
+          repData.forEach(r => {
+            try {
+              const parsed = JSON.parse(r.reason);
+              if (parsed && parsed.user_id === userAccount.id && !msgs.some(m => m.message === parsed.message && m.created_at === parsed.created_at)) {
+                msgs.push({ id: String(r.id), ...parsed });
+              }
+            } catch (e) {
+              // ignore
+            }
+          });
+        }
+
+        msgs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        setChatMessages(msgs);
       } catch (e) {
         console.warn(e);
       }
@@ -176,10 +182,10 @@ export default function Profile() {
 
     // Subscribe to real-time additions
     const channel = supabase
-      .channel(`user_chat_${userId}`)
+      .channel(`user_chat_${userAccount.id}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `user_id=eq.${userId}` },
+        { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `user_id=eq.${userAccount.id}` },
         (payload) => {
           const newMsg = payload.new as ChatMessage;
           setChatMessages((prev) => {
@@ -188,12 +194,17 @@ export default function Profile() {
           });
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'reports', filter: 'movie_id=eq.support_chat' },
+        () => fetchChatMessages()
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [showChatModal, userId]);
+  }, [showChatModal, userAccount]);
 
   useEffect(() => {
     if (showChatModal) {
@@ -203,16 +214,16 @@ export default function Profile() {
 
   const handleSendChatMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim() || sendingChat) return;
+    if (!chatInput.trim() || sendingChat || !userAccount) return;
 
     const text = chatInput.trim();
     setChatInput('');
     setSendingChat(true);
 
     const newMsgObj: Omit<ChatMessage, 'id'> = {
-      user_id: userId,
-      user_name: userName,
-      user_avatar: userAvatar,
+      user_id: userAccount.id,
+      user_name: userAccount.name,
+      user_avatar: userAccount.avatar,
       message: text,
       sender: 'user',
       created_at: new Date().toISOString()
@@ -225,7 +236,12 @@ export default function Profile() {
     try {
       const { error } = await supabase.from('support_messages').insert([newMsgObj]);
       if (error) {
-        console.error('Error inserting chat message into Supabase:', error);
+        // Fallback insert into reports table
+        await supabase.from('reports').insert([{
+          movie_id: 'support_chat',
+          reason: JSON.stringify(newMsgObj),
+          created_at: new Date().toISOString()
+        }]);
       }
     } catch (err) {
       console.error(err);
@@ -248,16 +264,28 @@ export default function Profile() {
     }
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (tempName.trim()) {
-      setUserName(tempName.trim());
       localStorage.setItem('myfilm_user_name', tempName.trim());
     }
     if (tempAvatar) {
-      setUserAvatar(tempAvatar);
       localStorage.setItem('myfilm_user_avatar', tempAvatar);
     }
+    syncUser();
     setShowNameModal(false);
+
+    if (userAccount) {
+      try {
+        await supabase.from('profiles').upsert({
+          id: userAccount.id,
+          display_name: tempName.trim(),
+          avatar_url: tempAvatar,
+          updated_at: new Date().toISOString()
+        });
+      } catch (e) {
+        console.warn(e);
+      }
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -279,26 +307,8 @@ export default function Profile() {
 
   const handleLogout = () => {
     if (confirm(language === 'ku' ? 'دڵنیایت لە چوونه‌ده‌ره‌وه‌؟' : 'Are you sure you want to log out?')) {
-      localStorage.removeItem('myfilm_user_name');
-      localStorage.removeItem('myfilm_user_avatar');
-      setUserName('User');
-      setTempName('User');
-      setUserAvatar(DEFAULT_AVATARS[0]);
-      setTempAvatar(DEFAULT_AVATARS[0]);
-    }
-  };
-
-  const handleUnlockSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const normalized = unlockCode.trim().toLowerCase();
-    if (normalized === 'taban play1' || normalized === 'tabanplay1') {
-      setProStatus('UNLOCKED', new Date(Date.now() + 365*24*60*60*1000).toISOString());
-      setIsPro(true);
-      setShowUnlockModal(false);
-      setUnlockCode('');
-      alert(language === 'ku' ? 'سەرکەوتوو بوو! ئەپەکە بە سەرکەوتوویی بەتەواوی کرایەوە.' : 'Success! App fully unlocked.');
-    } else {
-      alert(language === 'ku' ? 'کۆدەکە هەڵەیە، تکایە دووبارە هەوڵبدەرەوە.' : 'Invalid code. Please try again.');
+      logoutUserAccount();
+      setUserAccount(null);
     }
   };
 
@@ -318,15 +328,23 @@ export default function Profile() {
           <div className="relative p-0.5 rounded-full border-2 border-[#CC222F]">
             <div className="w-16 h-16 rounded-full overflow-hidden relative bg-[#181924] light-mode:bg-neutral-200">
               <Image 
-                src={userAvatar} 
-                alt={userName} 
+                src={userAccount?.avatar || DEFAULT_AVATARS[0]} 
+                alt={userAccount?.name || 'User'} 
                 fill 
                 className="object-cover"
                 unoptimized
               />
             </div>
             <button 
-              onClick={() => { setTempName(userName); setTempAvatar(userAvatar); setShowNameModal(true); }}
+              onClick={() => {
+                if (!userAccount) {
+                  setShowAuthModal(true);
+                } else {
+                  setTempName(userAccount.name);
+                  setTempAvatar(userAccount.avatar);
+                  setShowNameModal(true);
+                }
+              }}
               className="absolute -bottom-1 -right-1 rtl:-right-auto rtl:-left-1 w-6 h-6 rounded-full bg-[#CC222F] text-white flex items-center justify-center border-2 border-[#0F0F13] light-mode:border-white hover:scale-110 transition shadow-md"
             >
               <Camera size={11} />
@@ -334,13 +352,24 @@ export default function Profile() {
           </div>
           <div>
             <h1 className="text-xl font-black text-white light-mode:text-black tracking-tight">
-              {language === 'ku' ? `سڵاو، ${userName}` : language === 'ar' ? `مرحباً، ${userName}` : `Hi, ${userName}`}
+              {userAccount 
+                ? (language === 'ku' ? `سڵاو، ${userAccount.name}` : language === 'ar' ? `مرحباً، ${userAccount.name}` : `Hi, ${userAccount.name}`)
+                : (language === 'ku' ? 'خوشهاتیت بۆ تابان پڵەی' : 'Welcome to Taban Play')
+              }
             </h1>
             <button 
-              onClick={() => { setTempName(userName); setTempAvatar(userAvatar); setShowNameModal(true); }} 
-              className="text-xs font-semibold text-white/50 light-mode:text-neutral-500 hover:text-white light-mode:hover:text-black transition flex items-center gap-1 mt-0.5"
+              onClick={() => {
+                if (!userAccount) {
+                  setShowAuthModal(true);
+                } else {
+                  setTempName(userAccount.name);
+                  setTempAvatar(userAccount.avatar);
+                  setShowNameModal(true);
+                }
+              }} 
+              className="text-xs font-semibold text-[#CC222F] hover:underline transition flex items-center gap-1 mt-0.5"
             >
-              <span>{language === 'ku' ? 'دەستکاری پرۆفایل >' : language === 'ar' ? 'تعديل الملف الشخصي >' : 'Edit Profile >'}</span>
+              <span>{userAccount ? (language === 'ku' ? 'دەستکاری پرۆفایل >' : 'Edit Profile >') : (language === 'ku' ? 'دروستکردنی ئەکاونت / داخڵکردنی کۆد >' : 'Register Account / Code >')}</span>
             </button>
           </div>
         </div>
@@ -393,7 +422,7 @@ export default function Profile() {
 
       {/* ── ENTER CODE / PRO BANNER ─────────────────────────────────── */}
       <div 
-        onClick={() => setShowUnlockModal(true)}
+        onClick={() => setShowAuthModal(true)}
         className="mb-6 p-4 rounded-2xl bg-[#CC222F]/10 light-mode:bg-red-50 border border-[#CC222F]/30 light-mode:border-red-200 flex items-center justify-between cursor-pointer hover:bg-[#CC222F]/15 transition group"
       >
         <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
@@ -402,15 +431,15 @@ export default function Profile() {
           </div>
           <div>
             <h3 className="font-extrabold text-sm text-[#CC222F]">
-              {isPro 
-                ? (language === 'ku' ? 'کۆد چالاککراوە' : 'Code Activated') 
-                : (language === 'ku' ? 'داخڵکردنی کۆد' : 'Enter Code')
+              {userAccount 
+                ? (language === 'ku' ? `کۆد چالاککراوە: Taban Play1 (${userAccount.name})` : `Activated: Taban Play1 (${userAccount.name})`) 
+                : (language === 'ku' ? 'داخڵکردنی کۆد (Taban Play1)' : 'Enter Code (Taban Play1)')
               }
             </h3>
             <p className="text-xs text-white/50 light-mode:text-neutral-600 mt-0.5">
-              {isPro 
+              {userAccount 
                 ? (language === 'ku' ? 'سەرجەم بەشەکان بە سەرکەوتوویی کراونەتەوە' : 'All app sections successfully unlocked') 
-                : (language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکان' : 'Enter code to unlock all sections of the app')
+                : (language === 'ku' ? 'کۆدەکە بنووسە یان چوونە ژوورەوە بکە بۆ ڕاستەوخۆ دەستکاریکردنی سەرجەم بەشەکان' : 'Enter code or log in to unlock all features')
               }
             </p>
           </div>
@@ -425,7 +454,15 @@ export default function Profile() {
         <ProfileMenuItem 
           icon={User} 
           label={language === 'ku' ? 'ڕێکخستنەکانی هەژمار' : language === 'ar' ? 'إعدادات الحساب' : 'Account Settings'} 
-          onClick={() => { setTempName(userName); setTempAvatar(userAvatar); setShowNameModal(true); }} 
+          onClick={() => {
+            if (!userAccount) {
+              setShowAuthModal(true);
+            } else {
+              setTempName(userAccount.name);
+              setTempAvatar(userAccount.avatar);
+              setShowNameModal(true);
+            }
+          }} 
         />
 
         {/* Language Selector (گۆڕینی زمان) */}
@@ -489,7 +526,13 @@ export default function Profile() {
           icon={MessageSquare} 
           label={language === 'ku' ? 'قسەکردن لەگەڵ ئادمین' : language === 'ar' ? 'التحدث مع الأدمن' : 'Chat with Admin'} 
           iconClass="text-red-500"
-          onClick={() => setShowChatModal(true)} 
+          onClick={() => {
+            if (!userAccount) {
+              setShowAuthModal(true);
+            } else {
+              setShowChatModal(true);
+            }
+          }} 
         />
 
         {/* About Taban Play */}
@@ -500,17 +543,19 @@ export default function Profile() {
         />
 
         {/* Logout */}
-        <ProfileMenuItem 
-          icon={LogOut} 
-          label={language === 'ku' ? 'چوونە دەرەوە' : language === 'ar' ? 'تسجيل الخروج' : 'Log Out'} 
-          iconClass="text-red-500"
-          textClass="text-red-500"
-          onClick={handleLogout} 
-        />
+        {userAccount && (
+          <ProfileMenuItem 
+            icon={LogOut} 
+            label={language === 'ku' ? 'چوونە دەرەوە' : language === 'ar' ? 'تسجيل الخروج' : 'Log Out'} 
+            iconClass="text-red-500"
+            textClass="text-red-500"
+            onClick={handleLogout} 
+          />
+        )}
       </div>
 
       {/* ── LIVE CHAT WITH ADMIN MODAL ────────────────────────────────── */}
-      {showChatModal && (
+      {showChatModal && userAccount && (
         <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4" onClick={() => setShowChatModal(false)}>
           <div className="bg-[#14151c] light-mode:bg-white border border-white/10 light-mode:border-neutral-200 w-full max-w-lg h-[80vh] rounded-3xl flex flex-col shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
             
@@ -526,7 +571,7 @@ export default function Profile() {
                   </h3>
                   <p className="text-[11px] text-emerald-400 flex items-center gap-1 font-semibold">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>{language === 'ku' ? 'ئادمین ئامادەیە بۆ وەڵامدانەوە' : 'Admin is Online'}</span>
+                    <span>{language === 'ku' ? `سەرخەتە (${userAccount.name})` : `Online (${userAccount.name})`}</span>
                   </p>
                 </div>
               </div>
@@ -543,7 +588,7 @@ export default function Profile() {
               {chatMessages.length === 0 ? (
                 <div className="py-20 text-center text-white/40 light-mode:text-neutral-500 space-y-2">
                   <MessageSquare size={36} className="mx-auto text-white/20 light-mode:text-neutral-300" />
-                  <p className="text-sm font-bold">{language === 'ku' ? 'سڵاو! پەیامێک بنووسە بۆ ئادمین' : 'Hi! Send a message to the admin'}</p>
+                  <p className="text-sm font-bold">{language === 'ku' ? `سڵاو ${userAccount.name}! پەیامێک بنووسە بۆ ئادمین` : `Hi ${userAccount.name}! Send a message to the admin`}</p>
                   <p className="text-xs">{language === 'ku' ? 'بە زووترین کات وەڵامت دەدرێتەوە' : 'We will reply as soon as possible'}</p>
                 </div>
               ) : (
@@ -673,7 +718,7 @@ export default function Profile() {
       )}
 
       {/* ── EDIT PROFILE MODAL (Name + Avatar Upload & Select) ────────── */}
-      {showNameModal && (
+      {showNameModal && userAccount && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowNameModal(false)}>
           <div className="bg-[#181924] light-mode:bg-white w-full max-w-sm rounded-3xl p-6 border border-white/10 light-mode:border-neutral-200 shadow-2xl space-y-5" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-white/10 light-mode:border-neutral-200 pb-3">
@@ -758,42 +803,12 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Code Unlock Modal */}
-      {showUnlockModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowUnlockModal(false)}>
-          <div className="bg-[#181924] light-mode:bg-white w-full max-w-xs rounded-2xl p-6 border border-white/10 light-mode:border-neutral-200 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white light-mode:text-black">{language === 'ku' ? 'داخڵکردنی کۆد' : 'Enter Code'}</h3>
-              <button onClick={() => setShowUnlockModal(false)} className="text-white/40 light-mode:text-neutral-500 hover:text-white"><X size={18} /></button>
-            </div>
-            <form onSubmit={handleUnlockSubmit}>
-              <input 
-                type="text" 
-                placeholder="taban play1"
-                value={unlockCode}
-                onChange={(e) => setUnlockCode(e.target.value)}
-                className="w-full bg-white/7 light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-300 rounded-xl px-4 py-2.5 text-white light-mode:text-black placeholder-white/30 light-mode:placeholder-neutral-400 outline-none focus:border-[#CC222F] mb-6 text-sm font-semibold"
-                autoFocus
-              />
-              <div className="flex space-x-3 rtl:space-x-reverse">
-                <button 
-                  type="button"
-                  onClick={() => setShowUnlockModal(false)}
-                  className="flex-1 py-2 bg-white/8 light-mode:bg-neutral-200 text-white/70 light-mode:text-neutral-700 rounded-xl font-bold text-sm hover:bg-white/15 light-mode:hover:bg-neutral-300 transition"
-                >
-                  {t.cancel}
-                </button>
-                <button 
-                  type="submit"
-                  className="flex-1 py-2 bg-[#CC222F] text-white rounded-xl font-bold text-sm hover:bg-red-700 transition"
-                >
-                  {language === 'ku' ? 'چالاککردن' : 'Unlock'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Auth / Account Register & Login Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={() => syncUser()}
+      />
 
       {/* About Taban Play Modal */}
       {showAboutModal && (
