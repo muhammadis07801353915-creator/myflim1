@@ -77,25 +77,29 @@ export default function DetailScreen({ route, navigation }: any) {
   const [viewCount, setViewCount] = useState(item.views || 0);
   const [selectedMovieServerUrl, setSelectedMovieServerUrl] = useState<string | null>(null);
   const [selectedMovieServerIndex, setSelectedMovieServerIndex] = useState<number | null>(null);
-  
-  const handleWatchlist = () => {
-    toggleWatchlist(item);
-    setIsWatchlisted(!isWatchlisted);
-  };
 
+  // Parse video_url format dynamically
   let servers: any[] = [];
   let episodes: any[] = [];
 
-  const getEmbedUrl = (url: string): string => {
+  const getEmbedUrl = (url: string) => {
     if (!url) return '';
-    if (url.startsWith('vidsrc://')) {
-      const parts = url.replace('vidsrc://', '').split('/');
+    let finalUrl = url.trim();
+    finalUrl = finalUrl.replace(/^\/+/, '');
+    if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://') && !finalUrl.startsWith('vidsrc://')) {
+      finalUrl = 'https://' + finalUrl;
+    }
+    if (finalUrl.startsWith('vidsrc://')) {
+      const parts = finalUrl.replace('vidsrc://', '').split('/');
       const type = parts[0];
       const id = parts[1];
-      if (type === 'movie') return `https://vidsrc.pm/embed/movie/${id}`;
-      const season = parts[2] || '1';
-      const ep = parts[3] || '1';
-      return `https://vidsrc.pm/embed/tv/${id}/${season}/${ep}`;
+      if (type === 'movie') {
+        return `https://vidsrc.pm/embed/movie/${id}`;
+      } else {
+        const season = parts[2] || '1';
+        const ep = parts[3] || '1';
+        return `https://vidsrc.pm/embed/tv/${id}/${season}/${ep}`;
+      }
     }
     return url;
   };
@@ -103,7 +107,6 @@ export default function DetailScreen({ route, navigation }: any) {
   try {
     const parsed = JSON.parse(item.video_url || '[]');
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      // Format: {"servers": [...], "episodes": [...], ...}
       if (parsed.servers && Array.isArray(parsed.servers)) {
         servers = parsed.servers.map((s: any, i: number) => ({
           name: s.name || `Server ${i + 1}`,
@@ -115,34 +118,29 @@ export default function DetailScreen({ route, navigation }: any) {
         episodes = parsed.episodes;
       }
     } else if (Array.isArray(parsed)) {
-      // Old format: [{name, url}, ...]  OR  [{number, season, servers}, ...]
       if (parsed.length > 0 && parsed[0].number !== undefined) {
         episodes = parsed;
       } else {
-        servers = parsed.map((s: any, i: number) => {
-          if (typeof s === 'string') return { name: `Server ${i + 1}`, url: getEmbedUrl(s) };
-          return { name: s.name || `Server ${i + 1}`, url: getEmbedUrl(s.url || ''), quality: s.quality || 'HD' };
-        });
+        servers = parsed.map((s: any, i: number) => ({
+          name: s.name || `Server ${i + 1}`,
+          url: getEmbedUrl(s.url || ''),
+          quality: s.quality || 'HD'
+        }));
       }
-    } else if (typeof parsed === 'string') {
-      servers = [{ name: 'Server 1', url: getEmbedUrl(parsed) }];
     }
   } catch (e) {
-    if (typeof item.video_url === 'string' && item.video_url.length > 0) {
-       servers = [{ name: 'Server 1', url: getEmbedUrl(item.video_url) }];
+    if (item.video_url) {
+      servers = [{ name: 'Server 1', url: getEmbedUrl(item.video_url), quality: 'HD' }];
     }
   }
 
-  // If it's a series, use episodes. If movie, use servers.
   const isSeriesContent = item.type === 'Series';
 
   if (!servers || !Array.isArray(servers)) servers = [];
   if (!episodes || !Array.isArray(episodes)) episodes = [];
 
-  // For display in grid: if series show episodes, if movie show servers
   const gridItems = isSeriesContent ? episodes : servers;
 
-  // Determine the active video URL
   let activeVideoUrl_original: string | null = currentVideoUrl;
   if (!activeVideoUrl_original) {
     if (item.type === 'LiveTV') {
@@ -157,7 +155,6 @@ export default function DetailScreen({ route, navigation }: any) {
     }
   }
 
-  // Transform links to embed if needed
   let activeVideoUrl = activeVideoUrl_original;
   if (activeVideoUrl?.includes('ok.ru/video/')) {
     activeVideoUrl = activeVideoUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
@@ -174,8 +171,6 @@ export default function DetailScreen({ route, navigation }: any) {
       const style = document.createElement('style');
       style.innerHTML = 'div[class*="join-ok"], .vp-layer_join-ok, .footer, .header, .side-bar { display: none !important; }';
       document.head.appendChild(style);
-      
-      // Auto-play attempt
       const video = document.querySelector("video");
       if (video) {
         video.play();
@@ -199,7 +194,6 @@ export default function DetailScreen({ route, navigation }: any) {
       }
       return;
     }
-    // Movie logic
     if (selectedMovieServerUrl) {
       handlePlayServer(selectedMovieServerUrl);
     } else if (servers.length > 0) {
@@ -247,7 +241,6 @@ export default function DetailScreen({ route, navigation }: any) {
     }
   };
 
-  // Modal Content Logic
   const getModalServers = () => {
     if (isSeriesContent && selectedEpisodeIndex !== null) {
       return (episodes[selectedEpisodeIndex]?.servers || []).map((s: any) => ({
@@ -258,17 +251,15 @@ export default function DetailScreen({ route, navigation }: any) {
     return servers;
   };
 
-  // Live TV Specific Layout
+  const isRTL = language === 'ku' || language === 'ar';
+
   if (item.type === 'LiveTV') {
-    const isRTL = language === 'ku' || language === 'ar';
     const liveVideoUrl = activeChannel.stream_url || item.stream_url;
-    const liveViewerCount = (850 + ((Number(activeChannel.id || 1) * 317) % 2400)).toLocaleString();
 
     return (
       <View style={[styles.container, { backgroundColor: '#0B0C10' }]}>
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
         
-        {/* Top 16:9 Header area (Video Player) */}
         <View style={styles.liveVideoContainer}>
           {isPlaying && liveVideoUrl ? (
             <Video
@@ -294,7 +285,6 @@ export default function DetailScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* Channel Info & Live Viewer Count */}
         <View style={styles.liveInfoContainer}>
           <View style={styles.liveInfoLeft}>
             <Text style={styles.liveTitle}>{activeChannel.name || getLocalized(item, 'title', language)}</Text>
@@ -309,7 +299,6 @@ export default function DetailScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* ── CATEGORY-SPECIFIC CHANNEL LIST BELOW PLAYER ── */}
         {(() => {
           const categoryChannels = activeChannel?.category
             ? (liveTv || []).filter((c: any) => c.category === activeChannel.category)
@@ -328,61 +317,49 @@ export default function DetailScreen({ route, navigation }: any) {
                 </Text>
               </View>
 
-              {displayChannels.map((ch: any) => {
-                const isCurrent = String(ch.id) === String(activeChannel.id);
-                return (
-                  <TouchableOpacity
-                    key={ch.id}
-                    onPress={() => {
-                      setActiveChannel(ch);
-                      setCurrentVideoUrl(ch.stream_url);
-                      setIsPlaying(true);
-                    }}
-                    activeOpacity={0.8}
-                    style={{
-                      flexDirection: isRTL ? 'row-reverse' : 'row',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: 12,
-                      borderRadius: 16,
-                      marginBottom: 8,
-                      backgroundColor: isCurrent ? 'rgba(56, 189, 248, 0.18)' : 'rgba(255, 255, 255, 0.05)',
-                      borderWidth: 1,
-                      borderColor: isCurrent ? 'rgba(56, 189, 248, 0.5)' : 'rgba(255, 255, 255, 0.06)',
-                    }}
-                  >
-                    <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#181820', overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' }}>
-                      {ch.image ? (
-                        <Image source={{ uri: ch.image }} style={{ width: '100%', height: '100%' }} resizeMode="contain" />
+              <View style={{ gap: 10 }}>
+                {displayChannels.map((ch: any) => {
+                  const isCurrent = ch.id === activeChannel.id;
+                  return (
+                    <TouchableOpacity
+                      key={ch.id}
+                      style={{
+                        flexDirection: isRTL ? 'row-reverse' : 'row',
+                        alignItems: 'center',
+                        justify: 'space-between',
+                        padding: 12,
+                        borderRadius: 14,
+                        backgroundColor: isCurrent ? 'rgba(229, 57, 53, 0.18)' : '#14151C',
+                        borderWidth: 1,
+                        borderColor: isCurrent ? '#E53935' : 'rgba(255,255,255,0.06)',
+                      }}
+                      onPress={() => {
+                        setActiveChannel(ch);
+                        setIsPlaying(true);
+                      }}
+                    >
+                      <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 12 }}>
+                        <Image 
+                          source={{ uri: ch.image }} 
+                          style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: '#000' }} 
+                          resizeMode="cover" 
+                        />
+                        <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
+                          <Text style={{ color: 'white', fontWeight: '700', fontSize: 15 }}>{ch.name}</Text>
+                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>{ch.category || 'Live TV'}</Text>
+                        </View>
+                      </View>
+                      {isCurrent ? (
+                        <View style={{ backgroundColor: '#E53935', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                          <Text style={{ color: 'white', fontSize: 11, fontWeight: 'bold' }}>Playing</Text>
+                        </View>
                       ) : (
-                        <Text style={{ color: 'white', fontWeight: 'bold' }}>{ch.name?.[0]}</Text>
+                        <Play size={16} color="rgba(255,255,255,0.4)" />
                       )}
-                    </View>
-
-                    <View style={{ flex: 1 }}>
-                      <Text style={{ color: isCurrent ? '#38bdf8' : 'white', fontSize: 15, fontWeight: 'bold', textAlign: isRTL ? 'right' : 'left' }}>
-                        {ch.name}
-                      </Text>
-                      <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2, textAlign: isRTL ? 'right' : 'left' }}>
-                        {ch.category}
-                      </Text>
-                    </View>
-
-                    {isCurrent ? (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#38bdf8', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-                        <Play size={10} color="#000" fill="#000" />
-                        <Text style={{ color: '#000', fontSize: 11, fontWeight: '900' }}>
-                          {language === 'ku' ? 'دەکەوێت' : language === 'ar' ? 'يعمل' : 'Playing'}
-                        </Text>
-                      </View>
-                    ) : (
-                      <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center' }}>
-                        <Play size={14} color="rgba(255,255,255,0.6)" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </ScrollView>
           );
         })()}
@@ -491,93 +468,96 @@ export default function DetailScreen({ route, navigation }: any) {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.infoSection}>
-             <Text style={styles.sectionTitle}>{t.overview}</Text>
-             <Text style={styles.description}>{getLocalized(item, 'description', language) || t.noDescription}</Text>
+          <View style={styles.synopsisContainer}>
+            <Text style={styles.sectionTitle}>{t.storyLine || 'Storyline'}</Text>
+            <Text style={styles.synopsisText}>
+              {getLocalized(item, 'description', language) || item.description || 'No description available.'}
+            </Text>
           </View>
 
-          <View ref={serversRef} style={styles.infoSection}>
-             <Text style={styles.sectionTitle}>
-               {item.type === 'Series' ? (t.episodes) : (t.availableServers)}
-             </Text>
-             <View style={styles.serverGrid}>
-               {gridItems?.map?.((gridItem: any, index: number) => {
-                 let displayName = isSeriesContent
-                   ? (gridItem?.title ? `${gridItem.title}` : `${language === 'ku' ? 'بەش' : 'Episode'} ${gridItem?.number || index + 1}`)
-                   : (gridItem?.name || `${language === 'ku' ? 'سێرڤەری' : 'Server'} ${index + 1}`);
-                 if (!displayName) {
-                   displayName = item.type === 'Series' 
-                     ? `${t.episodes} ${index + 1}` 
-                     : `${language === 'ku' ? 'سێرڤەری' : language === 'ar' ? 'سيرفر' : 'Server'} ${index + 1}`;
-                 }
-                 const isSelected = item.type === 'Series' 
-                    ? selectedEpisodeIndex === index
+          {/* Grid Selection: Episodes or Servers */}
+          {gridItems.length > 0 && (
+            <View ref={serversRef} style={styles.episodesContainer}>
+              <View style={styles.episodesHeader}>
+                <Text style={styles.sectionTitle}>
+                  {isSeriesContent ? (t.episodesTitle || 'Episodes') : (t.servers || 'Servers')}
+                </Text>
+                <Text style={styles.episodesCount}>{gridItems.length} {isSeriesContent ? 'Episodes' : 'Available'}</Text>
+              </View>
+
+              <View style={styles.episodesGrid}>
+                {gridItems.map((gridItem: any, index: number) => {
+                  const isSelected = isSeriesContent 
+                    ? selectedEpisodeIndex === index 
                     : selectedMovieServerIndex === index;
-                 return (
-                   <TouchableOpacity 
-                     key={index} 
-                     style={[styles.serverButton, isSelected && styles.selectedServerButton]}
-                     onPress={() => handleEpisodeSelect(index)}
-                   >
-                     <View style={styles.serverInfo}>
-                        <Text style={[styles.serverText, isSelected && { color: 'white' }]}>{displayName}</Text>
-                        <Text style={styles.qualityTag}>HD</Text>
-                     </View>
-                   </TouchableOpacity>
-                 );
-               })}
-             </View>
-          </View>
-          <CommentSection movieId={String(item.id)} />
-          <View style={{ height: 120 }} />
+
+                  const displayName = isSeriesContent 
+                    ? (gridItem.number ? `Ep ${gridItem.number}` : `Ep ${index + 1}`)
+                    : (gridItem.name || `Server ${index + 1}`);
+
+                  const subLabel = isSeriesContent 
+                    ? (gridItem.name || `Episode ${index + 1}`)
+                    : (gridItem.quality || 'HD');
+
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={[
+                        styles.gridCard,
+                        isSelected && styles.gridCardActive
+                      ]}
+                      onPress={() => handleEpisodeSelect(index)}
+                    >
+                      <View style={styles.gridCardTop}>
+                        {isSelected ? (
+                          <Play size={16} color="#E53935" fill="#E53935" />
+                        ) : (
+                          <Server size={16} color="rgba(255,255,255,0.5)" />
+                        )}
+                        <Text style={[styles.gridCardTitle, isSelected && styles.gridCardTitleActive]} numberOfLines={1}>
+                          {displayName}
+                        </Text>
+                      </View>
+                      <Text style={styles.gridCardSub} numberOfLines={1}>
+                        {subLabel}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
+          <CommentSection movieId={item.id} />
         </View>
       </ScrollView>
 
-      {/* Server Selection Modal */}
-      <Modal
-        visible={showServerModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowServerModal(false)}
-      >
+      {/* Server Picker Modal */}
+      <Modal visible={showServerModal} transparent animationType="slide">
         <Pressable style={styles.modalOverlay} onPress={() => setShowServerModal(false)}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <View>
-                <Text style={styles.modalTitle}>{t.chooseServer}</Text>
-                <Text style={styles.modalSubtitle}>{getModalServers().length} {t.available}</Text>
-              </View>
+              <Text style={styles.modalTitle}>{language === 'ku' ? 'سێرڤەر هەڵبژێرە' : 'Choose Server'}</Text>
               <TouchableOpacity onPress={() => setShowServerModal(false)}>
-                <X color="#888" size={24} />
+                <X size={24} color="white" />
               </TouchableOpacity>
             </View>
-
-            <View style={styles.modalList}>
-               {getModalServers().map((srv: any, idx: number) => (
-                 <TouchableOpacity 
-                   key={idx} 
-                   style={styles.modalServerItem}
-                   onPress={() => handlePlayServer(srv.url)}
-                 >
-                   <View style={styles.modalServerIconBox}>
-                     <Server size={20} color="#E53935" />
-                   </View>
-                   <View style={{ flex: 1 }}>
-                     <Text style={styles.modalServerName}>{srv.name || `Server ${idx + 1}`}</Text>
-                     <Text style={styles.modalServerSub}>{srv.provider || 'High Speed'}</Text>
-                   </View>
-                   <View style={styles.modalAutoBadge}>
-                     <Text style={styles.modalAutoText}>Auto</Text>
-                   </View>
-                 </TouchableOpacity>
-               ))}
-                <TouchableOpacity 
-                 style={styles.modalCancelButton}
-                 onPress={() => setShowServerModal(false)}
-               >
-                 <Text style={styles.modalCancelText}>{t.cancel}</Text>
-               </TouchableOpacity>
-            </View>
+            <ScrollView style={{ maxHeight: 300 }}>
+              {getModalServers().map((srv: any, idx: number) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={styles.serverOption}
+                  onPress={() => handlePlayServer(srv.url)}
+                >
+                  <Server size={20} color="#E53935" />
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <Text style={styles.serverOptionName}>{srv.name || `Server ${idx + 1}`}</Text>
+                    <Text style={styles.serverOptionQuality}>{srv.quality || 'HD'}</Text>
+                  </View>
+                  <ChevronLeft size={20} color="#666" style={{ transform: [{ rotate: '180deg' }] }} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </Pressable>
       </Modal>
@@ -588,315 +568,258 @@ export default function DetailScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F0F13',
+    backgroundColor: '#0a0a0a',
   },
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#1A1A22',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: SPACING.lg,
-    paddingBottom: 40,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  modalTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  modalSubtitle: {
-    color: '#888',
-    fontSize: 14,
-    marginTop: 4,
-  },
-  modalList: {
-    gap: 12,
-  },
-  modalServerItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    padding: 16,
-    borderRadius: 16,
-    gap: 16,
-  },
-  modalServerIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: 'rgba(229,57,53,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalServerName: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  modalServerSub: {
-    color: '#666',
-    fontSize: 12,
-    marginTop: 2,
-  },
-  modalAutoBadge: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-  },
-  modalAutoText: {
-    color: '#888',
-    fontSize: 11,
-    fontWeight: 'bold',
-  },
-  modalCancelButton: {
-    marginTop: 10,
-    height: 54,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: 16,
-  },
-  modalCancelText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  
-  // LIVE TV STYLES
-  liveVideoContainer: {
-    width: width,
-    aspectRatio: 16 / 9,
-    backgroundColor: 'black',
-    position: 'relative',
-  },
-  liveVideoOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-  },
-  backArrow: {
-    position: 'absolute',
-    left: 15,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  liveBadgeCorner: {
-    position: 'absolute',
-    right: 15,
-    backgroundColor: '#E53935',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 4,
-    gap: 4,
-  },
-  liveDotAnimated: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'white',
-  },
-  liveBadgeCornerText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  liveInfoContainer: {
-    padding: SPACING.lg,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  liveInfoLeft: {
-    flex: 1,
-  },
-  liveTitle: {
-    color: 'white',
-    fontSize: 22,
-    fontWeight: '900',
-    marginBottom: 4,
-  },
-  liveCategory: {
-    color: '#888',
-    fontSize: 14,
-  },
-  livePresenceButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  livePresenceText: {
-    color: '#E0E0E0',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-
-  // MOVIE STYLES
   headerContainer: {
-    width: width,
-    height: width * 0.7,
+    height: height * 0.38,
+    width: '100%',
     position: 'relative',
-    backgroundColor: 'black',
   },
   backdrop: {
     width: '100%',
     height: '100%',
   },
   gradient: {
-    position: 'absolute',
-    inset: 0,
+    ...StyleSheet.absoluteFillObject,
   },
   backButton: {
     position: 'absolute',
-    left: 20,
+    left: 16,
     zIndex: 10,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   floatingPoster: {
     position: 'absolute',
-    right: 20,
     bottom: -30,
+    left: 16,
     width: 100,
-    aspectRatio: 2/3,
+    height: 150,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#1e1e24',
-    zIndex: 20,
+    borderColor: '#E53935',
   },
   contentContainer: {
-    paddingHorizontal: SPACING.md,
-    marginTop: 20,
+    paddingHorizontal: 16,
+    paddingTop: 40,
+    paddingBottom: 60,
   },
   mainInfo: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 16,
+    alignItems: 'flex-start',
+    marginBottom: 20,
   },
   title: {
-    color: 'white',
-    fontSize: 28,
+    color: '#fff',
+    fontSize: 22,
     fontWeight: '900',
     marginBottom: 8,
-    maxWidth: width * 0.65,
   },
   metaRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 16,
-    marginBottom: 10,
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   metaText: {
-    color: '#888',
-    fontSize: 14,
+    color: '#aaa',
+    fontSize: 13,
+    fontWeight: '600',
   },
   actionRow: {
     flexDirection: 'row',
-    marginTop: 20,
+    alignItems: 'center',
     gap: 12,
+    marginBottom: 24,
   },
   mainPlayButton: {
-    flex: 2,
-    backgroundColor: 'white',
+    flex: 1,
+    height: 48,
+    backgroundColor: '#fff',
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 54,
-    borderRadius: 12,
-    gap: 10,
+    gap: 8,
   },
   mainPlayText: {
-    color: 'black',
+    color: '#000',
+    fontSize: 16,
     fontWeight: '900',
-    fontSize: 18,
   },
   iconAction: {
-    flex: 0.5,
-    height: 54,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    width: 48,
+    height: 48,
     borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  infoSection: {
-    marginTop: 32,
+  synopsisContainer: {
+    marginBottom: 24,
   },
   sectionTitle: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '800',
+    marginBottom: 8,
   },
-  description: {
-    color: '#bbb',
-    fontSize: 15,
-    lineHeight: 24,
+  synopsisText: {
+    color: '#888',
+    fontSize: 14,
+    lineHeight: 22,
   },
-  serverGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  episodesContainer: {
+    marginBottom: 24,
   },
-  serverButton: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    width: '48.5%',
-    marginBottom: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 18,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-  },
-  selectedServerButton: {
-    borderColor: '#E53935',
-    backgroundColor: 'rgba(229,57,53,0.1)',
-  },
-  serverInfo: {
+  episodesHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 12,
   },
-  serverText: {
-    color: 'rgba(255,255,255,0.6)',
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  qualityTag: {
+  episodesCount: {
     color: '#E53935',
-    fontSize: 10,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  episodesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  gridCard: {
+    width: (width - 32 - 10) / 2,
+    backgroundColor: '#181924',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  gridCardActive: {
+    borderColor: '#E53935',
+    backgroundColor: 'rgba(229, 57, 53, 0.12)',
+  },
+  gridCardTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  gridCardTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    flex: 1,
+  },
+  gridCardTitleActive: {
+    color: '#E53935',
+  },
+  gridCardSub: {
+    color: '#666',
+    fontSize: 11,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#181924',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  serverOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  serverOptionName: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  serverOptionQuality: {
+    color: '#888',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  liveVideoContainer: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    backgroundColor: '#000',
+    position: 'relative',
+  },
+  backArrow: {
+    position: 'absolute',
+    left: 16,
+    zIndex: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  liveInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
+  },
+  liveInfoLeft: {
+    flex: 1,
+  },
+  liveTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  liveCategory: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  livePresenceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(229,57,53,0.12)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(229,57,53,0.3)',
+  },
+  livePresenceText: {
+    color: '#E53935',
+    fontSize: 11,
     fontWeight: '900',
-    backgroundColor: 'rgba(229,57,53,0.1)',
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 4,
-  }
+    letterSpacing: 0.5,
+  },
 });
