@@ -12,6 +12,7 @@ interface AppState {
   countries: any[];
   banners: any[];
   watchlist: any[];
+  watchHistory: Record<string, { item: any; timestamp: number; duration: number; updatedAt: number }>;
   user: {
     name: string;
     image: string;
@@ -29,6 +30,7 @@ interface AppState {
   incrementViews: (id: string | number, currentViews: number) => Promise<void>;
   toggleWatchlist: (item: any) => Promise<void>;
   loadWatchlist: () => Promise<void>;
+  saveWatchProgress: (item: any, timestamp: number, duration: number) => Promise<void>;
   updateUser: (data: Partial<{ name: string; image: string; isPro: boolean }>) => Promise<void>;
   toggleTheme: () => void;
   setLanguage: (lang: 'ku' | 'ar' | 'en') => void;
@@ -189,6 +191,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         banners: bannersData || [],
         countries: countriesData || [],
         watchlist: storedWatchlist,
+        watchHistory: (() => {
+          try {
+            const h = AsyncStorage.getItem('watch_history');
+            return h ? JSON.parse(h as any) : {};
+          } catch {
+            return {};
+          }
+        })(),
         user: storedUser,
         theme: storedTheme,
         language: storedLanguage,
@@ -244,6 +254,21 @@ export const useAppStore = create<AppState>((set, get) => ({
     
     set({ watchlist: newWatchlist });
     await AsyncStorage.setItem('watchlist', JSON.stringify(newWatchlist));
+  },
+
+  saveWatchProgress: async (item: any, timestamp: number, duration: number) => {
+    const current = get().watchHistory || {};
+    const updated = {
+      ...current,
+      [String(item.id)]: {
+        item,
+        timestamp,
+        duration,
+        updatedAt: Date.now()
+      }
+    };
+    set({ watchHistory: updated });
+    await AsyncStorage.setItem('watch_history', JSON.stringify(updated));
   },
 
   updateUser: async (data: Partial<{ name: string; image: string; isPro: boolean }>) => {

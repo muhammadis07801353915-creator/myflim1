@@ -21,7 +21,8 @@ import {
   Info,
   User,
   Key,
-  X
+  X,
+  Play
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -40,9 +41,11 @@ export default function Profile() {
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [showSavedModal, setShowSavedModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [unlockCode, setUnlockCode] = useState('');
-  const [showDownloads, setShowDownloads] = useState(false);
-  const [downloadedMovies, setDownloadedMovies] = useState<any[]>([]);
+  const [watchlistItems, setWatchlistItems] = useState<any[]>([]);
+  const [historyItems, setHistoryItems] = useState<any[]>([]);
   const isRTL = language === 'ku' || language === 'ar';
 
   const [userName, setUserName] = useState(() => {
@@ -62,8 +65,17 @@ export default function Profile() {
       setIsDarkMode(false);
     }
     setIsPro(getProStatusLocal());
-    const saved = JSON.parse(localStorage.getItem('myfilm_downloads') || '[]');
-    setDownloadedMovies(saved);
+
+    // Load watchlist & history from localStorage
+    try {
+      const saved = JSON.parse(localStorage.getItem('myfilm_watchlist') || '[]');
+      setWatchlistItems(saved);
+
+      const hist = JSON.parse(localStorage.getItem('myfilm_history') || '{}');
+      setHistoryItems(Object.values(hist).sort((a: any, b: any) => b.updatedAt - a.updatedAt));
+    } catch (e) {
+      console.warn(e);
+    }
   }, []);
 
   const toggleTheme = () => {
@@ -117,72 +129,12 @@ export default function Profile() {
     }
   };
 
-  const removeDownload = (id: number) => {
-    const updated = downloadedMovies.filter(m => m.id !== id);
-    setDownloadedMovies(updated);
-    localStorage.setItem('myfilm_downloads', JSON.stringify(updated));
+  const formatTime = (secs: number) => {
+    if (!secs) return '00:00';
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
-
-  if (showDownloads) {
-    return (
-      <div className="p-4 sm:p-6 max-w-4xl mx-auto pt-8 pb-32 text-white light-mode:text-black min-h-screen" dir={isRTL ? 'rtl' : 'ltr'}>
-        <div className="flex items-center space-x-4 rtl:space-x-reverse mb-8">
-          <button 
-            onClick={() => setShowDownloads(false)}
-            className="w-10 h-10 bg-neutral-900 light-mode:bg-neutral-100 rounded-full flex items-center justify-center hover:bg-neutral-800 transition"
-          >
-            <ChevronRight size={24} className="rotate-180 rtl:rotate-0" />
-          </button>
-          <h2 className="text-2xl font-bold">{t.downloads || 'Downloads'}</h2>
-        </div>
-
-        {downloadedMovies.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-neutral-500">
-            <div className="w-20 h-20 bg-neutral-900 light-mode:bg-neutral-100 rounded-full flex items-center justify-center mb-4">
-              <Download size={32} />
-            </div>
-            <p>{language === 'ku' ? 'هیچ فیلمێک دانەبەزیوە' : 'No movies downloaded yet'}</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {downloadedMovies.map((movie) => (
-              <div key={movie.id} className="bg-[#14151c] light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-200 rounded-2xl overflow-hidden flex h-32 group">
-                <div className="w-24 relative flex-none">
-                  <Image src={movie.image} alt={movie.title} fill className="object-cover" unoptimized />
-                </div>
-                <div className="flex-1 p-4 flex flex-col justify-between">
-                  <div>
-                    <h4 className="font-bold text-white light-mode:text-black line-clamp-1">
-                      {getLocalized(movie, 'title', language)}
-                    </h4>
-                    <div className="flex items-center space-x-2 text-xs text-neutral-500 mt-1">
-                      <span className="flex items-center text-yellow-500"><Star size={12} className="mr-1 fill-current" /> {movie.rating}</span>
-                      <span>•</span>
-                      <span>{movie.year}</span>
-                    </div>
-                  </div>
-                  <div className="flex space-x-2 rtl:space-x-reverse">
-                    <button 
-                      onClick={() => alert(language === 'ku' ? 'بۆ سەیرکردن، بڕۆوە سەر لاپەڕەی سەرەکی' : 'Go to main page to watch')}
-                      className="px-4 py-1.5 bg-[#CC222F] text-white rounded-lg text-xs font-bold hover:bg-red-700 transition"
-                    >
-                      Watch Now
-                    </button>
-                    <button 
-                      onClick={() => removeDownload(movie.id)}
-                      className="px-4 py-1.5 bg-neutral-800 light-mode:bg-neutral-200 text-white light-mode:text-black rounded-lg text-xs font-bold hover:bg-neutral-700 transition"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div className="p-4 sm:p-6 max-w-4xl mx-auto pt-6 pb-32 text-white font-sans" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -239,44 +191,44 @@ export default function Profile() {
         </button>
       </div>
 
-      {/* ── 2. STATS CARDS GRID (Watchlist / History / Downloads) ───── */}
+      {/* ── 2. STATS CARDS GRID (Saved / Resume History / Downloads) ── */}
       <div className="grid grid-cols-3 gap-3 mb-6">
-        {/* Watchlist */}
+        {/* Card 1: Saved (سەیڤکراوەکان) */}
         <div 
-          onClick={() => navigate.push('/#watchlist')}
+          onClick={() => setShowSavedModal(true)}
           className="bg-[#14151c] border border-white/10 hover:border-[#CC222F]/50 rounded-2xl p-3.5 cursor-pointer transition-all hover:scale-[1.02] flex flex-col justify-between"
         >
           <div className="flex items-center justify-between mb-3">
             <Bookmark size={18} className="text-[#CC222F]" />
             <span className="w-4 h-4 rounded-full bg-[#CC222F]/20 text-[#CC222F] text-[10px] font-black flex items-center justify-center">+</span>
           </div>
-          <p className="text-[11px] font-semibold text-white/50">{language === 'ku' ? 'لیستی بینین' : language === 'ar' ? 'قائمتي' : 'Watchlist'}</p>
-          <p className="text-2xl font-black text-white mt-0.5">24</p>
+          <p className="text-[11px] font-semibold text-white/50">{language === 'ku' ? 'سەیڤکراوەکان' : language === 'ar' ? 'المحفوظات' : 'Saved'}</p>
+          <p className="text-2xl font-black text-white mt-0.5">{watchlistItems.length}</p>
         </div>
 
-        {/* History */}
+        {/* Card 2: Continue Watching (لە هەمان شوێن) */}
         <div 
-          onClick={() => navigate.push('/#history')}
+          onClick={() => setShowHistoryModal(true)}
           className="bg-[#14151c] border border-white/10 hover:border-[#CC222F]/50 rounded-2xl p-3.5 cursor-pointer transition-all hover:scale-[1.02] flex flex-col justify-between"
         >
           <div className="flex items-center justify-between mb-3">
             <Clock size={18} className="text-[#CC222F]" />
           </div>
-          <p className="text-[11px] font-semibold text-white/50">{language === 'ku' ? 'مێژوو' : language === 'ar' ? 'السجل' : 'History'}</p>
-          <p className="text-2xl font-black text-white mt-0.5">56</p>
+          <p className="text-[11px] font-semibold text-white/50">{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</p>
+          <p className="text-2xl font-black text-white mt-0.5">{historyItems.length}</p>
         </div>
 
-        {/* Downloads */}
+        {/* Card 3: Downloads (دابەزاندن — Count: بەمزوانە) */}
         <div 
-          onClick={() => setShowDownloads(true)}
+          onClick={() => alert(language === 'ku' ? 'بەشی دابەزاندن بەمزوانە بەردەست دەبێت!' : 'Downloads section coming soon!')}
           className="bg-[#14151c] border border-white/10 hover:border-[#CC222F]/50 rounded-2xl p-3.5 cursor-pointer transition-all hover:scale-[1.02] flex flex-col justify-between"
         >
           <div className="flex items-center justify-between mb-3">
             <Download size={18} className="text-[#CC222F]" />
             <span className="w-4 h-4 rounded-full bg-[#CC222F]/20 text-[#CC222F] text-[10px] font-black flex items-center justify-center">+</span>
           </div>
-          <p className="text-[11px] font-semibold text-white/50">{language === 'ku' ? 'داگرتنەکان' : language === 'ar' ? 'التنزيلات' : 'Downloads'}</p>
-          <p className="text-2xl font-black text-white mt-0.5">12</p>
+          <p className="text-[11px] font-semibold text-white/50">{language === 'ku' ? 'دابەزاندن' : language === 'ar' ? 'التنزيلات' : 'Downloads'}</p>
+          <p className="text-xs font-black text-[#CC222F] mt-2">{language === 'ku' ? 'بەمزوانە' : language === 'ar' ? 'قريباً' : 'Coming Soon'}</p>
         </div>
       </div>
 
@@ -307,11 +259,8 @@ export default function Profile() {
         <ChevronRight size={20} className="text-[#CC222F] rtl:rotate-180 shrink-0" />
       </div>
 
-      {/* ── 4. MENU ITEMS LIST ─────────────────────────────────────── */}
+      {/* ── 4. CLEAN MENU ITEMS LIST (Duplicated items removed) ───────── */}
       <div className="space-y-2.5">
-        <ProfileMenuItem icon={Bookmark} label={language === 'ku' ? 'لیستی من' : language === 'ar' ? 'قائمتي' : 'My List'} />
-        <ProfileMenuItem icon={Clock} label={language === 'ku' ? 'بەردەوامبوون لە بینین' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'} />
-        <ProfileMenuItem icon={Download} label={language === 'ku' ? 'داگرتنەکان' : language === 'ar' ? 'التنزيلات' : 'Downloads'} onClick={() => setShowDownloads(true)} />
         <ProfileMenuItem icon={User} label={language === 'ku' ? 'ڕێکخستنەکانی هەژمار' : language === 'ar' ? 'إعدادات الحساب' : 'Account Settings'} onClick={() => { setTempName(userName); setShowNameModal(true); }} />
         <ProfileMenuItem icon={Crown} label={language === 'ku' ? 'ئابوونەبوون' : language === 'ar' ? 'الاشتراك' : 'Subscription'} textClass="text-amber-400" onClick={() => setShowProModal(true)} />
         
@@ -357,6 +306,88 @@ export default function Profile() {
         <ProfileMenuItem icon={Info} label={language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play'} />
         <ProfileMenuItem icon={LogOut} label={t.logout} textClass="text-red-500" onClick={handleLogout} />
       </div>
+
+      {/* ── SAVED ITEMS MODAL ────────────────────────────────────── */}
+      {showSavedModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={() => setShowSavedModal(false)}>
+          <div className="bg-[#14151c] border border-white/10 w-full max-w-lg rounded-3xl p-6 shadow-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2.5">
+                <Bookmark size={20} className="text-[#CC222F]" />
+                <h3 className="text-lg font-extrabold text-white">{language === 'ku' ? 'سەیڤکراوەکان' : language === 'ar' ? 'المحفوظات' : 'Saved Items'}</h3>
+              </div>
+              <button onClick={() => setShowSavedModal(false)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white"><X size={18} /></button>
+            </div>
+
+            {watchlistItems.length === 0 ? (
+              <div className="py-16 text-center text-white/40 text-sm">
+                {language === 'ku' ? 'هیچ بەرهەمێک سەیڤ نەکراوە' : 'No items saved yet'}
+              </div>
+            ) : (
+              <div className="space-y-3 overflow-y-auto pr-1">
+                {watchlistItems.map((movie) => (
+                  <div key={movie.id} onClick={() => { setShowSavedModal(false); navigate.push(`/watch/${movie.id}`); }} className="bg-[#1c1e28] hover:bg-white/10 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-16 relative rounded-xl overflow-hidden bg-black shrink-0">
+                        {movie.image ? <Image src={movie.image} alt="" fill className="object-cover" unoptimized /> : null}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white text-sm line-clamp-1">{getLocalized(movie, 'title', language)}</h4>
+                        <p className="text-xs text-white/40 mt-1">{movie.year || movie.type}</p>
+                      </div>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-[#CC222F] flex items-center justify-center text-white shrink-0">
+                      <Play size={14} className="ml-0.5 fill-current" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── CONTINUE WATCHING MODAL ───────────────────────────────── */}
+      {showHistoryModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={() => setShowHistoryModal(false)}>
+          <div className="bg-[#14151c] border border-white/10 w-full max-w-lg rounded-3xl p-6 shadow-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2.5">
+                <Clock size={20} className="text-[#CC222F]" />
+                <h3 className="text-lg font-extrabold text-white">{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</h3>
+              </div>
+              <button onClick={() => setShowHistoryModal(false)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white"><X size={18} /></button>
+            </div>
+
+            {historyItems.length === 0 ? (
+              <div className="py-16 text-center text-white/40 text-sm">
+                {language === 'ku' ? 'هیچ سەیرکردنێکی پێشوو نییە' : 'No watch history yet'}
+              </div>
+            ) : (
+              <div className="space-y-3 overflow-y-auto pr-1">
+                {historyItems.map((h: any) => (
+                  <div key={h.item.id} onClick={() => { setShowHistoryModal(false); navigate.push(`/watch/${h.item.id}?t=${Math.floor(h.timestamp)}`); }} className="bg-[#1c1e28] hover:bg-white/10 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border border-white/5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-16 relative rounded-xl overflow-hidden bg-black shrink-0">
+                        {h.item.image ? <Image src={h.item.image} alt="" fill className="object-cover" unoptimized /> : null}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white text-sm line-clamp-1">{getLocalized(h.item, 'title', language)}</h4>
+                        <p className="text-xs text-[#CC222F] font-bold mt-1">
+                          {language === 'ku' ? `بەردەوامبوون لە ${formatTime(h.timestamp)}` : `Resume at ${formatTime(h.timestamp)}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-[#CC222F] flex items-center justify-center text-white shrink-0">
+                      <Play size={14} className="ml-0.5 fill-current" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Name Edit Modal */}
       {showNameModal && (

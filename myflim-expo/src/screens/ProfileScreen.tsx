@@ -6,7 +6,6 @@ import {
   Image, 
   TouchableOpacity,
   ScrollView,
-  Switch,
   Dimensions,
   Modal,
   Pressable,
@@ -22,45 +21,43 @@ import { translations } from '../utils/translations';
 import { checkForAvailableUpdate, downloadAndInstallUpdate, getCurrentVersion, type AppUpdateInfo } from '../utils/appUpdate';
 import { 
   Crown, 
-  Bell, 
-  Shield, 
   ChevronRight,
-  Sun,
   Languages,
   Download,
-  ScrollText,
   Camera,
-  Pencil,
   X,
-  CheckCircle2,
   Key,
   Bookmark,
   Clock,
   Settings,
   HelpCircle,
   Info,
-  User
+  User,
+  Play,
+  Trash2
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
 export default function ProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { user, theme, updateUser, toggleTheme, language, setLanguage, isUnlocked, unlockApp, watchlist } = useAppStore();
+  const { user, theme, updateUser, language, setLanguage, isUnlocked, unlockApp, watchlist, watchHistory, toggleWatchlist } = useAppStore();
   const t = translations[language];
-  const themeColors = getColors(theme);
   const isRTL = language === 'ku' || language === 'ar';
   
-  const [showProModal, setShowProModal] = useState(false);
   const [showNameModal, setShowNameModal] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [showSavedModal, setShowSavedModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [unlockCode, setUnlockCode] = useState('');
   const [newName, setNewName] = useState(user.name);
   const [availableUpdate, setAvailableUpdate] = useState<AppUpdateInfo | null>(null);
   const [checkingUpdates, setCheckingUpdates] = useState(false);
   const [installingUpdate, setInstallingUpdate] = useState(false);
   const currentVersion = getCurrentVersion();
+
+  const historyItems = watchHistory ? Object.values(watchHistory).sort((a, b) => b.updatedAt - a.updatedAt) : [];
 
   const handleUnlockSubmit = async () => {
     const normalized = unlockCode.trim().toLowerCase();
@@ -125,6 +122,13 @@ export default function ProfileScreen({ navigation }: any) {
     }
   };
 
+  const formatTime = (secs: number) => {
+    if (!secs) return '00:00';
+    const m = Math.floor(secs / 60);
+    const s = Math.floor(secs % 60);
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
   const renderMenuItem = (icon: any, title: string, subtitle?: string, onPress?: () => void, rightElement?: any) => (
     <TouchableOpacity 
       style={[styles.menuItem, isRTL && { flexDirection: 'row-reverse' }]} 
@@ -182,12 +186,12 @@ export default function ProfileScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* ── 3 STATS CARDS ROW (Watchlist / History / Downloads) ──── */}
+        {/* ── 3 STATS CARDS ROW ────────────────────────────────────── */}
         <View style={[styles.statsGrid, isRTL && { flexDirection: 'row-reverse' }]}>
-          {/* Watchlist */}
+          {/* Card 1: Saved Items (سەیڤکراوەکان) */}
           <TouchableOpacity 
             style={[styles.statCard, { width: cardW }]} 
-            onPress={() => navigation.navigate('Watchlist' as never)}
+            onPress={() => setShowSavedModal(true)}
             activeOpacity={0.85}
           >
             <View style={styles.statCardHeader}>
@@ -196,27 +200,27 @@ export default function ProfileScreen({ navigation }: any) {
                 <Text style={styles.badgePlusText}>+</Text>
               </View>
             </View>
-            <Text style={styles.statLabel}>{language === 'ku' ? 'لیستی بینین' : language === 'ar' ? 'قائمتي' : 'Watchlist'}</Text>
-            <Text style={styles.statCount}>{watchlist?.length || 24}</Text>
+            <Text style={styles.statLabel}>{language === 'ku' ? 'سەیڤکراوەکان' : language === 'ar' ? 'المحفوظات' : 'Saved'}</Text>
+            <Text style={styles.statCount}>{watchlist?.length || 0}</Text>
           </TouchableOpacity>
 
-          {/* History */}
+          {/* Card 2: History / Resume Playback (لە هەمان شوێن) */}
           <TouchableOpacity 
             style={[styles.statCard, { width: cardW }]}
-            onPress={() => navigation.navigate('History' as never)}
+            onPress={() => setShowHistoryModal(true)}
             activeOpacity={0.85}
           >
             <View style={styles.statCardHeader}>
               <Clock size={18} color="#CC222F" />
             </View>
-            <Text style={styles.statLabel}>{language === 'ku' ? 'مێژوو' : language === 'ar' ? 'السجل' : 'History'}</Text>
-            <Text style={styles.statCount}>56</Text>
+            <Text style={styles.statLabel}>{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</Text>
+            <Text style={styles.statCount}>{historyItems.length}</Text>
           </TouchableOpacity>
 
-          {/* Downloads */}
+          {/* Card 3: Downloads (دابەزاندن — Count: بەمزوانە) */}
           <TouchableOpacity 
             style={[styles.statCard, { width: cardW }]}
-            onPress={() => Alert.alert('Downloads', language === 'ku' ? 'بەشی داگرتنەکان لەم وەشاندایەدا ئامادەیە' : 'Downloads section active.')}
+            onPress={() => Alert.alert('Downloads', language === 'ku' ? 'بەشی دابەزاندن بەمزوانە بەردەست دەبێت!' : 'Downloads section coming soon!')}
             activeOpacity={0.85}
           >
             <View style={styles.statCardHeader}>
@@ -225,8 +229,8 @@ export default function ProfileScreen({ navigation }: any) {
                 <Text style={styles.badgePlusText}>+</Text>
               </View>
             </View>
-            <Text style={styles.statLabel}>{language === 'ku' ? 'داگرتنەکان' : language === 'ar' ? 'التنزيلات' : 'Downloads'}</Text>
-            <Text style={styles.statCount}>12</Text>
+            <Text style={styles.statLabel}>{language === 'ku' ? 'دابەزاندن' : language === 'ar' ? 'التنزيلات' : 'Downloads'}</Text>
+            <Text style={styles.statCountSmall}>{language === 'ku' ? 'بەمزوانە' : language === 'ar' ? 'قريباً' : 'Coming Soon'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -254,25 +258,8 @@ export default function ProfileScreen({ navigation }: any) {
           <ChevronRight size={20} color="#CC222F" style={isRTL ? { transform: [{ rotate: '180deg' }] } : undefined} />
         </TouchableOpacity>
 
-        {/* ── MENU OPTIONS LIST ────────────────────────────────────── */}
+        {/* ── CLEAN MENU OPTIONS LIST (Removed duplicated items) ───── */}
         <View style={styles.menuSection}>
-          {renderMenuItem(
-            <Bookmark size={20} color="rgba(255,255,255,0.85)" />,
-            language === 'ku' ? 'لیستی من' : language === 'ar' ? 'قائمتي' : 'My List',
-            undefined,
-            () => navigation.navigate('Watchlist' as never)
-          )}
-
-          {renderMenuItem(
-            <Clock size={20} color="rgba(255,255,255,0.85)" />,
-            language === 'ku' ? 'بەردەوامبوون لە بینین' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'
-          )}
-
-          {renderMenuItem(
-            <Download size={20} color="rgba(255,255,255,0.85)" />,
-            language === 'ku' ? 'داگرتنەکان' : language === 'ar' ? 'التنزيلات' : 'Downloads'
-          )}
-
           {renderMenuItem(
             <User size={20} color="rgba(255,255,255,0.85)" />,
             language === 'ku' ? 'ڕێکخستنەکانی هەژمار' : language === 'ar' ? 'إعدادات الحساب' : 'Account Settings',
@@ -284,7 +271,7 @@ export default function ProfileScreen({ navigation }: any) {
             <Crown size={20} color="#FBBF24" />,
             language === 'ku' ? 'ئابوونەبوون' : language === 'ar' ? 'الاشتراك' : 'Subscription',
             undefined,
-            () => setShowProModal(true)
+            () => Alert.alert('Subscription', language === 'ku' ? 'بەشی ئابوونەبوون' : 'Subscription view')
           )}
 
           {renderMenuItem(
@@ -344,6 +331,112 @@ export default function ProfileScreen({ navigation }: any) {
         </View>
 
       </ScrollView>
+
+      {/* ── SAVED ITEMS (WATCHLIST) MODAL ──────────────────────────── */}
+      <Modal visible={showSavedModal} animationType="slide" transparent onRequestClose={() => setShowSavedModal(false)}>
+        <View style={styles.modalSheetOverlay}>
+          <View style={styles.modalSheetContent}>
+            <View style={[styles.modalSheetHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={[styles.modalTitleRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Bookmark size={20} color="#CC222F" />
+                <Text style={styles.modalSheetTitle}>{language === 'ku' ? 'سەیڤکراوەکان' : language === 'ar' ? 'المحفوظات' : 'Saved Items'}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowSavedModal(false)} style={styles.closeBtn}>
+                <X size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            {watchlist.length === 0 ? (
+              <View style={styles.emptyWrap}>
+                <Bookmark size={40} color="rgba(255,255,255,0.2)" />
+                <Text style={styles.emptyText}>{language === 'ku' ? 'هیچ بەرهەمێک سەیڤ نەکراوە' : 'No items saved yet'}</Text>
+              </View>
+            ) : (
+              <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
+                {watchlist.map((item: any) => (
+                  <TouchableOpacity 
+                    key={item.id} 
+                    style={[styles.itemCardRow, isRTL && { flexDirection: 'row-reverse' }]}
+                    onPress={() => {
+                      setShowSavedModal(false);
+                      navigation.navigate('Detail', { item });
+                    }}
+                  >
+                    <Image source={{ uri: item.image }} style={styles.itemCardImg} resizeMode="cover" />
+                    <View style={[styles.itemCardInfo, isRTL && { alignItems: 'flex-end' }]}>
+                      <Text style={styles.itemCardTitle} numberOfLines={1}>{item.title || item.name}</Text>
+                      <Text style={styles.itemCardSub}>{item.year || item.type}</Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.playMiniBtn}
+                      onPress={() => {
+                        setShowSavedModal(false);
+                        navigation.navigate('Detail', { item });
+                      }}
+                    >
+                      <Play size={14} color="#fff" fill="#fff" />
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── CONTINUE WATCHING (HISTORY) MODAL ───────────────────────── */}
+      <Modal visible={showHistoryModal} animationType="slide" transparent onRequestClose={() => setShowHistoryModal(false)}>
+        <View style={styles.modalSheetOverlay}>
+          <View style={styles.modalSheetContent}>
+            <View style={[styles.modalSheetHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={[styles.modalTitleRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Clock size={20} color="#CC222F" />
+                <Text style={styles.modalSheetTitle}>{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowHistoryModal(false)} style={styles.closeBtn}>
+                <X size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            {historyItems.length === 0 ? (
+              <View style={styles.emptyWrap}>
+                <Clock size={40} color="rgba(255,255,255,0.2)" />
+                <Text style={styles.emptyText}>{language === 'ku' ? 'هیچ سەیرکردنێکی پێشوو نییە' : 'No watch history yet'}</Text>
+              </View>
+            ) : (
+              <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>
+                {historyItems.map((h: any) => (
+                  <TouchableOpacity 
+                    key={h.item.id} 
+                    style={[styles.itemCardRow, isRTL && { flexDirection: 'row-reverse' }]}
+                    onPress={() => {
+                      setShowHistoryModal(false);
+                      navigation.navigate('Detail', { item: h.item, resumeTime: h.timestamp });
+                    }}
+                  >
+                    <Image source={{ uri: h.item.image }} style={styles.itemCardImg} resizeMode="cover" />
+                    <View style={[styles.itemCardInfo, isRTL && { alignItems: 'flex-end' }]}>
+                      <Text style={styles.itemCardTitle} numberOfLines={1}>{h.item.title || h.item.name}</Text>
+                      <Text style={{ color: '#CC222F', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
+                        {language === 'ku' ? `بەردەوامبوون لە ${formatTime(h.timestamp)}` : `Resume at ${formatTime(h.timestamp)}`}
+                      </Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.playMiniBtn}
+                      onPress={() => {
+                        setShowHistoryModal(false);
+                        navigation.navigate('Detail', { item: h.item, resumeTime: h.timestamp });
+                      }}
+                    >
+                      <Play size={14} color="#fff" fill="#fff" />
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
 
       {/* Edit Name Modal */}
       <Modal visible={showNameModal} transparent animationType="fade">
@@ -560,6 +653,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
   },
+  statCountSmall: {
+    color: '#CC222F',
+    fontSize: 13,
+    fontWeight: '800',
+    marginTop: 2,
+  },
 
   // Pro Banner
   proBanner: {
@@ -769,5 +868,96 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 15,
     fontWeight: '700',
+  },
+
+  // Modal Sheet (Saved & History)
+  modalSheetOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'flex-end',
+  },
+  modalSheetContent: {
+    backgroundColor: '#14151c',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '80%',
+    minHeight: '40%',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  modalSheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.08)',
+  },
+  modalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  modalSheetTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  closeBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 50,
+    gap: 12,
+  },
+  emptyText: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  itemCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a1c26',
+    borderRadius: 16,
+    padding: 10,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+  itemCardImg: {
+    width: 50,
+    height: 65,
+    borderRadius: 10,
+    backgroundColor: '#000',
+  },
+  itemCardInfo: {
+    flex: 1,
+  },
+  itemCardTitle: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  itemCardSub: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  playMiniBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#CC222F',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
