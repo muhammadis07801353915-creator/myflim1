@@ -105,6 +105,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { name: 'Dashboard', path: '/portal-control-center', icon: <LayoutDashboard size={20} /> },
+    { name: 'Live Support Chat', path: '/portal-control-center/support-messages', icon: <MessageSquare size={20} /> },
     { name: 'Analytics', path: '/portal-control-center/analytics', icon: <BarChart size={20} /> },
     { name: 'Users', path: '/portal-control-center/users', icon: <Users size={20} /> },
     { name: 'Movies & Series', path: '/portal-control-center/movies', icon: <Film size={20} /> },

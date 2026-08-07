@@ -18,9 +18,12 @@ import {
   Key,
   Play,
   CheckCircle2,
-  Upload
+  Upload,
+  MessageSquare,
+  Send,
+  Loader2
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useLanguage } from '../lib/LanguageContext';
 import { getLocalized } from '../lib/translations';
@@ -37,6 +40,16 @@ const DEFAULT_AVATARS = [
   'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
 ];
 
+interface ChatMessage {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_avatar: string;
+  message: string;
+  sender: 'user' | 'admin';
+  created_at: string;
+}
+
 export default function Profile() {
   const { t, language, setLanguage } = useLanguage();
   const navigate = useRouter();
@@ -46,12 +59,14 @@ export default function Profile() {
   const [showSavedModal, setShowSavedModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
+  const [showChatModal, setShowChatModal] = useState(false);
   const [aboutText, setAboutText] = useState('');
 
   const [userName, setUserName] = useState('User');
   const [tempName, setTempName] = useState('User');
   const [userAvatar, setUserAvatar] = useState(DEFAULT_AVATARS[0]);
   const [tempAvatar, setTempAvatar] = useState(DEFAULT_AVATARS[0]);
+  const [userId, setUserId] = useState('');
 
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isPro, setIsPro] = useState(false);
@@ -60,7 +75,21 @@ export default function Profile() {
   const [watchlistItems, setWatchlistItems] = useState<any[]>([]);
   const [historyItems, setHistoryItems] = useState<any[]>([]);
 
+  // Live Chat States
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [sendingChat, setSendingChat] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
+    // Generate or retrieve persistent User ID
+    let uid = localStorage.getItem('myfilm_user_id');
+    if (!uid) {
+      uid = 'user_' + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem('myfilm_user_id', uid);
+    }
+    setUserId(uid);
+
     const savedName = localStorage.getItem('myfilm_user_name');
     if (savedName) {
       setUserName(savedName);
@@ -122,6 +151,88 @@ export default function Profile() {
       window.removeEventListener('historyUpdated', loadState);
     };
   }, []);
+
+  // Fetch & listen to Live Chat Messages
+  useEffect(() => {
+    if (!showChatModal || !userId) return;
+
+    const fetchChatMessages = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('support_messages')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: true });
+
+        if (!error && data) {
+          setChatMessages(data as ChatMessage[]);
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+
+    fetchChatMessages();
+
+    // Subscribe to real-time additions
+    const channel = supabase
+      .channel(`user_chat_${userId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `user_id=eq.${userId}` },
+        (payload) => {
+          const newMsg = payload.new as ChatMessage;
+          setChatMessages((prev) => {
+            if (prev.some(m => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [showChatModal, userId]);
+
+  useEffect(() => {
+    if (showChatModal) {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatMessages, showChatModal]);
+
+  const handleSendChatMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || sendingChat) return;
+
+    const text = chatInput.trim();
+    setChatInput('');
+    setSendingChat(true);
+
+    const newMsgObj: Omit<ChatMessage, 'id'> = {
+      user_id: userId,
+      user_name: userName,
+      user_avatar: userAvatar,
+      message: text,
+      sender: 'user',
+      created_at: new Date().toISOString()
+    };
+
+    // Optimistic UI insert
+    const tempId = 'temp_' + Date.now();
+    setChatMessages((prev) => [...prev, { id: tempId, ...newMsgObj }]);
+
+    try {
+      const { error } = await supabase.from('support_messages').insert([newMsgObj]);
+      if (error) {
+        console.error('Error inserting chat message into Supabase:', error);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSendingChat(false);
+    }
+  };
 
   const toggleTheme = () => {
     if (isDarkMode) {
@@ -317,14 +428,6 @@ export default function Profile() {
           onClick={() => { setTempName(userName); setTempAvatar(userAvatar); setShowNameModal(true); }} 
         />
 
-        {/* Subscription (Free Notice) */}
-        <ProfileMenuItem 
-          icon={Crown} 
-          label={language === 'ku' ? 'ئابوونەبوون' : language === 'ar' ? 'الاشتراك' : 'Subscription'} 
-          iconClass="text-amber-400"
-          onClick={() => alert(language === 'ku' ? 'ئابوونەبوون لە تابان پڵەی لەئێستادا بەخۆڕاییە بۆ سەرجەم بەکارهێنەران!' : 'Subscription is currently FREE for all users!')} 
-        />
-
         {/* Language Selector (گۆڕینی زمان) */}
         <div className="relative">
           <button 
@@ -381,11 +484,12 @@ export default function Profile() {
           onClick={toggleTheme} 
         />
 
-        {/* Help & Support */}
+        {/* Chat with Admin (قسەکردن لەگەڵ ئادمین) */}
         <ProfileMenuItem 
-          icon={HelpCircle} 
-          label={language === 'ku' ? 'یارمەتی و پشتیوانی' : language === 'ar' ? 'المساعدة والدعم' : 'Help & Support'} 
-          onClick={() => window.open('https://t.me/', '_blank')} 
+          icon={MessageSquare} 
+          label={language === 'ku' ? 'قسەکردن لەگەڵ ئادمین' : language === 'ar' ? 'التحدث مع الأدمن' : 'Chat with Admin'} 
+          iconClass="text-red-500"
+          onClick={() => setShowChatModal(true)} 
         />
 
         {/* About Taban Play */}
@@ -404,6 +508,87 @@ export default function Profile() {
           onClick={handleLogout} 
         />
       </div>
+
+      {/* ── LIVE CHAT WITH ADMIN MODAL ────────────────────────────────── */}
+      {showChatModal && (
+        <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4" onClick={() => setShowChatModal(false)}>
+          <div className="bg-[#14151c] light-mode:bg-white border border-white/10 light-mode:border-neutral-200 w-full max-w-lg h-[80vh] rounded-3xl flex flex-col shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+            
+            {/* Header */}
+            <div className="p-4 bg-[#181924] light-mode:bg-neutral-100 border-b border-white/10 light-mode:border-neutral-200 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#CC222F]/20 text-[#CC222F] flex items-center justify-center font-bold">
+                  <MessageSquare size={20} />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm text-white light-mode:text-black">
+                    {language === 'ku' ? 'قسەکردن لەگەڵ ئادمین' : language === 'ar' ? 'التحدث مع الأدمن' : 'Chat with Admin'}
+                  </h3>
+                  <p className="text-[11px] text-emerald-400 flex items-center gap-1 font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>{language === 'ku' ? 'ئادمین ئامادەیە بۆ وەڵامدانەوە' : 'Admin is Online'}</span>
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowChatModal(false)}
+                className="w-8 h-8 rounded-full bg-white/10 light-mode:bg-neutral-200 flex items-center justify-center text-white/60 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Chat Body */}
+            <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#0a0a0f] light-mode:bg-neutral-50">
+              {chatMessages.length === 0 ? (
+                <div className="py-20 text-center text-white/40 light-mode:text-neutral-500 space-y-2">
+                  <MessageSquare size={36} className="mx-auto text-white/20 light-mode:text-neutral-300" />
+                  <p className="text-sm font-bold">{language === 'ku' ? 'سڵاو! پەیامێک بنووسە بۆ ئادمین' : 'Hi! Send a message to the admin'}</p>
+                  <p className="text-xs">{language === 'ku' ? 'بە زووترین کات وەڵامت دەدرێتەوە' : 'We will reply as soon as possible'}</p>
+                </div>
+              ) : (
+                chatMessages.map((msg, index) => {
+                  const isUser = msg.sender === 'user';
+                  return (
+                    <div key={msg.id || index} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-xs font-medium space-y-1 shadow-md ${
+                        isUser
+                          ? 'bg-[#CC222F] text-white rounded-br-none'
+                          : 'bg-[#181924] light-mode:bg-white text-white light-mode:text-black border border-white/10 light-mode:border-neutral-200 rounded-bl-none'
+                      }`}>
+                        <p className="whitespace-pre-wrap leading-relaxed">{msg.message}</p>
+                        <p className={`text-[9px] text-right ${isUser ? 'text-white/70' : 'text-white/40 light-mode:text-neutral-400'}`}>
+                          {msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Chat Input */}
+            <form onSubmit={handleSendChatMessage} className="p-3 bg-[#181924] light-mode:bg-white border-t border-white/10 light-mode:border-neutral-200 flex items-center gap-2 shrink-0">
+              <input
+                type="text"
+                placeholder={language === 'ku' ? 'پەیامەکەت بنووسە...' : language === 'ar' ? 'اكتب رسالتك...' : 'Type a message...'}
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                className="flex-1 bg-white/7 light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-300 rounded-xl px-4 py-2.5 text-xs text-white light-mode:text-black placeholder-white/35 light-mode:placeholder-neutral-400 outline-none focus:border-[#CC222F]"
+              />
+              <button
+                type="submit"
+                disabled={!chatInput.trim() || sendingChat}
+                className="p-2.5 bg-[#CC222F] hover:bg-red-700 disabled:opacity-50 text-white rounded-xl transition shadow-md shrink-0 flex items-center justify-center"
+              >
+                {sendingChat ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+              </button>
+            </form>
+
+          </div>
+        </div>
+      )}
 
       {/* ── SAVED ITEMS MODAL ────────────────────────────────────────── */}
       {showSavedModal && (
