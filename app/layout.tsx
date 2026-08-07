@@ -33,7 +33,34 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const initialData = await fetchAllData();
 
   return (
-    <html lang="en">
+    <html lang="ku" dir="rtl" className="rtl">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('myfilm_theme');
+                  if (theme === 'light') {
+                    document.documentElement.classList.add('light-mode');
+                  } else if (theme === 'dark') {
+                    document.documentElement.classList.remove('light-mode');
+                  }
+                  var lang = localStorage.getItem('app_language') || localStorage.getItem('myfilm_language') || 'ku';
+                  document.documentElement.setAttribute('lang', lang);
+                  if (lang === 'ku' || lang === 'ar') {
+                    document.documentElement.setAttribute('dir', 'rtl');
+                    document.documentElement.classList.add('rtl');
+                  } else {
+                    document.documentElement.setAttribute('dir', 'ltr');
+                    document.documentElement.classList.remove('rtl');
+                  }
+                } catch(e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body>
         <Providers initialData={initialData}>
           <div id="root">{children}</div>
