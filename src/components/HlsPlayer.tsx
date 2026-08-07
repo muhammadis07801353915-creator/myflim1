@@ -8,6 +8,7 @@ interface HlsPlayerProps {
   className?: string;
   autoPlay?: boolean;
   controls?: boolean;
+  startTime?: number;
   onError?: () => void;
   tracks?: Array<{
     kind: string;
@@ -18,7 +19,7 @@ interface HlsPlayerProps {
   }>;
 }
 
-export default function HlsPlayer({ url, className = '', autoPlay = true, controls = true, onError, tracks }: HlsPlayerProps) {
+export default function HlsPlayer({ url, className = '', autoPlay = true, controls = false, startTime = 0, onError, tracks }: HlsPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -26,6 +27,26 @@ export default function HlsPlayer({ url, className = '', autoPlay = true, contro
     if (!video) return;
 
     let hls: Hls;
+
+    const enforcePlayAndSeek = () => {
+      if (startTime && startTime > 0 && Math.abs(video.currentTime - startTime) > 5) {
+        try { video.currentTime = startTime; } catch(e){}
+      }
+      if (autoPlay) {
+        video.play().catch(e => console.log("Auto-play prevented", e));
+      }
+    };
+
+    // Auto-resume if user attempts to pause live stream
+    const handlePause = () => {
+      if (autoPlay) {
+        setTimeout(() => {
+          video.play().catch(() => {});
+        }, 100);
+      }
+    };
+
+    video.addEventListener('pause', handlePause);
 
     if (Hls.isSupported()) {
       hls = new Hls({
@@ -37,9 +58,7 @@ export default function HlsPlayer({ url, className = '', autoPlay = true, contro
       hls.attachMedia(video);
       
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (autoPlay) {
-          video.play().catch(e => console.log("Auto-play prevented", e));
-        }
+        enforcePlayAndSeek();
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
@@ -65,18 +84,17 @@ export default function HlsPlayer({ url, className = '', autoPlay = true, contro
         if (onError) onError();
       };
       video.addEventListener('loadedmetadata', () => {
-        if (autoPlay) {
-          video.play().catch(e => console.log("Auto-play prevented", e));
-        }
+        enforcePlayAndSeek();
       });
     }
 
     return () => {
+      video.removeEventListener('pause', handlePause);
       if (hls) {
         hls.destroy();
       }
     };
-  }, [url, autoPlay, onError]);
+  }, [url, autoPlay, startTime, onError]);
 
   return (
     <video

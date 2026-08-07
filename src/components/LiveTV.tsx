@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { ChevronDown, CheckCircle2, ArrowLeft, Search, X, Users, Play, Tv, ChevronLeft, ChevronRight, ExternalLink, Menu, Globe, Sparkles, Crown } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ChevronDown, CheckCircle2, ArrowLeft, Search, X, Users, Play, Tv, ChevronLeft, ChevronRight, ExternalLink, Menu, Globe, Sparkles, Crown, Maximize2, Minimize2 } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { liveCategories } from '../data/mockData';
@@ -39,10 +39,43 @@ export default function LiveTV() {
     };
   }, [isCountryDrawerOpen]);
   
-  // Player State
+  // Player State & Fullscreen Protection
+  const livePlayerContainerRef = useRef<HTMLDivElement>(null);
+  const [isLiveFullscreen, setIsLiveFullscreen] = useState(false);
   const [playingChannel, setPlayingChannel] = useState<any | null>(null);
   const [realLiveViewers, setRealLiveViewers] = useState<number>(1);
   const [showProModal, setShowProModal] = useState(false);
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsLiveFullscreen(!!(document.fullscreenElement || (document as any).webkitFullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    document.addEventListener('webkitfullscreenchange', handleFsChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange);
+      document.removeEventListener('webkitfullscreenchange', handleFsChange);
+    };
+  }, []);
+
+  const toggleLiveFullscreen = () => {
+    const elem = livePlayerContainerRef.current;
+    if (!elem) return;
+    if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) {
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen().catch(e => console.log(e));
+      } else if ((elem as any).webkitRequestFullscreen) {
+        (elem as any).webkitRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(e => console.log(e));
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      }
+    }
+  };
+
   // ── 24/7 REAL-TIME LIVE PLAYLIST SCHEDULER ENGINE ──
   const [liveSyncState, setLiveSyncState] = useState<{
     currentUrl: string;
@@ -108,8 +141,15 @@ export default function LiveTV() {
         return { currentUrl: '', seekOffset: 0, nextSwitchMs: 0, linkIndex: 0, totalLinks: 0 };
       }
 
+      const channelStartMs = channelCreatedAt ? new Date(channelCreatedAt).getTime() : 1700000000000;
+      const nowMs = Date.now();
+      const elapsedMs = Math.max(0, nowMs - channelStartMs);
+      const elapsedSec = Math.floor(elapsedMs / 1000);
+
       if (playlist.length === 1) {
-        return { currentUrl: playlist[0].url, seekOffset: 0, nextSwitchMs: 0, linkIndex: 0, totalLinks: 1 };
+        const itemDur = playlist[0].duration || 7200;
+        const seekOffset = elapsedSec % itemDur;
+        return { currentUrl: playlist[0].url, seekOffset, nextSwitchMs: (itemDur - seekOffset) * 1000, linkIndex: 0, totalLinks: 1 };
       }
 
       const totalCycleSeconds = playlist.reduce((sum, item) => sum + item.duration, 0);
@@ -117,9 +157,6 @@ export default function LiveTV() {
         return { currentUrl: playlist[0].url, seekOffset: 0, nextSwitchMs: 0, linkIndex: 0, totalLinks: playlist.length };
       }
 
-      const channelStartMs = channelCreatedAt ? new Date(channelCreatedAt).getTime() : 1700000000000;
-      const nowMs = Date.now();
-      const elapsedMs = Math.max(0, nowMs - channelStartMs);
       const cycleMs = totalCycleSeconds * 1000;
       const currentCycleOffsetMs = elapsedMs % cycleMs;
       const currentCycleOffsetSec = currentCycleOffsetMs / 1000;
@@ -145,7 +182,6 @@ export default function LiveTV() {
     };
 
     const playlist = parseChannelPlaylist(playingChannel.stream_url);
-    let timer: NodeJS.Timeout;
 
     const syncChannel = () => {
       const state = getLiveStreamState(playlist, playingChannel.created_at);
@@ -155,18 +191,15 @@ export default function LiveTV() {
         linkIndex: state.linkIndex,
         totalLinks: state.totalLinks,
       });
-
-      if (state.nextSwitchMs > 0 && state.totalLinks > 1) {
-        timer = setTimeout(() => {
-          syncChannel();
-        }, state.nextSwitchMs);
-      }
     };
 
     syncChannel();
 
+    // Recalculate live wall-clock position every 5 seconds continuously
+    const interval = setInterval(syncChannel, 5000);
+
     return () => {
-      if (timer) clearTimeout(timer);
+      clearInterval(interval);
     };
   }, [playingChannel?.id, playingChannel?.stream_url, playingChannel?.created_at]);
 
@@ -306,7 +339,14 @@ export default function LiveTV() {
           </div>
         </div>
 
-        <div className="w-full bg-black relative aspect-video md:h-[70vh] md:aspect-auto overflow-hidden">
+        <div 
+          ref={livePlayerContainerRef}
+          className={`w-full bg-black relative overflow-hidden flex items-center justify-center ${
+            isLiveFullscreen 
+              ? 'fixed inset-0 z-[9999] w-screen h-screen' 
+              : 'aspect-video md:h-[70vh] md:aspect-auto'
+          }`}
+        >
           {(() => {
             const activeUrl = liveSyncState.currentUrl || playingChannel.stream_url || '';
 
@@ -324,11 +364,11 @@ export default function LiveTV() {
                 const type = parts[0];
                 const id = parts[1];
                 if (type === 'movie') {
-                  return `https://vidsrc.pm/embed/movie/${id}`;
+                  return `https://vidsrc.pm/embed/movie/${id}${offsetSec > 0 ? `#t=${offsetSec}` : ''}`;
                 } else {
                   const season = parts[2] || '1';
                   const ep = parts[3] || '1';
-                  return `https://vidsrc.pm/embed/tv/${id}/${season}/${ep}`;
+                  return `https://vidsrc.pm/embed/tv/${id}/${season}/${ep}${offsetSec > 0 ? `#t=${offsetSec}` : ''}`;
                 }
               }
 
@@ -350,11 +390,15 @@ export default function LiveTV() {
               }
 
               if (finalUrl.includes('ok.ru/video/')) {
-                return finalUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
+                const embedBase = finalUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
+                const sep = embedBase.includes('?') ? '&' : '?';
+                return `${embedBase}${sep}autoplay=1${offsetSec > 0 ? `&start=${offsetSec}` : ''}`;
               }
 
               if (finalUrl.includes('dailymotion.com/video/')) {
-                return finalUrl.replace('dailymotion.com/video/', 'dailymotion.com/embed/video/');
+                const embedBase = finalUrl.replace('dailymotion.com/video/', 'dailymotion.com/embed/video/');
+                const sep = embedBase.includes('?') ? '&' : '?';
+                return `${embedBase}${sep}autoplay=1${offsetSec > 0 ? `&start=${offsetSec}` : ''}`;
               }
 
               if (finalUrl.includes('youtube.com/watch?v=')) {
@@ -386,15 +430,18 @@ export default function LiveTV() {
             ) : isIframe ? (
               <div className="w-full h-full relative bg-black flex items-center justify-center overflow-hidden">
                 <iframe 
-                  key={activeUrl}
+                  key={`${activeUrl}-${liveSyncState.linkIndex}`}
                   src={embedUrl} 
                   className="w-full h-full border-0 absolute inset-0 z-10"
-                  allowFullScreen
                   allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
                 />
-                {/* Live Stream Protection Overlay — disables seeking/timeline manipulation while broadcast plays live */}
+                
+                {/* Transparent Shield over timeline area to block scrubbing/pausing */}
+                <div className="absolute inset-x-0 bottom-0 h-16 z-20 pointer-events-auto bg-transparent" />
+
+                {/* Floating Live Controls Bar */}
                 <div 
-                  className="absolute bottom-0 left-0 right-0 h-12 z-20 pointer-events-auto bg-gradient-to-t from-black/95 via-black/60 to-transparent flex items-center justify-between px-4"
+                  className="absolute bottom-0 left-0 right-0 h-14 z-30 pointer-events-auto bg-gradient-to-t from-black/95 via-black/70 to-transparent flex items-center justify-between px-4"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex items-center gap-2">
@@ -403,23 +450,43 @@ export default function LiveTV() {
                       {liveLabelText}
                     </span>
                   </div>
+
+                  <button
+                    onClick={toggleLiveFullscreen}
+                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition active:scale-95"
+                    title="Fullscreen"
+                  >
+                    {isLiveFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                  </button>
                 </div>
               </div>
             ) : isM3u8 ? (
               <div className="w-full h-full relative bg-black">
                 <HlsPlayer 
-                  key={activeUrl}
+                  key={`${activeUrl}-${liveSyncState.linkIndex}`}
                   url={activeUrl} 
                   className="w-full h-full absolute inset-0 object-contain bg-black"
                   autoPlay={true}
                   controls={false}
+                  startTime={liveSyncState.seekOffset}
                 />
-                {/* Live Badge Overlay */}
-                <div className="absolute bottom-3 left-4 z-20 flex items-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
-                  <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
-                  <span className="text-xs font-black tracking-widest text-white uppercase">
-                    {liveLabelText}
-                  </span>
+                
+                {/* Floating Live Controls Bar */}
+                <div className="absolute bottom-0 left-0 right-0 h-14 z-30 pointer-events-auto bg-gradient-to-t from-black/95 via-black/70 to-transparent flex items-center justify-between px-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
+                    <span className="text-xs font-black tracking-widest text-white uppercase">
+                      {liveLabelText}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={toggleLiveFullscreen}
+                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition active:scale-95"
+                    title="Fullscreen"
+                  >
+                    {isLiveFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                  </button>
                 </div>
               </div>
             ) : (
@@ -428,23 +495,34 @@ export default function LiveTV() {
                   const Player = ReactPlayer as any;
                   return (
                     <Player 
-                      key={activeUrl}
+                      key={`${activeUrl}-${liveSyncState.linkIndex}`}
                       url={activeUrl} 
                       width="100%" 
                       height="100%" 
                       controls={false}
                       playing={true}
                       loop={true}
-                      className="absolute inset-0"
+                      className="absolute inset-0 pointer-events-none"
                     />
                   );
                 })()}
-                {/* Live Badge Overlay */}
-                <div className="absolute bottom-3 left-4 z-20 flex items-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
-                  <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
-                  <span className="text-xs font-black tracking-widest text-white uppercase">
-                    {liveLabelText}
-                  </span>
+                
+                {/* Floating Live Controls Bar */}
+                <div className="absolute bottom-0 left-0 right-0 h-14 z-30 pointer-events-auto bg-gradient-to-t from-black/95 via-black/70 to-transparent flex items-center justify-between px-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 bg-red-600 rounded-full animate-pulse" />
+                    <span className="text-xs font-black tracking-widest text-white uppercase">
+                      {liveLabelText}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={toggleLiveFullscreen}
+                    className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition active:scale-95"
+                    title="Fullscreen"
+                  >
+                    {isLiveFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                  </button>
                 </div>
               </div>
             );
