@@ -42,6 +42,7 @@ export default function LiveTV() {
   // Player State
   const [playingChannel, setPlayingChannel] = useState<any | null>(null);
   const [realLiveViewers, setRealLiveViewers] = useState<number>(1);
+  const [showProModal, setShowProModal] = useState(false);
   // ── 24/7 REAL-TIME LIVE PLAYLIST SCHEDULER ENGINE ──
   const [liveSyncState, setLiveSyncState] = useState<{
     currentUrl: string;
