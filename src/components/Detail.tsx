@@ -450,10 +450,13 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         <h1 className="text-3xl font-bold mb-3 text-white light-mode:text-black">
           {getLocalized(item, 'title', language)}
         </h1>
-        <div className="flex items-center space-x-4 text-sm text-neutral-400 mb-6">
-          <span className="flex items-center text-yellow-500 font-medium"><Star size={16} className="mr-1 fill-current" /> {item.rating}</span>
-          <span>{item.year}</span>
-          <span>{item.genre}</span>
+        <div className="flex items-center space-x-4 text-sm mb-6">
+          <span className="flex items-center text-amber-500 font-extrabold bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+            <Star size={16} className="mr-1 fill-amber-500 text-amber-500" />
+            <span className="text-amber-500 font-extrabold">{item.rating}</span>
+          </span>
+          <span className="text-neutral-300 light-mode:text-slate-700 font-bold">{item.year}</span>
+          <span className="text-neutral-300 light-mode:text-slate-700 font-bold">{item.genre}</span>
         </div>
 
         {item.status === 'Coming Soon' ? (
@@ -468,9 +471,11 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
               className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl transition flex items-center justify-center space-x-3 shadow-xl shadow-red-600/30 group active:scale-95"
             >
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition">
-                <Plus size={20} className="rotate-45" />
+                <Plus size={20} className="rotate-45 text-white" />
               </div>
-              <span className="text-xl uppercase tracking-widest">{language === 'ku' ? 'ئێستا ببینە' : 'Watch Now'}</span>
+              <span className="text-xl uppercase tracking-widest text-white !text-white font-black" style={{ color: '#ffffff' }}>
+                {language === 'ku' ? 'ئێستا ببینە' : 'Watch Now'}
+              </span>
             </button>
           </div>
         )}
@@ -550,8 +555,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         {item.type === 'Series' && allEpisodes.length > 0 && (
           <div className="mt-8">
              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-black tracking-tighter">{t.seasons}</h3>
-                <span className="text-neutral-500 text-sm font-bold uppercase tracking-widest">{seasons.length} {t.seasons}</span>
+                <h3 className="text-2xl font-black tracking-tighter text-white light-mode:text-slate-900">{t.seasons}</h3>
+                <span className="text-neutral-500 light-mode:text-slate-500 text-sm font-bold uppercase tracking-widest">{seasons.length} {t.seasons}</span>
              </div>
              
              <div className="flex space-x-3 overflow-x-auto pb-4 scrollbar-hide -mx-5 px-5 mb-6">
@@ -562,7 +567,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                       className={`px-6 py-2.5 rounded-full border font-bold transition-all duration-300 flex-none ${
                         selectedSeason === season 
                           ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-600/30' 
-                          : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
+                          : 'bg-neutral-900 light-mode:bg-slate-100 border-neutral-800 light-mode:border-slate-300 text-neutral-400 light-mode:text-slate-700 hover:text-white light-mode:hover:text-black'
                       }`}
                    >
                       Season {season}
@@ -571,35 +576,42 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
              </div>
 
              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-black tracking-tighter">{t.episodesTitle}</h3>
-                <span className="text-neutral-500 text-sm font-bold uppercase tracking-widest">{episodes.length} {t.episodesTitle}</span>
+                <h3 className="text-2xl font-black tracking-tighter text-white light-mode:text-slate-900">{t.episodesTitle}</h3>
+                <span className="text-neutral-500 light-mode:text-slate-500 text-sm font-bold uppercase tracking-widest">{episodes.length} {t.episodesTitle}</span>
              </div>
              
              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4">
-                {episodes.map((episode: any, index: number) => (
-                   <button 
-                      key={index}
-                      onClick={() => handleEpisodeSelect(index)}
-                      className={`relative flex flex-col items-center justify-center py-4 rounded-xl border transition-all duration-300 transform active:scale-95 ${
-                        currentEpisodeIndex === index 
-                          ? 'bg-blue-600 border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.4)] scale-105 z-10' 
-                          : 'bg-[#1a1d24] light-mode:bg-neutral-100 border-neutral-800/50 light-mode:border-neutral-200 hover:bg-[#22252d] light-mode:hover:bg-neutral-200 hover:border-neutral-700'
-                      }`}
-                   >
-                      <span className={`text-[10px] uppercase font-black tracking-tighter mb-1 ${currentEpisodeIndex === index ? 'text-blue-100' : 'text-neutral-400'}`}>
-                         {t.episode}
-                      </span>
-                      <span className={`text-xl font-black leading-none ${currentEpisodeIndex === index ? 'text-white' : 'text-neutral-200'}`}>
-                         {episode.number || index + 1}
-                      </span>
-                      
-                      {currentEpisodeIndex === index && (
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-white rounded-full flex items-center justify-center">
-                           <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
-                        </div>
-                      )}
-                   </button>
-                ))}
+                {episodes.map((episode: any, index: number) => {
+                   const isSelected = currentEpisodeIndex === index;
+                   return (
+                     <button 
+                        key={index}
+                        onClick={() => handleEpisodeSelect(index)}
+                        className={`relative flex flex-col items-center justify-center py-4 rounded-2xl border transition-all duration-300 transform active:scale-95 ${
+                          isSelected 
+                            ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/30 scale-105 z-10' 
+                            : 'bg-[#14151c] light-mode:bg-white border-white/8 light-mode:border-slate-300 hover:bg-[#1a1b24] light-mode:hover:bg-slate-100 shadow-sm'
+                        }`}
+                     >
+                        <span className={`text-[10px] uppercase font-black tracking-tighter mb-1 ${
+                          isSelected ? 'text-white' : 'text-neutral-400 light-mode:text-slate-500 font-bold'
+                        }`}>
+                           {t.episode}
+                        </span>
+                        <span className={`text-xl font-black leading-none ${
+                          isSelected ? 'text-white' : 'text-white light-mode:text-slate-900 font-extrabold'
+                        }`}>
+                           {episode.number || index + 1}
+                        </span>
+                        
+                        {isSelected && (
+                          <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-white rounded-full flex items-center justify-center shadow-md">
+                             <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                          </div>
+                        )}
+                     </button>
+                   );
+                })}
              </div>
           </div>
         )}
