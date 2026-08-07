@@ -161,7 +161,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
   }, [query, activeType, activeGenre, activeYear, sortBy, movies, channels]);
 
   return (
-    <div className="p-4 sm:p-6 pt-6 pb-28 max-w-7xl mx-auto font-sans" dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="search-page p-4 sm:p-6 pt-6 pb-28 max-w-7xl mx-auto font-sans" dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}>
       
       {/* ── SEARCH INPUT BAR ── */}
       <div className="relative mb-4">
