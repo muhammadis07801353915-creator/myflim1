@@ -394,7 +394,7 @@ export default function LiveTV() {
               if (finalUrl.includes('ok.ru/video/')) {
                 const embedBase = finalUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
                 const sep = embedBase.includes('?') ? '&' : '?';
-                return `${embedBase}${sep}autoplay=1${offsetSec > 0 ? `&start=${offsetSec}` : ''}`;
+                return `${embedBase}${sep}autoplay=1&st.start=${offsetSec}&st.till=0`;
               }
 
               if (finalUrl.includes('dailymotion.com/video/')) {
