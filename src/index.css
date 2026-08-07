@@ -83,6 +83,17 @@ body.light-mode,
   border-color: #e2e8f0 !important;
 }
 
+/* Sub-containers & input wrappers in Light Mode */
+.light-mode .bg-\[\#111219\] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+.light-mode .bg-\[\#1a1b27\] {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
 /* 2. INPUT BOXES IN LIGHT MODE (CRITICAL FIX FOR INVISIBLE TYPED TEXT) */
 .light-mode input,
 .light-mode textarea,
@@ -90,6 +101,17 @@ body.light-mode,
   background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
+}
+
+.light-mode input.bg-transparent,
+.light-mode textarea.bg-transparent,
+.light-mode .bg-transparent input,
+.light-mode .bg-transparent textarea,
+.light-mode .bg-\[\#1a1b27\] input,
+.light-mode .bg-\[\#1a1b27\] textarea {
+  background-color: transparent !important;
+  color: #0f172a !important;
+  border-color: transparent !important;
 }
 
 .light-mode input::placeholder,
