@@ -213,6 +213,11 @@ export default function DetailScreen({ route, navigation }: any) {
     }
   };
 
+  const handleWatchlist = () => {
+    toggleWatchlist(item);
+    setIsWatchlisted(prev => !prev);
+  };
+
   const handlePlayServer = (url: string) => {
     setCurrentVideoUrl(url);
     setIsPlaying(true);
