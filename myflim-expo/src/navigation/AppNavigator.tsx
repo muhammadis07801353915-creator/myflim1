@@ -25,7 +25,8 @@ const Stack = createNativeStackNavigator();
 
 function TabNavigator() {
   const insets = useSafeAreaInsets();
-  const { language } = useAppStore();
+  const { language, theme } = useAppStore();
+  const themeColors = getColors(theme);
   const t = translations[language] || translations.en;
   const isRTL = language === 'ku' || language === 'ar';
 
@@ -71,19 +72,19 @@ function TabNavigator() {
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: Platform.OS === 'ios' ? 'transparent' : 'rgba(10, 10, 10, 0.9)',
-          borderTopWidth: 0,
-          elevation: 0,
+          backgroundColor: theme === 'light' ? '#FFFFFF' : 'rgba(14, 15, 23, 0.95)',
+          borderTopWidth: 1,
+          borderTopColor: themeColors.border,
+          elevation: 4,
           height: Platform.OS === 'ios' ? 85 : 70 + (insets.bottom > 0 ? insets.bottom - 10 : 0),
           paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
-          borderTopColor: 'transparent',
           paddingTop: 10,
         },
         tabBarBackground: () => (
-          <BlurView tint="dark" intensity={90} style={StyleSheet.absoluteFill} />
+          <BlurView tint={theme === 'light' ? 'light' : 'dark'} intensity={95} style={StyleSheet.absoluteFill} />
         ),
         tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
+        tabBarInactiveTintColor: themeColors.textSecondary,
       }}
     >
       {orderedScreens.map((s) => (

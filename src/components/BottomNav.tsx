@@ -32,7 +32,7 @@ export default function BottomNav({ currentTab, onChange }: { currentTab?: strin
                 onChange(tab.id);
               }
             }}
-            className={`flex flex-col items-center space-y-1 ${(onChange ? currentTab === tab.id : isActive) ? 'text-red-500' : 'text-neutral-400 hover:text-neutral-200'}`}
+            className={`flex flex-col items-center space-y-1 ${(onChange ? currentTab === tab.id : isActive) ? 'text-[#CC222F]' : 'text-neutral-400 light-mode:text-neutral-600 hover:text-neutral-200'}`}
           >
             <Icon size={24} className={isActive ? 'fill-current' : ''} />
             <span className="text-[10px] font-medium">{tab.label}</span>

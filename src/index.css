@@ -22,14 +22,14 @@ body {
   color: #ffffff;
 }
 
-/* ── LIGHT MODE COMPREHENSIVE FIXES ──────────────────────────── */
+/* ──────────────────────────────────────────────────────────────
+   LIGHT MODE DESIGN SYSTEM
+────────────────────────────────────────────────────────────── */
 html.light-mode, 
-body.light-mode {
+body.light-mode,
+.light-mode {
   background-color: #f8fafc !important;
   color: #0f172a !important;
-}
-
-.light-mode {
   color-scheme: light;
 }
 
@@ -38,41 +38,63 @@ body.light-mode {
   color: #0f172a !important;
 }
 
-/* 1. STICKY TOP HEADER BARS IN LIGHT MODE */
-.light-mode .sticky.top-0,
+/* 1. SURFACE BACKGROUND OVERRIDES IN LIGHT MODE */
 .light-mode header,
-.light-mode div[class*="bg-[#0a0a0f]"]:not(.fixed),
-.light-mode div[class*="bg-[#0F0F13]"]:not(.fixed),
-.light-mode div[class*="bg-neutral-950"]:not(.fixed) {
+.light-mode main,
+.light-mode .bg-\[\#0a0a0f\],
+.light-mode .bg-\[\#0F0F13\],
+.light-mode .bg-\[\#14151c\],
+.light-mode .bg-\[\#14151C\],
+.light-mode .bg-\[\#161720\],
+.light-mode .bg-\[\#161722\],
+.light-mode .bg-\[\#181924\],
+.light-mode .bg-\[\#1c1e28\],
+.light-mode .bg-\[\#1c1e28\]\/90,
+.light-mode .bg-\[\#1A1D24\],
+.light-mode .bg-neutral-950,
+.light-mode .bg-neutral-900,
+.light-mode .bg-neutral-900\/50 {
   background-color: #ffffff !important;
-  border-bottom-color: #e2e8f0 !important;
+  border-color: #e2e8f0 !important;
 }
 
-/* Top bar text & title colors */
-.light-mode .sticky.top-0 h1,
-.light-mode .sticky.top-0 h2,
-.light-mode .sticky.top-0 span,
-.light-mode .sticky.top-0 button:not(.bg-red-600):not(.bg-\[\#CC222F\]) {
-  color: #0f172a !important;
-}
-
-/* 2. BACKGROUND OVERRIDES IN LIGHT MODE */
-.light-mode div:not(.fixed):not(.absolute) > .bg-\[\#14151c\],
-.light-mode div:not(.fixed):not(.absolute) > .bg-\[\#161722\],
-.light-mode div:not(.fixed):not(.absolute) > .bg-\[\#181924\],
-.light-mode div:not(.fixed):not(.absolute) > .bg-\[\#1c1e28\],
-.light-mode div:not(.fixed):not(.absolute) > .bg-\[\#1A1D24\] {
-  background-color: #ffffff !important;
+/* Sub-card light mode surface */
+.light-mode .bg-white\/4,
+.light-mode .bg-white\/5,
+.light-mode .bg-white\/6,
+.light-mode .bg-white\/7,
+.light-mode .bg-white\/8,
+.light-mode .bg-white\/10,
+.light-mode .bg-white\/12,
+.light-mode .bg-[#1c1e28] {
+  background-color: #f1f5f9 !important;
   border-color: #cbd5e1 !important;
 }
 
-/* 3. DEFAULT TEXT CONTRAST IN LIGHT MODE */
-.light-mode h1:not(.text-white), 
-.light-mode h2:not(.text-white), 
-.light-mode h3:not(.text-white), 
-.light-mode h4:not(.text-white), 
-.light-mode p:not(.text-white) {
+/* 2. TEXT CONTRAST IN LIGHT MODE (MAKE ALL TEXT DARK & READABLE) */
+.light-mode h1, 
+.light-mode h2, 
+.light-mode h3, 
+.light-mode h4, 
+.light-mode h5, 
+.light-mode h6, 
+.light-mode p,
+.light-mode span,
+.light-mode div,
+.light-mode label,
+.light-mode a,
+.light-mode button {
   color: #0f172a;
+}
+
+/* Secondary muted text in Light Mode */
+.light-mode .text-white\/60,
+.light-mode .text-white\/50,
+.light-mode .text-white\/40,
+.light-mode .text-white\/30,
+.light-mode .text-neutral-400,
+.light-mode .text-neutral-500 {
+  color: #64748b !important;
 }
 
 .light-mode .text-white\/90,
@@ -83,71 +105,39 @@ body.light-mode {
   color: #1e293b !important;
 }
 
-.light-mode .text-white\/60,
-.light-mode .text-white\/50,
-.light-mode .text-white\/40,
-.light-mode .text-white\/35,
-.light-mode .text-white\/30,
-.light-mode .text-neutral-400,
-.light-mode .text-neutral-500 {
-  color: #64748b !important;
+/* 3. BOTTOM NAVIGATION BAR IN LIGHT MODE */
+.light-mode .fixed.bottom-0,
+.light-mode nav.fixed {
+  background-color: #ffffff !important;
+  border-top-color: #e2e8f0 !important;
 }
 
-/* 4. CRITICAL FIX: TEXT ON TOP OF POSTERS & HERO OVERLAYS */
-.light-mode div[class*="aspect-"] *,
-.light-mode div[class*="aspect-square"] *,
-.light-mode div[class*="bg-gradient-to-t"] *,
-.light-mode div[class*="from-black"] *,
-.light-mode .hero-banner *,
-.light-mode .hero-content * {
-  color: #ffffff !important;
+.light-mode .fixed.bottom-0 a,
+.light-mode .fixed.bottom-0 button,
+.light-mode .fixed.bottom-0 span,
+.light-mode .fixed.bottom-0 svg {
+  color: #64748b;
 }
 
-/* Preserve Live Badge & Movie Type Badge text */
-.light-mode .bg-red-600 *,
-.light-mode .bg-red-500 *,
-.light-mode .bg-\[\#CC222F\] * {
-  color: #ffffff !important;
+.light-mode .fixed.bottom-0 .text-red-500,
+.light-mode .fixed.bottom-0 .text-red-500 *,
+.light-mode .fixed.bottom-0 .text-[#CC222F],
+.light-mode .fixed.bottom-0 .text-[#CC222F] * {
+  color: #CC222F !important;
+  fill: #CC222F !important;
 }
 
-/* 5. INPUT BOXES IN LIGHT MODE */
-.light-mode input,
-.light-mode textarea {
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
+/* 4. POPUP MODALS IN LIGHT MODE */
+.light-mode .fixed.inset-0 {
+  background-color: rgba(0, 0, 0, 0.6) !important;
 }
 
-.light-mode input::placeholder {
-  color: #94a3b8 !important;
-}
-
-/* 6. FILTER PILLS & BUTTONS IN LIGHT MODE */
-.light-mode .bg-white\/4,
-.light-mode .bg-white\/5,
-.light-mode .bg-white\/6,
-.light-mode .bg-white\/7,
-.light-mode .bg-white\/8,
-.light-mode .bg-white\/10,
-.light-mode .bg-white\/12 {
-  background-color: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
-  color: #334155 !important;
-}
-
-.light-mode .border-white\/5,
-.light-mode .border-white\/6,
-.light-mode .border-white\/10 {
-  border-color: #e2e8f0 !important;
-}
-
-/* 7. POPUP MODALS IN LIGHT MODE (FIXES WHITE-ON-WHITE POPUP CONTRAST) */
+.light-mode .fixed.inset-0 > div,
 .light-mode .fixed.inset-0 .bg-\[\#14151c\],
 .light-mode .fixed.inset-0 .bg-\[\#181924\],
-.light-mode .fixed.inset-0 .bg-\[\#1A1D24\],
-.light-mode .fixed.inset-0 .bg-\[\#1c1e28\] {
+.light-mode .fixed.inset-0 .bg-\[\#1A1D24\] {
   background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
+  border-color: #e2e8f0 !important;
   color: #0f172a !important;
 }
 
@@ -156,22 +146,20 @@ body.light-mode {
 .light-mode .fixed.inset-0 h3,
 .light-mode .fixed.inset-0 h4,
 .light-mode .fixed.inset-0 p,
-.light-mode .fixed.inset-0 span:not(.text-white),
+.light-mode .fixed.inset-0 span,
 .light-mode .fixed.inset-0 label {
   color: #0f172a !important;
 }
 
-.light-mode .fixed.inset-0 .text-white\/90,
-.light-mode .fixed.inset-0 .text-white\/80,
-.light-mode .fixed.inset-0 .text-white\/70,
-.light-mode .fixed.inset-0 .text-white\/60,
-.light-mode .fixed.inset-0 .text-white\/50,
-.light-mode .fixed.inset-0 .text-white\/40,
-.light-mode .fixed.inset-0 .text-white\/30 {
-  color: #475569 !important;
+.light-mode .fixed.inset-0 .bg-\[\#1c1e28\],
+.light-mode .fixed.inset-0 .bg-white\/7,
+.light-mode .fixed.inset-0 .bg-white\/10 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
 }
 
-.light-mode .fixed.inset-0 input {
+.light-mode .fixed.inset-0 input,
+.light-mode .fixed.inset-0 textarea {
   background-color: #f1f5f9 !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
@@ -181,32 +169,34 @@ body.light-mode {
   color: #94a3b8 !important;
 }
 
-.light-mode .fixed.inset-0 button.bg-white\/8,
-.light-mode .fixed.inset-0 button.bg-white\/10,
-.light-mode .fixed.inset-0 button.bg-white\/7 {
-  background-color: #e2e8f0 !important;
-  color: #1e293b !important;
+/* 5. EXCEPTIONS: TEXT ON RED/BLUE BUTTONS & POSTER OVERLAYS REMAIN WHITE */
+.light-mode .bg-[#CC222F],
+.light-mode .bg-[#CC222F] *,
+.light-mode .bg-red-600,
+.light-mode .bg-red-600 *,
+.light-mode .bg-red-500,
+.light-mode .bg-red-500 *,
+.light-mode .bg-[#24A1DE],
+.light-mode .bg-[#24A1DE] *,
+.light-mode .bg-[#1877F2],
+.light-mode .bg-[#1877F2] *,
+.light-mode button.bg-[#CC222F],
+.light-mode button.bg-[#CC222F] * {
+  color: #ffffff !important;
 }
 
-.light-mode .fixed.inset-0 .bg-\[\#1c1e28\] {
-  background-color: #f8fafc !important;
+.light-mode div[class*="aspect-"] *,
+.light-mode div[class*="aspect-square"] *,
+.light-mode div[class*="bg-gradient-to-t"] *,
+.light-mode div[class*="from-black"] *,
+.light-mode .hero-banner *,
+.light-mode .hero-content *,
+.light-mode #player-container * {
+  color: #ffffff !important;
+}
+
+.light-mode .border-white\/5,
+.light-mode .border-white\/6,
+.light-mode .border-white\/10 {
   border-color: #e2e8f0 !important;
-}
-
-.light-mode .fixed.inset-0 button > svg {
-  color: #334155;
-}
-
-.light-mode .fixed.inset-0 button.bg-\[\#CC222F\],
-.light-mode .fixed.inset-0 button.bg-\[\#24A1DE\],
-.light-mode .fixed.inset-0 button.bg-\[\#1877F2\],
-.light-mode .fixed.inset-0 a.bg-\[\#24A1DE\],
-.light-mode .fixed.inset-0 a.bg-\[\#1877F2\] {
-  color: #ffffff !important;
-}
-
-.light-mode .fixed.inset-0 button.bg-\[\#CC222F\] *,
-.light-mode .fixed.inset-0 a.bg-\[\#24A1DE\] *,
-.light-mode .fixed.inset-0 a.bg-\[\#1877F2\] * {
-  color: #ffffff !important;
 }
