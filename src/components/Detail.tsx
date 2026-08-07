@@ -447,7 +447,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       </div>
 
       <div className="px-5 -mt-8 relative z-30">
-        <h1 className="text-3xl font-bold mb-3 text-white light-mode:text-black">
+        <h1 className="text-3xl font-extrabold mb-3 text-white light-mode:!text-white drop-shadow-lg">
           {getLocalized(item, 'title', language)}
         </h1>
         <div className="flex items-center space-x-4 text-sm mb-6">
