@@ -31,7 +31,7 @@ export default function DetailScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const serversRef = useRef<View>(null);
-  const { incrementViews, toggleWatchlist, watchlist, language, liveTv } = useAppStore();
+  const { incrementViews, toggleWatchlist, watchlist, language, liveTv, saveWatchProgress } = useAppStore();
   const t = translations[language];
   const [activeChannel, setActiveChannel] = useState(item);
   const [realLiveViewers, setRealLiveViewers] = useState<number>(1);
@@ -222,6 +222,9 @@ export default function DetailScreen({ route, navigation }: any) {
     setCurrentVideoUrl(url);
     setIsPlaying(true);
     setShowServerModal(false);
+    if (item.type !== 'LiveTV') {
+      saveWatchProgress(item, 0, 0);
+    }
     scrollRef.current?.scrollTo({ y: 0, animated: true });
   };
 

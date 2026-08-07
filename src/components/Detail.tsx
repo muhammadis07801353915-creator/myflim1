@@ -222,6 +222,23 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     }
   };
 
+  const handleWatchProgress = (currentTime: number, duration: number) => {
+    if (!item || !item.id) return;
+    try {
+      const history = JSON.parse(localStorage.getItem('myfilm_history') || '{}');
+      history[String(item.id)] = {
+        item,
+        timestamp: currentTime || 0,
+        duration: duration || 0,
+        updatedAt: Date.now()
+      };
+      localStorage.setItem('myfilm_history', JSON.stringify(history));
+      window.dispatchEvent(new Event('historyUpdated'));
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+
   const handlePlayClick = () => {
     if (item.status === 'Coming Soon') {
       return;
@@ -230,13 +247,17 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
        setShowProModal(true);
        return;
     }
-    if (!isPlaying) incrementViews();
+    if (!isPlaying) {
+      incrementViews();
+      handleWatchProgress(0, 0);
+    }
     const currentServers = servers;
     if (currentServers.length > 1) {
       setShowServersModal(true);
     } else {
       setSelectedServerUrl(currentServers[0]?.url || '');
       setIsPlaying(true);
+      handleWatchProgress(0, 0);
     }
   };
 
@@ -250,12 +271,14 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       const firstServer = episodes[index]?.servers[0];
       if (firstServer) setSelectedServerUrl(firstServer.url);
     }
+    handleWatchProgress(0, 0);
   };
 
   const handleServerSelect = (url: string) => {
     setSelectedServerUrl(url);
     setShowServersModal(false);
     setIsPlaying(true);
+    handleWatchProgress(0, 0);
   };
 
   const isEmbedUrl = (url: string) => {
@@ -373,6 +396,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                   title={getLocalized(item, 'title', language)}
                   onBack={() => setIsPlaying(false)}
                   onError={handleReportBroken}
+                  onProgress={handleWatchProgress}
                   tracks={videoTracks}
                 />
               );

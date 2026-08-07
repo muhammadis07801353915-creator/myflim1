@@ -93,6 +93,7 @@ export default function Profile() {
 
     window.addEventListener('storage', loadState);
     window.addEventListener('watchlistUpdated', loadState);
+    window.addEventListener('historyUpdated', loadState);
 
     // Fetch About text from Supabase
     const fetchAbout = async () => {
@@ -108,6 +109,7 @@ export default function Profile() {
     return () => {
       window.removeEventListener('storage', loadState);
       window.removeEventListener('watchlistUpdated', loadState);
+      window.removeEventListener('historyUpdated', loadState);
     };
   }, []);
 

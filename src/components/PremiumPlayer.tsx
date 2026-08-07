@@ -9,6 +9,7 @@ interface PremiumPlayerProps {
   title?: string;
   onBack?: () => void;
   onError?: () => void;
+  onProgress?: (currentTime: number, duration: number) => void;
   tracks?: Array<{
     kind: string;
     src: string;
@@ -18,7 +19,7 @@ interface PremiumPlayerProps {
   }>;
 }
 
-export default function PremiumPlayer({ url, title, onBack, onError, tracks }: PremiumPlayerProps) {
+export default function PremiumPlayer({ url, title, onBack, onError, onProgress, tracks }: PremiumPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -86,6 +87,10 @@ export default function PremiumPlayer({ url, title, onBack, onError, tracks }: P
     setProgress(currentProgress);
     setCurrentTime(formatTime(video.currentTime));
     setDuration(formatTime(video.duration || 0));
+
+    if (onProgress && video.currentTime > 2) {
+      onProgress(video.currentTime, video.duration || 0);
+    }
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
