@@ -380,7 +380,7 @@ export default function LiveTV() {
     <div className="bg-[#0a0a0f] light-mode:bg-white min-h-screen text-white light-mode:text-black pb-32 font-sans">
 
       {/* ── HEADER ── */}
-      <div className="sticky top-0 z-40 bg-[#0a0a0f]/95 light-mode:bg-white/95 backdrop-blur-xl border-b border-white/5 light-mode:border-neutral-200 px-4 sm:px-6 py-4 flex items-center justify-between">
+      <div className="sticky top-0 z-40 bg-[#0a0a0f] backdrop-blur-xl border-b border-white/5 px-4 sm:px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           {/* ☰ Country filter button — always visible */}
           <button
