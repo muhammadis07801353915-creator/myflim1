@@ -96,6 +96,20 @@ export default function HlsPlayer({ url, className = '', autoPlay = true, contro
     };
   }, [url, autoPlay, startTime, onError]);
 
+  // Continuously sync video.currentTime if it falls behind live startTime
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !startTime || startTime <= 0) return;
+
+    const syncCheck = setInterval(() => {
+      if (Math.abs(video.currentTime - startTime) > 4) {
+        try { video.currentTime = startTime; } catch (e) {}
+      }
+    }, 2000);
+
+    return () => clearInterval(syncCheck);
+  }, [startTime]);
+
   return (
     <video
       ref={videoRef}

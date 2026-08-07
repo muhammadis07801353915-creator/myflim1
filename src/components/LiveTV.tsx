@@ -136,40 +136,42 @@ export default function LiveTV() {
     };
 
     // Calculate real wall-clock live stream position across the globe
-    const getLiveStreamState = (playlist: Array<{ url: string; duration: number }>, channelCreatedAt?: string) => {
+    const getLiveStreamState = (playlist: Array<{ url: string; duration: number }>, channelCreatedAt?: string, channelId?: any) => {
       if (!playlist || playlist.length === 0) {
         return { currentUrl: '', seekOffset: 0, nextSwitchMs: 0, linkIndex: 0, totalLinks: 0 };
       }
 
-      const channelStartMs = channelCreatedAt ? new Date(channelCreatedAt).getTime() : 1700000000000;
+      let channelStartMs = 1700000000000;
+      if (channelCreatedAt) {
+        const parsed = new Date(channelCreatedAt).getTime();
+        if (!isNaN(parsed) && parsed > 0) {
+          channelStartMs = parsed;
+        }
+      } else if (channelId) {
+        const idNum = typeof channelId === 'number' ? channelId : parseInt(String(channelId).replace(/\D/g, '')) || 1;
+        channelStartMs = 1700000000000 + (idNum * 3600000);
+      }
+
       const nowMs = Date.now();
       const elapsedMs = Math.max(0, nowMs - channelStartMs);
       const elapsedSec = Math.floor(elapsedMs / 1000);
-
-      if (playlist.length === 1) {
-        const itemDur = playlist[0].duration || 7200;
-        const seekOffset = elapsedSec % itemDur;
-        return { currentUrl: playlist[0].url, seekOffset, nextSwitchMs: (itemDur - seekOffset) * 1000, linkIndex: 0, totalLinks: 1 };
-      }
 
       const totalCycleSeconds = playlist.reduce((sum, item) => sum + item.duration, 0);
       if (totalCycleSeconds <= 0) {
         return { currentUrl: playlist[0].url, seekOffset: 0, nextSwitchMs: 0, linkIndex: 0, totalLinks: playlist.length };
       }
 
-      const cycleMs = totalCycleSeconds * 1000;
-      const currentCycleOffsetMs = elapsedMs % cycleMs;
-      const currentCycleOffsetSec = currentCycleOffsetMs / 1000;
+      const currentCycleOffsetSec = elapsedSec % totalCycleSeconds;
 
       let accumulated = 0;
       for (let i = 0; i < playlist.length; i++) {
         const item = playlist[i];
         if (currentCycleOffsetSec >= accumulated && currentCycleOffsetSec < accumulated + item.duration) {
-          const seekOffset = currentCycleOffsetSec - accumulated;
+          const seekOffset = Math.floor(currentCycleOffsetSec - accumulated);
           const remainingSec = item.duration - seekOffset;
           return {
             currentUrl: item.url,
-            seekOffset: Math.floor(seekOffset),
+            seekOffset,
             nextSwitchMs: Math.max(1000, Math.floor(remainingSec * 1000)),
             linkIndex: i,
             totalLinks: playlist.length
@@ -184,7 +186,7 @@ export default function LiveTV() {
     const playlist = parseChannelPlaylist(playingChannel.stream_url);
 
     const syncChannel = () => {
-      const state = getLiveStreamState(playlist, playingChannel.created_at);
+      const state = getLiveStreamState(playlist, playingChannel.created_at, playingChannel.id);
       setLiveSyncState({
         currentUrl: state.currentUrl,
         seekOffset: state.seekOffset,
@@ -195,8 +197,8 @@ export default function LiveTV() {
 
     syncChannel();
 
-    // Recalculate live wall-clock position every 5 seconds continuously
-    const interval = setInterval(syncChannel, 5000);
+    // Recalculate live wall-clock position every 3 seconds continuously
+    const interval = setInterval(syncChannel, 3000);
 
     return () => {
       clearInterval(interval);
