@@ -43,6 +43,7 @@ export default function AdminSupportMessagesPage() {
   const [allMessages, setAllMessages] = useState<SupportMessage[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const selectedUserIdRef = useRef<string | null>(null);
+  const initialSelectionDoneRef = useRef(false);
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -78,10 +79,13 @@ export default function AdminSupportMessagesPage() {
           parsed.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
           setAllMessages(parsed);
 
-          // Only default to first user if no profile is currently selected
-          if (!selectedUserIdRef.current && parsed.length > 0) {
-            const firstUser = parsed.find(m => m.sender === 'user')?.user_name || parsed[0].user_name;
-            handleSelectUser(firstUser);
+          // ONLY auto-select first user ONCE on initial page load (desktop only)
+          if (!initialSelectionDoneRef.current && parsed.length > 0) {
+            initialSelectionDoneRef.current = true;
+            if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+              const firstUser = parsed.find(m => m.sender === 'user')?.user_name || parsed[0].user_name;
+              handleSelectUser(firstUser);
+            }
           }
         }
       }
