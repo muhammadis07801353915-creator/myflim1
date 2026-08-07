@@ -36,18 +36,23 @@ const DEFAULT_AVATARS = [
 
 function getAvatar(avatar: string, name: string) {
   if (avatar && avatar.startsWith('http')) return avatar;
-  // Generate a colored initials avatar style
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=CC222F&color=fff&size=128`;
 }
 
 export default function AdminSupportMessagesPage() {
   const [allMessages, setAllMessages] = useState<SupportMessage[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const selectedUserIdRef = useRef<string | null>(null);
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const handleSelectUser = (id: string | null) => {
+    selectedUserIdRef.current = id;
+    setSelectedUserId(id);
+  };
 
   useEffect(() => {
     fetchMessages();
@@ -72,9 +77,11 @@ export default function AdminSupportMessagesPage() {
         if (Array.isArray(parsed)) {
           parsed.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
           setAllMessages(parsed);
-          if (!selectedUserId && parsed.length > 0) {
+
+          // Only default to first user if no profile is currently selected
+          if (!selectedUserIdRef.current && parsed.length > 0) {
             const firstUser = parsed.find(m => m.sender === 'user')?.user_name || parsed[0].user_name;
-            setSelectedUserId(firstUser);
+            handleSelectUser(firstUser);
           }
         }
       }
@@ -228,7 +235,7 @@ export default function AdminSupportMessagesPage() {
                   return (
                     <button
                       key={u.user_id}
-                      onClick={() => setSelectedUserId(u.user_id)}
+                      onClick={() => handleSelectUser(u.user_id)}
                       className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
                         isSelected
                           ? 'bg-red-600/20 ring-1 ring-red-500/50'
@@ -286,7 +293,7 @@ export default function AdminSupportMessagesPage() {
               <div className="p-3 bg-[#1a1d24] border-b border-neutral-800 flex items-center gap-3 shrink-0">
                 {/* Back button on mobile */}
                 <button
-                  onClick={() => setSelectedUserId(null)}
+                  onClick={() => handleSelectUser(null)}
                   className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
                 >
                   <ArrowLeft size={18} />
