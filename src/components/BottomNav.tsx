@@ -2,18 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Search, Tv, Bookmark, User } from 'lucide-react';
+import { Home, Search, Tv, LayoutGrid, User } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 
 export default function BottomNav({ currentTab, onChange }: { currentTab?: string, onChange?: (tab: string) => void }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const pathname = usePathname();
   
   const tabs = [
     { id: 'home', icon: Home, label: t.home, path: '/' },
     { id: 'search', icon: Search, label: t.search, path: '/search' },
     { id: 'livetv', icon: Tv, label: t.liveTv, path: '/livetv' },
-    { id: 'watchlist', icon: Bookmark, label: t.watchlist, path: '/watchlist' },
+    { id: 'posts', icon: LayoutGrid, label: language === 'ku' ? 'پۆستەکان' : language === 'ar' ? 'المنشورات' : 'Posts', path: '/posts' },
     { id: 'profile', icon: User, label: t.profile, path: '/profile' },
   ];
 

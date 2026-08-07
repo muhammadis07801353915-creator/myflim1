@@ -20,10 +20,12 @@ import {
   Upload,
   MessageSquare,
   Send,
-  Loader2
+  Loader2,
+  LayoutGrid
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useLanguage } from '../lib/LanguageContext';
 import { getLocalized } from '../lib/translations';
 import { useRouter } from 'next/navigation';
@@ -468,6 +470,26 @@ export default function Profile() {
           <p className="text-xs font-extrabold text-[#CC222F] mt-2">{language === 'ku' ? 'بەمزوانە' : language === 'ar' ? 'قريباً' : 'Coming Soon'}</p>
         </div>
       </div>
+
+      {/* ── COMMUNITY POSTS BANNER ─────────────────────────────────── */}
+      <Link href="/posts"
+        className="mb-6 flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-[#CC222F]/20 to-[#8B1A22]/10 border border-[#CC222F]/30 hover:from-[#CC222F]/30 hover:to-[#8B1A22]/20 transition group cursor-pointer"
+      >
+        <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
+          <div className="w-11 h-11 rounded-full bg-[#CC222F]/20 flex items-center justify-center text-[#CC222F]">
+            <LayoutGrid size={22} />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-sm text-white light-mode:text-black">
+              {language === 'ku' ? 'پۆستەکان' : language === 'ar' ? 'المنشورات' : 'Community Posts'}
+            </h3>
+            <p className="text-xs text-white/50 light-mode:text-neutral-500 mt-0.5">
+              {language === 'ku' ? 'بچۆ پۆست بکە، لایک بکە و کۆمێنت بنووسە' : language === 'ar' ? 'انشر وأعجب وعلق' : 'Post, like and comment with the community'}
+            </p>
+          </div>
+        </div>
+        <ChevronRight size={18} className="text-[#CC222F] rtl:rotate-180 group-hover:translate-x-1 transition-transform" />
+      </Link>
 
       {/* ── ENTER CODE / PRO BANNER (SHOWN ONLY WHEN NOT LOGGED IN) ────── */}
       {!userAccount && (
