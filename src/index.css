@@ -155,8 +155,8 @@ body.light-mode {
 .light-mode .fixed.inset-0 h2,
 .light-mode .fixed.inset-0 h3,
 .light-mode .fixed.inset-0 h4,
-.light-mode .fixed.inset-0 p:not(.text-[#CC222F]),
-.light-mode .fixed.inset-0 span:not(.text-white):not(.text-[#CC222F]),
+.light-mode .fixed.inset-0 p,
+.light-mode .fixed.inset-0 span:not(.text-white),
 .light-mode .fixed.inset-0 label {
   color: #0f172a !important;
 }
@@ -198,8 +198,8 @@ body.light-mode {
 }
 
 .light-mode .fixed.inset-0 button.bg-\[\#CC222F\],
-.light-mode .fixed.inset-0 button.bg-[#24A1DE],
-.light-mode .fixed.inset-0 button.bg-[#1877F2],
+.light-mode .fixed.inset-0 button.bg-\[\#24A1DE\],
+.light-mode .fixed.inset-0 button.bg-\[\#1877F2\],
 .light-mode .fixed.inset-0 a.bg-\[\#24A1DE\],
 .light-mode .fixed.inset-0 a.bg-\[\#1877F2\] {
   color: #ffffff !important;
