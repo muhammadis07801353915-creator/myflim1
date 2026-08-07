@@ -1,17 +1,23 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: "Cairo", system-ui, -apple-system, sans-serif;
+@font-face {
+  font-family: 'NRT-Reg';
+  src: url('/fonts/NRT-Reg.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
 }
 
-@custom-variant light-mode (.light-mode &);
+@theme {
+  --font-sans: "NRT-Reg", "Cairo", system-ui, -apple-system, sans-serif;
+}
 
 :root {
-  font-family: "Cairo", system-ui, -apple-system, sans-serif;
+  font-family: "NRT-Reg", "Cairo", system-ui, -apple-system, sans-serif;
 }
 
 body {
-  font-family: "Cairo", system-ui, -apple-system, sans-serif;
+  font-family: "NRT-Reg", "Cairo", system-ui, -apple-system, sans-serif;
   background-color: #0a0a0f;
   color: #ffffff;
 }
@@ -65,7 +71,7 @@ body.light-mode {
 .light-mode h1, 
 .light-mode h2, 
 .light-mode h3, 
-.light-mode h4,
+.light-mode h4, 
 .light-mode p,
 .light-mode span,
 .light-mode div {

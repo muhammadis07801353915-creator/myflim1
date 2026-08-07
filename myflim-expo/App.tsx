@@ -6,6 +6,7 @@ import {
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
 import AppNavigator from './src/navigation/AppNavigator';
 import AccessScreen from './src/screens/AccessScreen';
 import UpdateChecker from './src/components/UpdateChecker';
@@ -20,6 +21,9 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 LogBox.ignoreLogs(['Non-serializable values were found in the navigation state']);
 
 function App(): React.JSX.Element {
+  const [fontsLoaded] = useFonts({
+    'NRT-Reg': require('./assets/fonts/NRT-Reg.ttf'),
+  });
   const { fetchInitialData, theme, isUnlocked } = useAppStore();
   const themeColors = getColors(theme);
 
