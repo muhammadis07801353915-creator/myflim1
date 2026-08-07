@@ -90,32 +90,28 @@ function timeAgo(dateStr: string, language: string): string {
 // ─── Loading skeleton shown while client mounts ─────────────
 function PostsSkeleton() {
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0F0F13' }}>
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 40, backgroundColor: 'rgba(15,15,19,0.95)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '12px 16px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-      }}>
-        <span style={{ fontSize: 20, fontWeight: 900, color: '#fff' }}>پۆستەکان</span>
+    <div className="min-h-screen bg-[#0F0F13] light-mode:bg-[#f8fafc]">
+      <div className="sticky top-0 z-40 bg-[#0F0F13]/95 light-mode:bg-white/95 border-b border-white/7 light-mode:border-slate-200 px-4 py-3 flex items-center justify-between">
+        <span className="text-xl font-black text-white light-mode:text-slate-900">پۆستەکان</span>
       </div>
-      <div style={{ maxWidth: 576, margin: '0 auto', padding: '16px 12px' }}>
-        <div style={{ borderRadius: 16, overflow: 'hidden', backgroundColor: '#14151c', border: '1px solid rgba(255,255,255,0.07)', padding: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: '#2a2b35' }} />
-            <div style={{ flex: 1, height: 32, borderRadius: 8, backgroundColor: '#1a1b25' }} />
+      <div className="max-w-xl mx-auto px-3 pt-4 space-y-3">
+        <div className="rounded-2xl bg-[#14151c] light-mode:bg-white border border-white/7 light-mode:border-slate-200 p-4 animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-neutral-800 light-mode:bg-slate-200" />
+            <div className="flex-1 h-8 rounded-xl bg-neutral-800 light-mode:bg-slate-100" />
           </div>
         </div>
         {[1, 2].map(i => (
-          <div key={i} style={{ marginTop: 12, borderRadius: 16, overflow: 'hidden', backgroundColor: '#14151c', border: '1px solid rgba(255,255,255,0.07)', padding: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: '#2a2b35' }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ width: '40%', height: 12, borderRadius: 6, backgroundColor: '#2a2b35', marginBottom: 6 }} />
-                <div style={{ width: '25%', height: 10, borderRadius: 6, backgroundColor: '#1e1f28' }} />
+          <div key={i} className="rounded-2xl bg-[#14151c] light-mode:bg-white border border-white/7 light-mode:border-slate-200 p-4 space-y-3 animate-pulse">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-neutral-800 light-mode:bg-slate-200" />
+              <div className="space-y-1.5 flex-1">
+                <div className="w-1/3 h-3 rounded bg-neutral-800 light-mode:bg-slate-200" />
+                <div className="w-1/4 h-2.5 rounded bg-neutral-800/60 light-mode:bg-slate-100" />
               </div>
             </div>
-            <div style={{ width: '90%', height: 12, borderRadius: 6, backgroundColor: '#1e1f28', marginBottom: 6 }} />
-            <div style={{ width: '70%', height: 12, borderRadius: 6, backgroundColor: '#1e1f28' }} />
+            <div className="w-full h-3 rounded bg-neutral-800/80 light-mode:bg-slate-200" />
+            <div className="w-3/4 h-3 rounded bg-neutral-800/80 light-mode:bg-slate-200" />
           </div>
         ))}
       </div>
@@ -236,96 +232,87 @@ export default function Posts() {
     loadPosts();
   };
 
-  // Show skeleton (dark bg) while client loads — never show blank white
   if (!mounted) return <PostsSkeleton />;
 
   const avatar0 = userAccount?.avatar || DEFAULT_AVATARS[0];
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0F0F13', paddingBottom: 112 }}>
+    <div className="min-h-screen bg-[#0F0F13] light-mode:bg-[#f8fafc] pb-28 text-white light-mode:text-slate-900">
       {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 40, padding: '12px 16px',
-        backgroundColor: 'rgba(15,15,19,0.95)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-      }}>
-        <h1 style={{ fontSize: 20, fontWeight: 900, color: '#fff', margin: 0 }}>
+      <div className="sticky top-0 z-40 bg-[#0F0F13]/95 light-mode:bg-white/95 backdrop-blur-md border-b border-white/7 light-mode:border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
+        <h1 className="text-xl font-black text-white light-mode:text-slate-900">
           {language === 'ku' ? 'پۆستەکان' : language === 'ar' ? 'المنشورات' : 'Community Posts'}
         </h1>
-        <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: 'rgba(204,34,47,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Globe size={16} color="#CC222F" />
+        <div className="w-8 h-8 rounded-full bg-[#CC222F]/15 flex items-center justify-center">
+          <Globe size={16} className="text-[#CC222F]" />
         </div>
       </div>
 
-      <div style={{ maxWidth: 576, margin: '0 auto', padding: '16px 12px' }}>
-
+      <div className="max-w-xl mx-auto px-3 pt-4 space-y-4">
         {/* ── CREATE POST BOX ── */}
-        <div style={{ borderRadius: 16, overflow: 'hidden', backgroundColor: '#14151c', border: '1px solid rgba(255,255,255,0.07)', marginBottom: 16 }}>
-          <div style={{ padding: 16 }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+        <div className="bg-[#14151c] light-mode:bg-white rounded-2xl border border-white/8 light-mode:border-slate-200/80 shadow-md light-mode:shadow-sm overflow-hidden">
+          <div className="p-4">
+            <div className="flex items-start gap-3 mb-3">
               {/* Avatar */}
-              <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(204,34,47,0.4)', flexShrink: 0, backgroundColor: '#2a2b35', position: 'relative' }}>
+              <div className="w-10 h-10 rounded-full overflow-hidden relative shrink-0 border-2 border-[#CC222F]/40 bg-neutral-800 light-mode:bg-slate-200">
                 {userAccount ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={avatar0} alt={userAccount.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={avatar0} alt={userAccount.name} className="w-full h-full object-cover" />
                 ) : (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <User size={18} color="#888" />
+                  <div className="w-full h-full flex items-center justify-center">
+                    <User size={18} className="text-neutral-400 light-mode:text-slate-500" />
                   </div>
                 )}
               </div>
-              {/* Textarea */}
-              <textarea
-                rows={newPostText ? 3 : 2}
-                value={newPostText}
-                onClick={() => { if (!userAccount) setShowAuthModal(true); }}
-                onChange={(e) => {
-                  if (!userAccount) { setShowAuthModal(true); return; }
-                  setNewPostText(e.target.value);
-                }}
-                placeholder={
-                  userAccount
-                    ? (language === 'ku' ? `${userAccount.name}، چیت لە مێشکتدایە؟` : language === 'ar' ? 'ما الذي تفكر به؟' : "What's on your mind?")
-                    : (language === 'ku' ? 'بچۆ ژوورەوە بۆ نووسینی پۆست...' : language === 'ar' ? 'سجل الدخول للنشر...' : 'Login to post...')
-                }
-                style={{
-                  flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none',
-                  color: 'rgba(255,255,255,0.9)', fontSize: 14, fontWeight: 500,
-                  resize: 'none', caretColor: '#CC222F',
-                  fontFamily: 'inherit', lineHeight: 1.6,
-                }}
-              />
+
+              {/* Textarea container */}
+              <div className="flex-1 bg-[#1a1b27] light-mode:bg-slate-100 rounded-xl p-3 border border-white/6 light-mode:border-slate-200 transition focus-within:border-[#CC222F] light-mode:focus-within:border-[#CC222F]">
+                <textarea
+                  rows={newPostText ? 3 : 2}
+                  value={newPostText}
+                  onClick={() => { if (!userAccount) setShowAuthModal(true); }}
+                  onChange={(e) => {
+                    if (!userAccount) { setShowAuthModal(true); return; }
+                    setNewPostText(e.target.value);
+                  }}
+                  placeholder={
+                    userAccount
+                      ? (language === 'ku' ? `${userAccount.name}، چیت لە مێشکتدایە؟` : language === 'ar' ? 'ما الذي تفكر به؟' : "What's on your mind?")
+                      : (language === 'ku' ? 'بچۆ ژوورەوە بۆ نووسینی پۆست...' : language === 'ar' ? 'سجل الدخول للنشر...' : 'Login to post...')
+                  }
+                  className="w-full bg-transparent text-white light-mode:text-slate-900 placeholder:text-white/40 light-mode:placeholder:text-slate-400 text-sm font-medium resize-none outline-none border-none p-0 focus:ring-0"
+                />
+              </div>
             </div>
 
             {/* Image preview */}
             {newPostImage && (
-              <div style={{ position: 'relative', marginBottom: 12, borderRadius: 12, overflow: 'hidden' }}>
+              <div className="relative mb-3 rounded-xl overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={newPostImage} alt="preview" style={{ width: '100%', maxHeight: 240, objectFit: 'cover', borderRadius: 12 }} />
+                <img src={newPostImage} alt="preview" className="w-full max-h-60 object-cover rounded-xl" />
                 <button
                   onClick={() => setNewPostImage(null)}
-                  style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: '50%', backgroundColor: 'rgba(0,0,0,0.6)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center"
                 >
-                  <X size={14} color="#fff" />
+                  <X size={14} className="text-white" />
                 </button>
               </div>
             )}
           </div>
 
           {/* Bottom action row */}
-          <div style={{ padding: '10px 16px 14px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageSelect} />
+          <div className="px-4 pb-3 pt-3 flex items-center justify-between border-t border-white/6 light-mode:border-slate-100">
+            <div className="flex items-center gap-2">
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
               <button
                 onClick={() => { if (!userAccount) { setShowAuthModal(true); return; } fileInputRef.current?.click(); }}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.06)', border: 'none', cursor: 'pointer', color: '#4ade80', fontSize: 12, fontWeight: 600, fontFamily: 'inherit' }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/6 light-mode:bg-slate-100 hover:bg-white/10 light-mode:hover:bg-slate-200 transition text-[#4ade80] text-xs font-semibold"
               >
                 <ImagePlus size={15} />
                 <span>{language === 'ku' ? 'وێنە' : language === 'ar' ? 'صورة' : 'Photo'}</span>
               </button>
               <button
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.06)', border: 'none', cursor: 'pointer', color: '#fbbf24', fontSize: 12, fontWeight: 600, fontFamily: 'inherit' }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/6 light-mode:bg-slate-100 hover:bg-white/10 light-mode:hover:bg-slate-200 transition text-amber-400 text-xs font-semibold"
               >
                 <Smile size={15} />
                 <span>{language === 'ku' ? 'هەستیار' : language === 'ar' ? 'شعور' : 'Feeling'}</span>
@@ -335,16 +322,9 @@ export default function Posts() {
             <button
               onClick={handlePublish}
               disabled={publishing || (!newPostText.trim() && !newPostImage)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px',
-                borderRadius: 10, border: 'none', cursor: publishing || (!newPostText.trim() && !newPostImage) ? 'not-allowed' : 'pointer',
-                backgroundColor: publishing || (!newPostText.trim() && !newPostImage) ? 'rgba(204,34,47,0.4)' : '#CC222F',
-                color: '#fff', fontSize: 12, fontWeight: 900, fontFamily: 'inherit',
-                opacity: publishing || (!newPostText.trim() && !newPostImage) ? 0.5 : 1,
-                transition: 'all 0.2s',
-              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#CC222F] hover:bg-red-700 text-white text-xs font-black disabled:opacity-40 transition shadow-md shadow-red-600/20"
             >
-              {publishing ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
+              {publishing ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
               <span>{language === 'ku' ? 'بڵاوکردنەوە' : language === 'ar' ? 'نشر' : 'Post'}</span>
             </button>
           </div>
@@ -352,20 +332,20 @@ export default function Posts() {
 
         {/* ── POSTS FEED ── */}
         {loading ? (
-          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 64, paddingBottom: 64 }}>
-            <Loader2 size={32} color="#CC222F" style={{ animation: 'spin 1s linear infinite' }} />
+          <div className="flex justify-center py-16">
+            <Loader2 size={32} className="text-[#CC222F] animate-spin" />
           </div>
         ) : posts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '64px 0' }}>
-            <div style={{ width: 64, height: 64, borderRadius: '50%', backgroundColor: 'rgba(204,34,47,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <MessageCircle size={28} color="#CC222F" />
+          <div className="text-center py-16">
+            <div className="w-16 h-16 rounded-full bg-[#CC222F]/10 flex items-center justify-center mx-auto mb-4">
+              <MessageCircle size={28} className="text-[#CC222F]" />
             </div>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, fontWeight: 600, margin: 0 }}>
+            <p className="text-sm font-semibold text-white/40 light-mode:text-slate-400">
               {language === 'ku' ? 'هیچ پۆستێک نییە. یەکەم کەس بە!' : language === 'ar' ? 'لا منشورات. كن أول من ينشر!' : 'No posts yet. Be the first!'}
             </p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="space-y-4">
             {posts.map((post) => (
               <PostCard
                 key={post.id}
@@ -387,16 +367,12 @@ export default function Posts() {
       </div>
 
       {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
-
-      <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}</style>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────
-// POST CARD — fully inline styles, no Tailwind
+// POST CARD
 // ─────────────────────────────────────────────
 function PostCard({
   post, userAccount, language,
@@ -421,26 +397,26 @@ function PostCard({
   const postAvatar = post.user_avatar || DEFAULT_AVATARS[0];
 
   return (
-    <div style={{ borderRadius: 16, overflow: 'hidden', backgroundColor: '#14151c', border: '1px solid rgba(255,255,255,0.07)' }}>
+    <div className="bg-[#14151c] light-mode:bg-white rounded-2xl border border-white/8 light-mode:border-slate-200/80 shadow-md light-mode:shadow-sm overflow-hidden">
       {/* Header */}
-      <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', border: '2px solid rgba(204,34,47,0.3)', flexShrink: 0 }}>
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full overflow-hidden relative shrink-0 border-2 border-[#CC222F]/30 bg-neutral-800 light-mode:bg-slate-200">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={postAvatar} alt={post.user_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={postAvatar} alt={post.user_name} className="w-full h-full object-cover" />
           </div>
           <div>
-            <p style={{ margin: 0, fontWeight: 900, fontSize: 14, color: '#fff', lineHeight: 1 }}>{post.user_name}</p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-              <Globe size={11} color="rgba(255,255,255,0.3)" />
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>{timeAgo(post.created_at, language)}</span>
+            <p className="font-black text-sm text-white light-mode:text-slate-900 leading-none">{post.user_name}</p>
+            <div className="flex items-center gap-1.5 mt-1">
+              <Globe size={11} className="text-white/30 light-mode:text-slate-400" />
+              <span className="text-[11px] text-white/35 light-mode:text-slate-400">{timeAgo(post.created_at, language)}</span>
             </div>
           </div>
         </div>
         {isOwner && (
           <button
             onClick={() => { if (confirm(language === 'ku' ? 'ئایا دڵنیایت لە سڕینەوەی پۆستەکە؟' : 'Delete this post?')) onDelete(post.id); }}
-            style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.25)' }}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white/30 light-mode:text-slate-400 hover:text-red-500 transition"
           >
             <MoreHorizontal size={18} />
           </button>
@@ -449,94 +425,102 @@ function PostCard({
 
       {/* Text */}
       {post.text && (
-        <div style={{ padding: '0 16px 14px' }}>
-          <p style={{ margin: 0, fontSize: 14, lineHeight: 1.7, color: 'rgba(255,255,255,0.88)', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{post.text}</p>
+        <div className="px-4 pb-3">
+          <p className="text-sm text-white/90 light-mode:text-slate-800 leading-relaxed whitespace-pre-wrap break-words">{post.text}</p>
         </div>
       )}
 
       {/* Image */}
       {post.image && (
-        <div style={{ width: '100%' }}>
+        <div className="w-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={post.image} alt="post" style={{ width: '100%', maxHeight: 320, objectFit: 'cover', display: 'block' }} />
+          <img src={post.image} alt="post" className="w-full max-h-96 object-cover block" />
         </div>
       )}
 
       {/* Like/comment counts */}
-      <div style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+      <div className="px-4 py-2 flex items-center justify-between border-t border-white/5 light-mode:border-slate-100">
+        <div className="flex items-center gap-1.5">
           {post.likes.length > 0 && (
             <>
-              <div style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Heart size={10} color="#fff" fill="#fff" />
+              <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center">
+                <Heart size={10} className="text-white fill-white" />
               </div>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.45)' }}>{post.likes.length}</span>
+              <span className="text-xs font-semibold text-white/45 light-mode:text-slate-500">{post.likes.length}</span>
             </>
           )}
         </div>
         {post.comments.length > 0 && (
-          <button onClick={toggleComments} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'rgba(255,255,255,0.35)', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+          <button onClick={toggleComments} className="flex items-center gap-1 text-xs text-white/35 light-mode:text-slate-500 hover:text-white/70 light-mode:hover:text-slate-800 transition">
             <span>{post.comments.length} {language === 'ku' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'comment'}</span>
-            <ChevronDown size={13} style={{ transform: showComments ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+            <ChevronDown size={13} className={`transition-transform ${showComments ? 'rotate-180' : ''}`} />
           </button>
         )}
       </div>
 
       {/* Action buttons */}
-      <div style={{ padding: '4px 8px 10px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', gap: 4 }}>
-        {[
-          { label: language === 'ku' ? 'بەدڵبوون' : language === 'ar' ? 'إعجاب' : 'Like', icon: <Heart size={17} color={isLiked ? '#ef4444' : 'rgba(255,255,255,0.4)'} fill={isLiked ? '#ef4444' : 'none'} />, active: isLiked, action: () => { if (!userAccount) { onAuthRequired(); return; } onLike(post.id); } },
-          { label: language === 'ku' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'Comment', icon: <MessageCircle size={17} color="rgba(255,255,255,0.4)" />, active: false, action: toggleComments },
-          { label: language === 'ku' ? 'بەشکردن' : language === 'ar' ? 'مشاركة' : 'Share', icon: <Share2 size={17} color="rgba(255,255,255,0.4)" />, active: false, action: () => { if (navigator.share) navigator.share({ text: post.text, url: window.location.href }); } },
-        ].map((btn, i) => (
-          <button
-            key={i}
-            onClick={btn.action}
-            style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '10px 4px', borderRadius: 10, border: 'none', cursor: 'pointer',
-              backgroundColor: btn.active ? 'rgba(239,68,68,0.1)' : 'transparent',
-              color: btn.active ? '#ef4444' : 'rgba(255,255,255,0.4)',
-              fontSize: 13, fontWeight: 700, fontFamily: 'inherit', transition: 'all 0.15s',
-            }}
-          >
-            {btn.icon}
-            <span>{btn.label}</span>
-          </button>
-        ))}
+      <div className="px-2 py-1.5 border-t border-white/5 light-mode:border-slate-100 flex items-center gap-1">
+        <button
+          onClick={() => { if (!userAccount) { onAuthRequired(); return; } onLike(post.id); }}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition font-bold text-sm ${
+            isLiked
+              ? 'text-red-500 bg-red-500/10'
+              : 'text-white/50 light-mode:text-slate-500 hover:bg-white/5 light-mode:hover:bg-slate-100'
+          }`}
+        >
+          <Heart size={17} className={isLiked ? 'fill-red-500' : ''} />
+          <span>{language === 'ku' ? 'بەدڵبوون' : language === 'ar' ? 'إعجاب' : 'Like'}</span>
+        </button>
+
+        <button
+          onClick={toggleComments}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-white/50 light-mode:text-slate-500 hover:bg-white/5 light-mode:hover:bg-slate-100 transition font-bold text-sm"
+        >
+          <MessageCircle size={17} />
+          <span>{language === 'ku' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'Comment'}</span>
+        </button>
+
+        <button
+          onClick={() => { if (navigator.share) navigator.share({ text: post.text, url: window.location.href }); }}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-white/50 light-mode:text-slate-500 hover:bg-white/5 light-mode:hover:bg-slate-100 transition font-bold text-sm"
+        >
+          <Share2 size={17} />
+          <span>{language === 'ku' ? 'بەشکردن' : language === 'ar' ? 'مشاركة' : 'Share'}</span>
+        </button>
       </div>
 
       {/* Comments */}
       {showComments && (
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', backgroundColor: '#111219' }}>
+        <div className="border-t border-white/6 light-mode:border-slate-200 bg-[#111219] light-mode:bg-slate-50/80">
           {post.comments.map((c) => (
-            <div key={c.id} style={{ display: 'flex', gap: 10, padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+            <div key={c.id} className="flex gap-2.5 px-4 py-3 border-b border-white/4 light-mode:border-slate-200/60 last:border-b-0">
+              <div className="w-8 h-8 rounded-full overflow-hidden relative shrink-0 border border-white/10 light-mode:border-slate-300">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={c.user_avatar || DEFAULT_AVATARS[0]} alt={c.user_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={c.user_avatar || DEFAULT_AVATARS[0]} alt={c.user_name} className="w-full h-full object-cover" />
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'inline-block', borderRadius: '0 12px 12px 12px', padding: '8px 12px', backgroundColor: '#1a1b27', maxWidth: '100%' }}>
-                  <p style={{ margin: '0 0 2px', fontSize: 11, fontWeight: 900, color: '#CC222F' }}>{c.user_name}</p>
-                  <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: 'rgba(255,255,255,0.8)', wordBreak: 'break-word' }}>{c.text}</p>
+              <div className="flex-1 min-w-0">
+                <div className="inline-block rounded-2xl rounded-tl-none px-3.5 py-2 max-w-full bg-[#1a1b27] light-mode:bg-white border border-transparent light-mode:border-slate-200/80 shadow-sm">
+                  <p className="text-xs font-black text-[#CC222F] mb-0.5">{c.user_name}</p>
+                  <p className="text-xs text-white/80 light-mode:text-slate-800 leading-relaxed break-words">{c.text}</p>
                 </div>
-                <p style={{ margin: '4px 0 0 4px', fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>{timeAgo(c.created_at, language)}</p>
+                <p className="text-[10px] text-white/25 light-mode:text-slate-400 mt-1 px-1">{timeAgo(c.created_at, language)}</p>
               </div>
             </div>
           ))}
+
           {/* Comment input */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12 }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
+          <div className="flex items-center gap-2.5 px-4 py-3">
+            <div className="w-8 h-8 rounded-full overflow-hidden relative shrink-0 border border-white/10 light-mode:border-slate-300 bg-neutral-800 light-mode:bg-slate-200">
               {userAccount ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={userAccount.avatar || DEFAULT_AVATARS[0]} alt={userAccount.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={userAccount.avatar || DEFAULT_AVATARS[0]} alt={userAccount.name} className="w-full h-full object-cover" />
               ) : (
-                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#2a2b35' }}>
-                  <User size={14} color="#888" />
+                <div className="w-full h-full flex items-center justify-center">
+                  <User size={14} className="text-neutral-400 light-mode:text-slate-500" />
                 </div>
               )}
             </div>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, borderRadius: 20, padding: '6px 12px', backgroundColor: '#1a1b27', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="flex-1 flex items-center gap-2 rounded-full px-3.5 py-1.5 bg-[#1a1b27] light-mode:bg-white border border-white/8 light-mode:border-slate-300 shadow-sm">
               <input
                 value={commentInput}
                 onChange={(e) => { if (!userAccount) { onAuthRequired(); return; } setCommentInput(e.target.value); }}
@@ -547,12 +531,12 @@ function PostCard({
                     ? (language === 'ku' ? 'کۆمێنتێک بنووسە...' : language === 'ar' ? 'اكتب تعليقًا...' : 'Write a comment...')
                     : (language === 'ku' ? 'بچۆ ژوورەوە...' : 'Login to comment...')
                 }
-                style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', fontSize: 12, color: 'rgba(255,255,255,0.85)', caretColor: '#CC222F', fontFamily: 'inherit' }}
+                className="flex-1 bg-transparent text-xs text-white light-mode:text-slate-900 placeholder:text-white/30 light-mode:placeholder:text-slate-400 outline-none border-none focus:ring-0"
               />
               <button
                 onClick={() => onComment(post.id)}
                 disabled={!commentInput.trim()}
-                style={{ backgroundColor: 'transparent', border: 'none', cursor: commentInput.trim() ? 'pointer' : 'default', opacity: commentInput.trim() ? 1 : 0.3, color: '#CC222F', display: 'flex', alignItems: 'center' }}
+                className="text-[#CC222F] disabled:opacity-30 transition"
               >
                 <Send size={14} />
               </button>
