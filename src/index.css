@@ -16,7 +16,7 @@ body {
   color: #ffffff;
 }
 
-/* ── LIGHT MODE STYLES & CONTRAST OVERRIDES ────────────────── */
+/* ── LIGHT MODE COMPREHENSIVE FIXES ──────────────────────────── */
 html.light-mode, 
 body.light-mode {
   background-color: #f8fafc !important;
@@ -32,53 +32,91 @@ body.light-mode {
   color: #0f172a !important;
 }
 
-/* Background overrides in light mode */
-.light-mode .bg-\[\#0a0a0f\],
-.light-mode .bg-\[\#0F0F13\],
-.light-mode .bg-black {
-  background-color: #f8fafc !important;
+/* 1. STICKY TOP HEADER BARS IN LIGHT MODE */
+.light-mode .sticky.top-0,
+.light-mode header,
+.light-mode div[class*="bg-[#0a0a0f]"],
+.light-mode div[class*="bg-[#0F0F13]"],
+.light-mode div[class*="bg-neutral-950"] {
+  background-color: #ffffff !important;
+  border-bottom-color: #e2e8f0 !important;
 }
 
+/* Top bar text & title colors */
+.light-mode .sticky.top-0 h1,
+.light-mode .sticky.top-0 h2,
+.light-mode .sticky.top-0 span,
+.light-mode .sticky.top-0 button:not(.bg-red-600):not(.bg-\[\#CC222F\]) {
+  color: #0f172a !important;
+}
+
+/* 2. BACKGROUND OVERRIDES IN LIGHT MODE */
 .light-mode .bg-\[\#14151c\],
 .light-mode .bg-\[\#161722\],
 .light-mode .bg-\[\#181924\],
 .light-mode .bg-\[\#1c1e28\],
-.light-mode .bg-neutral-900,
-.light-mode .bg-neutral-950 {
+.light-mode .bg-\[\#1A1D24\],
+.light-mode .bg-neutral-900 {
   background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1 !important;
 }
 
-/* Text overrides in light mode */
+/* 3. DEFAULT TEXT CONTRAST IN LIGHT MODE */
 .light-mode h1, 
 .light-mode h2, 
 .light-mode h3, 
 .light-mode h4,
-.light-mode .text-white {
-  color: #0f172a !important;
+.light-mode p,
+.light-mode span,
+.light-mode div {
+  color: #0f172a;
 }
 
 .light-mode .text-white\/90,
 .light-mode .text-white\/80,
 .light-mode .text-white\/70,
-.light-mode .text-white\/60,
 .light-mode .text-neutral-200,
 .light-mode .text-neutral-300 {
-  color: #334155 !important;
+  color: #1e293b !important;
 }
 
+.light-mode .text-white\/60,
 .light-mode .text-white\/50,
 .light-mode .text-white\/40,
 .light-mode .text-white\/35,
 .light-mode .text-white\/30,
-.light-mode .text-white\/20,
 .light-mode .text-neutral-400,
 .light-mode .text-neutral-500 {
   color: #64748b !important;
 }
 
-/* Input boxes in light mode */
+/* 4. CRITICAL FIX: TEXT ON TOP OF POSTERS, HERO OVERLAYS & LIVE CARDS MUST REMAIN WHITE */
+.light-mode div[class*="aspect-"],
+.light-mode div[class*="aspect-square"],
+.light-mode div[class*="relative w-full h-"],
+.light-mode .relative.aspect-\[2\/3\],
+.light-mode .relative.aspect-square {
+  color: #ffffff !important;
+}
+
+.light-mode div[class*="aspect-"] *,
+.light-mode div[class*="aspect-square"] *,
+.light-mode div[class*="bg-gradient-to-t"] *,
+.light-mode div[class*="from-black"] *,
+.light-mode .hero-banner *,
+.light-mode .hero-content *,
+.light-mode div[class*="bg-black\/"] * {
+  color: #ffffff !important;
+}
+
+/* Preserve Live Badge & Movie Type Badge text */
+.light-mode .bg-red-600 *,
+.light-mode .bg-red-500 *,
+.light-mode .bg-\[\#CC222F\] * {
+  color: #ffffff !important;
+}
+
+/* 5. INPUT BOXES IN LIGHT MODE */
 .light-mode input,
 .light-mode textarea {
   background-color: #ffffff !important;
@@ -90,13 +128,14 @@ body.light-mode {
   color: #94a3b8 !important;
 }
 
-/* Filter pills & buttons in light mode */
+/* 6. FILTER PILLS & BUTTONS IN LIGHT MODE */
 .light-mode .bg-white\/4,
 .light-mode .bg-white\/5,
 .light-mode .bg-white\/6,
 .light-mode .bg-white\/7,
 .light-mode .bg-white\/8,
-.light-mode .bg-white\/10 {
+.light-mode .bg-white\/10,
+.light-mode .bg-white\/12 {
   background-color: #f1f5f9 !important;
   border-color: #cbd5e1 !important;
   color: #334155 !important;
@@ -111,17 +150,11 @@ body.light-mode {
   border-color: #e2e8f0 !important;
 }
 
-/* Active red buttons & accents preserve white text */
+/* Red accents & primary buttons */
 .light-mode .bg-\[\#CC222F\],
 .light-mode .bg-red-600,
 .light-mode .bg-red-500 {
   background-color: #CC222F !important;
-  color: #ffffff !important;
-}
-
-.light-mode .bg-\[\#CC222F\] *,
-.light-mode .bg-red-600 *,
-.light-mode .bg-red-500 * {
   color: #ffffff !important;
 }
 
@@ -131,11 +164,25 @@ body.light-mode {
   color: #CC222F !important;
 }
 
-/* Bottom Nav in light mode */
+/* 7. BOTTOM NAVIGATION BAR IN LIGHT MODE */
 .light-mode .fixed.bottom-0 {
   background-color: #ffffff !important;
   border-top-color: #e2e8f0 !important;
-  box-shadow: 0 -4px 15px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.light-mode .fixed.bottom-0 span {
+  color: #64748b;
+}
+
+.light-mode .fixed.bottom-0 a.text-red-500 span,
+.light-mode .fixed.bottom-0 button.text-red-500 span {
+  color: #CC222F !important;
+}
+
+/* 8. TELEGRAM & SOCIAL MODAL IN LIGHT MODE */
+.light-mode .fixed.bottom-24 {
+  box-shadow: 0 10px 25px -5px rgba(36, 161, 222, 0.4);
 }
 
 @layer utilities {
