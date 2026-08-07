@@ -17,7 +17,8 @@ import {
   Download,
   Key,
   Play,
-  CheckCircle2
+  CheckCircle2,
+  Upload
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -26,6 +27,15 @@ import { getLocalized } from '../lib/translations';
 import { useRouter } from 'next/navigation';
 import { getProStatusLocal, setProStatus } from '../lib/pro';
 import { supabase } from '../lib/supabase';
+
+const DEFAULT_AVATARS = [
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?q=80&w=200&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
+];
 
 export default function Profile() {
   const { t, language, setLanguage } = useLanguage();
@@ -40,6 +50,9 @@ export default function Profile() {
 
   const [userName, setUserName] = useState('User');
   const [tempName, setTempName] = useState('User');
+  const [userAvatar, setUserAvatar] = useState(DEFAULT_AVATARS[0]);
+  const [tempAvatar, setTempAvatar] = useState(DEFAULT_AVATARS[0]);
+
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isPro, setIsPro] = useState(false);
   const [unlockCode, setUnlockCode] = useState('');
@@ -54,6 +67,12 @@ export default function Profile() {
       setTempName(savedName);
     }
     
+    const savedAvatar = localStorage.getItem('myfilm_user_avatar');
+    if (savedAvatar) {
+      setUserAvatar(savedAvatar);
+      setTempAvatar(savedAvatar);
+    }
+
     // Theme persistence check
     const savedTheme = localStorage.getItem('myfilm_theme');
     if (savedTheme === 'light') {
@@ -118,19 +137,43 @@ export default function Profile() {
     }
   };
 
-  const handleSaveName = () => {
+  const handleSaveProfile = () => {
     if (tempName.trim()) {
       setUserName(tempName.trim());
       localStorage.setItem('myfilm_user_name', tempName.trim());
-      setShowNameModal(false);
+    }
+    if (tempAvatar) {
+      setUserAvatar(tempAvatar);
+      localStorage.setItem('myfilm_user_avatar', tempAvatar);
+    }
+    setShowNameModal(false);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(language === 'ku' ? 'تکایە وێنەیەک هەڵبژێرە کە لە 5 مێگابایت بچووکتر بێت' : 'File must be under 5MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (reader.result) {
+          setTempAvatar(reader.result.toString());
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleLogout = () => {
     if (confirm(language === 'ku' ? 'دڵنیایت لە چوونه‌ده‌ره‌وه‌؟' : 'Are you sure you want to log out?')) {
       localStorage.removeItem('myfilm_user_name');
+      localStorage.removeItem('myfilm_user_avatar');
       setUserName('User');
       setTempName('User');
+      setUserAvatar(DEFAULT_AVATARS[0]);
+      setTempAvatar(DEFAULT_AVATARS[0]);
     }
   };
 
@@ -164,7 +207,7 @@ export default function Profile() {
           <div className="relative p-0.5 rounded-full border-2 border-[#CC222F]">
             <div className="w-16 h-16 rounded-full overflow-hidden relative bg-[#181924] light-mode:bg-neutral-200">
               <Image 
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop" 
+                src={userAvatar} 
                 alt={userName} 
                 fill 
                 className="object-cover"
@@ -172,7 +215,7 @@ export default function Profile() {
               />
             </div>
             <button 
-              onClick={() => setShowNameModal(true)}
+              onClick={() => { setTempName(userName); setTempAvatar(userAvatar); setShowNameModal(true); }}
               className="absolute -bottom-1 -right-1 rtl:-right-auto rtl:-left-1 w-6 h-6 rounded-full bg-[#CC222F] text-white flex items-center justify-center border-2 border-[#0F0F13] light-mode:border-white hover:scale-110 transition shadow-md"
             >
               <Camera size={11} />
@@ -183,7 +226,7 @@ export default function Profile() {
               {language === 'ku' ? `سڵاو، ${userName}` : language === 'ar' ? `مرحباً، ${userName}` : `Hi, ${userName}`}
             </h1>
             <button 
-              onClick={() => setShowNameModal(true)} 
+              onClick={() => { setTempName(userName); setTempAvatar(userAvatar); setShowNameModal(true); }} 
               className="text-xs font-semibold text-white/50 light-mode:text-neutral-500 hover:text-white light-mode:hover:text-black transition flex items-center gap-1 mt-0.5"
             >
               <span>{language === 'ku' ? 'دەستکاری پرۆفایل >' : language === 'ar' ? 'تعديل الملف الشخصي >' : 'Edit Profile >'}</span>
@@ -271,7 +314,7 @@ export default function Profile() {
         <ProfileMenuItem 
           icon={User} 
           label={language === 'ku' ? 'ڕێکخستنەکانی هەژمار' : language === 'ar' ? 'إعدادات الحساب' : 'Account Settings'} 
-          onClick={() => setShowNameModal(true)} 
+          onClick={() => { setTempName(userName); setTempAvatar(userAvatar); setShowNameModal(true); }} 
         />
 
         {/* Subscription (Free Notice) */}
@@ -301,76 +344,68 @@ export default function Profile() {
           </button>
           
           {showLangMenu && (
-            <div className="mt-2 bg-[#1c1e28] light-mode:bg-white border border-white/10 light-mode:border-neutral-200 rounded-2xl overflow-hidden z-50 shadow-2xl">
-              <LangOption label="English" flag="🇬🇧" active={language === 'en'} onClick={() => { setLanguage('en'); setShowLangMenu(false); }} />
-              <LangOption label="کوردی" flag="☀️" active={language === 'ku'} onClick={() => { setLanguage('ku'); setShowLangMenu(false); }} />
-              <LangOption label="العربية" flag="🇮🇶" active={language === 'ar'} onClick={() => { setLanguage('ar'); setShowLangMenu(false); }} />
+            <div className="mt-2 p-2 bg-[#181924] light-mode:bg-white border border-white/10 light-mode:border-neutral-200 rounded-2xl space-y-1 shadow-xl">
+              {[
+                { code: 'ku', label: 'کوردی (Kurdish)' },
+                { code: 'ar', label: 'العربية (Arabic)' },
+                { code: 'en', label: 'English' }
+              ].map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    setLanguage(lang.code as any);
+                    setShowLangMenu(false);
+                  }}
+                  className={`w-full text-right rtl:text-right ltr:text-left px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between ${
+                    language === lang.code 
+                      ? 'bg-[#CC222F] text-white' 
+                      : 'text-white/70 light-mode:text-neutral-700 hover:bg-white/5 light-mode:hover:bg-neutral-100'
+                  }`}
+                >
+                  <span>{lang.label}</span>
+                  {language === lang.code && <CheckCircle2 size={16} />}
+                </button>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Theme Toggle */}
-        <button 
-          onClick={toggleTheme}
-          className="w-full flex items-center justify-between p-4 bg-[#14151c] light-mode:bg-white hover:bg-[#1c1e28] light-mode:hover:bg-neutral-50 rounded-2xl transition border border-white/6 light-mode:border-neutral-200"
-        >
-          <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
-            {isDarkMode ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-indigo-600" />}
-            <span className="font-bold text-sm text-white light-mode:text-black">
-              {isDarkMode ? t.lightMode : t.darkMode}
-            </span>
-          </div>
-        </button>
+        {/* Theme Toggle (Night / Day Mode) */}
+        <ProfileMenuItem 
+          icon={isDarkMode ? Moon : Sun} 
+          label={isDarkMode 
+            ? (language === 'ku' ? 'دۆخی شەو (تاریک)' : language === 'ar' ? 'الوضع الليلي' : 'Night Mode') 
+            : (language === 'ku' ? 'دۆخی ڕۆژ (ڕووناک)' : language === 'ar' ? 'الوضع النهار' : 'Day Mode')
+          } 
+          iconClass={isDarkMode ? "text-indigo-400" : "text-amber-400"}
+          onClick={toggleTheme} 
+        />
 
-        <ProfileMenuItem icon={HelpCircle} label={language === 'ku' ? 'یارمەتی و پشتیوانی' : language === 'ar' ? 'المساعدة والدعم' : 'Help & Support'} />
-        <ProfileMenuItem icon={Info} label={language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play'} onClick={() => setShowAboutModal(true)} />
-        <ProfileMenuItem icon={LogOut} label={t.logout} textClass="text-red-500" onClick={handleLogout} />
+        {/* Help & Support */}
+        <ProfileMenuItem 
+          icon={HelpCircle} 
+          label={language === 'ku' ? 'یارمەتی و پشتیوانی' : language === 'ar' ? 'المساعدة والدعم' : 'Help & Support'} 
+          onClick={() => window.open('https://t.me/', '_blank')} 
+        />
+
+        {/* About Taban Play */}
+        <ProfileMenuItem 
+          icon={Info} 
+          label={language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play'} 
+          onClick={() => setShowAboutModal(true)} 
+        />
+
+        {/* Logout */}
+        <ProfileMenuItem 
+          icon={LogOut} 
+          label={language === 'ku' ? 'چوونە دەرەوە' : language === 'ar' ? 'تسجيل الخروج' : 'Log Out'} 
+          iconClass="text-red-500"
+          textClass="text-red-500"
+          onClick={handleLogout} 
+        />
       </div>
 
-      {/* ── ABOUT TABAN PLAY MODAL ───────────────────────────────── */}
-      {showAboutModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={() => setShowAboutModal(false)}>
-          <div className="bg-[#14151c] light-mode:bg-white border border-white/10 light-mode:border-neutral-200 w-full max-w-md rounded-3xl p-6 shadow-2xl flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4 border-b border-white/10 light-mode:border-neutral-200 pb-4">
-              <div className="flex items-center gap-3">
-                <Image src="/app-logo-new.png" alt="Taban Play" width={32} height={32} className="rounded-lg object-contain" unoptimized />
-                <h3 className="text-lg font-extrabold text-white light-mode:text-black">Taban Play</h3>
-              </div>
-              <button onClick={() => setShowAboutModal(false)} className="w-8 h-8 rounded-full bg-white/10 light-mode:bg-neutral-200 flex items-center justify-center text-white/60 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black"><X size={18} /></button>
-            </div>
-
-            <div className="space-y-4 text-sm text-white/80 light-mode:text-neutral-700 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
-              <p className="font-medium text-white light-mode:text-black">
-                {aboutText || (language === 'ku' 
-                  ? 'پلاتفۆرمی تابان پڵەی (Taban Play) پلاتفۆرمێکی سەردەمیانەی ژێرنووس و دۆبلاژی کوردییە بۆ سەیرکردنی نوێترین فیلم، زنجیرە، ئەنیمەیشن، و پەخشی ڕاستەوخۆی کەناڵە تەلەڤیزیۆنییەکان بە بەرزترین کوالێتی HD و بێ پچڕان.'
-                  : 'Taban Play is the premier Kurdish streaming platform for movies, series, animation, and live TV channels in high definition.')}
-              </p>
-
-              <div className="space-y-2 bg-[#1c1e28] light-mode:bg-neutral-100 p-4 rounded-2xl border border-white/5 light-mode:border-neutral-200">
-                <div className="flex items-center gap-2.5 text-xs text-white/90 light-mode:text-neutral-800 font-semibold">
-                  <CheckCircle2 size={16} className="text-[#CC222F]" />
-                  <span>{language === 'ku' ? 'نوێترین فیلم و زنجیرە ژێرنووس و دۆبلاژکراوەکان' : 'Latest dubbed & subtitled movies & series'}</span>
-                </div>
-                <div className="flex items-center gap-2.5 text-xs text-white/90 light-mode:text-neutral-800 font-semibold">
-                  <CheckCircle2 size={16} className="text-[#CC222F]" />
-                  <span>{language === 'ku' ? 'پەخشی ڕاستەوخۆی کەناڵە ناوخۆیی و جیهانییەکان' : 'Live streaming of local & international TV channels'}</span>
-                </div>
-                <div className="flex items-center gap-2.5 text-xs text-white/90 light-mode:text-neutral-800 font-semibold">
-                  <CheckCircle2 size={16} className="text-[#CC222F]" />
-                  <span>{language === 'ku' ? 'لێدانی خێرا بە کوالێتی Full HD / 4K' : 'Fast HD / 4K playback experience'}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-xs text-white/40 light-mode:text-neutral-500 pt-2 border-t border-white/10 light-mode:border-neutral-200">
-                <span>Version 2.0.0</span>
-                <span>© 2026 Taban Play</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── SAVED ITEMS MODAL ────────────────────────────────────── */}
+      {/* ── SAVED ITEMS MODAL ────────────────────────────────────────── */}
       {showSavedModal && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-md p-4" onClick={() => setShowSavedModal(false)}>
           <div className="bg-[#14151c] light-mode:bg-white border border-white/10 light-mode:border-neutral-200 w-full max-w-lg rounded-3xl p-6 shadow-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
@@ -452,28 +487,84 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Name Edit Modal */}
+      {/* ── EDIT PROFILE MODAL (Name + Avatar Upload & Select) ────────── */}
       {showNameModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-[#181924] light-mode:bg-white w-full max-w-xs rounded-2xl p-6 border border-white/10 light-mode:border-neutral-200 shadow-2xl">
-            <h3 className="text-lg font-bold text-white light-mode:text-black mb-4">{t.editName}</h3>
-            <input 
-              type="text" 
-              value={tempName}
-              onChange={(e) => setTempName(e.target.value)}
-              className="w-full bg-white/7 light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-300 rounded-xl px-4 py-2.5 text-white light-mode:text-black placeholder-white/30 light-mode:placeholder-neutral-400 outline-none focus:border-[#CC222F] mb-6 text-sm font-semibold"
-              autoFocus
-            />
-            <div className="flex space-x-3 rtl:space-x-reverse">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowNameModal(false)}>
+          <div className="bg-[#181924] light-mode:bg-white w-full max-w-sm rounded-3xl p-6 border border-white/10 light-mode:border-neutral-200 shadow-2xl space-y-5" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-white/10 light-mode:border-neutral-200 pb-3">
+              <h3 className="text-lg font-bold text-white light-mode:text-black">
+                {language === 'ku' ? 'دەستکاری پرۆفایل' : language === 'ar' ? 'تعديل الملف الشخصي' : 'Edit Profile'}
+              </h3>
+              <button onClick={() => setShowNameModal(false)} className="w-8 h-8 rounded-full bg-white/10 light-mode:bg-neutral-200 flex items-center justify-center text-white/60 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black">
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Avatar Section */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="relative group cursor-pointer">
+                <div className="w-20 h-20 rounded-full overflow-hidden relative border-2 border-[#CC222F] bg-[#14151c] shadow-lg">
+                  <Image 
+                    src={tempAvatar} 
+                    alt={tempName} 
+                    fill 
+                    className="object-cover" 
+                    unoptimized 
+                  />
+                </div>
+                <label className="absolute inset-0 rounded-full bg-black/60 opacity-90 sm:opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition text-white text-[10px] font-bold">
+                  <Upload size={18} className="mb-0.5" />
+                  <span>{language === 'ku' ? 'گۆڕین' : 'Upload'}</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                </label>
+              </div>
+
+              <p className="text-xs text-white/50 light-mode:text-neutral-500 font-semibold">
+                {language === 'ku' ? 'وێنەیەک لێرەوە یان لە دیارکراوەکان هەڵبژێرە' : 'Select or upload an avatar'}
+              </p>
+
+              {/* Preset Avatars Grid */}
+              <div className="flex items-center gap-2.5 overflow-x-auto max-w-full pb-1 scrollbar-hide">
+                {DEFAULT_AVATARS.map((av, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setTempAvatar(av)}
+                    className={`w-10 h-10 rounded-full overflow-hidden relative border-2 shrink-0 transition ${
+                      tempAvatar === av ? 'border-[#CC222F] scale-110 shadow-md ring-2 ring-[#CC222F]/50' : 'border-transparent opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <Image src={av} alt="" fill className="object-cover" unoptimized />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Name Input */}
+            <div>
+              <label className="block text-xs font-bold text-white/70 light-mode:text-neutral-700 mb-1.5">
+                {language === 'ku' ? 'ناوی بەکارهێنەر' : language === 'ar' ? 'اسم المستخدم' : 'Display Name'}
+              </label>
+              <input 
+                type="text" 
+                value={tempName}
+                onChange={(e) => setTempName(e.target.value)}
+                className="w-full bg-white/7 light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-300 rounded-xl px-4 py-2.5 text-white light-mode:text-black placeholder-white/30 light-mode:placeholder-neutral-400 outline-none focus:border-[#CC222F] text-sm font-semibold"
+                autoFocus
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex space-x-3 rtl:space-x-reverse pt-2">
               <button 
                 onClick={() => setShowNameModal(false)}
-                className="flex-1 py-2 bg-white/8 light-mode:bg-neutral-200 text-white/70 light-mode:text-neutral-700 rounded-xl font-bold text-sm hover:bg-white/15 light-mode:hover:bg-neutral-300 transition"
+                className="flex-1 py-2.5 bg-white/8 light-mode:bg-neutral-200 text-white/70 light-mode:text-neutral-700 rounded-xl font-bold text-sm hover:bg-white/15 light-mode:hover:bg-neutral-300 transition"
               >
                 {t.cancel}
               </button>
               <button 
-                onClick={handleSaveName}
-                className="flex-1 py-2 bg-[#CC222F] text-white rounded-xl font-bold text-sm hover:bg-red-700 transition"
+                onClick={handleSaveProfile}
+                className="flex-1 py-2.5 bg-[#CC222F] text-white rounded-xl font-bold text-sm hover:bg-red-700 transition shadow-lg shadow-red-600/30"
               >
                 {t.save}
               </button>
@@ -482,39 +573,80 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Unlock Code Modal */}
+      {/* Code Unlock Modal */}
       {showUnlockModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <form onSubmit={handleUnlockSubmit} className="bg-[#181924] light-mode:bg-white w-full max-w-xs rounded-2xl p-6 border border-white/10 light-mode:border-neutral-200 shadow-2xl">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowUnlockModal(false)}>
+          <div className="bg-[#181924] light-mode:bg-white w-full max-w-xs rounded-2xl p-6 border border-white/10 light-mode:border-neutral-200 shadow-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-white light-mode:text-black">{language === 'ku' ? 'داخڵکردنی کۆد' : 'Enter Code'}</h3>
-              <button type="button" onClick={() => setShowUnlockModal(false)} className="text-white/40 light-mode:text-neutral-500 hover:text-white light-mode:hover:text-black"><X size={18} /></button>
+              <button onClick={() => setShowUnlockModal(false)} className="text-white/40 light-mode:text-neutral-500 hover:text-white"><X size={18} /></button>
             </div>
-            <p className="text-xs text-white/60 light-mode:text-neutral-600 mb-4">{language === 'ku' ? 'کۆدی چالاککردنەکە بنووسە:' : 'Please enter code:'}</p>
-            <input 
-              type="text" 
-              value={unlockCode}
-              onChange={(e) => setUnlockCode(e.target.value)}
-              placeholder="Code..."
-              className="w-full bg-white/7 light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-300 rounded-xl px-4 py-2.5 text-white light-mode:text-black placeholder-white/30 light-mode:placeholder-neutral-400 outline-none focus:border-[#CC222F] mb-6 text-sm font-semibold"
-              autoFocus
-            />
-            <div className="flex space-x-3 rtl:space-x-reverse">
-              <button 
-                type="button"
-                onClick={() => setShowUnlockModal(false)}
-                className="flex-1 py-2.5 bg-white/8 light-mode:bg-neutral-200 text-white/70 light-mode:text-neutral-700 rounded-xl font-bold text-sm hover:bg-white/15 light-mode:hover:bg-neutral-300 transition"
-              >
-                {t.cancel}
-              </button>
-              <button 
-                type="submit"
-                className="flex-1 py-2.5 bg-[#CC222F] text-white rounded-xl font-bold text-sm hover:bg-red-700 transition"
-              >
-                {language === 'ku' ? 'چالاککردن' : 'Activate'}
+            <form onSubmit={handleUnlockSubmit}>
+              <input 
+                type="text" 
+                placeholder="taban play1"
+                value={unlockCode}
+                onChange={(e) => setUnlockCode(e.target.value)}
+                className="w-full bg-white/7 light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-300 rounded-xl px-4 py-2.5 text-white light-mode:text-black placeholder-white/30 light-mode:placeholder-neutral-400 outline-none focus:border-[#CC222F] mb-6 text-sm font-semibold"
+                autoFocus
+              />
+              <div className="flex space-x-3 rtl:space-x-reverse">
+                <button 
+                  type="button"
+                  onClick={() => setShowUnlockModal(false)}
+                  className="flex-1 py-2 bg-white/8 light-mode:bg-neutral-200 text-white/70 light-mode:text-neutral-700 rounded-xl font-bold text-sm hover:bg-white/15 light-mode:hover:bg-neutral-300 transition"
+                >
+                  {t.cancel}
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 py-2 bg-[#CC222F] text-white rounded-xl font-bold text-sm hover:bg-red-700 transition"
+                >
+                  {language === 'ku' ? 'چالاککردن' : 'Unlock'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* About Taban Play Modal */}
+      {showAboutModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setShowAboutModal(false)}>
+          <div className="bg-[#181924] light-mode:bg-white w-full max-w-sm rounded-3xl p-6 border border-white/10 light-mode:border-neutral-200 shadow-2xl space-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-white/10 light-mode:border-neutral-200 pb-3">
+              <h3 className="text-lg font-bold text-white light-mode:text-black">
+                {language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play'}
+              </h3>
+              <button onClick={() => setShowAboutModal(false)} className="w-8 h-8 rounded-full bg-white/10 light-mode:bg-neutral-200 flex items-center justify-center text-white/60 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black">
+                <X size={18} />
               </button>
             </div>
-          </form>
+
+            <div className="text-xs text-white/80 light-mode:text-neutral-700 leading-relaxed max-h-60 overflow-y-auto space-y-2">
+              {aboutText ? (
+                <p className="whitespace-pre-line font-medium">{aboutText}</p>
+              ) : (
+                <>
+                  <p className="font-semibold">
+                    {language === 'ku' 
+                      ? 'تابان پڵەی (Taban Play) پڕۆژەیەکی سەردەمیی پلاتفۆرمی میدیاییە بۆ بینینی فیلم، زنجیرە، ئەنیمەیشن و پەخشی ڕاستەوخۆی کەناڵەکان بە کوالێتی بەرز.'
+                      : 'Taban Play is a modern media platform for streaming movies, series, animation, and live TV channels.'}
+                  </p>
+                  <p>
+                    {language === 'ku'
+                      ? 'ئامانجمان بەخشینی باشترین ئەزموونی سەیری سینەمایی و کات بەسەربردنە بە هەردوو زمانی کوردی و عەرەبی و ئینگلیزی.'
+                      : 'Our mission is to provide the best cinema and live streaming experience.'}
+                  </p>
+                </>
+              )}
+            </div>
+
+            <div className="pt-2 border-t border-white/10 light-mode:border-neutral-200 flex justify-between items-center text-[11px] text-white/40 light-mode:text-neutral-500 font-bold">
+              <span>Taban Play v2.4.0</span>
+              <span>© 2026 All Rights Reserved</span>
+            </div>
+          </div>
         </div>
       )}
 
@@ -522,32 +654,29 @@ export default function Profile() {
   );
 }
 
-function LangOption({ label, flag, active, onClick }: { label: string, flag: string, active: boolean, onClick: () => void }) {
+function ProfileMenuItem({ 
+  icon: Icon, 
+  label, 
+  onClick, 
+  iconClass = "text-white/80 light-mode:text-neutral-700",
+  textClass = "text-white light-mode:text-black"
+}: { 
+  icon: any; 
+  label: string; 
+  onClick: () => void; 
+  iconClass?: string;
+  textClass?: string;
+}) {
   return (
     <button 
       onClick={onClick}
-      className={`w-full text-left rtl:text-right p-3.5 hover:bg-white/5 light-mode:hover:bg-neutral-100 transition flex items-center justify-between ${active ? 'text-[#CC222F] bg-[#CC222F]/5' : 'text-white/80 light-mode:text-neutral-800'}`}
-    >
-      <div className="flex items-center space-x-3 rtl:space-x-reverse">
-        <span className="text-lg">{flag}</span>
-        <span className="font-bold text-sm">{label}</span>
-      </div>
-      {active && <div className="w-2 h-2 rounded-full bg-[#CC222F]" />}
-    </button>
-  );
-}
-
-function ProfileMenuItem({ icon: Icon, label, iconClass = "text-white/80 light-mode:text-neutral-700", textClass = "text-white light-mode:text-black", onClick }: { icon: any, label: string, iconClass?: string, textClass?: string, onClick?: () => void }) {
-  return (
-    <button 
-      onClick={onClick}
-      className="w-full flex items-center justify-between p-4 bg-[#14151c] light-mode:bg-white hover:bg-[#1c1e28] light-mode:hover:bg-neutral-50 rounded-2xl transition border border-white/6 light-mode:border-neutral-200 group"
+      className="w-full flex items-center justify-between p-4 bg-[#14151c] light-mode:bg-white hover:bg-[#1c1e28] light-mode:hover:bg-neutral-50 rounded-2xl transition border border-white/6 light-mode:border-neutral-200"
     >
       <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
-        <Icon size={20} className={textClass === 'text-red-500' ? 'text-red-500' : iconClass} />
+        <Icon size={20} className={iconClass} />
         <span className={`font-bold text-sm ${textClass}`}>{label}</span>
       </div>
-      <ChevronRight size={18} className="text-white/40 light-mode:text-neutral-400 group-hover:text-white light-mode:group-hover:text-black transition-colors rtl:rotate-180" />
+      <ChevronRight size={18} className="text-white/40 light-mode:text-neutral-400 rtl:rotate-180" />
     </button>
   );
 }
