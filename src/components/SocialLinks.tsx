@@ -61,44 +61,44 @@ export function FloatingSocialButton() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative bg-[#1A1D24] border border-neutral-800 w-full max-w-xs rounded-3xl overflow-hidden shadow-2xl shadow-black/50"
+              className="relative bg-[#1A1D24] light-mode:bg-white border border-neutral-800 light-mode:border-neutral-200 w-full max-w-xs rounded-3xl overflow-hidden shadow-2xl shadow-black/50"
             >
               <div className="p-6 text-center space-y-6">
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-xl font-bold text-white">سۆشیاڵ میدیا</h3>
-                  <button onClick={() => setIsOpen(false)} className="text-neutral-500 hover:text-white transition">
+                  <h3 className="text-xl font-bold text-white light-mode:text-black">سۆشیاڵ میدیا</h3>
+                  <button onClick={() => setIsOpen(false)} className="text-neutral-500 light-mode:text-neutral-600 hover:text-white light-mode:hover:text-black transition">
                     <X size={24} />
                   </button>
                 </div>
 
                 <div className="grid gap-4">
                   <SocialButton 
-                    icon={<Send size={20} fill="currentColor" />} 
+                    icon={<Send size={20} fill="white" color="white" className="text-white" />} 
                     label="تێلیگرام" 
                     color="bg-[#24A1DE]" 
                     url={links.telegram} 
                   />
                   <SocialButton 
-                    icon={<Facebook size={20} fill="currentColor" />} 
+                    icon={<Facebook size={20} fill="white" color="white" className="text-white" />} 
                     label="فەیسبووک" 
                     color="bg-[#1877F2]" 
                     url={links.facebook} 
                   />
                   <SocialButton 
-                    icon={<Instagram size={20} />} 
+                    icon={<Instagram size={20} color="white" className="text-white" />} 
                     label="ئینستاگرام" 
                     color="bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7]" 
                     url={links.instagram} 
                   />
                   <SocialButton 
-                    icon={<Music2 size={20} />} 
+                    icon={<Music2 size={20} color="white" className="text-white" />} 
                     label="تیک تۆک" 
                     color="bg-black" 
                     url={links.tiktok} 
                   />
                 </div>
                 
-                <p className="text-neutral-500 text-xs mt-4">بۆ وەرگرتنی نوێترین هەواڵ و فیلمەکان، فۆڵۆومان بکەن</p>
+                <p className="text-neutral-500 light-mode:text-neutral-700 text-xs font-semibold mt-4">بۆ وەرگرتنی نوێترین هەواڵ و فیلمەکان، فۆڵۆومان بکەن</p>
               </div>
             </motion.div>
           </div>
@@ -116,13 +116,13 @@ function SocialButton({ icon, label, color, url }: { icon: any, label: string, c
       href={url} 
       target="_blank" 
       rel="noopener noreferrer"
-      className={`${color} text-white flex items-center justify-between px-5 py-4 rounded-2xl hover:opacity-90 transition-opacity shadow-lg active:scale-95 duration-200`}
+      className={`${color} !text-white flex items-center justify-between px-5 py-4 rounded-2xl hover:opacity-90 transition-opacity shadow-lg active:scale-95 duration-200`}
     >
       <div className="flex items-center space-x-3 rtl:space-x-reverse">
         {icon}
-        <span className="font-bold text-sm">{label}</span>
+        <span className="font-bold text-sm text-white">{label}</span>
       </div>
-      <ExternalLink size={16} className="opacity-50" />
+      <ExternalLink size={16} className="opacity-80 text-white" />
     </a>
   );
 }

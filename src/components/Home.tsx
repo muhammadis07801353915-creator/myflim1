@@ -247,7 +247,7 @@ export default function Home({
     <div className="bg-[#0a0a0f] min-h-screen text-white pb-32">
 
       {/* Top Header Bar */}
-      <header className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/5 bg-[#0a0a0f]/90 backdrop-blur-xl sticky top-0 z-40">
+      <header className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/5 light-mode:border-neutral-200 bg-[#0a0a0f]/90 light-mode:bg-white/90 backdrop-blur-xl sticky top-0 z-40">
         {/* Brand Logo - LTR Fixed */}
         <div 
           className="flex items-center space-x-3 cursor-pointer group" 
@@ -259,28 +259,28 @@ export default function Home({
             alt="Taban Play" 
             width={36} 
             height={36} 
-            className="rounded-xl object-contain shadow-lg shadow-red-600/30 group-hover:scale-105 transition" 
+            className="object-contain group-hover:scale-105 transition" 
             unoptimized 
           />
           <div className="flex items-baseline space-x-1">
-            <span className="text-xl font-black text-white tracking-tight">Taban</span>
+            <span className="text-xl font-black text-white light-mode:text-black tracking-tight">Taban</span>
             <span className="text-xl font-black text-[#CC222F] tracking-tight">Play</span>
           </div>
         </div>
 
         {/* Header Right Tools */}
-        <div className="flex items-center space-x-3 rtl:space-x-reverse">
+        <div className="flex items-center space-x-4 rtl:space-x-reverse">
           <button 
             onClick={() => onChangeTab ? onChangeTab('search') : router.push('/search')}
-            className="p-2.5 rounded-full bg-[#14151c] hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/10 transition"
+            className="p-2.5 rounded-full bg-[#14151c] light-mode:bg-neutral-100 hover:bg-neutral-800 light-mode:hover:bg-neutral-200 text-neutral-300 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black border border-white/10 light-mode:border-neutral-200 transition"
           >
             <Search size={18} />
           </button>
           <div className="relative">
-            <button className="p-2.5 rounded-full bg-[#14151c] hover:bg-neutral-800 text-neutral-300 hover:text-white border border-white/10 transition">
+            <button className="p-2.5 rounded-full bg-[#14151c] light-mode:bg-neutral-100 hover:bg-neutral-800 light-mode:hover:bg-neutral-200 text-neutral-300 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black border border-white/10 light-mode:border-neutral-200 transition">
               <Bell size={18} />
             </button>
-            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#CC222F] rounded-full ring-2 ring-[#0a0a0f]"></span>
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#CC222F] rounded-full ring-2 ring-[#0a0a0f] light-mode:ring-white"></span>
           </div>
         </div>
       </header>
