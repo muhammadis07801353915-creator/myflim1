@@ -665,7 +665,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
               </button>
             </div>
             
-            <div className="overflow-y-auto p-4 space-y-3 bg-[#1a1d24] light-mode:!bg-slate-50">
+            <div className="overflow-y-auto p-4 space-y-3 bg-[#1a1d24] light-mode:!bg-[#f8fafc]">
               {servers.map((server: any, index: number) => {
                 const displayName = (() => {
                   let n = server?.name || '';
