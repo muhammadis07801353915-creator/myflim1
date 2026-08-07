@@ -439,7 +439,7 @@ export default function Profile() {
               +
             </div>
           </div>
-          <p className="text-[11px] font-semibold text-white/60 light-mode:text-neutral-500 mb-1 truncate">{language === 'ku' ? 'سەیڤکراوەکان' : language === 'ar' ? 'المحفوظات' : 'Saved'}</p>
+          <p className="text-[11px] font-semibold text-white/60 light-mode:text-neutral-500 mb-1 truncate">{language === 'ku' ? 'سەیڤکراو' : language === 'ar' ? 'المحفوظات' : 'Saved'}</p>
           <p className="text-2xl font-black text-white light-mode:text-black tracking-tight">{watchlistItems.length}</p>
         </div>
 
@@ -470,26 +470,6 @@ export default function Profile() {
           <p className="text-xs font-extrabold text-[#CC222F] mt-2">{language === 'ku' ? 'بەمزوانە' : language === 'ar' ? 'قريباً' : 'Coming Soon'}</p>
         </div>
       </div>
-
-      {/* ── COMMUNITY POSTS BANNER ─────────────────────────────────── */}
-      <Link href="/posts"
-        className="mb-6 flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-[#CC222F]/20 to-[#8B1A22]/10 border border-[#CC222F]/30 hover:from-[#CC222F]/30 hover:to-[#8B1A22]/20 transition group cursor-pointer"
-      >
-        <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
-          <div className="w-11 h-11 rounded-full bg-[#CC222F]/20 flex items-center justify-center text-[#CC222F]">
-            <LayoutGrid size={22} />
-          </div>
-          <div>
-            <h3 className="font-extrabold text-sm text-white light-mode:text-black">
-              {language === 'ku' ? 'پۆستەکان' : language === 'ar' ? 'المنشورات' : 'Community Posts'}
-            </h3>
-            <p className="text-xs text-white/50 light-mode:text-neutral-500 mt-0.5">
-              {language === 'ku' ? 'بچۆ پۆست بکە، لایک بکە و کۆمێنت بنووسە' : language === 'ar' ? 'انشر وأعجب وعلق' : 'Post, like and comment with the community'}
-            </p>
-          </div>
-        </div>
-        <ChevronRight size={18} className="text-[#CC222F] rtl:rotate-180 group-hover:translate-x-1 transition-transform" />
-      </Link>
 
       {/* ── ENTER CODE / PRO BANNER (SHOWN ONLY WHEN NOT LOGGED IN) ────── */}
       {!userAccount && (
@@ -709,7 +689,7 @@ export default function Profile() {
             <div className="flex items-center justify-between mb-4 border-b border-white/10 light-mode:border-neutral-200 pb-4">
               <div className="flex items-center gap-2.5">
                 <Bookmark size={20} className="text-[#CC222F]" />
-                <h3 className="text-lg font-extrabold text-white light-mode:text-black">{language === 'ku' ? 'سەیڤکراوەکان' : language === 'ar' ? 'المحفوظات' : 'Saved Items'}</h3>
+                <h3 className="text-lg font-extrabold text-white light-mode:text-black">{language === 'ku' ? 'سەیڤکراو' : language === 'ar' ? 'المحفوظات' : 'Saved Items'}</h3>
               </div>
               <button onClick={() => setShowSavedModal(false)} className="w-8 h-8 rounded-full bg-white/10 light-mode:bg-neutral-200 flex items-center justify-center text-white/60 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black"><X size={18} /></button>
             </div>
