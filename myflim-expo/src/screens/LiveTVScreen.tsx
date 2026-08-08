@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -29,10 +29,19 @@ export default function LiveTVScreen({ navigation }: any) {
   const themeColors = getColors(theme);
   const isRTL = language === 'ku' || language === 'ar';
 
+  const categoryScrollRef = useRef<ScrollView>(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
   const [countrySearchQuery, setCountrySearchQuery] = useState('');
+
+  const scrollToRightEdgeRTL = (ref: React.RefObject<ScrollView | null>) => {
+    if (isRTL) {
+      setTimeout(() => {
+        ref.current?.scrollToEnd({ animated: false });
+      }, 30);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -252,7 +261,13 @@ export default function LiveTVScreen({ navigation }: any) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
 
         {/* ── CATEGORY TABS ──────────────────────────────────────────── */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabsScroll}>
+        <ScrollView
+          ref={categoryScrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[s.tabsScroll, isRTL && { flexDirection: 'row-reverse' }]}
+          onContentSizeChange={() => scrollToRightEdgeRTL(categoryScrollRef)}
+        >
           {tabs.map((tab) => (
             <TouchableOpacity
               key={tab.id}

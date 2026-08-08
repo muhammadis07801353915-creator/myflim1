@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -27,6 +27,10 @@ export default function SearchScreen({ navigation }: any) {
   const themeColors = getColors(theme);
   const t = translations[language];
   const isRTL = language === 'ku' || language === 'ar';
+
+  const typeScrollRef = useRef<ScrollView>(null);
+  const genreScrollRef = useRef<ScrollView>(null);
+  const yearScrollRef = useRef<ScrollView>(null);
 
   const [query, setQuery] = useState('');
   const [activeType, setActiveType] = useState('All');
@@ -73,6 +77,14 @@ export default function SearchScreen({ navigation }: any) {
     { id: '2000s', label: language === 'ku' ? 'ساڵانی 2000' : '2000s' },
     { id: '1990s', label: language === 'ku' ? 'ساڵانی 1990' : '1990s' },
   ];
+
+  const scrollToRightEdgeRTL = (ref: React.RefObject<ScrollView | null>) => {
+    if (isRTL) {
+      setTimeout(() => {
+        ref.current?.scrollToEnd({ animated: false });
+      }, 30);
+    }
+  };
 
   const isAnimeItem = (m: any) => {
     return (
@@ -221,9 +233,15 @@ export default function SearchScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {/* ── TYPE FILTER PILLS ─────── */}
+      {/* ── TYPE FILTER PILLS (RTL flipped to Right side) ─────── */}
       <View style={{ marginBottom: 6 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
+        <ScrollView
+          ref={typeScrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}
+          onContentSizeChange={() => scrollToRightEdgeRTL(typeScrollRef)}
+        >
           {typeOptions.map((type) => (
             <TouchableOpacity
               key={type.id}
@@ -243,9 +261,15 @@ export default function SearchScreen({ navigation }: any) {
         </ScrollView>
       </View>
 
-      {/* ── GENRE FILTER PILLS ────────────────────────────────────── */}
+      {/* ── GENRE FILTER PILLS (RTL flipped to Right side) ────────────────── */}
       <View style={{ marginBottom: 6 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
+        <ScrollView
+          ref={genreScrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}
+          onContentSizeChange={() => scrollToRightEdgeRTL(genreScrollRef)}
+        >
           {genresList.map((g) => (
             <TouchableOpacity
               key={g.id}
@@ -265,9 +289,15 @@ export default function SearchScreen({ navigation }: any) {
         </ScrollView>
       </View>
 
-      {/* ── YEAR FILTER PILLS ─────────────────────────────────────── */}
+      {/* ── YEAR FILTER PILLS (RTL flipped to Right side) ─────────────────── */}
       <View style={{ marginBottom: 6 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
+        <ScrollView
+          ref={yearScrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}
+          onContentSizeChange={() => scrollToRightEdgeRTL(yearScrollRef)}
+        >
           {yearsList.map((y) => (
             <TouchableOpacity
               key={y.id}
@@ -287,7 +317,7 @@ export default function SearchScreen({ navigation }: any) {
         </ScrollView>
       </View>
 
-      {/* ── RESULTS GRID (Symmetrical Centered 2-Column Grid) ──────── */}
+      {/* ── RESULTS GRID (RTL Dynamic 2-Column Grid) ──────── */}
       <FlatList
         data={isUnlocked ? results : []}
         renderItem={({ item }) => (
@@ -326,7 +356,7 @@ export default function SearchScreen({ navigation }: any) {
           ) : null
         }
         contentContainerStyle={styles.listContent}
-        columnWrapperStyle={styles.columnWrapper}
+        columnWrapperStyle={[styles.columnWrapper, isRTL && { flexDirection: 'row-reverse' }]}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
