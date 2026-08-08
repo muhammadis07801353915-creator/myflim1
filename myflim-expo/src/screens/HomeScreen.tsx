@@ -308,7 +308,7 @@ export default function HomeScreen({ navigation }: any) {
           <View>
             <TouchableOpacity style={header.iconBtn} activeOpacity={0.8}>
               <Bell size={18} color="rgba(255,255,255,0.85)" />
-              <View style={header.bellDot} />
+              <View style={header.notifDot} />
             </TouchableOpacity>
           </View>
         </View>

@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { COLORS, getColors } from '../theme/theme';
-import { Home, Tv, Search, User, Bookmark } from 'lucide-react-native';
+import { Home, Tv, Search, User, LayoutGrid } from 'lucide-react-native';
 import { useAppStore } from '../store/useAppStore';
 import { translations } from '../utils/translations';
 
@@ -11,6 +11,7 @@ import HomeScreen from '../screens/HomeScreen';
 import LiveTVScreen from '../screens/LiveTVScreen';
 import SearchScreen from '../screens/SearchScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import PostsScreen from '../screens/PostsScreen';
 import WatchlistScreen from '../screens/WatchlistScreen';
 import DetailScreen from '../screens/DetailScreen';
 import CategoryScreen from '../screens/CategoryScreen';
@@ -38,6 +39,12 @@ function TabNavigator() {
       icon: ({ color, size }: any) => <Home color={color} size={size} />,
     },
     {
+      name: "PostsTab",
+      component: PostsScreen,
+      label: language === 'ku' ? 'پۆستەکان' : language === 'ar' ? 'المنشورات' : 'Posts',
+      icon: ({ color, size }: any) => <LayoutGrid color={color} size={size} />,
+    },
+    {
       name: "LiveTVTab",
       component: LiveTVScreen,
       label: t.liveTv,
@@ -48,12 +55,6 @@ function TabNavigator() {
       component: SearchScreen,
       label: t.search,
       icon: ({ color, size }: any) => <Search color={color} size={size} />,
-    },
-    {
-      name: "WatchlistTab",
-      component: WatchlistScreen,
-      label: t.watchlist,
-      icon: ({ color, size }: any) => <Bookmark color={color} size={size} />,
     },
     {
       name: "ProfileTab",
@@ -116,6 +117,7 @@ export default function AppNavigator() {
       <Stack.Screen name="MainTabs" component={TabNavigator} />
       <Stack.Screen name="Detail" component={DetailScreen} />
       <Stack.Screen name="Category" component={CategoryScreen} />
+      <Stack.Screen name="Watchlist" component={WatchlistScreen} />
     </Stack.Navigator>
   );
 }

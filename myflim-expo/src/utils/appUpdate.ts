@@ -91,13 +91,14 @@ export async function downloadAndInstallUpdate(
     throw new Error('In-app APK installs are only supported on Android.');
   }
 
-  if (!FileSystem.documentDirectory) {
+  const docDir = (FileSystem as any).documentDirectory;
+  if (!docDir) {
     throw new Error('Unable to access app storage.');
   }
 
   const safeVersion = update.version.replace(/[^0-9A-Za-z._-]/g, '_');
-  const targetUri = `${FileSystem.documentDirectory}updates/myflim-${safeVersion}.apk`;
-  const targetDir = `${FileSystem.documentDirectory}updates`;
+  const targetUri = `${docDir}updates/myflim-${safeVersion}.apk`;
+  const targetDir = `${docDir}updates`;
 
   await FileSystem.makeDirectoryAsync(targetDir, { intermediates: true });
 

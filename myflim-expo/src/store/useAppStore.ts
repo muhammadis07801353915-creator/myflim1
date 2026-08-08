@@ -52,6 +52,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   countries: [],
   banners: [],
   watchlist: [],
+  watchHistory: {},
   user: DEFAULT_USER,
   theme: 'dark',
   language: 'ku', // Default language is Kurdish

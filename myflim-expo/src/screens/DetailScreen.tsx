@@ -326,7 +326,7 @@ export default function DetailScreen({ route, navigation }: any) {
                       style={{
                         flexDirection: isRTL ? 'row-reverse' : 'row',
                         alignItems: 'center',
-                        justify: 'space-between',
+                        justifyContent: 'space-between',
                         padding: 12,
                         borderRadius: 14,
                         backgroundColor: isCurrent ? 'rgba(229, 57, 53, 0.18)' : '#14151C',
@@ -469,7 +469,7 @@ export default function DetailScreen({ route, navigation }: any) {
           </View>
 
           <View style={styles.synopsisContainer}>
-            <Text style={styles.sectionTitle}>{t.storyLine || 'Storyline'}</Text>
+            <Text style={styles.sectionTitle}>{(t as any)?.storyLine || 'Storyline'}</Text>
             <Text style={styles.synopsisText}>
               {getLocalized(item, 'description', language) || item.description || 'No description available.'}
             </Text>
@@ -480,7 +480,7 @@ export default function DetailScreen({ route, navigation }: any) {
             <View ref={serversRef} style={styles.episodesContainer}>
               <View style={styles.episodesHeader}>
                 <Text style={styles.sectionTitle}>
-                  {isSeriesContent ? (t.episodesTitle || 'Episodes') : (t.servers || 'Servers')}
+                  {isSeriesContent ? ((t as any)?.episodesTitle || 'Episodes') : ((t as any)?.servers || 'Servers')}
                 </Text>
                 <Text style={styles.episodesCount}>{gridItems.length} {isSeriesContent ? 'Episodes' : 'Available'}</Text>
               </View>

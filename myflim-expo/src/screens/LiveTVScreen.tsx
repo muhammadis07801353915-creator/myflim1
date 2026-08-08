@@ -287,7 +287,7 @@ export default function LiveTVScreen({ navigation }: any) {
                         {ch.image ? (
                           <Image source={{ uri: ch.image }} style={s.gridImg} resizeMode="contain" />
                         ) : (
-                          <Text style={s.featName} numberOfLines={2}>{ch.name}</Text>
+                          <Text style={s.listLogoFallback} numberOfLines={2}>{ch.name}</Text>
                         )}
 
                         {/* LIVE Badge */}

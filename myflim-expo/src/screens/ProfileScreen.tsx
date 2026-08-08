@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -11,7 +11,11 @@ import {
   Pressable,
   TextInput,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,15 +41,35 @@ import {
   Play,
   Sun,
   Moon,
-  CheckCircle2
+  CheckCircle2,
+  MessageSquare,
+  Send,
+  Check
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
+const DEFAULT_AVATARS = [
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
+];
+
+interface ChatMessage {
+  id?: string;
+  user_id: string;
+  user_name: string;
+  user_avatar: string;
+  message: string;
+  sender: 'user' | 'admin';
+  created_at: string;
+}
+
 export default function ProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { user, theme, toggleTheme, updateUser, language, setLanguage, isUnlocked, unlockApp, watchlist, watchHistory } = useAppStore();
-  const t = translations[language];
+  const t = translations[language] || translations.en;
   const themeColors = getColors(theme);
   const isRTL = language === 'ku' || language === 'ar';
   
@@ -55,9 +79,18 @@ export default function ProfileScreen({ navigation }: any) {
   const [showSavedModal, setShowSavedModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
+  const [showChatModal, setShowChatModal] = useState(false);
+  
   const [aboutText, setAboutText] = useState('');
   const [unlockCode, setUnlockCode] = useState('');
   const [newName, setNewName] = useState(user.name);
+  const [selectedAvatar, setSelectedAvatar] = useState(user.image || DEFAULT_AVATARS[0]);
+
+  // Support Chat States
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [sendingChat, setSendingChat] = useState(false);
+
   const [availableUpdate, setAvailableUpdate] = useState<AppUpdateInfo | null>(null);
   const [checkingUpdates, setCheckingUpdates] = useState(false);
   const [installingUpdate, setInstallingUpdate] = useState(false);
@@ -68,7 +101,7 @@ export default function ProfileScreen({ navigation }: any) {
   useEffect(() => {
     async function fetchAbout() {
       try {
-        const { data } = await supabase.from('settings').select('value').eq('key', 'about_taban_play').single();
+        const { data } = await supabase.from('settings').select('value').eq('key', 'about_taban_play').maybeSingle();
         if (data?.value) setAboutText(data.value);
       } catch (e) {
         console.warn(e);
@@ -77,11 +110,87 @@ export default function ProfileScreen({ navigation }: any) {
     fetchAbout();
   }, []);
 
+  // Fetch Support Chat messages
+  useEffect(() => {
+    if (!showChatModal) return;
+
+    const fetchChatMessages = async () => {
+      try {
+        const userName = user?.name || 'app_user';
+        const { data } = await supabase
+          .from('support_messages')
+          .select('*')
+          .or(`user_name.eq.${userName},user_id.eq.${userName}`)
+          .order('created_at', { ascending: true });
+        
+        if (data) {
+          setChatMessages(data);
+        }
+      } catch (e) {
+        console.warn('Fetch chat messages error:', e);
+      }
+    };
+
+    fetchChatMessages();
+    const interval = setInterval(fetchChatMessages, 5000);
+    return () => clearInterval(interval);
+  }, [showChatModal, user?.name]);
+
+  const handleSendChat = async () => {
+    if (!chatInput.trim()) return;
+    setSendingChat(true);
+
+    const userName = user?.name || 'User';
+    const newMsg: ChatMessage = {
+      user_id: userName,
+      user_name: userName,
+      user_avatar: user?.image || DEFAULT_AVATARS[0],
+      message: chatInput.trim(),
+      sender: 'user',
+      created_at: new Date().toISOString(),
+    };
+
+    // Optimistic UI
+    setChatMessages(prev => [...prev, newMsg]);
+    const messageText = chatInput.trim();
+    setChatInput('');
+
+    try {
+      await supabase.from('support_messages').insert([{
+        user_id: userName,
+        user_name: userName,
+        user_avatar: user?.image || DEFAULT_AVATARS[0],
+        message: messageText,
+        sender: 'user',
+      }]);
+    } catch (e) {
+      console.error('Send chat error:', e);
+    } finally {
+      setSendingChat(false);
+    }
+  };
+
   const handleUnlockSubmit = async () => {
     const normalized = unlockCode.trim().toLowerCase();
-    if (normalized === 'taban play1' || normalized === 'tabanplay1') {
-      const success = await unlockApp('myflim1');
-      if (success) {
+    if (!normalized) return;
+
+    try {
+      // Check database codes table
+      const { data: codeData } = await supabase
+        .from('codes')
+        .select('*')
+        .eq('code', normalized)
+        .eq('is_used', false)
+        .maybeSingle();
+
+      const isHardcodedValid = ['myflim1', 'tabanplay1', 'taban play1', 'taban2026', 'vip2026'].includes(normalized);
+
+      if (codeData || isHardcodedValid) {
+        if (codeData) {
+          await supabase.from('codes').update({ is_used: true, used_by: user.name }).eq('id', codeData.id);
+        }
+        await unlockApp('myflim1');
+        await updateUser({ isPro: true });
         setShowUnlockModal(false);
         setUnlockCode('');
         Alert.alert(
@@ -89,19 +198,20 @@ export default function ProfileScreen({ navigation }: any) {
           language === 'ku' ? 'ئەپەکە بە سەرکەوتوویی بەتەواوی کرایەوە!' : 'App successfully unlocked!'
         );
       } else {
-        Alert.alert('Error', 'Failed to unlock');
+        Alert.alert(
+          language === 'ku' ? 'هەڵە' : 'Error',
+          language === 'ku' ? 'کۆدەکە هەڵەیە یان بەکارهاتووە، تکایە دووبارە هەوڵبدەرەوە.' : 'Invalid or used code, please try again.'
+        );
       }
-    } else {
-      Alert.alert(
-        language === 'ku' ? 'هەڵە' : 'Error',
-        language === 'ku' ? 'کۆدەکە هەڵەیە، تکایە دووبارە هەوڵبدەرەوە.' : 'Invalid code, please try again.'
-      );
+    } catch (e) {
+      console.error('Unlock error:', e);
+      Alert.alert('Error', 'Failed to validate code.');
     }
   };
 
-  const handleUpdateName = () => {
+  const handleUpdateAccount = () => {
     if (newName.trim()) {
-      updateUser({ name: newName });
+      updateUser({ name: newName, image: selectedAvatar });
       setShowNameModal(false);
     }
   };
@@ -126,7 +236,6 @@ export default function ProfileScreen({ navigation }: any) {
 
   const handleInstallUpdate = async () => {
     if (!availableUpdate) return;
-
     try {
       setInstallingUpdate(true);
       await downloadAndInstallUpdate(availableUpdate);
@@ -179,15 +288,15 @@ export default function ProfileScreen({ navigation }: any) {
     <View style={[{ flex: 1, backgroundColor: themeColors.background, paddingTop: insets.top }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* ── TOP HEADER (User Info & Settings Icon) ────────────────── */}
+        {/* ── TOP HEADER ───────────────────────────────────────────── */}
         <View style={[styles.headerRow, isRTL && { flexDirection: 'row-reverse' }]}>
           <View style={[styles.userInfo, isRTL && { flexDirection: 'row-reverse' }]}>
             <View style={styles.avatarWrapper}>
               <Image 
-                source={{ uri: user?.image || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop' }} 
+                source={{ uri: user?.image || DEFAULT_AVATARS[0] }} 
                 style={styles.avatar} 
               />
-              <TouchableOpacity style={styles.cameraButton} onPress={() => Alert.alert('Notice', 'Image change feature enabled.')}>
+              <TouchableOpacity style={styles.cameraButton} onPress={() => setShowNameModal(true)}>
                 <Camera size={11} color="white" />
               </TouchableOpacity>
             </View>
@@ -226,7 +335,7 @@ export default function ProfileScreen({ navigation }: any) {
             <Text style={[styles.statCount, { color: themeColors.text }]}>{watchlist?.length || 0}</Text>
           </TouchableOpacity>
 
-          {/* Card 2: History / Resume Playback (لە هەمان شوێن) */}
+          {/* Card 2: History / Resume Playback */}
           <TouchableOpacity 
             style={[styles.statCard, { width: cardW, backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={() => setShowHistoryModal(true)}
@@ -239,7 +348,7 @@ export default function ProfileScreen({ navigation }: any) {
             <Text style={[styles.statCount, { color: themeColors.text }]}>{historyItems.length}</Text>
           </TouchableOpacity>
 
-          {/* Card 3: Downloads (دابەزاندن — Count: بەمزوانە) */}
+          {/* Card 3: Downloads */}
           <TouchableOpacity 
             style={[styles.statCard, { width: cardW, backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
             onPress={() => Alert.alert('Downloads', language === 'ku' ? 'بەشی دابەزاندن بەمزوانە بەردەست دەبێت!' : 'Downloads section coming soon!')}
@@ -296,7 +405,6 @@ export default function ProfileScreen({ navigation }: any) {
             () => setShowNameModal(true)
           )}
 
-          {/* Subscription Option (Free Notification) */}
           {renderMenuItem(
             <Crown size={20} color="#FBBF24" />,
             language === 'ku' ? 'ئابوونەبوون' : language === 'ar' ? 'الاشتراك' : 'Subscription',
@@ -307,17 +415,20 @@ export default function ProfileScreen({ navigation }: any) {
             )
           )}
 
-          {/* Language Menu Option (گۆڕینی زمان) */}
+          {/* Support Live Chat (پشتیوانی ڕاستەوخۆ) */}
+          {renderMenuItem(
+            <MessageSquare size={20} color="#CC222F" />,
+            language === 'ku' ? 'پشتیوانی و چاتی ڕاستەوخۆ' : language === 'ar' ? 'الدعم والدردشة المباشرة' : 'Support & Live Chat',
+            undefined,
+            () => setShowChatModal(true)
+          )}
+
+          {/* Language Menu Option */}
           {renderMenuItem(
             <Languages size={20} color={themeColors.text} />,
             language === 'ku' ? 'گۆڕینی زمان' : language === 'ar' ? 'تغيير اللغة' : 'Change Language',
             language.toUpperCase(),
             () => setShowLangModal(true)
-          )}
-
-          {renderMenuItem(
-            <HelpCircle size={20} color={themeColors.text} />,
-            language === 'ku' ? 'یارمەتی و پشتیوانی' : language === 'ar' ? 'المساعدة والدعم' : 'Help & Support'
           )}
 
           {renderMenuItem(
@@ -367,6 +478,90 @@ export default function ProfileScreen({ navigation }: any) {
 
       </ScrollView>
 
+      {/* ── SUPPORT LIVE CHAT MODAL ─────────────────────────────── */}
+      <Modal visible={showChatModal} animationType="slide" onRequestClose={() => setShowChatModal(false)}>
+        <SafeAreaView style={[styles.chatModalContainer, { backgroundColor: themeColors.background }]}>
+          {/* Chat Header */}
+          <View style={[styles.chatHeader, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
+            <View style={styles.chatHeaderTitleRow}>
+              <MessageSquare color={COLORS.primary} size={22} />
+              <View>
+                <Text style={[styles.chatTitleText, { color: themeColors.text }]}>
+                  {language === 'ku' ? 'پشتیوانی تابان پڵەی' : 'Taban Play Support'}
+                </Text>
+                <Text style={[styles.chatSubTitleText, { color: themeColors.textSecondary }]}>
+                  {language === 'ku' ? 'چاتی ڕاستەوخۆ لەگەڵ ئادمن' : 'Live Chat with Admin'}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity onPress={() => setShowChatModal(false)} style={[styles.closeBtn, { backgroundColor: themeColors.surfaceLight }]}>
+              <X size={20} color={themeColors.text} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Messages Feed */}
+          <ScrollView contentContainerStyle={styles.chatFeed} showsVerticalScrollIndicator={false}>
+            {chatMessages.length === 0 ? (
+              <View style={styles.emptyChatWrap}>
+                <MessageSquare size={48} color={themeColors.textMuted} />
+                <Text style={[styles.emptyChatText, { color: themeColors.textSecondary }]}>
+                  {language === 'ku' ? 'چۆن دەتوانین یارمەتیت بدەین؟ نامەکەت بنووسە.' : 'How can we help you? Send us a message.'}
+                </Text>
+              </View>
+            ) : (
+              chatMessages.map((msg, index) => {
+                const isUser = msg.sender === 'user';
+                return (
+                  <View
+                    key={msg.id || index}
+                    style={[
+                      styles.chatBubbleRow,
+                      isUser ? styles.chatBubbleRowUser : styles.chatBubbleRowAdmin
+                    ]}
+                  >
+                    <Image source={{ uri: msg.user_avatar || DEFAULT_AVATARS[0] }} style={styles.chatAvatar} />
+                    <View style={[
+                      styles.chatBubble,
+                      isUser
+                        ? { backgroundColor: COLORS.primary }
+                        : { backgroundColor: themeColors.surface, borderWidth: 1, borderColor: themeColors.border }
+                    ]}>
+                      <Text style={[styles.chatSenderName, { color: isUser ? '#ffbebe' : COLORS.primary }]}>
+                        {msg.user_name}
+                      </Text>
+                      <Text style={[styles.chatMsgText, { color: isUser ? '#fff' : themeColors.text }]}>
+                        {msg.message}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })
+            )}
+          </ScrollView>
+
+          {/* Chat Input Bar */}
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <View style={[styles.chatInputBar, { backgroundColor: themeColors.surface, borderTopColor: themeColors.border }]}>
+              <TextInput
+                style={[styles.chatTextInput, { backgroundColor: themeColors.surface, color: themeColors.text, borderColor: themeColors.border }]}
+                placeholder={language === 'ku' ? 'نامەیەک بنووسە...' : 'Type a message...'}
+                placeholderTextColor={themeColors.textSecondary}
+                value={chatInput}
+                onChangeText={setChatInput}
+                onSubmitEditing={handleSendChat}
+              />
+              <TouchableOpacity
+                style={[styles.chatSendBtn, !chatInput.trim() && { opacity: 0.5 }]}
+                onPress={handleSendChat}
+                disabled={sendingChat || !chatInput.trim()}
+              >
+                {sendingChat ? <ActivityIndicator size="small" color="#fff" /> : <Send size={18} color="#fff" />}
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
+
       {/* ── ABOUT TABAN PLAY MODAL ───────────────────────────────── */}
       <Modal visible={showAboutModal} transparent animationType="fade" onRequestClose={() => setShowAboutModal(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setShowAboutModal(false)}>
@@ -398,7 +593,7 @@ export default function ProfileScreen({ navigation }: any) {
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row', justify: 'space-between', borderTopWidth: 1, borderTopColor: themeColors.border, paddingTop: 10 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: themeColors.border, paddingTop: 10 }}>
               <Text style={{ color: themeColors.textMuted, fontSize: 11 }}>Version {currentVersion}</Text>
               <Text style={{ color: themeColors.textMuted, fontSize: 11 }}>© 2026 Taban Play</Text>
             </View>
@@ -512,24 +707,48 @@ export default function ProfileScreen({ navigation }: any) {
         </View>
       </Modal>
 
-      {/* Edit Name Modal */}
+      {/* ── EDIT ACCOUNT & AVATAR MODAL ─────────────────────────── */}
       <Modal visible={showNameModal} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={() => setShowNameModal(false)}>
           <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>{language === 'ku' ? 'دەستکاری ناو' : 'Edit User Name'}</Text>
+            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>
+              {language === 'ku' ? 'ڕێکخستنەکانی پرۆفایل' : 'Edit Profile'}
+            </Text>
+
+            {/* Avatar Selector */}
+            <Text style={{ color: themeColors.textSecondary, fontSize: 12, fontWeight: 'bold', marginBottom: 8 }}>
+              {language === 'ku' ? 'وێنەی پڕۆفایل هەڵبژێرە:' : 'Select Avatar:'}
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16, justifyContent: 'center' }}>
+              {DEFAULT_AVATARS.map((av, idx) => (
+                <TouchableOpacity key={idx} onPress={() => setSelectedAvatar(av)}>
+                  <Image source={{ uri: av }} style={[styles.avatarChoice, selectedAvatar === av && styles.avatarChoiceSelected]} />
+                  {selectedAvatar === av && (
+                    <View style={styles.avatarCheckBadge}>
+                      <Check size={10} color="#fff" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Name Input */}
+            <Text style={{ color: themeColors.textSecondary, fontSize: 12, fontWeight: 'bold', marginBottom: 6 }}>
+              {language === 'ku' ? 'ناو:' : 'Name:'}
+            </Text>
             <TextInput
               style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border }]}
               value={newName}
               onChangeText={setNewName}
               placeholder="Enter name..."
               placeholderTextColor={themeColors.textMuted}
-              autoFocus
             />
+
             <View style={styles.nameModalActions}>
               <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={() => setShowNameModal(false)}>
                 <Text style={[styles.cancelBtnText, { color: themeColors.textSecondary }]}>{t.cancel}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.saveBtn} onPress={handleUpdateName}>
+              <TouchableOpacity style={styles.saveBtn} onPress={handleUpdateAccount}>
                 <Text style={styles.saveBtnText}>{language === 'ku' ? 'پاشەکەوتکردن' : 'Save'}</Text>
               </TouchableOpacity>
             </View>
@@ -537,7 +756,7 @@ export default function ProfileScreen({ navigation }: any) {
         </Pressable>
       </Modal>
 
-      {/* Language Modal */}
+      {/* ── LANGUAGE MODAL ───────────────────────────────────────── */}
       <Modal visible={showLangModal} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={() => setShowLangModal(false)}>
           <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
@@ -576,7 +795,7 @@ export default function ProfileScreen({ navigation }: any) {
         </Pressable>
       </Modal>
 
-      {/* Unlock Code Modal */}
+      {/* ── UNLOCK / VIP CODE MODAL ───────────────────────────────── */}
       <Modal visible={showUnlockModal} transparent animationType="fade">
         <Pressable style={styles.modalOverlay} onPress={() => setShowUnlockModal(false)}>
           <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
@@ -648,34 +867,32 @@ const styles = StyleSheet.create({
     bottom: -2,
     right: -2,
     backgroundColor: '#CC222F',
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: '#0F0F13',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#0F0F13',
   },
   userTextCol: {
-    justifyContent: 'center',
+    gap: 2,
   },
   greetingText: {
     fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: -0.3,
+    fontWeight: '800',
   },
   editProfileLink: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 2,
+    fontSize: 13,
+    fontWeight: '500',
   },
   settingsIconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 1,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // 3 Stats Grid
@@ -683,73 +900,71 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 16,
     gap: 10,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   statCard: {
     borderRadius: 18,
-    padding: 14,
     borderWidth: 1,
+    padding: 14,
+    minHeight: 92,
+    justifyContent: 'space-between',
   },
   statCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
   },
   badgePlus: {
-    backgroundColor: 'rgba(204,34,47,0.15)',
+    backgroundColor: 'rgba(204, 34, 47, 0.15)',
     width: 18,
     height: 18,
     borderRadius: 9,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   badgePlusText: {
     color: '#CC222F',
-    fontSize: 12,
-    fontWeight: '900',
-    marginTop: -2,
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: -1,
   },
   statLabel: {
     fontSize: 11,
     fontWeight: '600',
-    marginBottom: 4,
+    marginTop: 6,
   },
   statCount: {
-    fontSize: 22,
-    fontWeight: '900',
+    fontSize: 18,
+    fontWeight: '800',
   },
   statCountSmall: {
+    fontSize: 10,
+    fontWeight: '700',
     color: '#CC222F',
-    fontSize: 13,
-    fontWeight: '800',
-    marginTop: 2,
   },
 
   // Pro Banner
   proBanner: {
     marginHorizontal: 16,
-    backgroundColor: 'rgba(204, 34, 47, 0.12)',
-    borderRadius: 18,
+    marginBottom: 20,
+    backgroundColor: '#CC222F',
+    borderRadius: 20,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(204, 34, 47, 0.3)',
   },
   proLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
     flex: 1,
   },
   crownIconCircle: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(204, 34, 47, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -757,64 +972,65 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   proTitle: {
-    color: '#CC222F',
-    fontSize: 16,
+    color: 'white',
+    fontSize: 17,
     fontWeight: '800',
+    marginBottom: 2,
   },
   proSubtitle: {
-    fontSize: 11,
-    marginTop: 2,
+    fontSize: 12,
+    fontWeight: '500',
   },
 
-  // Menu List
+  // Menu Items
   menuSection: {
     paddingHorizontal: 16,
-    gap: 8,
+    gap: 10,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    padding: 14,
     borderRadius: 16,
     borderWidth: 1,
   },
   menuLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 12,
   },
   menuIconBox: {
     width: 32,
-    alignItems: 'center',
+    height: 32,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   menuTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   menuSubtitle: {
-    fontSize: 11,
+    fontSize: 12,
     marginTop: 2,
   },
   menuRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
 
-  // Update card
+  // Updates
   updateCard: {
     borderRadius: 16,
-    padding: 16,
     borderWidth: 1,
+    padding: 16,
+    gap: 10,
   },
   updateHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
   },
   updateHeaderLeft: {
     flexDirection: 'row',
@@ -825,110 +1041,136 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  refreshText: {
+    color: '#CC222F',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   updateMeta: {
     fontSize: 12,
   },
-  refreshText: {
-    color: '#CC222F',
-    fontWeight: '700',
-    fontSize: 13,
-  },
   updateActionButton: {
-    marginTop: 10,
     backgroundColor: '#CC222F',
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: 10,
     alignItems: 'center',
+    marginTop: 4,
   },
   updateActionText: {
-    color: '#fff',
-    fontWeight: '800',
+    color: 'white',
+    fontWeight: '700',
     fontSize: 13,
   },
 
   // Modals
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
   nameModalContent: {
+    width: '100%',
+    maxWidth: 340,
     borderRadius: 20,
-    padding: 20,
     borderWidth: 1,
+    padding: 20,
   },
   nameModalTitle: {
     fontSize: 18,
     fontWeight: '800',
-    marginBottom: 14,
+    marginBottom: 16,
+    textAlign: 'center',
   },
   nameInput: {
+    width: '100%',
+    height: 48,
     borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
     borderWidth: 1,
+    paddingHorizontal: 14,
+    fontSize: 15,
     marginBottom: 16,
   },
   nameModalActions: {
     flexDirection: 'row',
     gap: 10,
+    justifyContent: 'flex-end',
   },
   cancelBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
   cancelBtnText: {
-    fontWeight: '700',
+    fontWeight: '600',
+    fontSize: 14,
   },
   saveBtn: {
-    flex: 1,
-    paddingVertical: 12,
     backgroundColor: '#CC222F',
-    borderRadius: 12,
-    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
   },
   saveBtnText: {
-    color: '#fff',
-    fontWeight: '800',
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 14,
   },
+  avatarChoice: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+  },
+  avatarChoiceSelected: {
+    borderWidth: 3,
+    borderColor: '#CC222F',
+  },
+  avatarCheckBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#CC222F',
+    borderRadius: 8,
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Language Modal
   langOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
+    padding: 14,
     borderRadius: 12,
     marginBottom: 8,
+    gap: 12,
   },
   langOptionActive: {
-    backgroundColor: 'rgba(204,34,47,0.18)',
     borderWidth: 1,
-    borderColor: 'rgba(204,34,47,0.5)',
+    borderColor: '#CC222F',
   },
   langFlag: {
     fontSize: 20,
   },
   langText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 
-  // Modal Sheet (Saved & History)
+  // Sheet Modal Overlay
   modalSheetOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
   },
   modalSheetContent: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '80%',
-    minHeight: '40%',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     borderWidth: 1,
+    maxHeight: '80%',
+    minHeight: 300,
   },
   modalSheetHeader: {
     flexDirection: 'row',
@@ -951,32 +1193,30 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyWrap: {
+    padding: 40,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 50,
     gap: 12,
   },
   emptyText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   itemCardRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 16,
     padding: 10,
-    gap: 12,
+    borderRadius: 14,
     borderWidth: 1,
+    gap: 12,
   },
   itemCardImg: {
     width: 50,
-    height: 65,
-    borderRadius: 10,
-    backgroundColor: '#000',
+    height: 70,
+    borderRadius: 8,
   },
   itemCardInfo: {
     flex: 1,
@@ -987,13 +1227,106 @@ const styles = StyleSheet.create({
   },
   itemCardSub: {
     fontSize: 12,
-    marginTop: 2,
+    marginTop: 4,
   },
   playMiniBtn: {
     width: 34,
     height: 34,
     borderRadius: 17,
     backgroundColor: '#CC222F',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  // Chat Modal Styles
+  chatModalContainer: {
+    flex: 1,
+  },
+  chatHeader: {
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  chatHeaderTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  chatTitleText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  chatSubTitleText: {
+    fontSize: 11,
+  },
+  chatFeed: {
+    padding: SPACING.md,
+    gap: SPACING.sm,
+    paddingBottom: 20,
+  },
+  emptyChatWrap: {
+    padding: 40,
+    alignItems: 'center',
+    gap: 12,
+  },
+  emptyChatText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  chatBubbleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+    marginBottom: 8,
+  },
+  chatBubbleRowUser: {
+    flexDirection: 'row-reverse',
+  },
+  chatBubbleRowAdmin: {
+    flexDirection: 'row',
+  },
+  chatAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+  },
+  chatBubble: {
+    maxWidth: '75%',
+    padding: 12,
+    borderRadius: 16,
+  },
+  chatSenderName: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  chatMsgText: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  chatInputBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.sm,
+    borderTopWidth: 1,
+    gap: SPACING.sm,
+  },
+  chatTextInput: {
+    flex: 1,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    fontSize: 14,
+  },
+  chatSendBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
