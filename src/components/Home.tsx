@@ -340,7 +340,7 @@ export default function Home({
               )}
 
               {/* Bottom Row Content: Floating Thumbnail + Info Stack */}
-              <div className="absolute bottom-3 left-3 right-3 sm:bottom-6 sm:left-8 sm:right-8 z-20 flex items-end space-x-3 sm:space-x-5 rtl:space-x-reverse">
+              <div className="absolute bottom-3 left-3 right-3 sm:bottom-6 sm:left-8 sm:right-8 z-20 flex items-end gap-3.5 sm:gap-6 rtl:flex-row-reverse">
                 
                 {/* Vertical Poster Thumbnail with Red Border */}
                 <div className="relative w-14 sm:w-20 md:w-24 aspect-[2/3] rounded-xl overflow-hidden border-2 border-[#CC222F] shadow-2xl shrink-0 group-hover:scale-105 transition-transform duration-300">
@@ -354,15 +354,15 @@ export default function Home({
                   />
                 </div>
 
-                {/* Info Stack */}
-                <div className="flex-1 min-w-0 flex flex-col justify-end space-y-0.5 sm:space-y-1">
+                {/* Info Stack with clear padding/margin separation from poster thumbnail */}
+                <div className="flex-1 min-w-0 flex flex-col justify-end space-y-1 ltr:pl-1 rtl:pr-1">
                   {/* Title */}
                   <h1 className="text-sm sm:text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight drop-shadow-md truncate">
                     {getLocalized(currentFeatured, 'title', language)}
                   </h1>
 
                   {/* Meta Details Row: Genres • Type • Year */}
-                  <div className="flex items-center space-x-1.5 sm:space-x-2 text-[11px] sm:text-sm text-neutral-300 font-medium truncate rtl:space-x-reverse">
+                  <div className="flex items-center gap-2 text-[11px] sm:text-sm text-neutral-300 font-medium truncate">
                     {genresText ? <span>{genresText}</span> : null}
                     {currentFeatured.type ? (
                       <>
@@ -381,7 +381,7 @@ export default function Home({
                   {/* Carousel Dots */}
                   {featuredMovies.length > 1 && (
                     <div
-                      className="flex items-center space-x-1.5 pt-1 rtl:space-x-reverse"
+                      className="flex items-center gap-1.5 pt-1"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {featuredMovies.map((_, i) => (
