@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/src/lib/supabase';
 import {
   MessageSquare, Send, Search,
-  RefreshCw, ArrowLeft, Users, Circle
+  RefreshCw, ArrowLeft, Users, Circle,
+  Settings, Check, X, Image as ImageIcon
 } from 'lucide-react';
 
 interface SupportMessage {
@@ -50,10 +51,43 @@ export default function AdminSupportMessagesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Admin Custom Avatar State
+  const [adminAvatar, setAdminAvatar] = useState<string>(DEFAULT_AVATARS[2]);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [tempAvatarUrl, setTempAvatarUrl] = useState('');
+
   const handleSelectUser = (id: string | null) => {
     selectedUserIdRef.current = id;
     setSelectedUserId(id);
   };
+
+  // Load saved Admin Avatar URL on mount
+  useEffect(() => {
+    const fetchAdminAvatar = async () => {
+      try {
+        const { data } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'taban_admin_avatar')
+          .maybeSingle();
+
+        if (data?.value) {
+          setAdminAvatar(data.value);
+          setTempAvatarUrl(data.value);
+        } else {
+          const local = localStorage.getItem('taban_admin_avatar');
+          if (local) {
+            setAdminAvatar(local);
+            setTempAvatarUrl(local);
+          }
+        }
+      } catch (e) {
+        console.warn('Fetch admin avatar error:', e);
+      }
+    };
+
+    fetchAdminAvatar();
+  }, []);
 
   useEffect(() => {
     fetchMessages();
@@ -68,6 +102,29 @@ export default function AdminSupportMessagesPage() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [allMessages, selectedUserId]);
+
+  const saveAdminAvatar = async (url: string) => {
+    const trimmed = url.trim();
+    if (!trimmed) return;
+    setAdminAvatar(trimmed);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('taban_admin_avatar', trimmed);
+    }
+    setShowAvatarModal(false);
+
+    try {
+      const { error } = await supabase
+        .from('settings')
+        .update({ value: trimmed })
+        .eq('key', 'taban_admin_avatar');
+
+      if (error) {
+        await supabase.from('settings').insert([{ key: 'taban_admin_avatar', value: trimmed }]);
+      }
+    } catch (e) {
+      console.error('Save admin avatar error:', e);
+    }
+  };
 
   const fetchMessages = async (showLoading = true) => {
     if (showLoading) setLoading(true);
@@ -145,7 +202,7 @@ export default function AdminSupportMessagesPage() {
       id: 'admin_' + Date.now(),
       user_id: selectedUserId,
       user_name: 'Admin',
-      user_avatar: DEFAULT_AVATARS[2],
+      user_avatar: adminAvatar || DEFAULT_AVATARS[2],
       message: text,
       sender: 'admin',
       created_at: new Date().toISOString(),
@@ -193,13 +250,36 @@ export default function AdminSupportMessagesPage() {
             <p className="text-xs text-neutral-400">{userList.length} بەکارهێنەر · وڵامدانەوەی ڕاستەوخۆ</p>
           </div>
         </div>
-        <button
-          onClick={() => fetchMessages(true)}
-          className="p-2.5 bg-[#CC222F] hover:bg-red-700 text-white rounded-xl transition flex items-center gap-2 text-xs font-bold"
-        >
-          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-          <span>نوێکردنەوە</span>
-        </button>
+
+        <div className="flex items-center gap-3">
+          {/* Admin Custom Avatar Trigger Button */}
+          <button
+            onClick={() => setShowAvatarModal(true)}
+            className="flex items-center gap-2.5 px-3.5 py-2 bg-[#0f1115] border border-neutral-800 hover:border-red-500/50 rounded-xl transition text-xs font-bold text-neutral-200"
+            title="دابینکردن یان گۆڕینی وێنەی پرۆفایلی ئادمن"
+          >
+            <div className="relative w-7 h-7 rounded-full overflow-hidden border border-red-500/60 shrink-0">
+              <img
+                src={adminAvatar}
+                alt="Admin Avatar"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = DEFAULT_AVATARS[2];
+                }}
+              />
+            </div>
+            <span className="hidden sm:inline">وێنەی ئادمن</span>
+            <Settings size={14} className="text-neutral-400" />
+          </button>
+
+          <button
+            onClick={() => fetchMessages(true)}
+            className="p-2.5 bg-[#CC222F] hover:bg-red-700 text-white rounded-xl transition flex items-center gap-2 text-xs font-bold"
+          >
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            <span className="hidden sm:inline">نوێکردنەوە</span>
+          </button>
+        </div>
       </div>
 
       {/* ── MAIN PANEL ── */}
@@ -332,12 +412,16 @@ export default function AdminSupportMessagesPage() {
               <div className="flex-1 p-4 overflow-y-auto space-y-3">
                 {selectedMessages.map((msg, idx) => {
                   const isAdmin = msg.sender === 'admin';
+                  const avatarSrc = isAdmin
+                    ? (msg.user_avatar || adminAvatar || DEFAULT_AVATARS[2])
+                    : getAvatar(msg.user_avatar, msg.user_name);
+
                   return (
                     <div key={msg.id || idx} className={`flex items-end gap-2 ${isAdmin ? 'flex-row-reverse' : 'flex-row'}`}>
                       {/* Avatar */}
                       <div className="w-7 h-7 rounded-full overflow-hidden border border-neutral-700 shrink-0 mb-1">
                         <img
-                          src={isAdmin ? DEFAULT_AVATARS[2] : getAvatar(msg.user_avatar, msg.user_name)}
+                          src={avatarSrc}
                           alt=""
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -368,7 +452,14 @@ export default function AdminSupportMessagesPage() {
                 className="p-3 bg-[#1a1d24] border-t border-neutral-800 flex items-center gap-2 shrink-0"
               >
                 <div className="w-8 h-8 rounded-full overflow-hidden border border-neutral-700 shrink-0">
-                  <img src={DEFAULT_AVATARS[2]} alt="" className="w-full h-full object-cover" />
+                  <img
+                    src={adminAvatar || DEFAULT_AVATARS[2]}
+                    alt="Admin Avatar"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_AVATARS[2];
+                    }}
+                  />
                 </div>
                 <input
                   type="text"
@@ -400,6 +491,96 @@ export default function AdminSupportMessagesPage() {
           )}
         </div>
       </div>
+
+      {/* ── ADMIN AVATAR EDIT MODAL ── */}
+      {showAvatarModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#1a1d24] border border-neutral-800 w-full max-w-md rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+              <div className="flex items-center gap-2">
+                <ImageIcon size={18} className="text-red-500" />
+                <h2 className="text-sm font-bold text-white">گۆڕینی وێنەی پرۆفایلی ئادمن</h2>
+              </div>
+              <button
+                onClick={() => setShowAvatarModal(false)}
+                className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs text-neutral-400">
+                لینکی دەرەکی (Image URL) بۆ وێنەی پرۆفایلی ئادمن بنووسە. ئەم وێنەیە لە هەموو وەڵامەکانت لە وێب و ئەپ پیشانی بەکارهێنەران دەدرێت:
+              </p>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-neutral-300">بەستەری وێنە (URL):</label>
+                <input
+                  type="text"
+                  placeholder="https://..."
+                  value={tempAvatarUrl}
+                  onChange={(e) => setTempAvatarUrl(e.target.value)}
+                  className="w-full bg-[#0f1115] border border-neutral-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-red-500 dir-ltr"
+                />
+              </div>
+
+              {/* Live Preview */}
+              {tempAvatarUrl.trim() && (
+                <div className="flex items-center gap-3 p-3 bg-[#0f1115] rounded-xl border border-neutral-800">
+                  <img
+                    src={tempAvatarUrl.trim()}
+                    alt="Preview"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-red-500 shrink-0"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = DEFAULT_AVATARS[2];
+                    }}
+                  />
+                  <div>
+                    <span className="text-xs font-bold text-white block">پیشاندانی ڕاستەوخۆ (Live Preview)</span>
+                    <span className="text-[10px] text-emerald-400">وێنەکە ئامادەیە بۆ ڕاگرتن</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Preset Avatars */}
+              <div className="space-y-1">
+                <span className="text-[11px] font-bold text-neutral-400 block">یان هەڵبژاردن لە نموونەکان:</span>
+                <div className="flex items-center gap-3 pt-1">
+                  {DEFAULT_AVATARS.map((url, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setTempAvatarUrl(url)}
+                      className={`w-10 h-10 rounded-full overflow-hidden border-2 transition ${
+                        tempAvatarUrl === url ? 'border-red-500 scale-105' : 'border-neutral-700 hover:border-neutral-500'
+                      }`}
+                    >
+                      <img src={url} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-neutral-800">
+              <button
+                onClick={() => setShowAvatarModal(false)}
+                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl text-xs font-bold transition"
+              >
+                پاشگەزبوونەوە
+              </button>
+              <button
+                onClick={() => saveAdminAvatar(tempAvatarUrl)}
+                disabled={!tempAvatarUrl.trim()}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+              >
+                <Check size={14} />
+                <span>سەیڤکردن</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
