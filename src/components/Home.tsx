@@ -280,12 +280,18 @@ export default function Home({
       </header>
 
 
-      {/* 1. FULL-WIDTH EDGE-TO-EDGE BILLBOARD HERO */}
+      {/* 1. FULL-WIDTH HERO BANNER (MATCHING MOBILE APP DESIGN) */}
       {currentFeatured && (() => {
-        // Swipe gesture tracking refs (inline via data attributes handled in JSX)
+        const bgImg = currentFeatured.backdrop || currentFeatured.image;
+        const genresText = Array.isArray(currentFeatured.genre)
+          ? currentFeatured.genre.slice(0, 3).join(', ')
+          : typeof currentFeatured.genre === 'string'
+          ? currentFeatured.genre.split(',').slice(0, 3).join(', ')
+          : '';
+
         return (
           <div
-            className="relative w-full overflow-hidden cursor-pointer select-none"
+            className="relative w-full overflow-hidden cursor-pointer select-none group bg-[#0f0f13]"
             onClick={() => onSelect(currentFeatured)}
             onTouchStart={(e) => {
               const t = e.touches[0];
@@ -305,77 +311,99 @@ export default function Home({
               }
             }}
           >
-            {/* Full-width background image */}
-            {currentFeatured.image && (
-              <Image
-                src={currentFeatured.image}
-                alt={currentFeatured.title || ''}
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover object-center scale-105 hover:scale-110 transition-transform duration-[3000ms] ease-out pointer-events-none"
-                unoptimized={true}
-              />
-            )}
+            {/* Banner Container Aspect Ratio */}
+            <div className="relative w-full aspect-[16/10] sm:aspect-[21/9] md:aspect-[2.5/1] lg:aspect-[2.8/1]">
+              {/* Backdrop image */}
+              {bgImg && (
+                <Image
+                  src={bgImg}
+                  alt={currentFeatured.title || ''}
+                  fill
+                  priority
+                  sizes="100vw"
+                  className="object-cover object-center group-hover:scale-105 transition-transform duration-1000 ease-out"
+                  unoptimized={true}
+                />
+              )}
 
-            {/* Content overlay */}
-            <div className="relative z-10 aspect-[16/10] sm:aspect-[21/9] md:aspect-[3/1] flex flex-col justify-end px-5 pt-5 pb-8 sm:px-8 sm:pb-10 md:px-10">
+              {/* Multi-stage Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-black/40 to-black/50 pointer-events-none" />
 
-              {/* Movie Title */}
-              <h1 className="text-base sm:text-2xl md:text-4xl font-black text-white uppercase tracking-tight leading-tight drop-shadow-2xl line-clamp-2 max-w-md mb-2">
-                {getLocalized(currentFeatured, 'title', language)}
-              </h1>
-
-              {/* Meta Badges Row — below title */}
-              <div className="flex items-center flex-wrap gap-1.5 mb-4">
-                {typeof currentFeatured.genre === 'string' && currentFeatured.genre.trim() && (
-                  <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-neutral-200 font-semibold text-[10px]">
-                    {currentFeatured.genre.split(',')[0]}
-                  </span>
-                )}
-                {currentFeatured.year && (
-                  <span className="px-2.5 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-neutral-200 font-semibold text-[10px]">
-                    {currentFeatured.year}
-                  </span>
-                )}
-                {currentFeatured.rating && (
-                  <span className="px-2.5 py-0.5 rounded-md bg-black/70 backdrop-blur-md border border-white/10 text-yellow-400 font-bold text-[10px] flex items-center space-x-1">
-                    <Star size={10} className="fill-yellow-400 text-yellow-400" />
+              {/* Top-Right: Rating Badge */}
+              {currentFeatured.rating && (
+                <div className="absolute top-3.5 right-3.5 rtl:right-auto rtl:left-3.5 z-20">
+                  <div className="bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/15 text-xs font-black text-white flex items-center space-x-1.5 shadow-lg rtl:space-x-reverse">
+                    <Star size={12} className="fill-amber-400 text-amber-400" />
                     <span>{currentFeatured.rating}</span>
-                  </span>
-                )}
-                {currentFeatured.type && (
-                  <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-[#CC222F] text-white shadow-md">
-                    {currentFeatured.type}
-                  </span>
-                )}
-              </div>
-
-              {/* Dot Slide Indicators — bottom centre */}
-              {featuredMovies.length > 1 && (
-                <div
-                  className="flex items-center gap-1.5"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {featuredMovies.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const diff = i - currentFeaturedIndex;
-                        if (diff > 0) for (let j = 0; j < diff; j++) nextFeatured();
-                        else if (diff < 0) for (let j = 0; j < Math.abs(diff); j++) prevFeatured();
-                      }}
-                      className="transition-all duration-300 rounded-full"
-                      style={{
-                        width: i === currentFeaturedIndex ? '20px' : '6px',
-                        height: '6px',
-                        backgroundColor: i === currentFeaturedIndex ? '#CC222F' : 'rgba(255,255,255,0.4)',
-                      }}
-                    />
-                  ))}
+                  </div>
                 </div>
               )}
+
+              {/* Bottom Row Content: Floating Thumbnail + Info Stack */}
+              <div className="absolute bottom-3 left-3 right-3 sm:bottom-6 sm:left-8 sm:right-8 z-20 flex items-end space-x-3 sm:space-x-5 rtl:space-x-reverse">
+                
+                {/* Vertical Poster Thumbnail with Red Border */}
+                <div className="relative w-14 sm:w-20 md:w-24 aspect-[2/3] rounded-xl overflow-hidden border-2 border-[#CC222F] shadow-2xl shrink-0 group-hover:scale-105 transition-transform duration-300">
+                  <Image
+                    src={currentFeatured.image}
+                    alt={currentFeatured.title || ''}
+                    fill
+                    sizes="(max-width: 768px) 80px, 120px"
+                    className="object-cover"
+                    unoptimized={true}
+                  />
+                </div>
+
+                {/* Info Stack */}
+                <div className="flex-1 min-w-0 flex flex-col justify-end space-y-0.5 sm:space-y-1">
+                  {/* Title */}
+                  <h1 className="text-sm sm:text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight drop-shadow-md truncate">
+                    {getLocalized(currentFeatured, 'title', language)}
+                  </h1>
+
+                  {/* Meta Details Row: Genres • Type • Year */}
+                  <div className="flex items-center space-x-1.5 sm:space-x-2 text-[11px] sm:text-sm text-neutral-300 font-medium truncate rtl:space-x-reverse">
+                    {genresText ? <span>{genresText}</span> : null}
+                    {currentFeatured.type ? (
+                      <>
+                        <span className="text-neutral-400">•</span>
+                        <span>{currentFeatured.type}</span>
+                      </>
+                    ) : null}
+                    {currentFeatured.year ? (
+                      <>
+                        <span className="text-neutral-400">•</span>
+                        <span>{currentFeatured.year}</span>
+                      </>
+                    ) : null}
+                  </div>
+
+                  {/* Carousel Dots */}
+                  {featuredMovies.length > 1 && (
+                    <div
+                      className="flex items-center space-x-1.5 pt-1 rtl:space-x-reverse"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {featuredMovies.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentFeaturedIndex(i);
+                          }}
+                          className="transition-all duration-300 rounded-full"
+                          style={{
+                            width: i === currentFeaturedIndex ? '20px' : '6px',
+                            height: '5px',
+                            backgroundColor: i === currentFeaturedIndex ? '#CC222F' : 'rgba(255,255,255,0.35)',
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </div>
             </div>
           </div>
         );
