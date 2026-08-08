@@ -149,13 +149,16 @@ export default function HomeScreen({ navigation }: any) {
   // PanResponder for Hero Swipe
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dx) > 15 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+      },
       onPanResponderRelease: (_, gestureState) => {
         if (!featured || featured.length === 0) return;
-        if (gestureState.dx < -50) {
+        if (gestureState.dx < -40) {
           // Swipe Left -> Next
           setActiveIndex((prev) => (prev + 1) % featured.length);
-        } else if (gestureState.dx > 50) {
+        } else if (gestureState.dx > 40) {
           // Swipe Right -> Prev
           setActiveIndex((prev) => (prev - 1 + featured.length) % featured.length);
         }
@@ -351,6 +354,8 @@ export default function HomeScreen({ navigation }: any) {
 
       <ScrollView
         style={[styles.root, { backgroundColor: themeColors.background }]}
+        contentContainerStyle={{ paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={loading}
