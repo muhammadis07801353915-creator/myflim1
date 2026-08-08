@@ -326,8 +326,8 @@ export default function Home({
                 />
               )}
 
-              {/* Multi-stage Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-black/40 to-black/50 pointer-events-none" />
+              {/* Clean Vignette Gradient Overlay (No solid background fade shape) */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/35 pointer-events-none" />
 
               {/* Top-Right: Rating Badge */}
               {currentFeatured.rating && (

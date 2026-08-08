@@ -190,10 +190,10 @@ export default function HomeScreen({ navigation }: any) {
           resizeMode="cover"
         />
 
-        {/* Gradient overlays: top header protection + bottom dark fade */}
+        {/* Gradient overlay for top icon contrast and bottom text readability (No theme background shape) */}
         <LinearGradient
-          colors={['rgba(0,0,0,0.5)', 'transparent', 'rgba(0,0,0,0.85)', themeColors.background]}
-          locations={[0, 0.35, 0.75, 1]}
+          colors={['rgba(0,0,0,0.35)', 'transparent', 'rgba(0,0,0,0.65)']}
+          locations={[0, 0.4, 1]}
           style={hero.gradient}
         >
           {/* Top-right: Rating badge */}
