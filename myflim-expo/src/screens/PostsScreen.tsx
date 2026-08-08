@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,10 @@ import {
   Modal,
   SafeAreaView,
   Alert,
+  ScrollView,
+  KeyboardAvoidingView,
   Platform,
+  Pressable,
 } from 'react-native';
 import { supabase } from '../api/supabase';
 import { useAppStore } from '../store/useAppStore';
@@ -28,6 +31,8 @@ import {
   User,
   MoreHorizontal,
   ChevronDown,
+  Check,
+  Link as LinkIcon
 } from 'lucide-react-native';
 
 interface PostComment {
@@ -58,6 +63,15 @@ const DEFAULT_AVATARS = [
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
+];
+
+const PRESET_POST_IMAGES = [
+  'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=800&auto=format&fit=crop', // Jeep / Offroad
+  'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800&auto=format&fit=crop', // Porsche Car
+  'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=800&auto=format&fit=crop', // Cinema / Movie
+  'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800&auto=format&fit=crop', // Superhero / Action
+  'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=800&auto=format&fit=crop', // Art / Anime
+  'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=800&auto=format&fit=crop', // Gaming
 ];
 
 async function fetchAllPostsFromDB(): Promise<Post[]> {
@@ -125,9 +139,13 @@ export default function PostsScreen() {
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
 
+  // Image Picker Modal State
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [customImageUrl, setCustomImageUrl] = useState('');
+
   useEffect(() => {
     loadPosts();
-    const interval = setInterval(loadPosts, 10000);
+    const interval = setInterval(loadPosts, 8000);
     return () => clearInterval(interval);
   }, []);
 
@@ -135,17 +153,6 @@ export default function PostsScreen() {
     const data = await fetchAllPostsFromDB();
     setPosts(data);
     setLoading(false);
-  };
-
-  const handlePickImage = async () => {
-    Alert.prompt(
-      language === 'ku' ? 'بەستەری وێنە' : 'Image URL',
-      language === 'ku' ? 'لینکێکی وێنە بنووسە:' : 'Enter image URL:',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'OK', onPress: (url?: string) => url && setNewPostImage(url.trim()) }
-      ]
-    );
   };
 
   const handlePublish = async () => {
@@ -249,50 +256,6 @@ export default function PostsScreen() {
       loadPosts();
     }
   };
-
-  const renderHeader = () => (
-    <View style={[styles.createCard, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-      <View style={styles.createTopRow}>
-        <Image
-          source={{ uri: user?.image || DEFAULT_AVATARS[0] }}
-          style={styles.avatar}
-        />
-        <TextInput
-          style={[styles.createInput, { color: themeColors.text }]}
-          multiline
-          placeholder={language === 'ku' ? `${user?.name || ''}، چیت لە مێشکتدایە؟` : language === 'ar' ? 'ما الذي تفكر به؟' : "What's on your mind?"}
-          placeholderTextColor={themeColors.textSecondary}
-          value={newPostText}
-          onChangeText={setNewPostText}
-        />
-      </View>
-
-      {newPostImage ? (
-        <View style={styles.previewContainer}>
-          <Image source={{ uri: newPostImage }} style={styles.previewImage} />
-          <TouchableOpacity style={styles.removeImageBtn} onPress={() => setNewPostImage(null)}>
-            <X color="#fff" size={16} />
-          </TouchableOpacity>
-        </View>
-      ) : null}
-
-      <View style={[styles.createActionRow, { borderTopColor: themeColors.border }]}>
-        <TouchableOpacity style={[styles.mediaBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={handlePickImage}>
-          <ImagePlus color="#4ade80" size={18} />
-          <Text style={[styles.mediaBtnText, { color: '#4ade80' }]}>{language === 'ku' ? 'وێنە' : 'Photo'}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.publishBtn, (!newPostText.trim() && !newPostImage) && styles.publishBtnDisabled]}
-          onPress={handlePublish}
-          disabled={publishing || (!newPostText.trim() && !newPostImage)}
-        >
-          {publishing ? <ActivityIndicator size="small" color="#fff" /> : <Send color="#fff" size={16} />}
-          <Text style={styles.publishBtnText}>{language === 'ku' ? 'بڵاوکردنەوە' : 'Post'}</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
 
   const renderPostItem = ({ item }: { item: Post }) => {
     const userId = user?.name || 'app_user';
@@ -407,27 +370,146 @@ export default function PostsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
-      {/* Top Header */}
+      {/* Top Header Bar */}
       <View style={[styles.header, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
         <Text style={[styles.headerTitle, { color: themeColors.text }]}>
           {language === 'ku' ? 'پۆستەکان' : language === 'ar' ? 'المنشورات' : 'Community Posts'}
         </Text>
       </View>
 
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        </View>
-      ) : (
-        <FlatList
-          data={posts}
-          keyExtractor={item => item.id}
-          ListHeaderComponent={renderHeader}
-          renderItem={renderPostItem}
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-        />
-      )}
+        >
+          {/* Create Post Input Card */}
+          <View style={[styles.createCard, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+            <View style={styles.createTopRow}>
+              <Image
+                source={{ uri: user?.image || DEFAULT_AVATARS[0] }}
+                style={styles.avatar}
+              />
+              <TextInput
+                style={[styles.createInput, { color: themeColors.text }]}
+                multiline
+                placeholder={language === 'ku' ? `${user?.name || ''}، چیت لە مێشکتدایە؟` : language === 'ar' ? 'ما الذي تفكر به؟' : "What's on your mind?"}
+                placeholderTextColor={themeColors.textSecondary}
+                value={newPostText}
+                onChangeText={setNewPostText}
+              />
+            </View>
+
+            {newPostImage ? (
+              <View style={styles.previewContainer}>
+                <Image source={{ uri: newPostImage }} style={styles.previewImage} />
+                <TouchableOpacity style={styles.removeImageBtn} onPress={() => setNewPostImage(null)}>
+                  <X color="#fff" size={16} />
+                </TouchableOpacity>
+              </View>
+            ) : null}
+
+            <View style={[styles.createActionRow, { borderTopColor: themeColors.border }]}>
+              <TouchableOpacity style={[styles.mediaBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={() => setShowImageModal(true)}>
+                <ImagePlus color="#4ade80" size={18} />
+                <Text style={[styles.mediaBtnText, { color: '#4ade80' }]}>{language === 'ku' ? 'وێنە' : 'Photo'}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.publishBtn, (!newPostText.trim() && !newPostImage) && styles.publishBtnDisabled]}
+                onPress={handlePublish}
+                disabled={publishing || (!newPostText.trim() && !newPostImage)}
+              >
+                {publishing ? <ActivityIndicator size="small" color="#fff" /> : <Send color="#fff" size={16} />}
+                <Text style={styles.publishBtnText}>{language === 'ku' ? 'بڵاوکردنەوە' : 'Post'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Posts Feed */}
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={COLORS.primary} />
+            </View>
+          ) : (
+            posts.map(item => (
+              <React.Fragment key={item.id}>
+                {renderPostItem({ item })}
+              </React.Fragment>
+            ))
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* ── IMAGE SELECTION MODAL ───────────────────────────────────── */}
+      <Modal visible={showImageModal} transparent animationType="slide" onRequestClose={() => setShowImageModal(false)}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowImageModal(false)}>
+          <View style={[styles.imageModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+            <View style={styles.imageModalHeader}>
+              <Text style={[styles.imageModalTitle, { color: themeColors.text }]}>
+                {language === 'ku' ? 'وێنەی پۆستەکە هەڵبژێرە' : 'Choose Post Photo'}
+              </Text>
+              <TouchableOpacity onPress={() => setShowImageModal(false)}>
+                <X color={themeColors.text} size={20} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Custom Image URL Input */}
+            <Text style={{ color: themeColors.textSecondary, fontSize: 12, fontWeight: 'bold', marginBottom: 6 }}>
+              {language === 'ku' ? 'یان لینکی وێنە بنووسە:' : 'Or enter Image URL:'}
+            </Text>
+            <View style={[styles.urlInputRow, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}>
+              <LinkIcon size={16} color={themeColors.textSecondary} />
+              <TextInput
+                style={[styles.urlInput, { color: themeColors.text }]}
+                placeholder="https://..."
+                placeholderTextColor={themeColors.textMuted}
+                value={customImageUrl}
+                onChangeText={setCustomImageUrl}
+              />
+              {customImageUrl.trim() ? (
+                <TouchableOpacity
+                  style={styles.urlSubmitBtn}
+                  onPress={() => {
+                    setNewPostImage(customImageUrl.trim());
+                    setCustomImageUrl('');
+                    setShowImageModal(false);
+                  }}
+                >
+                  <Check size={16} color="#fff" />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+
+            {/* Preset Images Grid */}
+            <Text style={{ color: themeColors.textSecondary, fontSize: 12, fontWeight: 'bold', marginVertical: 10 }}>
+              {language === 'ku' ? 'وێنەی پێشنیارکراو:' : 'Sample Photos:'}
+            </Text>
+            <View style={styles.presetGrid}>
+              {PRESET_POST_IMAGES.map((imgUrl, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.presetCard}
+                  onPress={() => {
+                    setNewPostImage(imgUrl);
+                    setShowImageModal(false);
+                  }}
+                >
+                  <Image source={{ uri: imgUrl }} style={styles.presetImg} resizeMode="cover" />
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <TouchableOpacity style={[styles.closeModalBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={() => setShowImageModal(false)}>
+              <Text style={{ color: themeColors.text, fontWeight: 'bold' }}>{language === 'ku' ? 'داخستن' : 'Close'}</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -449,13 +531,13 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
   loadingContainer: {
-    flex: 1,
+    paddingVertical: 50,
     justifyContent: 'center',
     alignItems: 'center',
   },
   listContent: {
     padding: SPACING.md,
-    paddingBottom: 100,
+    paddingBottom: 110,
   },
   createCard: {
     borderRadius: SIZES.radius,
@@ -518,8 +600,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 12,
   },
   mediaBtnText: {
@@ -531,8 +613,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
     borderRadius: 12,
   },
   publishBtnDisabled: {
@@ -672,5 +754,71 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     padding: 0,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  imageModalContent: {
+    width: '100%',
+    maxWidth: 360,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 16,
+  },
+  imageModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  imageModalTitle: {
+    fontSize: 17,
+    fontWeight: 'bold',
+  },
+  urlInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    height: 44,
+    gap: 8,
+  },
+  urlInput: {
+    flex: 1,
+    fontSize: 13,
+  },
+  urlSubmitBtn: {
+    backgroundColor: COLORS.primary,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  presetGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  presetCard: {
+    width: '31%',
+    aspectRatio: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  presetImg: {
+    width: '100%',
+    height: '100%',
+  },
+  closeModalBtn: {
+    marginTop: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
   },
 });
