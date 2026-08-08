@@ -526,9 +526,9 @@ export default function LiveTV() {
   return (
     <div className="bg-[#0a0a0f] light-mode:bg-white min-h-screen text-white light-mode:text-black pb-32 font-sans">
 
-      {/* ── HEADER ── */}
-      <div className="sticky top-0 z-40 bg-[#0a0a0f] backdrop-blur-xl border-b border-white/5 px-4 sm:px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      {/* ── HEADER (Centered Title) ── */}
+      <div className="sticky top-0 z-40 bg-[#0a0a0f] light-mode:bg-white backdrop-blur-xl border-b border-white/5 light-mode:border-neutral-200 px-4 sm:px-6 py-4 flex items-center justify-between relative">
+        <div className="flex items-center gap-3 z-10">
           {/* ☰ Country filter button — always visible */}
           <button
             onClick={() => setIsCountryDrawerOpen(true)}
@@ -565,13 +565,18 @@ export default function LiveTV() {
               <span>{language === 'ku' ? 'وڵات' : language === 'ar' ? 'الدولة' : 'Country'}</span>
             )}
           </button>
-          <h1 className="text-xl font-black tracking-tight whitespace-nowrap text-white light-mode:text-black">
+        </div>
+
+        {/* 100% Centered Title "ڕاستەوخۆ" / "Live" */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <h1 className="text-xl font-black tracking-tight whitespace-nowrap text-white light-mode:text-black pointer-events-auto">
             {language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
           </h1>
         </div>
+
         <button
           onClick={() => setIsSearchOpen(!isSearchOpen)}
-          className="w-10 h-10 rounded-full bg-white/7 light-mode:bg-neutral-100 border border-white/8 light-mode:border-neutral-200 text-white light-mode:text-neutral-700 flex items-center justify-center hover:bg-white/12 light-mode:hover:bg-neutral-200 transition"
+          className="w-10 h-10 rounded-full bg-white/7 light-mode:bg-neutral-100 border border-white/8 light-mode:border-neutral-200 text-white light-mode:text-neutral-700 flex items-center justify-center hover:bg-white/12 light-mode:hover:bg-neutral-200 transition z-10"
         >
           {isSearchOpen ? <X size={18} /> : <Search size={18} />}
         </button>
@@ -745,10 +750,10 @@ export default function LiveTV() {
           <button
             key={tab.id}
             onClick={() => setSelectedCategory(tab.id)}
-            className={`px-5 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-all ${
+            className={`px-5 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-all border ${
               selectedCategory === tab.id
-                ? 'bg-[#CC222F] text-white shadow-lg shadow-red-600/25'
-                : 'bg-white/7 border border-white/6 text-white/55 hover:text-white hover:bg-white/12'
+                ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-lg shadow-red-600/25'
+                : 'bg-[#1a1d24] light-mode:bg-neutral-200 border-neutral-700/50 light-mode:border-neutral-300 text-neutral-300 light-mode:text-neutral-900 hover:text-white light-mode:hover:text-black'
             }`}
           >
             {tab.label}
