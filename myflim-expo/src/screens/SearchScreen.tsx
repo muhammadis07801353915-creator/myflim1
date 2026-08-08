@@ -221,7 +221,7 @@ export default function SearchScreen({ navigation }: any) {
       </View>
 
       {/* ── TYPE FILTER PILLS ─────── */}
-      <View style={{ marginBottom: 4 }}>
+      <View style={{ marginBottom: 6 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
           {typeOptions.map((type) => (
             <TouchableOpacity
@@ -243,7 +243,7 @@ export default function SearchScreen({ navigation }: any) {
       </View>
 
       {/* ── GENRE FILTER PILLS ────────────────────────────────────── */}
-      <View style={{ marginBottom: 4 }}>
+      <View style={{ marginBottom: 6 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
           {genresList.map((g) => (
             <TouchableOpacity
@@ -265,7 +265,7 @@ export default function SearchScreen({ navigation }: any) {
       </View>
 
       {/* ── YEAR FILTER PILLS ─────────────────────────────────────── */}
-      <View style={{ marginBottom: 4 }}>
+      <View style={{ marginBottom: 6 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
           {yearsList.map((y) => (
             <TouchableOpacity
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   searchBar: {
     flex: 1,
@@ -438,8 +438,10 @@ const styles = StyleSheet.create({
   },
   typePill: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    height: 38,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 19,
     borderWidth: 1,
   },
   typePillActive: {
@@ -449,13 +451,17 @@ const styles = StyleSheet.create({
   typePillText: {
     fontSize: 13,
     fontWeight: 'bold',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   typePillTextActive: {
     color: '#ffffff',
   },
   genrePill: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingHorizontal: 15,
+    height: 34,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 14,
     borderWidth: 1,
   },
@@ -466,6 +472,8 @@ const styles = StyleSheet.create({
   genrePillText: {
     fontSize: 12,
     fontWeight: '600',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
   },
   genrePillTextActive: {
     color: '#ffffff',
@@ -479,8 +487,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
-    marginTop: 2,
+    marginBottom: 10,
+    marginTop: 4,
   },
   listHeader: {
     fontSize: 17,
