@@ -1,10 +1,9 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
   TextInput,
   Image,
   ActivityIndicator,
@@ -16,6 +15,7 @@ import {
   Platform,
   Pressable,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../api/supabase';
 import { useAppStore } from '../store/useAppStore';
 import { getColors, SPACING, SIZES, COLORS } from '../theme/theme';
@@ -23,16 +23,14 @@ import { translations } from '../utils/translations';
 import {
   Heart,
   MessageCircle,
-  Share2,
   ImagePlus,
   Send,
   X,
   Globe,
-  User,
-  MoreHorizontal,
   ChevronDown,
   Check,
-  Link as LinkIcon
+  Link as LinkIcon,
+  FileImage
 } from 'lucide-react-native';
 
 interface PostComment {
@@ -66,11 +64,11 @@ const DEFAULT_AVATARS = [
 ];
 
 const PRESET_POST_IMAGES = [
-  'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=800&auto=format&fit=crop', // Jeep / Offroad
-  'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800&auto=format&fit=crop', // Porsche Car
-  'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=800&auto=format&fit=crop', // Cinema / Movie
-  'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800&auto=format&fit=crop', // Superhero / Action
-  'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=800&auto=format&fit=crop', // Art / Anime
+  'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=800&auto=format&fit=crop', // Jeep
+  'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800&auto=format&fit=crop', // Porsche
+  'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=800&auto=format&fit=crop', // Cinema
+  'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800&auto=format&fit=crop', // Action
+  'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=800&auto=format&fit=crop', // Anime
   'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=800&auto=format&fit=crop', // Gaming
 ];
 
@@ -139,7 +137,6 @@ export default function PostsScreen() {
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
 
-  // Image Picker Modal State
   const [showImageModal, setShowImageModal] = useState(false);
   const [customImageUrl, setCustomImageUrl] = useState('');
 
@@ -153,6 +150,39 @@ export default function PostsScreen() {
     const data = await fetchAllPostsFromDB();
     setPosts(data);
     setLoading(false);
+  };
+
+  // Launch device photo gallery directly
+  const handlePickImageFromGallery = async () => {
+    setShowImageModal(false);
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert(
+          language === 'ku' ? 'مۆڵەت' : 'Permission Required',
+          language === 'ku' ? 'پێویستە مڵەت بدەیت بۆ گەیشتن بە گەلەریی مۆبایلەکەت.' : 'Gallery access permission is required.'
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        quality: 0.7,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets?.[0]) {
+        const asset = result.assets[0];
+        if (asset.base64) {
+          setNewPostImage(`data:image/jpeg;base64,${asset.base64}`);
+        } else if (asset.uri) {
+          setNewPostImage(asset.uri);
+        }
+      }
+    } catch (e) {
+      console.warn('ImagePicker error:', e);
+    }
   };
 
   const handlePublish = async () => {
@@ -413,9 +443,16 @@ export default function PostsScreen() {
             ) : null}
 
             <View style={[styles.createActionRow, { borderTopColor: themeColors.border }]}>
-              <TouchableOpacity style={[styles.mediaBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={() => setShowImageModal(true)}>
+              {/* Photo Button: Direct Gallery Pick */}
+              <TouchableOpacity style={[styles.mediaBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={handlePickImageFromGallery}>
                 <ImagePlus color="#4ade80" size={18} />
                 <Text style={[styles.mediaBtnText, { color: '#4ade80' }]}>{language === 'ku' ? 'وێنە' : 'Photo'}</Text>
+              </TouchableOpacity>
+
+              {/* Extra options modal trigger */}
+              <TouchableOpacity style={[styles.mediaBtn, { backgroundColor: themeColors.surfaceLight, marginLeft: 8 }]} onPress={() => setShowImageModal(true)}>
+                <FileImage color="#60a5fa" size={18} />
+                <Text style={[styles.mediaBtnText, { color: '#60a5fa' }]}>{language === 'ku' ? 'نموونەکان' : 'Presets'}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -444,21 +481,29 @@ export default function PostsScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* ── IMAGE SELECTION MODAL ───────────────────────────────────── */}
+      {/* ── IMAGE SELECTION MODAL (Gallery + Presets + Link) ──────────────── */}
       <Modal visible={showImageModal} transparent animationType="slide" onRequestClose={() => setShowImageModal(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setShowImageModal(false)}>
           <View style={[styles.imageModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
             <View style={styles.imageModalHeader}>
               <Text style={[styles.imageModalTitle, { color: themeColors.text }]}>
-                {language === 'ku' ? 'وێنەی پۆستەکە هەڵبژێرە' : 'Choose Post Photo'}
+                {language === 'ku' ? 'هەڵبژاردنی وێنە' : 'Choose Photo'}
               </Text>
               <TouchableOpacity onPress={() => setShowImageModal(false)}>
                 <X color={themeColors.text} size={20} />
               </TouchableOpacity>
             </View>
 
+            {/* Direct Gallery Pick Button inside Modal */}
+            <TouchableOpacity style={styles.galleryPickBtn} onPress={handlePickImageFromGallery}>
+              <ImagePlus color="#fff" size={20} />
+              <Text style={styles.galleryPickBtnText}>
+                {language === 'ku' ? 'کردنەوەی گەلەریی مۆبایل 📱' : 'Open Phone Gallery 📱'}
+              </Text>
+            </TouchableOpacity>
+
             {/* Custom Image URL Input */}
-            <Text style={{ color: themeColors.textSecondary, fontSize: 12, fontWeight: 'bold', marginBottom: 6 }}>
+            <Text style={{ color: themeColors.textSecondary, fontSize: 12, fontWeight: 'bold', marginVertical: 8 }}>
               {language === 'ku' ? 'یان لینکی وێنە بنووسە:' : 'Or enter Image URL:'}
             </Text>
             <View style={[styles.urlInputRow, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}>
@@ -590,7 +635,6 @@ const styles = StyleSheet.create({
   },
   createActionRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: SPACING.md,
     paddingTop: SPACING.sm,
@@ -616,6 +660,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 9,
     borderRadius: 12,
+    marginLeft: 'auto',
   },
   publishBtnDisabled: {
     opacity: 0.4,
@@ -778,6 +823,21 @@ const styles = StyleSheet.create({
   imageModalTitle: {
     fontSize: 17,
     fontWeight: 'bold',
+  },
+  galleryPickBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: COLORS.primary,
+    paddingVertical: 12,
+    borderRadius: 14,
+    marginBottom: 6,
+  },
+  galleryPickBtnText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   urlInputRow: {
     flexDirection: 'row',
