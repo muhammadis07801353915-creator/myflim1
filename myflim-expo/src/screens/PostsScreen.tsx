@@ -7,19 +7,16 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
-  Modal,
   SafeAreaView,
   Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../api/supabase';
 import { useAppStore } from '../store/useAppStore';
 import { getColors, SPACING, SIZES, COLORS } from '../theme/theme';
-import { translations } from '../utils/translations';
 import {
   Heart,
   MessageCircle,
@@ -28,9 +25,6 @@ import {
   X,
   Globe,
   ChevronDown,
-  Check,
-  Link as LinkIcon,
-  FileImage
 } from 'lucide-react-native';
 
 interface PostComment {
@@ -61,15 +55,6 @@ const DEFAULT_AVATARS = [
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
-];
-
-const PRESET_POST_IMAGES = [
-  'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=800&auto=format&fit=crop', // Jeep
-  'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800&auto=format&fit=crop', // Porsche
-  'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=800&auto=format&fit=crop', // Cinema
-  'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800&auto=format&fit=crop', // Action
-  'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=800&auto=format&fit=crop', // Anime
-  'https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=800&auto=format&fit=crop', // Gaming
 ];
 
 async function fetchAllPostsFromDB(): Promise<Post[]> {
@@ -137,9 +122,6 @@ export default function PostsScreen() {
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
 
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [customImageUrl, setCustomImageUrl] = useState('');
-
   useEffect(() => {
     loadPosts();
     const interval = setInterval(loadPosts, 8000);
@@ -152,19 +134,9 @@ export default function PostsScreen() {
     setLoading(false);
   };
 
-  // Launch device photo gallery directly
+  // Directly launch device photo gallery for upload (Same as website file input)
   const handlePickImageFromGallery = async () => {
-    setShowImageModal(false);
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
-        Alert.alert(
-          language === 'ku' ? 'مۆڵەت' : 'Permission Required',
-          language === 'ku' ? 'پێویستە مڵەت بدەیت بۆ گەیشتن بە گەلەریی مۆبایلەکەت.' : 'Gallery access permission is required.'
-        );
-        return;
-      }
-
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: true,
@@ -182,6 +154,10 @@ export default function PostsScreen() {
       }
     } catch (e) {
       console.warn('ImagePicker error:', e);
+      Alert.alert(
+        language === 'ku' ? 'هەڵە' : 'Error',
+        language === 'ku' ? 'نەتوانرا گەلەریی بكرێتەوە.' : 'Could not open photo gallery.'
+      );
     }
   };
 
@@ -443,16 +419,10 @@ export default function PostsScreen() {
             ) : null}
 
             <View style={[styles.createActionRow, { borderTopColor: themeColors.border }]}>
-              {/* Photo Button: Direct Gallery Pick */}
+              {/* Photo Upload Button: Direct Phone Gallery Picker (Exactly like Website) */}
               <TouchableOpacity style={[styles.mediaBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={handlePickImageFromGallery}>
                 <ImagePlus color="#4ade80" size={18} />
                 <Text style={[styles.mediaBtnText, { color: '#4ade80' }]}>{language === 'ku' ? 'وێنە' : 'Photo'}</Text>
-              </TouchableOpacity>
-
-              {/* Extra options modal trigger */}
-              <TouchableOpacity style={[styles.mediaBtn, { backgroundColor: themeColors.surfaceLight, marginLeft: 8 }]} onPress={() => setShowImageModal(true)}>
-                <FileImage color="#60a5fa" size={18} />
-                <Text style={[styles.mediaBtnText, { color: '#60a5fa' }]}>{language === 'ku' ? 'نموونەکان' : 'Presets'}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -480,81 +450,6 @@ export default function PostsScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* ── IMAGE SELECTION MODAL (Gallery + Presets + Link) ──────────────── */}
-      <Modal visible={showImageModal} transparent animationType="slide" onRequestClose={() => setShowImageModal(false)}>
-        <Pressable style={styles.modalOverlay} onPress={() => setShowImageModal(false)}>
-          <View style={[styles.imageModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-            <View style={styles.imageModalHeader}>
-              <Text style={[styles.imageModalTitle, { color: themeColors.text }]}>
-                {language === 'ku' ? 'هەڵبژاردنی وێنە' : 'Choose Photo'}
-              </Text>
-              <TouchableOpacity onPress={() => setShowImageModal(false)}>
-                <X color={themeColors.text} size={20} />
-              </TouchableOpacity>
-            </View>
-
-            {/* Direct Gallery Pick Button inside Modal */}
-            <TouchableOpacity style={styles.galleryPickBtn} onPress={handlePickImageFromGallery}>
-              <ImagePlus color="#fff" size={20} />
-              <Text style={styles.galleryPickBtnText}>
-                {language === 'ku' ? 'کردنەوەی گەلەریی مۆبایل 📱' : 'Open Phone Gallery 📱'}
-              </Text>
-            </TouchableOpacity>
-
-            {/* Custom Image URL Input */}
-            <Text style={{ color: themeColors.textSecondary, fontSize: 12, fontWeight: 'bold', marginVertical: 8 }}>
-              {language === 'ku' ? 'یان لینکی وێنە بنووسە:' : 'Or enter Image URL:'}
-            </Text>
-            <View style={[styles.urlInputRow, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}>
-              <LinkIcon size={16} color={themeColors.textSecondary} />
-              <TextInput
-                style={[styles.urlInput, { color: themeColors.text }]}
-                placeholder="https://..."
-                placeholderTextColor={themeColors.textMuted}
-                value={customImageUrl}
-                onChangeText={setCustomImageUrl}
-              />
-              {customImageUrl.trim() ? (
-                <TouchableOpacity
-                  style={styles.urlSubmitBtn}
-                  onPress={() => {
-                    setNewPostImage(customImageUrl.trim());
-                    setCustomImageUrl('');
-                    setShowImageModal(false);
-                  }}
-                >
-                  <Check size={16} color="#fff" />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-
-            {/* Preset Images Grid */}
-            <Text style={{ color: themeColors.textSecondary, fontSize: 12, fontWeight: 'bold', marginVertical: 10 }}>
-              {language === 'ku' ? 'وێنەی پێشنیارکراو:' : 'Sample Photos:'}
-            </Text>
-            <View style={styles.presetGrid}>
-              {PRESET_POST_IMAGES.map((imgUrl, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.presetCard}
-                  onPress={() => {
-                    setNewPostImage(imgUrl);
-                    setShowImageModal(false);
-                  }}
-                >
-                  <Image source={{ uri: imgUrl }} style={styles.presetImg} resizeMode="cover" />
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity style={[styles.closeModalBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={() => setShowImageModal(false)}>
-              <Text style={{ color: themeColors.text, fontWeight: 'bold' }}>{language === 'ku' ? 'داخستن' : 'Close'}</Text>
-            </TouchableOpacity>
-          </View>
-        </Pressable>
-      </Modal>
-
     </SafeAreaView>
   );
 }
@@ -636,6 +531,7 @@ const styles = StyleSheet.create({
   createActionRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: SPACING.md,
     paddingTop: SPACING.sm,
     borderTopWidth: 1,
@@ -660,7 +556,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 9,
     borderRadius: 12,
-    marginLeft: 'auto',
   },
   publishBtnDisabled: {
     opacity: 0.4,
@@ -799,86 +694,5 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     padding: 0,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  imageModalContent: {
-    width: '100%',
-    maxWidth: 360,
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 16,
-  },
-  imageModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  imageModalTitle: {
-    fontSize: 17,
-    fontWeight: 'bold',
-  },
-  galleryPickBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: COLORS.primary,
-    paddingVertical: 12,
-    borderRadius: 14,
-    marginBottom: 6,
-  },
-  galleryPickBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  urlInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    height: 44,
-    gap: 8,
-  },
-  urlInput: {
-    flex: 1,
-    fontSize: 13,
-  },
-  urlSubmitBtn: {
-    backgroundColor: COLORS.primary,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  presetGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  presetCard: {
-    width: '31%',
-    aspectRatio: 1,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  presetImg: {
-    width: '100%',
-    height: '100%',
-  },
-  closeModalBtn: {
-    marginTop: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
   },
 });
