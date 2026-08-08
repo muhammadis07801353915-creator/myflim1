@@ -317,7 +317,7 @@ export default function SearchScreen({ navigation }: any) {
         </ScrollView>
       </View>
 
-      {/* ── RESULTS GRID (RTL Dynamic 2-Column Grid) ──────── */}
+      {/* ── RESULTS GRID (Perfect Symmetrical 2-Column Grid) ──────── */}
       <FlatList
         data={isUnlocked ? results : []}
         renderItem={({ item }) => (
@@ -326,6 +326,7 @@ export default function SearchScreen({ navigation }: any) {
             onPress={handlePress} 
             width={CARD_WIDTH} 
             height={240}
+            style={{ marginRight: 0 }}
           />
         )}
         keyExtractor={(item) => String(item.id)}
@@ -356,7 +357,7 @@ export default function SearchScreen({ navigation }: any) {
           ) : null
         }
         contentContainerStyle={styles.listContent}
-        columnWrapperStyle={[styles.columnWrapper, isRTL && { flexDirection: 'row-reverse' }]}
+        columnWrapperStyle={styles.columnWrapper}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>

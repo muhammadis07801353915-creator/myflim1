@@ -10,15 +10,16 @@ interface MovieCardProps {
   onPress: (item: any) => void;
   width?: number;
   height?: number;
+  style?: any;
 }
 
-export default function MovieCard({ item, onPress, width = 140, height = 200 }: MovieCardProps) {
+export default function MovieCard({ item, onPress, width = 140, height = 200, style }: MovieCardProps) {
   const language = useAppStore(state => state.language);
   
   return (
     <TouchableOpacity 
       activeOpacity={0.8} 
-      style={[styles.container, { width }]} 
+      style={[styles.container, { width }, style]} 
       onPress={() => onPress(item)}
     >
       <View style={[styles.imageContainer, { height }]}>
