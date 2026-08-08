@@ -476,13 +476,13 @@ export default function ProfileScreen({ navigation }: any) {
                <Key size={22} color="#CC222F" />
             </View>
             <View style={styles.proTextContainer}>
-              <Text style={styles.proTitle}>
+              <Text style={[styles.proTitle, { color: '#ffffff', fontWeight: '900' }]}>
                 {isUnlocked 
                   ? (language === 'ku' ? 'کۆد چالاککراوە' : 'Code Activated') 
                   : (language === 'ku' ? 'داخڵکردنی کۆد' : 'Enter Code')
                 }
               </Text>
-              <Text style={[styles.proSubtitle, { color: theme === 'light' ? '#64748B' : 'rgba(255,255,255,0.55)' }]}>
+              <Text style={[styles.proSubtitle, { color: 'rgba(255,255,255,0.92)' }]}>
                 {isUnlocked 
                   ? (language === 'ku' ? 'سەرجەم بەشەکان بە سەرکەوتوویی کراونەتەوە' : 'All app sections successfully unlocked') 
                   : (language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکان' : 'Enter code to unlock all sections of the app')
