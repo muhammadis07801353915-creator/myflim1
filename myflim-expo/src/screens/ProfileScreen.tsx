@@ -23,6 +23,7 @@ import { COLORS, SPACING, SIZES, getColors } from '../theme/theme';
 import { useAppStore } from '../store/useAppStore';
 import { translations } from '../utils/translations';
 import { checkForAvailableUpdate, downloadAndInstallUpdate, getCurrentVersion, type AppUpdateInfo } from '../utils/appUpdate';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../api/supabase';
 import { 
   Crown, 
@@ -110,30 +111,96 @@ export default function ProfileScreen({ navigation }: any) {
     fetchAbout();
   }, []);
 
-  // Fetch Support Chat messages
+  // Fetch Support Chat messages (Synced with Admin Panel & Web app key 'taban_live_support_chats')
   useEffect(() => {
     if (!showChatModal) return;
+
+    const userName = user?.name || 'app_user';
+    const storageKey = `@myflim_chat_history_${userName}`;
+
+    const loadLocalMessages = async () => {
+      try {
+        const cached = await AsyncStorage.getItem(storageKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setChatMessages(parsed);
+          }
+        }
+      } catch (e) {
+        console.warn('Load local chat error:', e);
+      }
+    };
 
     const fetchChatMessages = async () => {
       try {
         const userName = user?.name || 'app_user';
-        const { data } = await supabase
+        let msgs: ChatMessage[] = [];
+
+        // 1. Fetch from settings table (taban_live_support_chats - read by Admin Panel)
+        const { data: setRes } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'taban_live_support_chats')
+          .maybeSingle();
+
+        if (setRes?.value) {
+          try {
+            const parsed = JSON.parse(setRes.value);
+            if (Array.isArray(parsed)) {
+              msgs = parsed.filter((m: any) =>
+                m.user_id === userName ||
+                m.user_name === userName
+              );
+            }
+          } catch (e) {
+            console.warn('Parse settings chat error:', e);
+          }
+        }
+
+        // 2. Fallback query support_messages table
+        const { data: suppData } = await supabase
           .from('support_messages')
           .select('*')
           .or(`user_name.eq.${userName},user_id.eq.${userName}`)
           .order('created_at', { ascending: true });
-        
-        if (data) {
-          setChatMessages(data);
+
+        if (suppData && suppData.length > 0) {
+          suppData.forEach((m: any) => {
+            if (!msgs.some(x => x.message === m.message && x.created_at === m.created_at)) {
+              msgs.push(m as ChatMessage);
+            }
+          });
+        }
+
+        msgs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        if (msgs.length > 0) {
+          setChatMessages(msgs);
+          await AsyncStorage.setItem(storageKey, JSON.stringify(msgs));
         }
       } catch (e) {
         console.warn('Fetch chat messages error:', e);
       }
     };
 
+    loadLocalMessages();
     fetchChatMessages();
-    const interval = setInterval(fetchChatMessages, 5000);
-    return () => clearInterval(interval);
+
+    const interval = setInterval(fetchChatMessages, 3000);
+
+    const channel = supabase
+      .channel(`mobile_support_chat_${userName}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'settings', filter: 'key=eq.taban_live_support_chats' },
+        () => fetchChatMessages()
+      )
+      .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, [showChatModal, user?.name]);
 
   const handleSendChat = async () => {
@@ -141,21 +208,57 @@ export default function ProfileScreen({ navigation }: any) {
     setSendingChat(true);
 
     const userName = user?.name || 'User';
-    const newMsg: ChatMessage = {
+    const messageText = chatInput.trim();
+    const newMsgObj: ChatMessage = {
+      id: 'msg_' + Date.now(),
       user_id: userName,
       user_name: userName,
       user_avatar: user?.image || DEFAULT_AVATARS[0],
-      message: chatInput.trim(),
+      message: messageText,
       sender: 'user',
       created_at: new Date().toISOString(),
     };
 
-    // Optimistic UI
-    setChatMessages(prev => [...prev, newMsg]);
-    const messageText = chatInput.trim();
     setChatInput('');
 
+    // Update local state and persistent AsyncStorage immediately
+    const storageKey = `@myflim_chat_history_${userName}`;
+    setChatMessages((prev) => {
+      const updated = [...prev, newMsgObj];
+      AsyncStorage.setItem(storageKey, JSON.stringify(updated)).catch(() => {});
+      return updated;
+    });
+
     try {
+      // 1. Fetch existing list from settings table
+      const { data: setRes } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'taban_live_support_chats')
+        .maybeSingle();
+
+      let existingList: any[] = [];
+      if (setRes?.value) {
+        try {
+          const parsed = JSON.parse(setRes.value);
+          if (Array.isArray(parsed)) existingList = parsed;
+        } catch (e) {}
+      }
+
+      existingList.push(newMsgObj);
+
+      // 2. Save back to settings table (Admin panel reads this!)
+      const jsonVal = JSON.stringify(existingList);
+      const { error } = await supabase
+        .from('settings')
+        .update({ value: jsonVal })
+        .eq('key', 'taban_live_support_chats');
+
+      if (error) {
+        await supabase.from('settings').insert([{ key: 'taban_live_support_chats', value: jsonVal }]);
+      }
+
+      // 3. Fallback insert to support_messages table
       await supabase.from('support_messages').insert([{
         user_id: userName,
         user_name: userName,
@@ -163,6 +266,7 @@ export default function ProfileScreen({ navigation }: any) {
         message: messageText,
         sender: 'user',
       }]);
+
     } catch (e) {
       console.error('Send chat error:', e);
     } finally {
