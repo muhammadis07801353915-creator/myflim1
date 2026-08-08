@@ -1,6 +1,6 @@
 'use client';
 
-import { Search as SearchIcon, Star, X, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { Search as SearchIcon, Star, X, ArrowUpDown } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useLanguage } from '../lib/LanguageContext';
@@ -8,7 +8,7 @@ import { useData } from '../lib/DataContext';
 import { getLocalized } from '../lib/translations';
 
 export default function Search({ onSelect }: { onSelect: (item: any) => void }) {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const { movies, channels, loading } = useData();
   const [query, setQuery] = useState('');
   const [activeType, setActiveType] = useState('All');
@@ -170,10 +170,10 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           <button
             key={t.id}
             onClick={() => setActiveType(t.id)}
-            className={`px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+            className={`px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${
               activeType === t.id 
-                ? 'bg-[#CC222F] text-white shadow-lg shadow-red-600/25' 
-                : 'bg-white/7 light-mode:bg-neutral-100 border border-white/8 light-mode:border-neutral-200 text-white/60 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black'
+                ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-lg shadow-red-600/25' 
+                : 'bg-[#1a1d24] light-mode:bg-neutral-200 border-neutral-700/50 light-mode:border-neutral-300 text-neutral-300 light-mode:text-neutral-900 hover:text-white light-mode:hover:text-black'
             }`}
           >
             {t.label}
@@ -187,10 +187,10 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           <button
             key={g.id}
             onClick={() => setActiveGenre(g.id)}
-            className={`px-4 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
+            className={`px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
               activeGenre === g.id 
-                ? 'bg-[#CC222F]/20 border-[#CC222F]/60 text-[#CC222F]' 
-                : 'bg-white/4 light-mode:bg-neutral-100 border-white/6 light-mode:border-neutral-200 text-white/45 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black'
+                ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-md' 
+                : 'bg-[#1a1d24] light-mode:bg-neutral-200 border-neutral-700/50 light-mode:border-neutral-300 text-neutral-300 light-mode:text-neutral-900 hover:text-white light-mode:hover:text-black'
             }`}
           >
             {g.label}
@@ -204,10 +204,10 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           <button
             key={y.id}
             onClick={() => setActiveYear(y.id)}
-            className={`px-3.5 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
               activeYear === y.id 
-                ? 'bg-amber-500/20 border-amber-500/60 text-amber-400' 
-                : 'bg-white/4 light-mode:bg-neutral-100 border-white/6 light-mode:border-neutral-200 text-white/40 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black'
+                ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-md' 
+                : 'bg-[#1a1d24] light-mode:bg-neutral-200 border-neutral-700/50 light-mode:border-neutral-300 text-neutral-300 light-mode:text-neutral-900 hover:text-white light-mode:hover:text-black'
             }`}
           >
             {y.label}
@@ -226,7 +226,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
         {/* Sort Button */}
         <button
           onClick={() => setSortBy(prev => prev === 'newest' ? 'rating' : prev === 'rating' ? 'popular' : 'newest')}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/7 light-mode:bg-neutral-100 border border-white/8 light-mode:border-neutral-200 text-xs font-bold text-white/70 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1a1d24] light-mode:bg-neutral-200 border border-neutral-700/50 light-mode:border-neutral-300 text-xs font-bold text-neutral-300 light-mode:text-neutral-900 hover:text-white light-mode:hover:text-black transition"
         >
           <ArrowUpDown size={14} className="text-[#CC222F]" />
           <span>
