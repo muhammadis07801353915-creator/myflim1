@@ -188,7 +188,7 @@ export default function SearchScreen({ navigation }: any) {
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
       
-      {/* ── SEARCH HEADER BAR ─────────────────────────────────────── */}
+      {/* ── SEARCH HEADER BAR (RTL Dynamic) ───────────────────────── */}
       <View style={[styles.header, isRTL && { flexDirection: 'row-reverse' }]}>
         <View style={[styles.searchBar, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}>
           <SearchIcon size={20} color={themeColors.textSecondary} />
@@ -221,9 +221,9 @@ export default function SearchScreen({ navigation }: any) {
       </View>
 
       {/* ── TYPE FILTER PILLS ─────── */}
-      <View style={{ marginBottom: 8 }}>
+      <View style={{ marginBottom: 4 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
-          {(isRTL ? [...typeOptions].reverse() : typeOptions).map((type) => (
+          {typeOptions.map((type) => (
             <TouchableOpacity
               key={type.id}
               style={[
@@ -243,9 +243,9 @@ export default function SearchScreen({ navigation }: any) {
       </View>
 
       {/* ── GENRE FILTER PILLS ────────────────────────────────────── */}
-      <View style={{ marginBottom: 8 }}>
+      <View style={{ marginBottom: 4 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
-          {(isRTL ? [...genresList].reverse() : genresList).map((g) => (
+          {genresList.map((g) => (
             <TouchableOpacity
               key={g.id}
               style={[
@@ -265,20 +265,20 @@ export default function SearchScreen({ navigation }: any) {
       </View>
 
       {/* ── YEAR FILTER PILLS ─────────────────────────────────────── */}
-      <View style={{ marginBottom: 12 }}>
+      <View style={{ marginBottom: 4 }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
-          {(isRTL ? [...yearsList].reverse() : yearsList).map((y) => (
+          {yearsList.map((y) => (
             <TouchableOpacity
               key={y.id}
               style={[
                 styles.genrePill, 
                 { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border },
-                activeYear === y.id && { backgroundColor: 'rgba(245, 158, 11, 0.2)', borderColor: 'rgba(245, 158, 11, 0.5)' }
+                activeYear === y.id && styles.genrePillActive
               ]}
               onPress={() => setActiveYear(y.id)}
               activeOpacity={0.8}
             >
-              <Text style={[styles.genrePillText, { color: themeColors.textSecondary }, activeYear === y.id && { color: '#fbbf24', fontWeight: 'bold' }]}>
+              <Text style={[styles.genrePillText, { color: themeColors.textSecondary }, activeYear === y.id && styles.genrePillTextActive]}>
                 {y.label}
               </Text>
             </TouchableOpacity>
@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 6,
   },
   searchBar: {
     flex: 1,
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   typePillTextActive: {
-    color: '#fff',
+    color: '#ffffff',
   },
   genrePill: {
     paddingHorizontal: 14,
@@ -460,27 +460,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   genrePillActive: {
-    backgroundColor: 'rgba(204, 34, 47, 0.2)',
-    borderColor: 'rgba(204, 34, 47, 0.5)',
+    backgroundColor: '#CC222F',
+    borderColor: '#CC222F',
   },
   genrePillText: {
     fontSize: 12,
     fontWeight: '600',
   },
   genrePillTextActive: {
-    color: '#CC222F',
+    color: '#ffffff',
     fontWeight: 'bold',
   },
   listContent: {
     paddingHorizontal: SPACING.md,
-    paddingBottom: 100,
+    paddingBottom: 40,
   },
   listHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 4,
+    marginBottom: 8,
+    marginTop: 2,
   },
   listHeader: {
     fontSize: 17,
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
   },
   emptyContainer: {
-    marginTop: 80,
+    marginTop: 40,
     alignItems: 'center',
   },
   emptyText: {
