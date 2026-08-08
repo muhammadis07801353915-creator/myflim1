@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -137,9 +137,48 @@ export default function HomeScreen({ navigation }: any) {
         (a) =>
           a.genre?.includes('Anime') ||
           a.genre?.includes('Animation') ||
-          a.type === 'Anime'
+          a.type === 'Anime' ||
+          a.list_name?.includes('کارتۆن') ||
+          a.list_name?.includes('ئەنیمەیشن')
       )
     : [];
+
+  // Dynamically compute ALL movie lists present in database (Kurdish Cartoons, Kurdish Dubbed, etc.)
+  const allDynamicLists = useMemo(() => {
+    if (!isUnlocked) return [];
+    const map = new Map<string, any[]>();
+
+    // 1. Add lists from categories (movie_lists table)
+    (categories || []).forEach((cat: any) => {
+      const title = getLocalized(cat, 'name', language) || cat.name || '';
+      if (!title) return;
+
+      const matched = movies.filter(
+        (m) =>
+          m.list_name === cat.name ||
+          m.category === cat.name ||
+          (m.list_name && m.list_name.includes(cat.name)) ||
+          (m.genre && m.genre.includes(cat.name))
+      );
+
+      if (matched.length > 0) {
+        map.set(title, matched);
+      }
+    });
+
+    // 2. Add any other custom list_name present in movies database
+    movies.forEach((m) => {
+      const listName = m.list_name;
+      if (listName && !map.has(listName)) {
+        const matched = movies.filter((x) => x.list_name === listName);
+        if (matched.length > 0) {
+          map.set(listName, matched);
+        }
+      }
+    });
+
+    return Array.from(map.entries());
+  }, [categories, movies, isUnlocked, language]);
 
   const onRefresh = () => fetchInitialData();
   const handlePress = (item: any) => navigation.navigate('Detail', { item });
@@ -395,23 +434,15 @@ export default function HomeScreen({ navigation }: any) {
               )
             : null}
 
-          {/* ── CATEGORIES SECTIONS ───────────────────────────────── */}
-          {categories.map((cat: any) => {
-            const catMovies = isUnlocked
-              ? movies.filter(
-                  (m) =>
-                    m.category === cat.name ||
-                    m.genre?.includes(cat.name) ||
-                    (Array.isArray(m.genre) && m.genre.includes(cat.name))
-                )
-              : [];
-
-            if (catMovies.length === 0) return null;
+          {/* ── ALL DYNAMIC MOVIE LISTS (Kurdish Dubbed Movies, Cartoons, Dubbed Series, etc.) ──── */}
+          {allDynamicLists.map(([listTitle, listMovies]) => {
+            if (!isUnlocked || listMovies.length === 0) return null;
 
             return renderSection(
-              getLocalized(cat, 'name', language) || cat.name,
-              catMovies.slice(0, 15),
-              catMovies
+              listTitle,
+              listMovies.slice(0, 15),
+              listMovies,
+              listTitle
             );
           })}
         </View>
