@@ -19,6 +19,7 @@ import { Search as SearchIcon, X, SlidersHorizontal, Check, ArrowUpDown } from '
 import { translations } from '../utils/translations';
 
 const { width } = Dimensions.get('window');
+const CARD_WIDTH = (width - 44) / 2; // Symmetrical 16px outer padding + 12px center gap
 
 export default function SearchScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -222,7 +223,7 @@ export default function SearchScreen({ navigation }: any) {
 
       {/* ── TYPE FILTER PILLS ─────── */}
       <View style={{ marginBottom: 6 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
           {typeOptions.map((type) => (
             <TouchableOpacity
               key={type.id}
@@ -244,7 +245,7 @@ export default function SearchScreen({ navigation }: any) {
 
       {/* ── GENRE FILTER PILLS ────────────────────────────────────── */}
       <View style={{ marginBottom: 6 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
           {genresList.map((g) => (
             <TouchableOpacity
               key={g.id}
@@ -266,7 +267,7 @@ export default function SearchScreen({ navigation }: any) {
 
       {/* ── YEAR FILTER PILLS ─────────────────────────────────────── */}
       <View style={{ marginBottom: 6 }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.pillsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsScroll}>
           {yearsList.map((y) => (
             <TouchableOpacity
               key={y.id}
@@ -286,14 +287,14 @@ export default function SearchScreen({ navigation }: any) {
         </ScrollView>
       </View>
 
-      {/* ── RESULTS GRID ──────────────────────────────────────────── */}
+      {/* ── RESULTS GRID (Symmetrical Centered 2-Column Grid) ──────── */}
       <FlatList
         data={isUnlocked ? results : []}
         renderItem={({ item }) => (
           <MovieCard 
             item={item} 
             onPress={handlePress} 
-            width={(width - SPACING.md * 3) / 2} 
+            width={CARD_WIDTH} 
             height={240}
           />
         )}
@@ -325,7 +326,7 @@ export default function SearchScreen({ navigation }: any) {
           ) : null
         }
         contentContainerStyle={styles.listContent}
-        columnWrapperStyle={[styles.columnWrapper, isRTL && { flexDirection: 'row-reverse' }]}
+        columnWrapperStyle={styles.columnWrapper}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
@@ -480,7 +481,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   listContent: {
-    paddingHorizontal: SPACING.md,
+    paddingHorizontal: 16,
     paddingBottom: 40,
   },
   listHeaderRow: {

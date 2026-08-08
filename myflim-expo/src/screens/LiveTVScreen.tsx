@@ -252,7 +252,7 @@ export default function LiveTVScreen({ navigation }: any) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
 
         {/* ── CATEGORY TABS ──────────────────────────────────────────── */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[s.tabsScroll, isRTL && { flexDirection: 'row-reverse' }]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabsScroll}>
           {tabs.map((tab) => (
             <TouchableOpacity
               key={tab.id}
