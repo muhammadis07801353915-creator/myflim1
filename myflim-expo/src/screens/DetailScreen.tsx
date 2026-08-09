@@ -382,7 +382,7 @@ export default function DetailScreen({ route, navigation }: any) {
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       
       <ScrollView ref={scrollRef} bounces={false}>
-        <View style={styles.headerContainer}>
+        <View style={[styles.headerContainer, isPlaying && { marginTop: insets.top + 14 }]}>
           {isPlaying && activeVideoUrl ? (
             isDirectVideo ? (
               <Video
@@ -460,7 +460,7 @@ export default function DetailScreen({ route, navigation }: any) {
           )}
           
           <TouchableOpacity 
-            style={[styles.backButton, { top: insets.top + 10 }]}
+            style={[styles.backButton, { top: isPlaying ? 10 : insets.top + 10 }]}
             onPress={() => navigation.goBack()}
           >
             <ChevronLeft color="white" size={28} />
