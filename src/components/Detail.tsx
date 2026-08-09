@@ -443,15 +443,15 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         )}
       </div>
 
-      <div className="px-5 pt-6 relative z-30 max-w-4xl mx-auto" style={{ direction: 'ltr', textAlign: 'left' }}>
+      <div className="px-5 pt-6 relative z-30 max-w-4xl mx-auto" style={{ direction: language === 'ku' || language === 'ar' ? 'rtl' : 'ltr', textAlign: language === 'ku' || language === 'ar' ? 'right' : 'left' }}>
         <h1 
           className="text-2xl sm:text-3xl font-black mb-2 text-white light-mode:text-black tracking-tight"
-          style={{ textAlign: 'left' }}
+          style={{ textAlign: language === 'ku' || language === 'ar' ? 'right' : 'left' }}
         >
           {item.title || getLocalized(item, 'title', language)}
         </h1>
 
-        <div className="flex items-center space-x-4 text-xs sm:text-sm mb-6 text-neutral-300 light-mode:text-neutral-600 font-bold justify-start" style={{ direction: 'ltr' }}>
+        <div className="flex items-center gap-4 text-xs sm:text-sm mb-6 text-neutral-300 light-mode:text-neutral-600 font-bold" style={{ direction: language === 'ku' || language === 'ar' ? 'rtl' : 'ltr', justifyContent: 'flex-start' }}>
           <span className="flex items-center text-neutral-400 light-mode:text-neutral-600 gap-1.5">
             <Calendar size={14} className="text-neutral-400 light-mode:text-neutral-600" />
             <span>{item.year}</span>

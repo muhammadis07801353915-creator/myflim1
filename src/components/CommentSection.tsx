@@ -154,7 +154,7 @@ export default function CommentSection({ movieId }: { movieId: string }) {
 
   return (
     <div className="mt-10 border-t border-neutral-800 light-mode:border-neutral-200 pt-8 pb-32">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-8" style={{ direction: language === 'ku' || language === 'ar' ? 'rtl' : 'ltr' }}>
         <h3 className="text-2xl font-bold text-white light-mode:text-black">
           {language === 'ku' ? 'کۆمێنتەکان' : language === 'ar' ? 'التعليقات' : 'Comments'}
         </h3>
@@ -246,7 +246,7 @@ export default function CommentSection({ movieId }: { movieId: string }) {
               className="w-11 h-11 rounded-2xl bg-[#CC222F] hover:bg-red-700 flex items-center justify-center text-white shadow-lg shrink-0 transition"
               title={language === 'ku' ? 'ناردن' : 'Send'}
             >
-              <Send size={18} className="rtl:rotate-180" />
+              <Send size={18} className="rtl:rotate-180 text-white" style={{ color: '#ffffff' }} />
             </button>
           </div>
         </div>
