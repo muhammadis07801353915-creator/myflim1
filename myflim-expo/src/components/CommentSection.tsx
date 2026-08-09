@@ -8,6 +8,7 @@ import { Send, User, MessageSquare, Save, ChevronRight, Pencil } from 'lucide-re
 import { supabase } from '../api/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppStore } from '../store/useAppStore';
+import { getColors } from '../theme/theme';
 
 interface Comment {
   id: string; user_id: string; content: string; created_at: string;
@@ -48,7 +49,9 @@ export default function CommentSection({ movieId }: Props) {
   const [showEdit, setShowEdit] = useState(false);
   const [editName, setEditName] = useState('');
 
-  const { user: storeUser, language } = useAppStore();
+  const { user: storeUser, language, theme } = useAppStore();
+  const themeColors = getColors(theme);
+  const isRTL = language === 'ku' || language === 'ar';
 
   useEffect(() => {
     checkUser();
@@ -213,7 +216,7 @@ export default function CommentSection({ movieId }: Props) {
     const avatarUrl = item.profiles?.avatar_url;
 
     return (
-      <View style={styles.commentItem}>
+      <View style={[styles.commentItem, isRTL && { flexDirection: 'row-reverse' }]}>
         {avatarUrl ? (
           <Image source={{ uri: avatarUrl }} style={styles.avatarCircle} />
         ) : (
@@ -222,12 +225,16 @@ export default function CommentSection({ movieId }: Props) {
           </View>
         )}
         <View style={styles.commentBody}>
-          <View style={styles.commentMeta}>
-            <Text style={styles.commentAuthor}>{name}</Text>
-            <Text style={styles.commentTime}>{formatTime(item.created_at)}</Text>
+          <View style={[styles.commentMeta, isRTL && { flexDirection: 'row-reverse' }]}>
+            <Text style={[styles.commentAuthor, { color: themeColors.text }]}>{name}</Text>
+            <Text style={[styles.commentTime, { color: themeColors.textMuted }]}>{formatTime(item.created_at)}</Text>
           </View>
-          <View style={styles.commentBubble}>
-            <Text style={styles.commentText}>{item.content}</Text>
+          <View style={[
+            styles.commentBubble,
+            { backgroundColor: themeColors.surfaceLight },
+            isRTL ? { borderTopRightRadius: 3, borderTopLeftRadius: 14 } : { borderTopLeftRadius: 3, borderTopRightRadius: 14 }
+          ]}>
+            <Text style={[styles.commentText, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{item.content}</Text>
           </View>
         </View>
       </View>
@@ -235,14 +242,16 @@ export default function CommentSection({ movieId }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { borderTopColor: themeColors.border }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
+      <View style={[styles.header, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View style={[styles.headerLeft, isRTL && { flexDirection: 'row-reverse' }]}>
           <MessageSquare size={20} color="#E53935" />
-          <Text style={styles.headerTitle}>Comments</Text>
+          <Text style={[styles.headerTitle, { color: themeColors.text }]}>
+            {language === 'ku' ? 'کۆمێنتەکان' : language === 'ar' ? 'التعليقات' : 'Comments'}
+          </Text>
         </View>
-        <Text style={styles.commentCount}>{comments.length}</Text>
+        <Text style={[styles.commentCount, { color: themeColors.textSecondary, backgroundColor: themeColors.surfaceLight }]}>{comments.length}</Text>
       </View>
 
       {/* List */}
@@ -250,19 +259,21 @@ export default function CommentSection({ movieId }: Props) {
         ? <View style={styles.center}><ActivityIndicator color="#E53935" /></View>
         : comments.length === 0
           ? <View style={styles.empty}>
-              <MessageSquare size={36} color="#2a2a35" />
-              <Text style={styles.emptyText}>No comments yet. Be the first!</Text>
+              <MessageSquare size={36} color={themeColors.textMuted} />
+              <Text style={[styles.emptyText, { color: themeColors.textMuted }]}>
+                {language === 'ku' ? 'هیچ کۆمێنتێک نییە. یەکەم کەس بنووسە!' : language === 'ar' ? 'لا توجد تعليقات بعد. كن الأول!' : 'No comments yet. Be the first!'}
+              </Text>
             </View>
           : <FlatList data={comments} renderItem={renderComment}
               keyExtractor={i => i.id} scrollEnabled={false}
               contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }} />}
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: themeColors.border }]} />
 
       {/* User bar */}
       {user && (
-        <View style={styles.userBar}>
-          <TouchableOpacity style={styles.userLeft}
+        <View style={[styles.userBar, isRTL && { flexDirection: 'row-reverse' }]}>
+          <TouchableOpacity style={[styles.userLeft, isRTL && { flexDirection: 'row-reverse' }]}
             onPress={() => { setEditName(displayName); setShowEdit(true); }}>
             {storeUser?.image ? (
               <Image source={{ uri: storeUser.image }} style={styles.userAvatar} />
@@ -271,39 +282,49 @@ export default function CommentSection({ movieId }: Props) {
                 <Text style={styles.userAvatarLetter}>{displayName[0]?.toUpperCase()}</Text>
               </View>
             )}
-            <Text style={styles.userBarName}>{displayName}</Text>
-            <Pencil size={13} color="#555" />
+            <Text style={[styles.userBarName, { color: themeColors.textSecondary }]}>{displayName}</Text>
+            <Pencil size={13} color={themeColors.textMuted} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleSignOut}>
-            <Text style={styles.signOut}>Sign Out</Text>
+            <Text style={styles.signOut}>{language === 'ku' ? 'چوونەدەرەوە' : language === 'ar' ? 'تسجيل الخروج' : 'Sign Out'}</Text>
           </TouchableOpacity>
         </View>
       )}
 
       {/* Input */}
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View style={styles.inputRow}>
-          <TouchableOpacity style={[styles.inputAvatar, { backgroundColor: user ? avatarColor(displayName) : '#2a2a35', overflow: 'hidden' }]}
+        <View style={[styles.inputRow, isRTL && { flexDirection: 'row-reverse' }]}>
+          <TouchableOpacity style={[styles.inputAvatar, { backgroundColor: user ? avatarColor(displayName) : themeColors.surfaceLight, overflow: 'hidden' }]}
             onPress={() => !user && setShowLogin(true)}>
             {storeUser?.image ? (
               <Image source={{ uri: storeUser.image }} style={{ width: 36, height: 36, borderRadius: 18 }} />
             ) : user ? (
               <Text style={styles.avatarLetter}>{displayName[0]?.toUpperCase()}</Text>
             ) : (
-              <User size={16} color="#666" />
+              <User size={16} color={themeColors.textMuted} />
             )}
           </TouchableOpacity>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: themeColors.surfaceLight,
+                borderColor: themeColors.border,
+                color: themeColors.text,
+              },
+              isRTL && { textAlign: 'right' }
+            ]}
             value={newComment} onChangeText={setNewComment}
-            placeholder={user ? `Write a comment as ${displayName}...` : 'Pick a name to comment...'}
-            placeholderTextColor="#555"
+            placeholder={user 
+              ? (language === 'ku' ? `کۆمێنتێک بنووسە وەک ${displayName}...` : language === 'ar' ? `اكتب تعليقاً باسم ${displayName}...` : `Write a comment as ${displayName}...`) 
+              : (language === 'ku' ? 'ناوێک هەڵبژێرە بۆ کۆمێنت...' : language === 'ar' ? 'اختر اسماً للتعليق...' : 'Pick a name to comment...')}
+            placeholderTextColor={themeColors.textMuted}
             onFocus={() => { if (!user) setShowLogin(true); }}
           />
           <TouchableOpacity
             style={[styles.sendBtn, (!newComment.trim() || sending) && { opacity: 0.35 }]}
             onPress={handleSendComment} disabled={sending || !newComment.trim()}>
-            {sending ? <ActivityIndicator size="small" color="white" /> : <Send size={15} color="white" />}
+            {sending ? <ActivityIndicator size="small" color="white" /> : <Send size={15} color="#ffffff" />}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -311,25 +332,25 @@ export default function CommentSection({ movieId }: Props) {
       {/* ══ LOGIN MODAL ══ */}
       <Modal visible={showLogin} transparent animationType="slide"
         onRequestClose={() => setShowLogin(false)}>
-        <Pressable style={styles.overlay} onPress={() => setShowLogin(false)}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
-            <View style={styles.handle} />
+        <Pressable style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.6)' }]} onPress={() => setShowLogin(false)}>
+          <Pressable style={[styles.sheet, { backgroundColor: themeColors.surface }]} onPress={() => {}}>
+            <View style={[styles.handle, { backgroundColor: themeColors.border }]} />
 
             {/* Big avatar preview */}
-            <View style={[styles.bigAvatar, { backgroundColor: nameInput ? avatarColor(nameInput) : '#2a2a35' }]}>
-              <Text style={styles.bigAvatarLetter}>
+            <View style={[styles.bigAvatar, { backgroundColor: nameInput ? avatarColor(nameInput) : themeColors.surfaceLight }]}>
+              <Text style={[styles.bigAvatarLetter, { color: themeColors.text }]}>
                 {nameInput ? nameInput[0].toUpperCase() : '?'}
               </Text>
             </View>
 
-            <Text style={styles.sheetTitle}>Choose your Name</Text>
-            <Text style={styles.sheetSub}>This name will appear next to your comments.</Text>
+            <Text style={[styles.sheetTitle, { color: themeColors.text }]}>Choose your Name</Text>
+            <Text style={[styles.sheetSub, { color: themeColors.textSecondary }]}>This name will appear next to your comments.</Text>
 
             <TextInput
-              style={styles.nameInput}
+              style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border, color: themeColors.text }]}
               value={nameInput} onChangeText={setNameInput}
               placeholder="e.g. Kurd Cinema"
-              placeholderTextColor="#555"
+              placeholderTextColor={themeColors.textMuted}
               maxLength={24}
               autoFocus
             />
@@ -349,7 +370,7 @@ export default function CommentSection({ movieId }: Props) {
 
             <TouchableOpacity style={styles.cancelTouchable}
               onPress={() => { setShowLogin(false); setAuthMsg(''); }}>
-              <Text style={styles.cancelTxt}>Cancel</Text>
+              <Text style={[styles.cancelTxt, { color: themeColors.textSecondary }]}>Cancel</Text>
             </TouchableOpacity>
           </Pressable>
         </Pressable>
@@ -358,15 +379,15 @@ export default function CommentSection({ movieId }: Props) {
       {/* ══ EDIT NAME MODAL ══ */}
       <Modal visible={showEdit} transparent animationType="slide"
         onRequestClose={() => setShowEdit(false)}>
-        <Pressable style={styles.overlay} onPress={() => setShowEdit(false)}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
-            <View style={styles.handle} />
-            <Text style={styles.sheetTitle}>Change Name</Text>
+        <Pressable style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.6)' }]} onPress={() => setShowEdit(false)}>
+          <Pressable style={[styles.sheet, { backgroundColor: themeColors.surface }]} onPress={() => {}}>
+            <View style={[styles.handle, { backgroundColor: themeColors.border }]} />
+            <Text style={[styles.sheetTitle, { color: themeColors.text }]}>Change Name</Text>
             <TextInput
-              style={styles.nameInput}
+              style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border, color: themeColors.text }]}
               value={editName} onChangeText={setEditName}
               placeholder="New name..."
-              placeholderTextColor="#555"
+              placeholderTextColor={themeColors.textMuted}
               autoFocus maxLength={24}
             />
             <TouchableOpacity style={styles.loginBtn} onPress={handleSaveName}>
@@ -374,7 +395,7 @@ export default function CommentSection({ movieId }: Props) {
               <Text style={[styles.loginBtnTxt, { marginLeft: 8 }]}>Save</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.cancelTouchable} onPress={() => setShowEdit(false)}>
-              <Text style={styles.cancelTxt}>Cancel</Text>
+              <Text style={[styles.cancelTxt, { color: themeColors.textSecondary }]}>Cancel</Text>
             </TouchableOpacity>
           </Pressable>
         </Pressable>

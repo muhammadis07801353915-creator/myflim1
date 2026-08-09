@@ -13,7 +13,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS, SPACING, SIZES } from '../theme/theme';
+import { COLORS, SPACING, SIZES, getColors } from '../theme/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, Play, Bookmark, Share2, Star, Clock, Calendar, Users, X, Server, Eye } from 'lucide-react-native';
 import { Video, ResizeMode } from 'expo-av';
@@ -31,7 +31,9 @@ export default function DetailScreen({ route, navigation }: any) {
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const serversRef = useRef<View>(null);
-  const { incrementViews, toggleWatchlist, watchlist, language, liveTv, saveWatchProgress } = useAppStore();
+  const { incrementViews, toggleWatchlist, watchlist, language, liveTv, saveWatchProgress, theme } = useAppStore();
+  const themeColors = getColors(theme);
+  const isRTL = language === 'ku' || language === 'ar';
   const t = translations[language];
   const [activeChannel, setActiveChannel] = useState(item);
   const [realLiveViewers, setRealLiveViewers] = useState<number>(1);
@@ -267,7 +269,7 @@ export default function DetailScreen({ route, navigation }: any) {
     const liveVideoUrl = activeChannel.stream_url || item.stream_url;
 
     return (
-      <View style={[styles.container, { backgroundColor: '#0B0C10' }]}>
+      <View style={[styles.container, { backgroundColor: themeColors.background }]}>
         <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
         
         <View style={styles.liveVideoContainer}>
@@ -295,17 +297,17 @@ export default function DetailScreen({ route, navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.liveInfoContainer}>
+        <View style={[styles.liveInfoContainer, { borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}>
           <View style={styles.liveInfoLeft}>
-            <Text style={styles.liveTitle}>{activeChannel.name || getLocalized(item, 'title', language)}</Text>
-            <Text style={styles.liveCategory}>{activeChannel.category || item.category || 'Live TV'}</Text>
+            <Text style={[styles.liveTitle, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{activeChannel.name || getLocalized(item, 'title', language)}</Text>
+            <Text style={[styles.liveCategory, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>{activeChannel.category || item.category || 'Live TV'}</Text>
           </View>
           
-          <TouchableOpacity style={styles.livePresenceButton}>
+          <TouchableOpacity style={[styles.livePresenceButton, isRTL && { flexDirection: 'row-reverse' }]}>
             <Users size={16} color="#E53935" />
             <Text style={styles.livePresenceText}>LIVE</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>•</Text>
-            <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{realLiveViewers.toLocaleString()}</Text>
+            <Text style={{ color: themeColors.textMuted, fontSize: 11 }}>•</Text>
+            <Text style={{ color: themeColors.text, fontSize: 12, fontWeight: '700' }}>{realLiveViewers.toLocaleString()}</Text>
           </TouchableOpacity>
         </View>
 
@@ -319,10 +321,10 @@ export default function DetailScreen({ route, navigation }: any) {
           return (
             <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 60 }}>
               <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 12 }}>
-                <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>
+                <Text style={{ color: themeColors.text, fontSize: 16, fontWeight: 'bold' }}>
                   {language === 'ku' ? `کەناڵەکانی (${activeCatName})` : language === 'ar' ? `قنوات (${activeCatName})` : `(${activeCatName}) Channels`}
                 </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
+                <Text style={{ color: themeColors.textMuted, fontSize: 12 }}>
                   {displayChannels.length} {language === 'ku' ? 'کەناڵ' : language === 'ar' ? 'قناة' : 'channels'}
                 </Text>
               </View>
@@ -339,9 +341,9 @@ export default function DetailScreen({ route, navigation }: any) {
                         justifyContent: 'space-between',
                         padding: 12,
                         borderRadius: 14,
-                        backgroundColor: isCurrent ? 'rgba(229, 57, 53, 0.18)' : '#14151C',
+                        backgroundColor: isCurrent ? 'rgba(229, 57, 53, 0.18)' : themeColors.surface,
                         borderWidth: 1,
-                        borderColor: isCurrent ? '#E53935' : 'rgba(255,255,255,0.06)',
+                        borderColor: isCurrent ? '#E53935' : themeColors.border,
                       }}
                       onPress={() => {
                         setActiveChannel(ch);
@@ -355,8 +357,8 @@ export default function DetailScreen({ route, navigation }: any) {
                           resizeMode="cover" 
                         />
                         <View style={{ alignItems: isRTL ? 'flex-end' : 'flex-start' }}>
-                          <Text style={{ color: 'white', fontWeight: '700', fontSize: 15 }}>{ch.name}</Text>
-                          <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 2 }}>{ch.category || 'Live TV'}</Text>
+                          <Text style={{ color: themeColors.text, fontWeight: '700', fontSize: 15 }}>{ch.name}</Text>
+                          <Text style={{ color: themeColors.textMuted, fontSize: 12, marginTop: 2 }}>{ch.category || 'Live TV'}</Text>
                         </View>
                       </View>
                       {isCurrent ? (
@@ -364,7 +366,7 @@ export default function DetailScreen({ route, navigation }: any) {
                           <Text style={{ color: 'white', fontSize: 11, fontWeight: 'bold' }}>Playing</Text>
                         </View>
                       ) : (
-                        <Play size={16} color="rgba(255,255,255,0.4)" />
+                        <Play size={16} color={themeColors.textMuted} />
                       )}
                     </TouchableOpacity>
                   );
@@ -378,10 +380,10 @@ export default function DetailScreen({ route, navigation }: any) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.background }]}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       
-      <ScrollView ref={scrollRef} bounces={false}>
+      <ScrollView ref={scrollRef} bounces={false} style={{ backgroundColor: themeColors.background }}>
         <View style={[styles.headerContainer, isPlaying && { marginTop: insets.top + 14 }]}>
           {isPlaying && activeVideoUrl ? (
             isDirectVideo ? (
@@ -454,7 +456,7 @@ export default function DetailScreen({ route, navigation }: any) {
 
           {!isPlaying && (
             <LinearGradient
-              colors={['rgba(10,10,10,0.7)', 'transparent', '#0a0a0a']}
+              colors={theme === 'light' ? ['rgba(248,250,252,0.4)', 'transparent', '#F8FAFC'] : ['rgba(10,10,10,0.7)', 'transparent', '#0a0a0a']}
               style={styles.gradient}
             />
           )}
@@ -472,45 +474,45 @@ export default function DetailScreen({ route, navigation }: any) {
         </View>
 
         <View style={styles.contentContainer}>
-          <View style={styles.mainInfo}>
+          <View style={[styles.mainInfo, isRTL && { flexDirection: 'row-reverse' }]}>
             <View style={{ flex: 1 }}>
-               <Text style={styles.title}>{getLocalized(item, 'title', language)}</Text>
-               <View style={styles.metaRow}>
-                 <View style={styles.metaItem}>
-                   <Calendar size={14} color="#888" />
-                   <Text style={styles.metaText}>{item.year}</Text>
+               <Text style={[styles.title, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{getLocalized(item, 'title', language)}</Text>
+               <View style={[styles.metaRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                 <View style={[styles.metaItem, isRTL && { flexDirection: 'row-reverse' }]}>
+                   <Calendar size={14} color={themeColors.textSecondary} />
+                   <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>{item.year}</Text>
                  </View>
-                 <View style={styles.metaItem}>
+                 <View style={[styles.metaItem, isRTL && { flexDirection: 'row-reverse' }]}>
                    <Star size={14} color="#fbbf24" fill="#fbbf24" />
-                   <Text style={styles.metaText}>{item.rating}</Text>
+                   <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>{item.rating}</Text>
                  </View>
-                 <View style={styles.metaItem}>
-                   <Eye size={14} color="#888" />
-                   <Text style={styles.metaText}>{viewCount}</Text>
+                 <View style={[styles.metaItem, isRTL && { flexDirection: 'row-reverse' }]}>
+                   <Eye size={14} color={themeColors.textSecondary} />
+                   <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>{viewCount}</Text>
                  </View>
                </View>
             </View>
           </View>
 
-          <View style={[styles.actionRow, { flexDirection: language === 'ku' || language === 'ar' ? 'row-reverse' : 'row' }]}>
-            <TouchableOpacity style={styles.mainPlayButton} onPress={handleWatchNow}>
-              <Play size={20} color="black" fill="black" />
-              <Text style={styles.mainPlayText}>{t.watchNow || 'Watch Now'}</Text>
+          <View style={[styles.actionRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+            <TouchableOpacity style={[styles.mainPlayButton, { backgroundColor: theme === 'light' ? themeColors.primary : '#fff' }]} onPress={handleWatchNow}>
+              <Play size={20} color={theme === 'light' ? 'white' : 'black'} fill={theme === 'light' ? 'white' : 'black'} />
+              <Text style={[styles.mainPlayText, { color: theme === 'light' ? 'white' : 'black' }]}>{t.watchNow || 'Watch Now'}</Text>
             </TouchableOpacity>
             <TouchableOpacity 
-               style={styles.iconAction}
+               style={[styles.iconAction, { backgroundColor: theme === 'light' ? themeColors.surfaceLight : 'rgba(255,255,255,0.1)' }]}
                onPress={handleWatchlist}
             >
-              <Bookmark size={24} color={isWatchlisted ? "#E53935" : "white"} fill={isWatchlisted ? "#E53935" : "transparent"} />
+              <Bookmark size={24} color={isWatchlisted ? "#E53935" : themeColors.text} fill={isWatchlisted ? "#E53935" : "transparent"} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconAction}>
-              <Share2 size={24} color="white" />
+            <TouchableOpacity style={[styles.iconAction, { backgroundColor: theme === 'light' ? themeColors.surfaceLight : 'rgba(255,255,255,0.1)' }]}>
+              <Share2 size={24} color={themeColors.text} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.synopsisContainer}>
-            <Text style={styles.sectionTitle}>{(t as any)?.storyLine || 'Storyline'}</Text>
-            <Text style={styles.synopsisText}>
+            <Text style={[styles.sectionTitle, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{(t as any)?.storyLine || 'Storyline'}</Text>
+            <Text style={[styles.synopsisText, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>
               {getLocalized(item, 'description', language) || item.description || 'No description available.'}
             </Text>
           </View>
@@ -518,14 +520,14 @@ export default function DetailScreen({ route, navigation }: any) {
           {/* Grid Selection: Episodes or Servers */}
           {gridItems.length > 0 && (
             <View ref={serversRef} style={styles.episodesContainer}>
-              <View style={styles.episodesHeader}>
-                <Text style={styles.sectionTitle}>
+              <View style={[styles.episodesHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Text style={[styles.sectionTitle, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>
                   {isSeriesContent ? ((t as any)?.episodesTitle || 'Episodes') : ((t as any)?.servers || 'Servers')}
                 </Text>
                 <Text style={styles.episodesCount}>{gridItems.length} {isSeriesContent ? 'Episodes' : 'Available'}</Text>
               </View>
 
-              <View style={styles.episodesGrid}>
+              <View style={[styles.episodesGrid, isRTL && { flexDirection: 'row-reverse' }]}>
                 {gridItems.map((gridItem: any, index: number) => {
                   const isSelected = isSeriesContent 
                     ? selectedEpisodeIndex === index 
@@ -544,21 +546,22 @@ export default function DetailScreen({ route, navigation }: any) {
                       key={index}
                       style={[
                         styles.gridCard,
+                        { backgroundColor: themeColors.surface, borderColor: themeColors.border },
                         isSelected && styles.gridCardActive
                       ]}
                       onPress={() => handleEpisodeSelect(index)}
                     >
-                      <View style={styles.gridCardTop}>
+                      <View style={[styles.gridCardTop, isRTL && { flexDirection: 'row-reverse' }]}>
                         {isSelected ? (
                           <Play size={16} color="#E53935" fill="#E53935" />
                         ) : (
-                          <Server size={16} color="rgba(255,255,255,0.5)" />
+                          <Server size={16} color={themeColors.textSecondary} />
                         )}
-                        <Text style={[styles.gridCardTitle, isSelected && styles.gridCardTitleActive]} numberOfLines={1}>
+                        <Text style={[styles.gridCardTitle, { color: themeColors.text }, isSelected && styles.gridCardTitleActive, isRTL && { textAlign: 'right' }]} numberOfLines={1}>
                           {displayName}
                         </Text>
                       </View>
-                      <Text style={styles.gridCardSub} numberOfLines={1}>
+                      <Text style={[styles.gridCardSub, { color: themeColors.textMuted }, isRTL && { textAlign: 'right' }]} numberOfLines={1}>
                         {subLabel}
                       </Text>
                     </TouchableOpacity>
@@ -574,27 +577,29 @@ export default function DetailScreen({ route, navigation }: any) {
 
       {/* Server Picker Modal */}
       <Modal visible={showServerModal} transparent animationType="slide">
-        <Pressable style={styles.modalOverlay} onPress={() => setShowServerModal(false)}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{language === 'ku' ? 'سێرڤەر هەڵبژێرە' : 'Choose Server'}</Text>
+        <Pressable style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.6)' }]} onPress={() => setShowServerModal(false)}>
+          <View style={[styles.modalContent, { backgroundColor: themeColors.surface }]}>
+            <View style={[styles.modalHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+              <Text style={[styles.modalTitle, { color: themeColors.text }]}>{language === 'ku' ? 'سێرڤەر هەڵبژێرە' : 'Choose Server'}</Text>
               <TouchableOpacity onPress={() => setShowServerModal(false)}>
-                <X size={24} color="white" />
+                <X size={24} color={themeColors.text} />
               </TouchableOpacity>
             </View>
             <ScrollView style={{ maxHeight: 300 }}>
               {getModalServers().map((srv: any, idx: number) => (
                 <TouchableOpacity
                   key={idx}
-                  style={styles.serverOption}
+                  style={[styles.serverOption, { borderBottomColor: themeColors.border }]}
                   onPress={() => handlePlayServer(srv.url)}
                 >
-                  <Server size={20} color="#E53935" />
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={styles.serverOptionName}>{srv.name || `Server ${idx + 1}`}</Text>
-                    <Text style={styles.serverOptionQuality}>{srv.quality || 'HD'}</Text>
+                  <View style={[{ flex: 1, flexDirection: 'row', alignItems: 'center' }, isRTL && { flexDirection: 'row-reverse' }]}>
+                    <Server size={20} color="#E53935" />
+                    <View style={[{ flex: 1 }, isRTL ? { marginRight: 12 } : { marginLeft: 12 }]}>
+                      <Text style={[styles.serverOptionName, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{srv.name || `Server ${idx + 1}`}</Text>
+                      <Text style={[styles.serverOptionQuality, { color: themeColors.textMuted }, isRTL && { textAlign: 'right' }]}>{srv.quality || 'HD'}</Text>
+                    </View>
                   </View>
-                  <ChevronLeft size={20} color="#666" style={{ transform: [{ rotate: '180deg' }] }} />
+                  <ChevronLeft size={20} color={themeColors.textMuted} style={{ transform: [{ rotate: isRTL ? '0deg' : '180deg' }] }} />
                 </TouchableOpacity>
               ))}
             </ScrollView>
