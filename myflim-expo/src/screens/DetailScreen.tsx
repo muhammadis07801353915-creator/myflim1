@@ -263,8 +263,6 @@ export default function DetailScreen({ route, navigation }: any) {
     return servers;
   };
 
-  const isRTL = language === 'ku' || language === 'ar';
-
   if (item.type === 'LiveTV') {
     const liveVideoUrl = activeChannel.stream_url || item.stream_url;
 
