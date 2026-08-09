@@ -16,12 +16,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAppStore } from '../store/useAppStore';
-import { getColors } from '../theme/theme';
-import { Play, Cast, Menu, X, Globe, CheckCircle2, Search } from 'lucide-react-native';
+import { getColors, COLORS } from '../theme/theme';
+import { Play, Menu, X, Globe, CheckCircle2, Search } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
-const FEATURED_W = width * 0.48;
-const FEATURED_H = FEATURED_W * 0.68;
 
 export default function LiveTVScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -34,6 +32,8 @@ export default function LiveTVScreen({ navigation }: any) {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
   const [countrySearchQuery, setCountrySearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const scrollToRightEdgeRTL = (ref: React.RefObject<ScrollView | null>) => {
     if (isRTL) {
@@ -66,6 +66,11 @@ export default function LiveTVScreen({ navigation }: any) {
   const filteredChannels =
     selectedCategory === 'All' ? countryFiltered : countryFiltered.filter((c) => c.category === selectedCategory);
 
+  // ── Search results ────────────────────────────────────────────────────────
+  const searchResults = searchQuery.trim()
+    ? countryFiltered.filter((c) => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    : [];
+
   // ── Featured / Most Watched (Featured + News fallback + remaining) ────────
   const featuredChannelsList = countryFiltered.filter((c) => c.is_featured);
   const newsChannelsList = countryFiltered.filter((c) =>
@@ -79,7 +84,6 @@ export default function LiveTVScreen({ navigation }: any) {
   const featured = [...featuredChannelsList, ...newsChannelsList, ...remainingChannelsList];
 
   // ── Banners ───────────────────────────────────────────────────────────────
-  const topBanners = (banners || []).filter((b: any) => b.type?.toLowerCase() === 'top');
   const interspersedBanners = (banners || []).filter((b: any) => b.type?.toLowerCase() !== 'top');
 
   // ── Categories to render ──────────────────────────────────────────────────
@@ -133,28 +137,31 @@ export default function LiveTVScreen({ navigation }: any) {
     );
   }
 
+  // ── Grid card size ────────────────────────────────────────────────────────
+  const cardW = Math.floor((width - 32 - 20) / 3);
+
   return (
     <View style={[s.root, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
 
       {/* ── HEADER ─────────────────────────────────────────────────── */}
-      <View style={[s.header, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}>
-        <View style={s.headerLeft}>
-          {/* ☰ Country filter button — always visible */}
+      <View style={[s.header, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
+        {/* Country button (left/right depending on RTL) */}
+        <View style={s.headerSide}>
           <TouchableOpacity
             style={[
-              s.countryBtn, 
+              s.countryBtn,
               { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border },
-              selectedCountry && s.countryBtnActive, 
-              isRTL && { flexDirection: 'row-reverse' }
+              selectedCountry && s.countryBtnActive,
+              isRTL && { flexDirection: 'row-reverse' },
             ]}
             onPress={() => setIsCountryModalOpen(true)}
             activeOpacity={0.8}
           >
-            <Menu size={17} color={selectedCountry ? '#CC222F' : themeColors.text} />
+            <Menu size={16} color={selectedCountry ? '#CC222F' : themeColors.text} />
             {selectedCountryObj?.flag_url ? (
               <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryBtnFlag} />
             ) : null}
-            <Text style={[s.countryBtnText, { color: themeColors.text }, selectedCountry && s.countryBtnTextActive]} numberOfLines={1}>
+            <Text style={[s.countryBtnText, { color: selectedCountry ? '#CC222F' : themeColors.text }]} numberOfLines={1}>
               {selectedCountryObj ? getCountryName(selectedCountryObj) : (language === 'ku' ? 'وڵات' : language === 'ar' ? 'الدولة' : 'Country')}
             </Text>
             {selectedCountry && (
@@ -164,12 +171,25 @@ export default function LiveTVScreen({ navigation }: any) {
             )}
           </TouchableOpacity>
         </View>
+
+        {/* Centered Title */}
         <Text style={[s.headerTitle, { color: themeColors.text }]} numberOfLines={1}>
           {language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
         </Text>
-        <TouchableOpacity style={[s.castBtn, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}>
-          <Cast size={20} color={themeColors.text} />
-        </TouchableOpacity>
+
+        {/* Search icon button (right side) */}
+        <View style={s.headerSide}>
+          <TouchableOpacity
+            style={[s.searchBtn, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}
+            onPress={() => { setIsSearchOpen(!isSearchOpen); if (isSearchOpen) setSearchQuery(''); }}
+            activeOpacity={0.8}
+          >
+            {isSearchOpen
+              ? <X size={20} color={themeColors.text} />
+              : <Search size={20} color={themeColors.text} />
+            }
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* ── COUNTRY MODAL ─────────────────────────────────────────── */}
@@ -209,7 +229,7 @@ export default function LiveTVScreen({ navigation }: any) {
               ) : null}
             </View>
 
-            {/* All Countries option (when not searching) */}
+            {/* All Countries option */}
             {!countrySearchQuery.trim() && (
               <TouchableOpacity
                 style={[s.countryItem, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }, !selectedCountry && s.countryItemActive]}
@@ -274,9 +294,9 @@ export default function LiveTVScreen({ navigation }: any) {
             <TouchableOpacity
               key={tab.id}
               style={[
-                s.tab, 
+                s.tab,
                 { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border },
-                selectedCategory === tab.id && s.tabActive
+                selectedCategory === tab.id && s.tabActive,
               ]}
               onPress={() => setSelectedCategory(tab.id)}
               activeOpacity={0.8}
@@ -288,9 +308,61 @@ export default function LiveTVScreen({ navigation }: any) {
           ))}
         </ScrollView>
 
-        {isUnlocked ? (
+        {/* ── SEARCH BAR ──────────────────────────────────────────────── */}
+        {isSearchOpen && (
+          <View style={[s.searchBar, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}>
+            <Search size={16} color={themeColors.textSecondary} />
+            <TextInput
+              style={[s.searchInput, { color: themeColors.text }]}
+              placeholder={language === 'ku' ? 'گەڕانی کەناڵ...' : language === 'ar' ? 'البحث عن قناة...' : 'Search channels...'}
+              placeholderTextColor={themeColors.textMuted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoFocus
+            />
+            {searchQuery ? (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <X size={16} color={themeColors.textSecondary} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        )}
+
+        {/* ── SEARCH RESULTS ──────────────────────────────────────────── */}
+        {isSearchOpen && searchQuery.trim() ? (
+          <View style={{ paddingHorizontal: 16 }}>
+            {searchResults.map((ch: any) => (
+              <TouchableOpacity
+                key={ch.id}
+                style={[s.listRow, { borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}
+                onPress={() => handlePress(ch)}
+                activeOpacity={0.85}
+              >
+                <View style={s.listInfo}>
+                  <Text numberOfLines={1} style={[s.listName, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{ch.name}</Text>
+                  <Text style={[s.listCat, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>{ch.category}</Text>
+                </View>
+                <View style={[s.listLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+                  {ch.image ? (
+                    <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
+                  ) : (
+                    <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={1}>{ch.name[0]}</Text>
+                  )}
+                  <View style={s.listLiveDot} />
+                </View>
+              </TouchableOpacity>
+            ))}
+            {searchResults.length === 0 && (
+              <View style={s.emptyState}>
+                <Text style={[s.emptyText, { color: themeColors.textSecondary }]}>
+                  {language === 'ku' ? 'هیچ کەناڵێک نەدۆزرایەوە' : language === 'ar' ? 'لا توجد قنوات' : 'No channels found'}
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : isUnlocked ? (
           <>
-            {/* ── FEATURED / MOST WATCHED CHANNELS (3 Column x 2 Row Grid) ─────────── */}
+            {/* ── FEATURED / MOST WATCHED CHANNELS (3 Column x 2 Row Grid) ─── */}
             {featured.length > 0 && (
               <View style={s.section}>
                 <View style={[s.sectionRow, isRTL && { flexDirection: 'row-reverse' }]}>
@@ -303,39 +375,36 @@ export default function LiveTVScreen({ navigation }: any) {
                 </View>
 
                 <View style={[s.gridContainer, isRTL && { flexDirection: 'row-reverse' }]}>
-                  {featured.slice(0, 6).map((ch: any) => {
-                    const cardW = Math.floor((width - 32 - 20) / 3);
-                    return (
-                      <TouchableOpacity 
-                        key={ch.id} 
-                        style={[s.gridCard, { width: cardW, height: cardW, backgroundColor: themeColors.surface, borderColor: themeColors.border }]} 
-                        onPress={() => handlePress(ch)} 
-                        activeOpacity={0.85}
-                      >
-                        {ch.image ? (
-                          <Image source={{ uri: ch.image }} style={s.gridImg} resizeMode="contain" />
-                        ) : (
-                          <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={2}>{ch.name}</Text>
-                        )}
+                  {featured.slice(0, 6).map((ch: any) => (
+                    <TouchableOpacity
+                      key={ch.id}
+                      style={[s.gridCard, { width: cardW, height: cardW, backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
+                      onPress={() => handlePress(ch)}
+                      activeOpacity={0.85}
+                    >
+                      {ch.image ? (
+                        <Image source={{ uri: ch.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+                      ) : (
+                        <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={2}>{ch.name}</Text>
+                      )}
 
-                        {/* LIVE Badge */}
-                        <View style={s.liveBadge}>
-                          <View style={s.liveDot} />
-                          <Text style={s.liveText}>LIVE</Text>
-                        </View>
+                      {/* LIVE Badge */}
+                      <View style={s.liveBadge}>
+                        <View style={s.liveDot} />
+                        <Text style={s.liveText}>LIVE</Text>
+                      </View>
 
-                        {/* Title Overlay at Bottom */}
-                        <View style={s.gridTitleOverlay}>
-                          <Text numberOfLines={1} style={s.gridTitleText}>{ch.name}</Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })}
+                      {/* Bottom gradient name overlay */}
+                      <View style={s.gridTitleOverlay}>
+                        <Text numberOfLines={1} style={s.gridTitleText}>{ch.name}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
                 </View>
               </View>
             )}
 
-            {/* ── ALL CHANNELS — grouped by category ─────────────────── */}
+            {/* ── ALL CHANNELS — grouped by category ────────────────── */}
             {categoriesToRender.map((cat: any) => {
               const catChannels = channelsByCategory[cat.name] || [];
               if (catChannels.length === 0) return null;
@@ -351,8 +420,22 @@ export default function LiveTVScreen({ navigation }: any) {
                         </TouchableOpacity>
                       )}
                     </View>
+
+                    {/* Channel rows — logo on right, text on left (matching website) */}
                     {catChannels.slice(0, 6).map((ch: any) => (
-                      <TouchableOpacity key={ch.id} style={[s.listRow, { borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]} onPress={() => handlePress(ch)} activeOpacity={0.85}>
+                      <TouchableOpacity
+                        key={ch.id}
+                        style={[s.listRow, { borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}
+                        onPress={() => handlePress(ch)}
+                        activeOpacity={0.85}
+                      >
+                        {/* Text info (left/flexible side) */}
+                        <View style={s.listInfo}>
+                          <Text numberOfLines={1} style={[s.listName, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{ch.name}</Text>
+                          <Text style={[s.listCat, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>{ch.category}</Text>
+                        </View>
+
+                        {/* Channel logo (right side, square with live dot) */}
                         <View style={[s.listLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
                           {ch.image ? (
                             <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
@@ -361,16 +444,10 @@ export default function LiveTVScreen({ navigation }: any) {
                           )}
                           <View style={s.listLiveDot} />
                         </View>
-                        <View style={s.listInfo}>
-                          <Text numberOfLines={1} style={[s.listName, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{ch.name}</Text>
-                          <Text style={[s.listCat, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>{ch.category}</Text>
-                        </View>
-                        <View style={s.playBtn}>
-                          <Play size={16} color="#fff" fill="#fff" />
-                        </View>
                       </TouchableOpacity>
                     ))}
                   </View>
+
                   {catBanners.map((banner: any) => (
                     <TouchableOpacity key={banner.id} style={s.bannerWrap} activeOpacity={0.95}
                       onPress={() => { if (banner.link) Linking.openURL(banner.link).catch(() => {}); }}>
@@ -410,65 +487,120 @@ const s = StyleSheet.create({
 
   // Header
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 10, paddingBottom: 12, paddingTop: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    paddingTop: 6,
     borderBottomWidth: 1,
   },
-  headerLeft: { alignItems: 'flex-start', minWidth: 105 },
-  headerTitle: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5, flex: 1, textAlign: 'center' },
-  castBtn: {
-    width: 38, height: 38, borderRadius: 19,
+  headerSide: {
+    minWidth: 100,
+    alignItems: 'flex-start',
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    textAlign: 'center',
+    flex: 1,
+  },
+
+  // Search button (replaces Cast icon)
+  searchBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     borderWidth: 1,
-    alignItems: 'center', justifyContent: 'center',
-    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-end',
   },
 
   // Country button
   countryBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 14,
     borderWidth: 1,
-    maxWidth: 150, height: 38,
+    maxWidth: 140,
+    height: 38,
   },
   countryBtnActive: { backgroundColor: 'rgba(204,34,47,0.16)', borderColor: 'rgba(204,34,47,0.45)' },
-  countryBtnText: { fontSize: 14, fontWeight: '800', maxWidth: 95 },
-  countryBtnTextActive: { color: '#CC222F' },
-  countryBtnFlag: { width: 26, height: 17, borderRadius: 4, borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.25)' },
+  countryBtnText: { fontSize: 13, fontWeight: '800', maxWidth: 80 },
+  countryBtnFlag: { width: 22, height: 15, borderRadius: 3, borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.25)' },
+
+  // Search bar
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginHorizontal: 16,
+    marginTop: 4,
+    marginBottom: 8,
+    paddingHorizontal: 14,
+    height: 44,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  searchInput: { flex: 1, fontSize: 15, paddingVertical: 0 },
 
   // Country Modal
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
   modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
   modalSheet: {
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     borderWidth: 1,
-    maxHeight: '80%', minHeight: '50%',
+    maxHeight: '80%',
+    minHeight: '50%',
     paddingTop: 8,
   },
   modalHeader: {
-    flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
   },
   modalTitle: { fontSize: 18, fontWeight: '900' },
   modalSubtitle: { fontSize: 12, marginTop: 2 },
   modalClose: {
-    width: 36, height: 36, borderRadius: 18,
-    alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalDivider: { height: 1, marginVertical: 4 },
   modalSearchWrap: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    marginHorizontal: 12, marginTop: 10, marginBottom: 8,
-    paddingHorizontal: 12, height: 42, borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginHorizontal: 12,
+    marginTop: 10,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    height: 42,
+    borderRadius: 14,
     borderWidth: 1,
   },
   modalSearchInput: { flex: 1, fontSize: 14, paddingVertical: 0 },
 
   // Country list item
   countryItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    paddingHorizontal: 18, paddingVertical: 14,
-    marginHorizontal: 8, marginVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    marginHorizontal: 8,
+    marginVertical: 4,
     borderRadius: 16,
     borderWidth: 1,
   },
@@ -477,18 +609,25 @@ const s = StyleSheet.create({
     borderColor: 'rgba(204,34,47,0.45)',
   },
   countryItemFlag: {
-    width: 54, height: 36, borderRadius: 8, overflow: 'hidden',
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
+    width: 54,
+    height: 36,
+    borderRadius: 8,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
   },
   flagImg: { width: '100%', height: '100%' },
   countryItemName: { flex: 1, fontSize: 17, fontWeight: '700' },
   countryItemNameActive: { color: '#CC222F', fontWeight: '900' },
 
   // Tabs
-  tabsScroll: { paddingHorizontal: 16, paddingBottom: 16, gap: 8 },
+  tabsScroll: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16, gap: 8 },
   tab: {
-    paddingHorizontal: 18, paddingVertical: 8, borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 20,
     borderWidth: 1,
   },
   tabActive: { backgroundColor: '#CC222F', borderColor: '#CC222F' },
@@ -520,17 +659,13 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gridImg: {
-    width: '82%',
-    height: '82%',
-  },
   gridTitleOverlay: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0,0,0,0.75)',
-    paddingVertical: 5,
+    backgroundColor: 'rgba(0,0,0,0.82)',
+    paddingVertical: 6,
     paddingHorizontal: 4,
     alignItems: 'center',
   },
@@ -543,34 +678,48 @@ const s = StyleSheet.create({
 
   // LIVE badge
   liveBadge: {
-    position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.7)',
-    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 7, paddingVertical: 3,
-    borderRadius: 6, gap: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', zIndex: 10,
+    position: 'absolute', top: 8, right: 8,
+    backgroundColor: 'rgba(204,34,47,0.92)',
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 7, paddingVertical: 3,
+    borderRadius: 6, gap: 4,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
+    zIndex: 10,
   },
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#E53935' },
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' },
   liveText: { color: '#fff', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
 
-  // List rows
+  // List rows — logo on RIGHT, text on LEFT (matching website design)
   listRow: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 14,
-    borderBottomWidth: 1, gap: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    gap: 14,
   },
   listLogoWrap: {
-    width: 62, height: 62, borderRadius: 14,
+    width: 58,
+    height: 58,
+    borderRadius: 14,
     borderWidth: 1,
-    alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+    flexShrink: 0,
   },
-  listLogo: { width: '78%', height: '78%' },
+  listLogo: { width: '80%', height: '80%' },
   listLogoFallback: { fontSize: 20, fontWeight: '900' },
   listLiveDot: {
-    position: 'absolute', bottom: 4, right: 4, width: 8, height: 8, borderRadius: 4,
-    backgroundColor: '#E53935', borderWidth: 1.5, borderColor: '#0F0F13',
+    position: 'absolute', bottom: 4, right: 4,
+    width: 8, height: 8, borderRadius: 4,
+    backgroundColor: '#E53935',
+    borderWidth: 1.5, borderColor: '#0F0F13',
   },
   listInfo: { flex: 1 },
   listName: { fontSize: 16, fontWeight: '700', marginBottom: 3 },
   listCat: { fontSize: 13, fontWeight: '500' },
-  playBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#CC222F', alignItems: 'center', justifyContent: 'center' },
 
   // Empty state
   emptyState: { alignItems: 'center', paddingVertical: 60, gap: 12 },
