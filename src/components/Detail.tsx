@@ -369,12 +369,17 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
   return (
     <div className="bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black pb-24" style={{ direction: 'ltr', textAlign: 'left' }}>
-      {/* Tall Header Container matching App height (360px on mobile, 420px+ on desktop) */}
-      <div id="player-container" className={`relative w-full bg-black ${isPlaying ? 'aspect-video md:h-[70vh]' : 'h-[360px] sm:h-[420px] md:h-[480px]'} overflow-hidden`}>
+      {/* Tall Header Container matching App height (320px on mobile, 400px+ on desktop) */}
+      <div id="player-container" className="relative w-full bg-black h-[320px] sm:h-[400px] md:h-[480px] overflow-hidden">
         {isPlaying ? (
           <div className="w-full h-full relative bg-black flex items-center justify-center">
-            <div className="flex absolute top-4 right-4 z-[110] space-x-2">
-            </div>
+            {/* Top Back Button during playback */}
+            <button 
+              onClick={() => setIsPlaying(false)} 
+              className="absolute top-4 left-4 z-[120] w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 text-white transition active:scale-90"
+            >
+              <ArrowLeft size={20} className="text-white" />
+            </button>
             
             {(() => {
               return !selectedServerUrl ? (
@@ -515,7 +520,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           </p>
         </div>
 
-        {/* Episodes Section - App 2-column Grid Style */}
+        {/* Episodes Section - App 2-column Grid Style matching Image 2 */}
         {item.type === 'Series' && allEpisodes.length > 0 && (
           <div className="mb-8" style={{ textAlign: 'left' }}>
              <div className="flex justify-between items-center mb-4" style={{ direction: 'ltr' }}>
@@ -550,15 +555,15 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                         onClick={() => handleEpisodeSelect(index)}
                         className={`p-3.5 rounded-2xl border transition flex items-center gap-3 text-left active:scale-95 ${
                           isSelected 
-                            ? 'bg-[#1e202c] border-red-500 text-white shadow-lg' 
-                            : 'bg-[#14151C] light-mode:bg-neutral-100 border-white/8 light-mode:border-neutral-200 hover:border-white/20'
+                            ? 'bg-[#CC222F]/15 border-2 border-[#CC222F] text-white shadow-lg shadow-red-600/20' 
+                            : 'bg-[#14151C] light-mode:bg-neutral-100 border border-white/8 light-mode:border-neutral-200 hover:border-white/20'
                         }`}
                      >
-                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 text-white/70">
-                          <Server size={18} className={isSelected ? 'text-red-500' : 'text-neutral-400'} />
+                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                          <Play size={18} className={isSelected ? 'fill-[#CC222F] text-[#CC222F]' : 'text-neutral-400'} />
                         </div>
                         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
-                           <p className="text-sm font-bold text-white light-mode:text-black truncate text-left">
+                           <p className={`text-sm font-bold truncate text-left ${isSelected ? 'text-[#CC222F]' : 'text-white light-mode:text-black'}`}>
                               Ep {episode.number || index + 1}
                            </p>
                            <p className="text-xs text-neutral-400 truncate text-left">
