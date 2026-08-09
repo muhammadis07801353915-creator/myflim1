@@ -445,23 +445,23 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
       <div className="px-5 pt-6 relative z-30 max-w-4xl mx-auto" style={{ direction: 'ltr', textAlign: 'left' }}>
         <h1 
-          className="text-2xl sm:text-3xl font-black mb-2 text-white !text-white tracking-tight"
-          style={{ color: '#ffffff', textAlign: 'left' }}
+          className="text-2xl sm:text-3xl font-black mb-2 text-white light-mode:text-black tracking-tight"
+          style={{ textAlign: 'left' }}
         >
           {item.title || getLocalized(item, 'title', language)}
         </h1>
 
-        <div className="flex items-center space-x-4 text-xs sm:text-sm mb-6 text-neutral-300 font-bold justify-start" style={{ direction: 'ltr' }}>
-          <span className="flex items-center text-neutral-400 gap-1.5">
-            <Calendar size={14} className="text-neutral-400" />
+        <div className="flex items-center space-x-4 text-xs sm:text-sm mb-6 text-neutral-300 light-mode:text-neutral-600 font-bold justify-start" style={{ direction: 'ltr' }}>
+          <span className="flex items-center text-neutral-400 light-mode:text-neutral-600 gap-1.5">
+            <Calendar size={14} className="text-neutral-400 light-mode:text-neutral-600" />
             <span>{item.year}</span>
           </span>
           <span className="flex items-center text-amber-400 gap-1.5 font-black">
             <Star size={14} className="fill-amber-400 text-amber-400" />
             <span>{item.rating}</span>
           </span>
-          <span className="flex items-center text-neutral-400 gap-1.5">
-            <Eye size={14} className="text-neutral-400" />
+          <span className="flex items-center text-neutral-400 light-mode:text-neutral-600 gap-1.5">
+            <Eye size={14} className="text-neutral-400 light-mode:text-neutral-600" />
             <span>{viewCount.toLocaleString()}</span>
           </span>
         </div>
@@ -476,10 +476,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           <div className="flex items-center gap-3 mb-8" style={{ direction: 'ltr' }}>
             <button 
               onClick={handlePlayClick}
-              className="flex-1 py-3.5 px-6 bg-white hover:bg-neutral-200 text-black font-black rounded-2xl transition flex items-center justify-center space-x-2 shadow-lg active:scale-95"
+              className="flex-1 py-3.5 px-6 bg-[#CC222F] hover:bg-red-700 text-white font-black rounded-2xl transition flex items-center justify-center space-x-2 shadow-lg active:scale-95"
             >
-              <Play size={18} className="fill-black text-black" />
-              <span className="text-base font-black text-black">
+              <Play size={18} className="fill-white text-white" />
+              <span className="text-base font-black text-white">
                 {language === 'ku' ? 'ئێستا ببینە' : 'Watch Now'}
               </span>
             </button>
@@ -489,8 +489,9 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
               className={`w-12 h-12 rounded-2xl flex items-center justify-center transition border active:scale-95 shrink-0 ${
                 isBookmarked 
                   ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-600/30' 
-                  : 'bg-[#14151C] light-mode:bg-neutral-100 border-white/10 light-mode:border-neutral-200 text-white light-mode:text-black hover:bg-[#1a1b24]'
+                  : 'bg-[#14151C] light-mode:bg-neutral-100 border-white/10 light-mode:border-neutral-300 text-white light-mode:text-black hover:bg-[#1a1b24] light-mode:hover:bg-neutral-200'
               }`}
+              title={language === 'ku' ? 'سەیڤکردن' : 'Bookmark'}
             >
               {isBookmarked ? <BookmarkCheck size={20} /> : <BookmarkPlus size={20} />}
             </button>
@@ -504,7 +505,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                   alert(language === 'ku' ? 'لینکی فیلمەکە کۆپی کرا' : 'Link copied to clipboard');
                 }
               }}
-              className="w-12 h-12 rounded-2xl bg-[#14151C] light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-200 text-white light-mode:text-black hover:bg-[#1a1b24] flex items-center justify-center transition active:scale-95 shrink-0"
+              className="w-12 h-12 rounded-2xl bg-[#14151C] light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-300 text-white light-mode:text-black hover:bg-[#1a1b24] light-mode:hover:bg-neutral-200 flex items-center justify-center transition active:scale-95 shrink-0"
+              title={language === 'ku' ? 'بەشکردن' : 'Share'}
             >
               <Share2 size={20} />
             </button>
@@ -537,7 +539,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                         className={`px-5 py-2 rounded-xl text-xs font-bold border transition ${
                           selectedSeason === season 
                             ? 'bg-red-600 border-red-500 text-white' 
-                            : 'bg-[#14151C] border-white/10 text-neutral-400 hover:text-white'
+                            : 'bg-[#14151C] light-mode:bg-neutral-100 border-white/10 light-mode:border-neutral-300 text-neutral-400 light-mode:text-neutral-700 hover:text-white'
                         }`}
                      >
                         Season {season}
@@ -559,14 +561,14 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                             : 'bg-[#14151C] light-mode:bg-neutral-100 border border-white/8 light-mode:border-neutral-200 hover:border-white/20'
                         }`}
                      >
-                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-                          <Play size={18} className={isSelected ? 'fill-[#CC222F] text-[#CC222F]' : 'text-neutral-400'} />
+                        <div className="w-10 h-10 rounded-xl bg-white/5 light-mode:bg-neutral-200 flex items-center justify-center shrink-0">
+                          <Play size={18} className={isSelected ? 'fill-[#CC222F] text-[#CC222F]' : 'text-neutral-400 light-mode:text-neutral-600'} />
                         </div>
                         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
                            <p className={`text-sm font-bold truncate text-left ${isSelected ? 'text-[#CC222F]' : 'text-white light-mode:text-black'}`}>
                               Ep {episode.number || index + 1}
                            </p>
-                           <p className="text-xs text-neutral-400 truncate text-left">
+                           <p className="text-xs text-neutral-400 light-mode:text-neutral-500 truncate text-left">
                               Episode {episode.number || index + 1}
                            </p>
                         </div>
@@ -578,25 +580,25 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         )}
 
         <div className="flex justify-around border-y border-white/10 light-mode:border-neutral-200 py-4 mb-8" style={{ direction: 'ltr' }}>
-          <button onClick={handleDownload} className="flex flex-col items-center gap-1.5 text-neutral-400 hover:text-white transition">
-            <div className="w-10 h-10 rounded-xl bg-[#14151C] flex items-center justify-center text-neutral-300">
+          <button onClick={handleDownload} className="flex flex-col items-center gap-1.5 text-neutral-400 light-mode:text-neutral-600 hover:text-white light-mode:hover:text-black transition">
+            <div className="w-10 h-10 rounded-xl bg-[#14151C] light-mode:bg-neutral-100 border border-transparent light-mode:border-neutral-300 flex items-center justify-center text-neutral-300 light-mode:text-neutral-700">
               <Download size={18} />
             </div>
-            <span className="text-[11px] font-medium">Download</span>
+            <span className="text-[11px] font-bold">Download</span>
           </button>
 
-          <button onClick={handleFullScreen} className="flex flex-col items-center gap-1.5 text-neutral-400 hover:text-white transition">
-            <div className="w-10 h-10 rounded-xl bg-[#14151C] flex items-center justify-center text-neutral-300">
+          <button onClick={handleFullScreen} className="flex flex-col items-center gap-1.5 text-neutral-400 light-mode:text-neutral-600 hover:text-white light-mode:hover:text-black transition">
+            <div className="w-10 h-10 rounded-xl bg-[#14151C] light-mode:bg-neutral-100 border border-transparent light-mode:border-neutral-300 flex items-center justify-center text-neutral-300 light-mode:text-neutral-700">
               <Maximize2 size={18} />
             </div>
-            <span className="text-[11px] font-medium">{language === 'ku' ? 'گەورەکردن' : 'Full Screen'}</span>
+            <span className="text-[11px] font-bold">{language === 'ku' ? 'گەورەکردن' : 'Full Screen'}</span>
           </button>
 
-          <button onClick={handleReportBroken} className="flex flex-col items-center gap-1.5 text-neutral-400 hover:text-white transition">
-            <div className="w-10 h-10 rounded-xl bg-[#14151C] flex items-center justify-center text-neutral-300">
+          <button onClick={handleReportBroken} className="flex flex-col items-center gap-1.5 text-neutral-400 light-mode:text-neutral-600 hover:text-white light-mode:hover:text-black transition">
+            <div className="w-10 h-10 rounded-xl bg-[#14151C] light-mode:bg-neutral-100 border border-transparent light-mode:border-neutral-300 flex items-center justify-center text-neutral-300 light-mode:text-neutral-700">
               <AlertCircle size={18} />
             </div>
-            <span className="text-[11px] font-medium">{reported ? 'Reported' : 'Report Issue'}</span>
+            <span className="text-[11px] font-bold">{reported ? 'Reported' : 'Report Issue'}</span>
           </button>
         </div>
 
