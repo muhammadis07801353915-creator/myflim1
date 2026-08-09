@@ -145,31 +145,46 @@ export default function LiveTVScreen({ navigation }: any) {
 
       {/* ── HEADER ─────────────────────────────────────────────────── */}
       <View style={[s.header, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
-        {/* Country button (left/right depending on RTL) */}
+
+        {/* LEFT SIDE: Country button (LTR) or Search button (RTL) */}
         <View style={s.headerSide}>
-          <TouchableOpacity
-            style={[
-              s.countryBtn,
-              { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border },
-              selectedCountry && s.countryBtnActive,
-              isRTL && { flexDirection: 'row-reverse' },
-            ]}
-            onPress={() => setIsCountryModalOpen(true)}
-            activeOpacity={0.8}
-          >
-            <Menu size={16} color={selectedCountry ? '#CC222F' : themeColors.text} />
-            {selectedCountryObj?.flag_url ? (
-              <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryBtnFlag} />
-            ) : null}
-            <Text style={[s.countryBtnText, { color: selectedCountry ? '#CC222F' : themeColors.text }]} numberOfLines={1}>
-              {selectedCountryObj ? getCountryName(selectedCountryObj) : (language === 'ku' ? 'وڵات' : language === 'ar' ? 'الدولة' : 'Country')}
-            </Text>
-            {selectedCountry && (
-              <TouchableOpacity onPress={() => setSelectedCountry(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <X size={12} color="#CC222F" />
-              </TouchableOpacity>
-            )}
-          </TouchableOpacity>
+          {isRTL ? (
+            /* RTL: Search button on the left */
+            <TouchableOpacity
+              style={[s.searchBtn, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}
+              onPress={() => { setIsSearchOpen(!isSearchOpen); if (isSearchOpen) setSearchQuery(''); }}
+              activeOpacity={0.8}
+            >
+              {isSearchOpen
+                ? <X size={20} color={themeColors.text} />
+                : <Search size={20} color={themeColors.text} />
+              }
+            </TouchableOpacity>
+          ) : (
+            /* LTR: Country button on the left */
+            <TouchableOpacity
+              style={[
+                s.countryBtn,
+                { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border },
+                selectedCountry && s.countryBtnActive,
+              ]}
+              onPress={() => setIsCountryModalOpen(true)}
+              activeOpacity={0.8}
+            >
+              <Menu size={16} color={selectedCountry ? '#CC222F' : themeColors.text} />
+              {selectedCountryObj?.flag_url ? (
+                <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryBtnFlag} />
+              ) : null}
+              <Text style={[s.countryBtnText, { color: selectedCountry ? '#CC222F' : themeColors.text }]} numberOfLines={1}>
+                {selectedCountryObj ? getCountryName(selectedCountryObj) : 'Country'}
+              </Text>
+              {selectedCountry && (
+                <TouchableOpacity onPress={() => setSelectedCountry(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <X size={12} color="#CC222F" />
+                </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Centered Title */}
@@ -177,18 +192,46 @@ export default function LiveTVScreen({ navigation }: any) {
           {language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
         </Text>
 
-        {/* Search icon button (right side) */}
-        <View style={s.headerSide}>
-          <TouchableOpacity
-            style={[s.searchBtn, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}
-            onPress={() => { setIsSearchOpen(!isSearchOpen); if (isSearchOpen) setSearchQuery(''); }}
-            activeOpacity={0.8}
-          >
-            {isSearchOpen
-              ? <X size={20} color={themeColors.text} />
-              : <Search size={20} color={themeColors.text} />
-            }
-          </TouchableOpacity>
+        {/* RIGHT SIDE: Search button (LTR) or Country button (RTL) */}
+        <View style={[s.headerSide, { alignItems: 'flex-end' }]}>
+          {isRTL ? (
+            /* RTL: Country button on the right */
+            <TouchableOpacity
+              style={[
+                s.countryBtn,
+                { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border },
+                selectedCountry && s.countryBtnActive,
+                { flexDirection: 'row-reverse' },
+              ]}
+              onPress={() => setIsCountryModalOpen(true)}
+              activeOpacity={0.8}
+            >
+              <Menu size={16} color={selectedCountry ? '#CC222F' : themeColors.text} />
+              {selectedCountryObj?.flag_url ? (
+                <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryBtnFlag} />
+              ) : null}
+              <Text style={[s.countryBtnText, { color: selectedCountry ? '#CC222F' : themeColors.text }]} numberOfLines={1}>
+                {selectedCountryObj ? getCountryName(selectedCountryObj) : (language === 'ku' ? 'وڵات' : 'الدولة')}
+              </Text>
+              {selectedCountry && (
+                <TouchableOpacity onPress={() => setSelectedCountry(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <X size={12} color="#CC222F" />
+                </TouchableOpacity>
+              )}
+            </TouchableOpacity>
+          ) : (
+            /* LTR: Search button on the right */
+            <TouchableOpacity
+              style={[s.searchBtn, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}
+              onPress={() => { setIsSearchOpen(!isSearchOpen); if (isSearchOpen) setSearchQuery(''); }}
+              activeOpacity={0.8}
+            >
+              {isSearchOpen
+                ? <X size={20} color={themeColors.text} />
+                : <Search size={20} color={themeColors.text} />
+              }
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
