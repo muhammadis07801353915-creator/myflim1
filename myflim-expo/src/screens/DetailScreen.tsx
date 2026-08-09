@@ -82,15 +82,25 @@ export default function DetailScreen({ route, navigation }: any) {
   let servers: any[] = [];
   let episodes: any[] = [];
 
-  const getEmbedUrl = (url: string) => {
-    if (!url) return '';
-    let finalUrl = url.trim();
-    finalUrl = finalUrl.replace(/^\/+/, '');
-    if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://') && !finalUrl.startsWith('vidsrc://')) {
-      finalUrl = 'https://' + finalUrl;
+  const getEmbedUrl = (rawUrl: string) => {
+    if (!rawUrl) return '';
+    let url = rawUrl.trim();
+
+    // Extract src if raw iframe HTML tag was provided
+    if (url.includes('<iframe')) {
+      const match = url.match(/src=["']([^"']+)["']/i);
+      if (match && match[1]) {
+        url = match[1];
+      }
     }
-    if (finalUrl.startsWith('vidsrc://')) {
-      const parts = finalUrl.replace('vidsrc://', '').split('/');
+
+    url = url.replace(/^\/+/, '');
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('vidsrc://')) {
+      url = 'https://' + url;
+    }
+
+    if (url.startsWith('vidsrc://')) {
+      const parts = url.replace('vidsrc://', '').split('/');
       const type = parts[0];
       const id = parts[1];
       if (type === 'movie') {
@@ -385,18 +395,48 @@ export default function DetailScreen({ route, navigation }: any) {
             ) : (
               <WebView
                 key={activeVideoUrl}
-                source={{ uri: activeVideoUrl }}
+                source={{
+                  uri: activeVideoUrl,
+                  headers: {
+                    'Referer': 'https://www.myflim.com/',
+                    'Origin': 'https://www.myflim.com',
+                  },
+                }}
                 style={StyleSheet.absoluteFillObject}
                 allowsInlineMediaPlayback={true}
                 mediaPlaybackRequiresUserAction={false}
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
+                mixedContentMode="always"
+                thirdPartyCookiesEnabled={true}
+                sharedCookiesEnabled={true}
+                setSupportMultipleWindows={false}
                 injectedJavaScript={injectedJS}
-                userAgent="Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.181 Mobile Safari/537.36"
+                userAgent="Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36"
                 originWhitelist={['*']}
                 allowsFullscreenVideo={true}
                 androidLayerType="hardware"
                 startInLoadingState={true}
+                onShouldStartLoadWithRequest={(request) => {
+                  if (
+                    request.url.startsWith('about:') ||
+                    request.url.startsWith('data:') ||
+                    request.url === activeVideoUrl ||
+                    request.url.includes('vidsrc') ||
+                    request.url.includes('vidapi') ||
+                    request.url.includes('vidlink') ||
+                    request.url.includes('ok.ru') ||
+                    request.url.includes('dailymotion') ||
+                    request.url.includes('m3u8') ||
+                    request.url.includes('mp4') ||
+                    request.url.includes('stream') ||
+                    request.url.includes('embed') ||
+                    request.url.includes('player')
+                  ) {
+                    return true;
+                  }
+                  return false;
+                }}
                 renderLoading={() => (
                   <View style={[StyleSheet.absoluteFill, { backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }]}>
                     <ActivityIndicator color="#E53935" size="large" />
