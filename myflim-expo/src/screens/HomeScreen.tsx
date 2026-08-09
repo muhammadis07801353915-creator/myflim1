@@ -367,15 +367,8 @@ export default function HomeScreen({ navigation }: any) {
           </View>
         </View>
 
-        {/* Right: Search + Bell */}
+        {/* Right: Bell Notifications */}
         <View style={[header.actions, isRTL && { flexDirection: 'row-reverse' }]}>
-          <TouchableOpacity
-            style={[header.iconBtn, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}
-            onPress={() => navigation.navigate('Search' as never)}
-            activeOpacity={0.8}
-          >
-            <Search size={18} color={themeColors.text} />
-          </TouchableOpacity>
           <View>
             <TouchableOpacity style={[header.iconBtn, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]} activeOpacity={0.8}>
               <Bell size={18} color={themeColors.text} />
