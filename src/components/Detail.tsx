@@ -477,9 +477,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             <button 
               onClick={handlePlayClick}
               className="flex-1 py-3.5 px-6 bg-[#CC222F] hover:bg-red-700 text-white font-black rounded-2xl transition flex items-center justify-center space-x-2 shadow-lg active:scale-95"
+              style={{ color: '#ffffff' }}
             >
-              <Play size={18} className="fill-white text-white" />
-              <span className="text-base font-black text-white">
+              <Play size={18} className="fill-white text-white" style={{ color: '#ffffff', fill: '#ffffff' }} />
+              <span className="text-base font-black text-white" style={{ color: '#ffffff' }}>
                 {language === 'ku' ? 'ئێستا ببینە' : 'Watch Now'}
               </span>
             </button>
@@ -488,12 +489,12 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
               onClick={() => toggleWatchlist(item)}
               className={`w-12 h-12 rounded-2xl flex items-center justify-center transition border active:scale-95 shrink-0 ${
                 isBookmarked 
-                  ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-600/30' 
-                  : 'bg-[#14151C] light-mode:bg-neutral-100 border-white/10 light-mode:border-neutral-300 text-white light-mode:text-black hover:bg-[#1a1b24] light-mode:hover:bg-neutral-200'
+                  ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-lg shadow-red-600/30' 
+                  : 'bg-[#181924] light-mode:bg-neutral-200 border-white/10 light-mode:border-neutral-300 text-white light-mode:text-black hover:bg-[#222432] light-mode:hover:bg-neutral-300'
               }`}
               title={language === 'ku' ? 'سەیڤکردن' : 'Bookmark'}
             >
-              {isBookmarked ? <BookmarkCheck size={20} /> : <BookmarkPlus size={20} />}
+              {isBookmarked ? <BookmarkCheck size={20} className="text-white" /> : <BookmarkPlus size={20} className="text-white light-mode:text-black" />}
             </button>
 
             <button 
@@ -505,10 +506,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                   alert(language === 'ku' ? 'لینکی فیلمەکە کۆپی کرا' : 'Link copied to clipboard');
                 }
               }}
-              className="w-12 h-12 rounded-2xl bg-[#14151C] light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-300 text-white light-mode:text-black hover:bg-[#1a1b24] light-mode:hover:bg-neutral-200 flex items-center justify-center transition active:scale-95 shrink-0"
+              className="w-12 h-12 rounded-2xl bg-[#181924] light-mode:bg-neutral-200 border border-white/10 light-mode:border-neutral-300 text-white light-mode:text-black hover:bg-[#222432] light-mode:hover:bg-neutral-300 flex items-center justify-center transition active:scale-95 shrink-0"
               title={language === 'ku' ? 'بەشکردن' : 'Share'}
             >
-              <Share2 size={20} />
+              <Share2 size={20} className="text-white light-mode:text-black" />
             </button>
           </div>
         )}
