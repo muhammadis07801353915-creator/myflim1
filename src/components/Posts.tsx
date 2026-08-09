@@ -44,7 +44,12 @@ async function fetchAllPostsFromDB(): Promise<Post[]> {
     if (data?.value) {
       const parsed = JSON.parse(data.value);
       if (Array.isArray(parsed)) {
-        return parsed.sort(
+        const sanitized = parsed.map((p: any) => ({
+          ...p,
+          likes: Array.isArray(p.likes) ? Array.from(new Set(p.likes)) : [],
+          comments: Array.isArray(p.comments) ? p.comments : [],
+        }));
+        return sanitized.sort(
           (a: Post, b: Post) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
       }
@@ -199,14 +204,17 @@ export default function Posts() {
   const handleLike = async (postId: string) => {
     if (!userAccount) { setShowAuthModal(true); return; }
 
+    const identifier = userAccount.id || userAccount.name;
+
     // 1. INSTANT OPTIMISTIC UI UPDATE (0ms delay!)
     setPosts(prevPosts =>
       prevPosts.map(p => {
         if (p.id !== postId) return p;
-        const hasLiked = p.likes.includes(userAccount.id);
+        const currentLikes = Array.isArray(p.likes) ? p.likes : [];
+        const hasLiked = currentLikes.includes(identifier) || (userAccount.name && currentLikes.includes(userAccount.name));
         const newLikes = hasLiked
-          ? p.likes.filter(id => id !== userAccount.id)
-          : [...p.likes, userAccount.id];
+          ? currentLikes.filter(id => id !== identifier && id !== userAccount.name)
+          : Array.from(new Set([...currentLikes, identifier]));
         return { ...p, likes: newLikes };
       })
     );
@@ -216,12 +224,14 @@ export default function Posts() {
       const allPosts = await fetchAllPostsFromDB();
       const updated = allPosts.map(p => {
         if (p.id !== postId) return p;
-        const hasLiked = p.likes.includes(userAccount.id);
+        const currentLikes = Array.isArray(p.likes) ? p.likes : [];
+        const hasLiked = currentLikes.includes(identifier) || (userAccount.name && currentLikes.includes(userAccount.name));
+        const newLikes = hasLiked
+          ? currentLikes.filter(id => id !== identifier && id !== userAccount.name)
+          : Array.from(new Set([...currentLikes, identifier]));
         return {
           ...p,
-          likes: hasLiked
-            ? p.likes.filter(id => id !== userAccount.id)
-            : [...p.likes, userAccount.id]
+          likes: newLikes
         };
       });
       await saveAllPostsToDB(updated);
@@ -442,7 +452,7 @@ function PostCard({
   toggleComments: () => void;
   onAuthRequired: () => void;
 }) {
-  const isLiked = userAccount ? post.likes.includes(userAccount.id) : false;
+  const isLiked = userAccount ? (post.likes.includes(userAccount.id) || post.likes.includes(userAccount.name)) : false;
   const isOwner = userAccount?.id === post.user_id;
   const postAvatar = post.user_avatar || DEFAULT_AVATARS[0];
 

@@ -13,6 +13,8 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../api/supabase';
 import { useAppStore } from '../store/useAppStore';
@@ -67,7 +69,12 @@ async function fetchAllPostsFromDB(): Promise<Post[]> {
     if (data?.value) {
       const parsed = JSON.parse(data.value);
       if (Array.isArray(parsed)) {
-        return parsed.sort(
+        const sanitized = parsed.map((p: any) => ({
+          ...p,
+          likes: Array.isArray(p.likes) ? Array.from(new Set(p.likes)) : [],
+          comments: Array.isArray(p.comments) ? p.comments : [],
+        }));
+        return sanitized.sort(
           (a: Post, b: Post) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
       }
@@ -111,6 +118,7 @@ function timeAgo(dateStr: string, language: string): string {
 }
 
 export default function PostsScreen() {
+  const insets = useSafeAreaInsets();
   const { theme, language, user } = useAppStore();
   const themeColors = getColors(theme);
 
@@ -121,8 +129,18 @@ export default function PostsScreen() {
   const [publishing, setPublishing] = useState(false);
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
   const [expandedComments, setExpandedComments] = useState<Record<string, boolean>>({});
+  const [appUserId, setAppUserId] = useState<string>('');
 
   useEffect(() => {
+    AsyncStorage.getItem('taban_app_device_user_id').then(storedId => {
+      if (storedId) {
+        setAppUserId(storedId);
+      } else {
+        const generated = 'user_app_' + Math.random().toString(36).slice(2, 10);
+        AsyncStorage.setItem('taban_app_device_user_id', generated);
+        setAppUserId(generated);
+      }
+    });
     loadPosts();
     const interval = setInterval(loadPosts, 8000);
     return () => clearInterval(interval);
@@ -165,7 +183,7 @@ export default function PostsScreen() {
     if (!newPostText.trim() && !newPostImage) return;
     setPublishing(true);
 
-    const userId = user?.name || 'app_user';
+    const userId = user?.name ? `usr_${user.name}` : (appUserId || 'app_user');
     const newPost: Post = {
       id: `post_${Date.now()}_${Math.random().toString(36).slice(2)}`,
       user_id: userId,
@@ -194,17 +212,23 @@ export default function PostsScreen() {
     }
   };
 
+  const getUserIdentifier = () => {
+    if (user?.name && user.name !== 'User Name') return user.name;
+    return appUserId || 'app_user';
+  };
+
   const handleLike = async (postId: string) => {
-    const userId = user?.name || 'app_user';
+    const identifier = getUserIdentifier();
 
     // 0ms Optimistic Update
     setPosts(prevPosts =>
       prevPosts.map(p => {
         if (p.id !== postId) return p;
-        const hasLiked = p.likes.includes(userId);
+        const currentLikes = Array.isArray(p.likes) ? p.likes : [];
+        const hasLiked = currentLikes.includes(identifier);
         const newLikes = hasLiked
-          ? p.likes.filter(id => id !== userId)
-          : [...p.likes, userId];
+          ? currentLikes.filter(id => id !== identifier)
+          : Array.from(new Set([...currentLikes, identifier]));
         return { ...p, likes: newLikes };
       })
     );
@@ -213,12 +237,14 @@ export default function PostsScreen() {
       const allPosts = await fetchAllPostsFromDB();
       const updated = allPosts.map(p => {
         if (p.id !== postId) return p;
-        const hasLiked = p.likes.includes(userId);
+        const currentLikes = Array.isArray(p.likes) ? p.likes : [];
+        const hasLiked = currentLikes.includes(identifier);
+        const newLikes = hasLiked
+          ? currentLikes.filter(id => id !== identifier)
+          : Array.from(new Set([...currentLikes, identifier]));
         return {
           ...p,
-          likes: hasLiked
-            ? p.likes.filter(id => id !== userId)
-            : [...p.likes, userId]
+          likes: newLikes
         };
       });
       await saveAllPostsToDB(updated);
@@ -375,7 +401,7 @@ export default function PostsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
+    <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
       {/* Top Header Bar */}
       <View style={[styles.header, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
         <Text style={[styles.headerTitle, { color: themeColors.text }]}>
@@ -450,7 +476,7 @@ export default function PostsScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
