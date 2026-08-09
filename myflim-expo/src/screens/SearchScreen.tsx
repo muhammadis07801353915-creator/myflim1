@@ -199,7 +199,7 @@ export default function SearchScreen({ navigation }: any) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
+    <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top + 10 }]}>
       
       {/* ── SEARCH HEADER BAR (RTL Dynamic) ───────────────────────── */}
       <View style={[styles.header, isRTL && { flexDirection: 'row-reverse' }]}>
@@ -519,8 +519,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
-    marginTop: 4,
+    marginBottom: 14,
+    marginTop: 18,
   },
   listHeader: {
     fontSize: 17,
