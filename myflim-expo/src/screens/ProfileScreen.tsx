@@ -509,16 +509,6 @@ export default function ProfileScreen({ navigation }: any) {
             () => setShowNameModal(true)
           )}
 
-          {renderMenuItem(
-            <Crown size={20} color="#FBBF24" />,
-            language === 'ku' ? 'ئابوونەبوون' : language === 'ar' ? 'الاشتراك' : 'Subscription',
-            undefined,
-            () => Alert.alert(
-              language === 'ku' ? 'ئابوونەبوون' : 'Subscription',
-              language === 'ku' ? 'ئابوونەبوون لە تابان پڵەی لەئێستادا بەخۆڕاییە بۆ سەرجەم بەکارهێنەران!' : 'Subscription is currently FREE for all users!'
-            )
-          )}
-
           {/* Support Live Chat (پشتیوانی ڕاستەوخۆ) */}
           {renderMenuItem(
             <MessageSquare size={20} color="#CC222F" />,
@@ -541,43 +531,6 @@ export default function ProfileScreen({ navigation }: any) {
             `v${currentVersion}`,
             () => setShowAboutModal(true)
           )}
-        </View>
-
-        {/* ── UPDATE CHECK CARD ─────────────────────────────────────── */}
-        <View style={[styles.menuSection, { marginTop: 10 }]}>
-          <View style={[styles.updateCard, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-            <View style={[styles.updateHeader, isRTL && { flexDirection: 'row-reverse' }]}>
-              <View style={[styles.updateHeaderLeft, isRTL && { flexDirection: 'row-reverse' }]}>
-                <Download size={18} color="#CC222F" />
-                <Text style={[styles.updateTitle, { color: themeColors.text }]}>App Updates</Text>
-              </View>
-              {checkingUpdates ? (
-                <ActivityIndicator color="#CC222F" />
-              ) : (
-                <TouchableOpacity onPress={refreshUpdateStatus}>
-                  <Text style={styles.refreshText}>Check</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <Text style={[styles.updateMeta, { color: themeColors.textSecondary }]}>Current version: {currentVersion}</Text>
-
-            {availableUpdate ? (
-              <TouchableOpacity
-                style={[styles.updateActionButton, installingUpdate && { opacity: 0.7 }]}
-                onPress={handleInstallUpdate}
-                disabled={installingUpdate}
-              >
-                {installingUpdate ? (
-                  <ActivityIndicator color="#fff" />
-                ) : (
-                  <Text style={styles.updateActionText}>New update available — Download</Text>
-                )}
-              </TouchableOpacity>
-            ) : (
-              <Text style={[styles.updateMeta, { color: themeColors.textSecondary }]}>You are using the latest version.</Text>
-            )}
-          </View>
         </View>
 
       </ScrollView>
