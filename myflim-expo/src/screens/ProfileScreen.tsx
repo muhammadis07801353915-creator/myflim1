@@ -383,7 +383,7 @@ export default function ProfileScreen({ navigation }: any) {
       }
 
       const userKey = `usr_${username.toLowerCase()}`;
-      const avatar = user?.image || DEFAULT_AVATARS[0];
+      const avatar = selectedAvatar && selectedAvatar !== DEFAULT_AVATARS[0] ? selectedAvatar : DEFAULT_AVATARS[0];
 
       const newAcc = {
         id: userKey,
@@ -501,6 +501,8 @@ export default function ProfileScreen({ navigation }: any) {
             await AsyncStorage.removeItem('app_unlocked');
             await AsyncStorage.removeItem('user_data');
             await AsyncStorage.removeItem('taban_app_device_user_id');
+
+            setSelectedAvatar(DEFAULT_AVATARS[0]);
 
             useAppStore.setState({
               isUnlocked: false,

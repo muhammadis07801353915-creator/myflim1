@@ -258,6 +258,19 @@ export const useAppStore = create<AppState>((set, get) => ({
     
     set({ watchlist: newWatchlist });
     await AsyncStorage.setItem('watchlist', JSON.stringify(newWatchlist));
+
+    try {
+      const savedUid = await AsyncStorage.getItem('taban_app_device_user_id');
+      if (savedUid) {
+        const syncKey = `user_watchlist_${savedUid}`;
+        const { data: existing } = await supabase.from('settings').select('id').eq('key', syncKey).maybeSingle();
+        if (existing?.id) {
+          await supabase.from('settings').update({ value: JSON.stringify(newWatchlist) }).eq('key', syncKey);
+        } else {
+          await supabase.from('settings').insert([{ key: syncKey, value: JSON.stringify(newWatchlist) }]);
+        }
+      }
+    } catch (e) {}
   },
 
   saveWatchProgress: async (item: any, timestamp: number, duration: number) => {
@@ -273,12 +286,58 @@ export const useAppStore = create<AppState>((set, get) => ({
     };
     set({ watchHistory: updated });
     await AsyncStorage.setItem('watch_history', JSON.stringify(updated));
+
+    try {
+      const savedUid = await AsyncStorage.getItem('taban_app_device_user_id');
+      if (savedUid) {
+        const syncKey = `user_history_${savedUid}`;
+        const { data: existing } = await supabase.from('settings').select('id').eq('key', syncKey).maybeSingle();
+        if (existing?.id) {
+          await supabase.from('settings').update({ value: JSON.stringify(updated) }).eq('key', syncKey);
+        } else {
+          await supabase.from('settings').insert([{ key: syncKey, value: JSON.stringify(updated) }]);
+        }
+      }
+    } catch (e) {}
   },
 
   updateUser: async (data: Partial<{ name: string; image: string; isPro: boolean }>) => {
     const newUser = { ...get().user, ...data };
     set({ user: newUser });
     await AsyncStorage.setItem('user_data', JSON.stringify(newUser));
+
+    try {
+      const savedUid = await AsyncStorage.getItem('taban_app_device_user_id');
+      if (savedUid && newUser.name) {
+        await supabase.from('profiles').upsert({
+          id: savedUid,
+          display_name: newUser.name,
+          avatar_url: newUser.image,
+          updated_at: new Date().toISOString()
+        });
+
+        const { data: sData } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'taban_registered_user_accounts')
+          .maybeSingle();
+
+        if (sData && sData.value) {
+          const accs = JSON.parse(sData.value);
+          const match = accs.find((a: any) => a.id === savedUid || a.username.toLowerCase() === newUser.name.toLowerCase());
+          if (match) {
+            match.avatar = newUser.image;
+            match.username = newUser.name;
+            await supabase
+              .from('settings')
+              .update({ value: JSON.stringify(accs) })
+              .eq('key', 'taban_registered_user_accounts');
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Update user avatar sync warning:', e);
+    }
   },
 
   toggleTheme: () => {

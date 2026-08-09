@@ -210,11 +210,17 @@ export default function CommentSection({ movieId }: Props) {
 
   const renderComment = ({ item }: { item: Comment }) => {
     const name = item.profiles?.display_name || 'Anonymous';
+    const avatarUrl = item.profiles?.avatar_url;
+
     return (
       <View style={styles.commentItem}>
-        <View style={[styles.avatarCircle, { backgroundColor: avatarColor(name) }]}>
-          <Text style={styles.avatarLetter}>{name[0].toUpperCase()}</Text>
-        </View>
+        {avatarUrl ? (
+          <Image source={{ uri: avatarUrl }} style={styles.avatarCircle} />
+        ) : (
+          <View style={[styles.avatarCircle, { backgroundColor: avatarColor(name) }]}>
+            <Text style={styles.avatarLetter}>{name[0].toUpperCase()}</Text>
+          </View>
+        )}
         <View style={styles.commentBody}>
           <View style={styles.commentMeta}>
             <Text style={styles.commentAuthor}>{name}</Text>
@@ -258,9 +264,13 @@ export default function CommentSection({ movieId }: Props) {
         <View style={styles.userBar}>
           <TouchableOpacity style={styles.userLeft}
             onPress={() => { setEditName(displayName); setShowEdit(true); }}>
-            <View style={[styles.userAvatar, { backgroundColor: avatarColor(displayName) }]}>
-              <Text style={styles.userAvatarLetter}>{displayName[0]?.toUpperCase()}</Text>
-            </View>
+            {storeUser?.image ? (
+              <Image source={{ uri: storeUser.image }} style={styles.userAvatar} />
+            ) : (
+              <View style={[styles.userAvatar, { backgroundColor: avatarColor(displayName) }]}>
+                <Text style={styles.userAvatarLetter}>{displayName[0]?.toUpperCase()}</Text>
+              </View>
+            )}
             <Text style={styles.userBarName}>{displayName}</Text>
             <Pencil size={13} color="#555" />
           </TouchableOpacity>
@@ -273,16 +283,20 @@ export default function CommentSection({ movieId }: Props) {
       {/* Input */}
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={styles.inputRow}>
-          <TouchableOpacity style={[styles.inputAvatar, { backgroundColor: user ? avatarColor(displayName) : '#2a2a35' }]}
+          <TouchableOpacity style={[styles.inputAvatar, { backgroundColor: user ? avatarColor(displayName) : '#2a2a35', overflow: 'hidden' }]}
             onPress={() => !user && setShowLogin(true)}>
-            {user
-              ? <Text style={styles.avatarLetter}>{displayName[0]?.toUpperCase()}</Text>
-              : <User size={16} color="#666" />}
+            {storeUser?.image ? (
+              <Image source={{ uri: storeUser.image }} style={{ width: 36, height: 36, borderRadius: 18 }} />
+            ) : user ? (
+              <Text style={styles.avatarLetter}>{displayName[0]?.toUpperCase()}</Text>
+            ) : (
+              <User size={16} color="#666" />
+            )}
           </TouchableOpacity>
           <TextInput
             style={styles.input}
             value={newComment} onChangeText={setNewComment}
-            placeholder={user ? 'Write a comment...' : 'Pick a name to comment...'}
+            placeholder={user ? `Write a comment as ${displayName}...` : 'Pick a name to comment...'}
             placeholderTextColor="#555"
             onFocus={() => { if (!user) setShowLogin(true); }}
           />
