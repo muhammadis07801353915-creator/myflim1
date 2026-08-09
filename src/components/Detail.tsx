@@ -369,7 +369,8 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
   return (
     <div className="bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black pb-24" style={{ direction: 'ltr', textAlign: 'left' }}>
-      <div id="player-container" className="relative w-full bg-black aspect-video sm:h-[40vh] md:h-[48vh] aspect-auto overflow-hidden">
+      {/* Tall Header Container matching App height (360px on mobile, 420px+ on desktop) */}
+      <div id="player-container" className={`relative w-full bg-black ${isPlaying ? 'aspect-video md:h-[70vh]' : 'h-[360px] sm:h-[420px] md:h-[480px]'} overflow-hidden`}>
         {isPlaying ? (
           <div className="w-full h-full relative bg-black flex items-center justify-center">
             <div className="flex absolute top-4 right-4 z-[110] space-x-2">
@@ -404,7 +405,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           </div>
         ) : (
           <>
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/60 to-transparent z-10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/40 to-black/40 z-10" />
             <Image 
               src={item.backdrop || item.image || ''} 
               alt={item.title} 
@@ -424,7 +425,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             </div>
 
             {/* Overlaid Floating Poster Thumbnail Card (as in Image 2) */}
-            <div className="absolute left-5 -bottom-10 z-30 w-[100px] sm:w-[120px] aspect-[2/3] rounded-2xl overflow-hidden border-2 border-[#CC222F] shadow-[0_12px_30px_rgba(0,0,0,0.8)]">
+            <div className="absolute left-5 bottom-5 z-30 w-[110px] sm:w-[130px] h-[160px] sm:h-[185px] rounded-2xl overflow-hidden border-2 border-[#CC222F] shadow-[0_12px_30px_rgba(0,0,0,0.9)]">
               <Image 
                 src={item.image || item.backdrop || ''} 
                 alt={item.title} 
@@ -437,7 +438,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         )}
       </div>
 
-      <div className="px-5 pt-12 sm:pt-14 relative z-30 max-w-4xl mx-auto" style={{ direction: 'ltr', textAlign: 'left' }}>
+      <div className="px-5 pt-6 relative z-30 max-w-4xl mx-auto" style={{ direction: 'ltr', textAlign: 'left' }}>
         <h1 
           className="text-2xl sm:text-3xl font-black mb-2 text-white !text-white tracking-tight"
           style={{ color: '#ffffff', textAlign: 'left' }}
