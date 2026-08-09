@@ -102,27 +102,29 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           <button
             type="button"
             onClick={() => { setActiveTab('register'); setErrorMessage(''); }}
+            style={{ color: activeTab === 'register' ? '#ffffff' : undefined }}
             className={`py-2.5 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 ${
               activeTab === 'register' 
-                ? 'bg-[#CC222F] text-white shadow-md' 
+                ? 'bg-[#CC222F] !text-white shadow-md' 
                 : 'text-white/60 light-mode:text-neutral-600 hover:text-white light-mode:hover:text-black'
             }`}
           >
-            <UserPlus size={14} />
-            <span>{language === 'ku' ? 'دروستکردنی ئەکاونت' : 'Register'}</span>
+            <UserPlus size={14} className={activeTab === 'register' ? '!text-white' : ''} />
+            <span className={activeTab === 'register' ? '!text-white' : ''}>{language === 'ku' ? 'دروستکردنی ئەکاونت' : 'Register'}</span>
           </button>
 
           <button
             type="button"
             onClick={() => { setActiveTab('login'); setErrorMessage(''); }}
+            style={{ color: activeTab === 'login' ? '#ffffff' : undefined }}
             className={`py-2.5 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 ${
               activeTab === 'login' 
-                ? 'bg-[#CC222F] text-white shadow-md' 
+                ? 'bg-[#CC222F] !text-white shadow-md' 
                 : 'text-white/60 light-mode:text-neutral-600 hover:text-white light-mode:hover:text-black'
             }`}
           >
-            <LogIn size={14} />
-            <span>{language === 'ku' ? 'چوونە ژوورەوە' : 'Log In'}</span>
+            <LogIn size={14} className={activeTab === 'login' ? '!text-white' : ''} />
+            <span className={activeTab === 'login' ? '!text-white' : ''}>{language === 'ku' ? 'چوونە ژوورەوە' : 'Log In'}</span>
           </button>
         </div>
 

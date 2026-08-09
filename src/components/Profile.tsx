@@ -405,7 +405,7 @@ export default function Profile() {
             <h1 className="text-xl font-black text-white light-mode:text-black tracking-tight">
               {userAccount 
                 ? (language === 'ku' ? `سڵاو، ${userAccount.name}` : language === 'ar' ? `مرحباً، ${userAccount.name}` : `Hi, ${userAccount.name}`)
-                : (language === 'ku' ? 'خوشهاتیت بۆ تابان پڵەی' : 'Welcome to Taban Play')
+                : (language === 'ku' ? 'سڵاو تابان پڵەی' : language === 'ar' ? 'مرحباً تابان بلاي' : 'Hello Taban Play')
               }
             </h1>
             <button 
@@ -475,7 +475,7 @@ export default function Profile() {
       {!userAccount && (
         <div 
           onClick={() => setShowAuthModal(true)}
-          className="mb-6 p-4 rounded-2xl bg-[#CC222F]/10 light-mode:bg-red-50 border border-[#CC222F]/30 light-mode:border-red-200 flex items-center justify-between cursor-pointer hover:bg-[#CC222F]/15 transition group"
+          className="mb-6 p-4 rounded-2xl bg-[#181924] light-mode:bg-white border border-[#CC222F]/40 light-mode:border-neutral-200 shadow-md flex items-center justify-between cursor-pointer hover:border-[#CC222F] transition group"
         >
           <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
             <div className="w-11 h-11 rounded-full bg-[#CC222F]/20 flex items-center justify-center text-[#CC222F]">
