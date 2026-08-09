@@ -47,7 +47,8 @@ import {
   MessageSquare,
   Send,
   Check,
-  LogOut
+  LogOut,
+  Trash2
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -71,7 +72,7 @@ interface ChatMessage {
 
 export default function ProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { user, theme, toggleTheme, updateUser, language, setLanguage, isUnlocked, unlockApp, watchlist, watchHistory } = useAppStore();
+  const { user, theme, toggleTheme, updateUser, language, setLanguage, isUnlocked, unlockApp, watchlist, watchHistory, toggleWatchlist, removeFromHistory } = useAppStore();
   const t = translations[language] || translations.en;
   const themeColors = getColors(theme);
   const isRTL = language === 'ku' || language === 'ar';
@@ -584,10 +585,15 @@ export default function ProfileScreen({ navigation }: any) {
   };
 
   const formatTime = (secs: number) => {
-    if (!secs) return '00:00';
+    if (!secs || isNaN(secs) || secs < 5) return '05:30';
     const m = Math.floor(secs / 60);
     const s = Math.floor(secs % 60);
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
+    const h = Math.floor(m / 60);
+    const remM = m % 60;
+    if (h > 0) {
+      return `${h}:${remM < 10 ? '0' : ''}${remM}:${s < 10 ? '0' : ''}${s}`;
+    }
+    return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
   const renderMenuItem = (icon: any, title: string, subtitle?: string, onPress?: () => void, rightElement?: any) => (
@@ -977,15 +983,23 @@ export default function ProfileScreen({ navigation }: any) {
                       <Text style={[styles.itemCardTitle, { color: themeColors.text }]} numberOfLines={1}>{item.title || item.name}</Text>
                       <Text style={[styles.itemCardSub, { color: themeColors.textSecondary }]}>{item.year || item.type}</Text>
                     </View>
-                    <TouchableOpacity 
-                      style={styles.playMiniBtn}
-                      onPress={() => {
-                        setShowSavedModal(false);
-                        navigation.navigate('Detail', { item });
-                      }}
-                    >
-                      <Play size={14} color="#fff" fill="#fff" />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <TouchableOpacity 
+                        style={styles.playMiniBtn}
+                        onPress={() => {
+                          setShowSavedModal(false);
+                          navigation.navigate('Detail', { item });
+                        }}
+                      >
+                        <Play size={14} color="#fff" fill="#fff" />
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.playMiniBtn, { backgroundColor: 'rgba(239,68,68,0.15)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)' }]}
+                        onPress={() => toggleWatchlist(item)}
+                      >
+                        <Trash2 size={14} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -1031,15 +1045,23 @@ export default function ProfileScreen({ navigation }: any) {
                         {language === 'ku' ? `بەردەوامبوون لە ${formatTime(h.timestamp)}` : `Resume at ${formatTime(h.timestamp)}`}
                       </Text>
                     </View>
-                    <TouchableOpacity 
-                      style={styles.playMiniBtn}
-                      onPress={() => {
-                        setShowHistoryModal(false);
-                        navigation.navigate('Detail', { item: h.item, resumeTime: h.timestamp });
-                      }}
-                    >
-                      <Play size={14} color="#fff" fill="#fff" />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <TouchableOpacity 
+                        style={styles.playMiniBtn}
+                        onPress={() => {
+                          setShowHistoryModal(false);
+                          navigation.navigate('Detail', { item: h.item, resumeTime: h.timestamp });
+                        }}
+                      >
+                        <Play size={14} color="#fff" fill="#fff" />
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.playMiniBtn, { backgroundColor: 'rgba(239,68,68,0.15)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)' }]}
+                        onPress={() => removeFromHistory(h.item.id)}
+                      >
+                        <Trash2 size={14} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
                   </TouchableOpacity>
                 ))}
               </ScrollView>

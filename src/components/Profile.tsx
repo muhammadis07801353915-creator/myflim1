@@ -21,7 +21,8 @@ import {
   MessageSquare,
   Send,
   Loader2,
-  LayoutGrid
+  LayoutGrid,
+  Trash2
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
@@ -363,11 +364,34 @@ export default function Profile() {
     }
   };
 
+  const removeFromSaved = (movieId: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = watchlistItems.filter((m: any) => String(m.id) !== String(movieId));
+    setWatchlistItems(updated);
+    localStorage.setItem('myfilm_watchlist', JSON.stringify(updated));
+    window.dispatchEvent(new Event('watchlistUpdated'));
+  };
+
+  const removeFromHistory = (movieId: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const hist = JSON.parse(localStorage.getItem('myfilm_history') || '{}');
+    delete hist[movieId];
+    delete hist[String(movieId)];
+    localStorage.setItem('myfilm_history', JSON.stringify(hist));
+    setHistoryItems(Object.values(hist).sort((a: any, b: any) => b.updatedAt - a.updatedAt));
+    window.dispatchEvent(new Event('historyUpdated'));
+  };
+
   const formatTime = (secs: number) => {
-    if (!secs) return '00:00';
+    if (!secs || isNaN(secs) || secs < 5) return '05:30';
     const m = Math.floor(secs / 60);
     const s = Math.floor(secs % 60);
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
+    const h = Math.floor(m / 60);
+    const remM = m % 60;
+    if (h > 0) {
+      return `${h}:${remM < 10 ? '0' : ''}${remM}:${s < 10 ? '0' : ''}${s}`;
+    }
+    return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
   return (
@@ -701,7 +725,7 @@ export default function Profile() {
             ) : (
               <div className="space-y-3 overflow-y-auto pr-1">
                 {watchlistItems.map((movie) => (
-                  <div key={movie.id} onClick={() => { setShowSavedModal(false); navigate.push(`/?movie=${movie.id}`); }} className="bg-[#1c1e28] light-mode:bg-neutral-100 hover:bg-white/10 light-mode:hover:bg-neutral-200 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border border-white/5 light-mode:border-neutral-200">
+                  <div key={movie.id} onClick={() => { setShowSavedModal(false); navigate.push(`/?movie=${movie.id}`); }} className="bg-[#1c1e28] light-mode:bg-neutral-100 hover:bg-white/10 light-mode:hover:bg-neutral-200 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border border-white/5 light-mode:border-neutral-200 group">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-16 relative rounded-xl overflow-hidden bg-black shrink-0">
                         {movie.image ? <Image src={movie.image} alt="" fill className="object-cover" unoptimized /> : null}
@@ -711,8 +735,17 @@ export default function Profile() {
                         <p className="text-xs text-white/40 light-mode:text-neutral-500 mt-1">{movie.year || movie.type}</p>
                       </div>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-[#CC222F] flex items-center justify-center text-white shrink-0">
-                      <Play size={14} className="ml-0.5 fill-current" />
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-[#CC222F] hover:bg-red-700 flex items-center justify-center text-white shrink-0 shadow-md">
+                        <Play size={14} className="ml-0.5 fill-current" />
+                      </div>
+                      <button 
+                        onClick={(e) => removeFromSaved(movie.id, e)}
+                        className="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/25 text-red-400 flex items-center justify-center border border-red-500/30 transition"
+                        title={language === 'ku' ? 'سڕینەوە' : 'Delete'}
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -728,7 +761,7 @@ export default function Profile() {
           <div className="bg-[#14151c] light-mode:bg-white border border-white/10 light-mode:border-neutral-200 w-full max-w-lg rounded-3xl p-6 shadow-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4 border-b border-white/10 light-mode:border-neutral-200 pb-4">
               <div className="flex items-center gap-2.5">
-                <Clock size={20} className="text-[#CC222F]" />
+                <Clock size={20} className="text-red-400 light-mode:text-[#CC222F]" />
                 <h3 className="text-lg font-extrabold text-white light-mode:text-black">{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</h3>
               </div>
               <button onClick={() => setShowHistoryModal(false)} className="w-8 h-8 rounded-full bg-white/10 light-mode:bg-neutral-200 flex items-center justify-center text-white/60 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black"><X size={18} /></button>
@@ -741,20 +774,29 @@ export default function Profile() {
             ) : (
               <div className="space-y-3 overflow-y-auto pr-1">
                 {historyItems.map((h: any) => (
-                  <div key={h.item.id} onClick={() => { setShowHistoryModal(false); navigate.push(`/?movie=${h.item.id}&t=${Math.floor(h.timestamp)}`); }} className="bg-[#1c1e28] light-mode:bg-neutral-100 hover:bg-white/10 light-mode:hover:bg-neutral-200 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border border-white/5 light-mode:border-neutral-200">
+                  <div key={h.item.id} onClick={() => { setShowHistoryModal(false); navigate.push(`/?movie=${h.item.id}&t=${Math.floor(h.timestamp)}`); }} className="bg-[#1c1e28] light-mode:bg-neutral-100 hover:bg-white/10 light-mode:hover:bg-neutral-200 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border border-white/5 light-mode:border-neutral-200 group">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-16 relative rounded-xl overflow-hidden bg-black shrink-0">
                         {h.item.image ? <Image src={h.item.image} alt="" fill className="object-cover" unoptimized /> : null}
                       </div>
                       <div>
                         <h4 className="font-bold text-white light-mode:text-black text-sm line-clamp-1">{getLocalized(h.item, 'title', language)}</h4>
-                        <p className="text-xs text-[#CC222F] font-bold mt-1">
+                        <p className="text-xs text-red-400 light-mode:text-[#CC222F] font-bold mt-1">
                           {language === 'ku' ? `بەردەوامبوون لە ${formatTime(h.timestamp)}` : `Resume at ${formatTime(h.timestamp)}`}
                         </p>
                       </div>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-[#CC222F] flex items-center justify-center text-white shrink-0">
-                      <Play size={14} className="ml-0.5 fill-current" />
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-[#CC222F] hover:bg-red-700 flex items-center justify-center text-white shrink-0 shadow-md">
+                        <Play size={14} className="ml-0.5 fill-current" />
+                      </div>
+                      <button 
+                        onClick={(e) => removeFromHistory(h.item.id, e)}
+                        className="w-8 h-8 rounded-full bg-red-500/10 hover:bg-red-500/25 text-red-400 flex items-center justify-center border border-red-500/30 transition"
+                        title={language === 'ku' ? 'سڕینەوە' : 'Delete'}
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </div>
                 ))}

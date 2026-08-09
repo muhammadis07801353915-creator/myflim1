@@ -31,6 +31,7 @@ interface AppState {
   toggleWatchlist: (item: any) => Promise<void>;
   loadWatchlist: () => Promise<void>;
   saveWatchProgress: (item: any, timestamp: number, duration: number) => Promise<void>;
+  removeFromHistory: (itemId: string | number) => Promise<void>;
   updateUser: (data: Partial<{ name: string; image: string; isPro: boolean }>) => Promise<void>;
   toggleTheme: () => void;
   setLanguage: (lang: 'ku' | 'ar' | 'en') => void;
@@ -296,6 +297,25 @@ export const useAppStore = create<AppState>((set, get) => ({
           await supabase.from('settings').update({ value: JSON.stringify(updated) }).eq('key', syncKey);
         } else {
           await supabase.from('settings').insert([{ key: syncKey, value: JSON.stringify(updated) }]);
+        }
+      }
+    } catch (e) {}
+  },
+
+  removeFromHistory: async (itemId: string | number) => {
+    const current = get().watchHistory || {};
+    const updated = { ...current };
+    delete updated[String(itemId)];
+    set({ watchHistory: updated });
+    await AsyncStorage.setItem('watch_history', JSON.stringify(updated));
+
+    try {
+      const savedUid = await AsyncStorage.getItem('taban_app_device_user_id');
+      if (savedUid) {
+        const syncKey = `user_history_${savedUid}`;
+        const { data: existing } = await supabase.from('settings').select('id').eq('key', syncKey).maybeSingle();
+        if (existing?.id) {
+          await supabase.from('settings').update({ value: JSON.stringify(updated) }).eq('key', syncKey);
         }
       }
     } catch (e) {}
