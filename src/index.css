@@ -244,19 +244,69 @@ body.light-mode .btn-watch-now svg,
   fill: #ffffff !important;
 }
 
-/* ALL FILTER PILLS AND CATEGORY BUTTONS ALWAYS RETAIN PURE WHITE TEXT */
-.scrollbar-hide button,
-.scrollbar-hide button *,
-.scrollbar-hide button span,
-html.light-mode .scrollbar-hide button,
-html.light-mode .scrollbar-hide button *,
-html.light-mode .scrollbar-hide button span,
-body.light-mode .scrollbar-hide button,
-body.light-mode .scrollbar-hide button *,
-body.light-mode .scrollbar-hide button span,
-.light-mode .scrollbar-hide button,
-.light-mode .scrollbar-hide button *,
-.light-mode .scrollbar-hide button span {
+/* Filter pill styles for both dark and light modes */
+.filter-pill,
+button.filter-pill {
+  background-color: #1a1d24 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #d1d5db !important;
+}
+
+.filter-pill:hover,
+button.filter-pill:hover {
+  background-color: #222530 !important;
+  color: #ffffff !important;
+}
+
+/* Light mode overrides for filter pills */
+.light-mode .filter-pill,
+html.light-mode .filter-pill,
+body.light-mode .filter-pill,
+.light-mode button.filter-pill,
+html.light-mode button.filter-pill,
+body.light-mode button.filter-pill {
+  background-color: #f1f5f9 !important; /* slate-100 matching Image 2 */
+  border-color: #cbd5e1 !important; /* slate-200 */
+  color: #475569 !important; /* slate-600 matching Image 2 */
+}
+
+.light-mode .filter-pill *,
+html.light-mode .filter-pill *,
+body.light-mode .filter-pill *,
+.light-mode button.filter-pill *,
+html.light-mode button.filter-pill *,
+body.light-mode button.filter-pill * {
+  color: #475569 !important;
+}
+
+.light-mode .filter-pill:hover,
+html.light-mode .filter-pill:hover,
+body.light-mode .filter-pill:hover,
+.light-mode button.filter-pill:hover,
+html.light-mode button.filter-pill:hover,
+body.light-mode button.filter-pill:hover {
+  background-color: #e2e8f0 !important; /* slate-200 */
+  color: #0f172a !important; /* slate-900 */
+}
+
+/* Selected active filter pills */
+.filter-pill-active,
+button.filter-pill-active,
+.light-mode .filter-pill-active,
+html.light-mode .filter-pill-active,
+body.light-mode .filter-pill-active,
+.light-mode button.filter-pill-active,
+html.light-mode button.filter-pill-active,
+body.light-mode button.filter-pill-active {
+  background-color: #CC222F !important;
+  border-color: #CC222F !important;
+  color: #ffffff !important;
+}
+
+.filter-pill-active *,
+.filter-pill-active span,
+.light-mode .filter-pill-active *,
+.light-mode .filter-pill-active span {
   color: #ffffff !important;
 }
 

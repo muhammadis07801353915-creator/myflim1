@@ -170,11 +170,8 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           <button
             key={t.id}
             onClick={() => setActiveType(t.id)}
-            style={{ color: '#ffffff' }}
-            className={`px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border !text-white ${
-              activeType === t.id 
-                ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-lg shadow-red-600/25' 
-                : 'bg-[#1a1d24] border-neutral-700/50 text-white hover:bg-neutral-800'
+            className={`px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${
+              activeType === t.id ? 'filter-pill-active' : 'filter-pill'
             }`}
           >
             {t.label}
@@ -188,11 +185,8 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           <button
             key={g.id}
             onClick={() => setActiveGenre(g.id)}
-            style={{ color: '#ffffff' }}
-            className={`px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border !text-white ${
-              activeGenre === g.id 
-                ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-md' 
-                : 'bg-[#1a1d24] border-neutral-700/50 text-white hover:bg-neutral-800'
+            className={`px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+              activeGenre === g.id ? 'filter-pill-active' : 'filter-pill'
             }`}
           >
             {g.label}
@@ -206,11 +200,8 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           <button
             key={y.id}
             onClick={() => setActiveYear(y.id)}
-            style={{ color: '#ffffff' }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border !text-white ${
-              activeYear === y.id 
-                ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-md' 
-                : 'bg-[#1a1d24] border-neutral-700/50 text-white hover:bg-neutral-800'
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+              activeYear === y.id ? 'filter-pill-active' : 'filter-pill'
             }`}
           >
             {y.label}
@@ -226,10 +217,9 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
             : (language === 'ku' ? 'ناو بەرز و دیارەکان' : language === 'ar' ? 'الرائج الآن' : 'Trending Now')}
         </h2>
 
-        {/* Sort Button */}
         <button
           onClick={() => setSortBy(prev => prev === 'newest' ? 'rating' : prev === 'rating' ? 'popular' : 'newest')}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1a1d24] light-mode:bg-neutral-200 border border-neutral-700/50 light-mode:border-neutral-300 text-xs font-bold text-neutral-300 light-mode:text-neutral-900 hover:text-white light-mode:hover:text-black transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition filter-pill"
         >
           <ArrowUpDown size={14} className="text-[#CC222F]" />
           <span>

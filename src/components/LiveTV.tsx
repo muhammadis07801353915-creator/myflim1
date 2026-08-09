@@ -533,9 +533,7 @@ export default function LiveTV() {
           <button
             onClick={() => setIsCountryDrawerOpen(true)}
             className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition text-sm font-bold ${
-              selectedCountry
-                ? 'bg-[#CC222F]/15 border-[#CC222F]/40 text-[#CC222F]'
-                : 'bg-white/7 light-mode:bg-neutral-100 border-white/8 light-mode:border-neutral-200 text-white/80 light-mode:text-neutral-900 hover:text-white light-mode:hover:text-black'
+              selectedCountry ? 'filter-pill-active' : 'filter-pill'
             }`}
           >
             <Menu size={16} />
@@ -756,11 +754,8 @@ export default function LiveTV() {
           <button
             key={tab.id}
             onClick={() => setSelectedCategory(tab.id)}
-            style={{ color: '#ffffff' }}
-            className={`px-5 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-all border !text-white ${
-              selectedCategory === tab.id
-                ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-lg shadow-red-600/25'
-                : 'bg-[#1a1d24] border-neutral-700/50 text-white hover:bg-neutral-800'
+            className={`px-5 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-all border ${
+              selectedCategory === tab.id ? 'filter-pill-active' : 'filter-pill'
             }`}
           >
             {tab.label}
