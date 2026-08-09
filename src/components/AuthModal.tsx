@@ -182,10 +182,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 bg-[#CC222F] hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-red-600/30 flex items-center justify-center gap-2"
+              style={{ color: '#ffffff' }}
+              className="w-full py-3 bg-[#CC222F] hover:bg-red-700 disabled:opacity-50 !text-white font-bold rounded-xl text-xs transition shadow-lg shadow-red-600/30 flex items-center justify-center gap-2"
             >
-              <CheckCircle2 size={16} />
-              <span>{language === 'ku' ? 'دروستکردنی ئەکاونت' : 'Create Account'}</span>
+              <CheckCircle2 size={16} className="!text-white" style={{ color: '#ffffff' }} />
+              <span className="!text-white" style={{ color: '#ffffff' }}>{language === 'ku' ? 'دروستکردنی ئەکاونت' : 'Create Account'}</span>
             </button>
           </form>
         )}
@@ -223,10 +224,11 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 bg-[#CC222F] hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-red-600/30 flex items-center justify-center gap-2"
+              style={{ color: '#ffffff' }}
+              className="w-full py-3 bg-[#CC222F] hover:bg-red-700 disabled:opacity-50 !text-white font-bold rounded-xl text-xs transition shadow-lg shadow-red-600/30 flex items-center justify-center gap-2"
             >
-              <LogIn size={16} />
-              <span>{language === 'ku' ? 'چوونە ژوورەوە' : 'Log In'}</span>
+              <LogIn size={16} className="!text-white" style={{ color: '#ffffff' }} />
+              <span className="!text-white" style={{ color: '#ffffff' }}>{language === 'ku' ? 'چوونە ژوورەوە' : 'Log In'}</span>
             </button>
           </form>
         )}
