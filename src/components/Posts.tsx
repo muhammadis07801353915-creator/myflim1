@@ -122,6 +122,15 @@ function PostsSkeleton() {
       </div>
     </div>
   );
+function checkIsLiked(likes: string[], userAcc: ReturnType<typeof getUserAccount>): boolean {
+  if (!userAcc || !Array.isArray(likes)) return false;
+  const targetId = userAcc.id.toLowerCase();
+  const targetName = userAcc.name.toLowerCase();
+  const targetKey = `usr_${targetName}`;
+  return likes.some(l => {
+    const lower = String(l).toLowerCase();
+    return lower === targetId || lower === targetName || lower === targetKey;
+  });
 }
 
 export default function Posts() {
@@ -201,16 +210,7 @@ export default function Posts() {
     }
   };
 
-  const checkIsLiked = (likes: string[], userAcc: ReturnType<typeof getUserAccount>): boolean => {
-    if (!userAcc || !Array.isArray(likes)) return false;
-    const targetId = userAcc.id.toLowerCase();
-    const targetName = userAcc.name.toLowerCase();
-    const targetKey = `usr_${targetName}`;
-    return likes.some(l => {
-      const lower = String(l).toLowerCase();
-      return lower === targetId || lower === targetName || lower === targetKey;
-    });
-  };
+
 
   const handleLike = async (postId: string) => {
     if (!userAccount) { setShowAuthModal(true); return; }
