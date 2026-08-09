@@ -383,7 +383,7 @@ export default function Profile() {
   };
 
   const formatTime = (secs: number) => {
-    if (!secs || isNaN(secs) || secs < 5) return '05:30';
+    if (!secs || isNaN(secs) || secs < 5) return '00:00';
     const m = Math.floor(secs / 60);
     const s = Math.floor(secs % 60);
     const h = Math.floor(m / 60);
@@ -737,8 +737,8 @@ export default function Profile() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-[#CC222F] hover:bg-red-700 flex items-center justify-center text-white shrink-0 shadow-md">
-                        <Play size={14} className="ml-0.5 fill-current" />
+                      <div className="play-btn-circle w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-md">
+                        <Play size={14} className="ml-0.5" />
                       </div>
                       <button 
                         onClick={(e) => removeFromSaved(movie.id, e)}
@@ -788,8 +788,8 @@ export default function Profile() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <div className="w-8 h-8 rounded-full bg-[#CC222F] hover:bg-red-700 flex items-center justify-center text-white shrink-0 shadow-md">
-                        <Play size={14} className="ml-0.5 fill-current" />
+                      <div className="play-btn-circle w-8 h-8 rounded-full flex items-center justify-center shrink-0 shadow-md">
+                        <Play size={14} className="ml-0.5" />
                       </div>
                       <button 
                         onClick={(e) => removeFromHistory(h.item.id, e)}

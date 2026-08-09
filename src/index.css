@@ -321,6 +321,24 @@ body.light-mode button.filter-pill-active {
   background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
+/* Play button circle style */
+.play-btn-circle,
+.play-btn-circle *,
+.play-btn-circle svg,
+html.light-mode .play-btn-circle,
+html.light-mode .play-btn-circle *,
+html.light-mode .play-btn-circle svg,
+body.light-mode .play-btn-circle,
+body.light-mode .play-btn-circle *,
+body.light-mode .play-btn-circle svg,
+.light-mode .play-btn-circle,
+.light-mode .play-btn-circle *,
+.light-mode .play-btn-circle svg {
+  background-color: #CC222F !important;
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
 /* Light Mode Overrides for Modal List Items */
 .light-mode .modal-list-item,
 html.light-mode .modal-list-item,
