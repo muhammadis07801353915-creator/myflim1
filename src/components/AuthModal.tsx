@@ -88,9 +88,9 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
         </div>
 
         {/* Top Notice Banner */}
-        <div className="p-3.5 rounded-2xl bg-[#CC222F]/15 border border-[#CC222F]/40 text-xs font-bold text-[#CC222F] flex items-start gap-2.5">
-          <Key size={18} className="shrink-0 mt-0.5" />
-          <p className="leading-relaxed">
+        <div className="p-3.5 rounded-2xl bg-[#CC222F]/20 light-mode:bg-red-50 border border-[#CC222F]/40 light-mode:border-red-200 text-xs font-bold flex items-start gap-2.5">
+          <Key size={18} className="shrink-0 mt-0.5 text-red-400 light-mode:text-[#CC222F]" />
+          <p className="leading-relaxed text-white light-mode:text-[#CC222F]">
             {language === 'ku' 
               ? 'تکایە ئەو کۆدە داخل بکە لە بەشی داخڵ کردنی کۆد: Taban Play1' 
               : 'Please enter this code in code entry section: Taban Play1'}
