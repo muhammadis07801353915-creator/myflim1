@@ -492,7 +492,7 @@ export default function DetailScreen({ route, navigation }: any) {
             </View>
           </View>
 
-          <View style={styles.actionRow}>
+          <View style={[styles.actionRow, { flexDirection: language === 'ku' || language === 'ar' ? 'row-reverse' : 'row' }]}>
             <TouchableOpacity style={styles.mainPlayButton} onPress={handleWatchNow}>
               <Play size={20} color="black" fill="black" />
               <Text style={styles.mainPlayText}>{t.watchNow || 'Watch Now'}</Text>

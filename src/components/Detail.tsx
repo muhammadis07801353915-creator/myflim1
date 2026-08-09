@@ -473,10 +473,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             <span>{language === 'ku' ? 'بەمزوانە بەردەست دەبێت' : language === 'ar' ? 'سيتوفر قريباً' : 'Coming Soon'}</span>
           </div>
         ) : (
-          <div className="flex items-center gap-3 mb-8" style={{ direction: 'ltr' }}>
+          <div className="flex items-center gap-3 mb-8" style={{ direction: language === 'ku' || language === 'ar' ? 'rtl' : 'ltr' }}>
             <button 
               onClick={handlePlayClick}
-              className="btn-watch-now flex-1 py-3.5 px-6 bg-[#CC222F] hover:bg-red-700 !text-white text-white font-black rounded-2xl transition flex items-center justify-center space-x-2 shadow-lg active:scale-95"
+              className="btn-watch-now flex-1 py-3.5 px-6 bg-[#CC222F] hover:bg-red-700 !text-white text-white font-black rounded-2xl transition flex items-center justify-center gap-2 shadow-lg active:scale-95"
               style={{ color: '#ffffff', backgroundColor: '#CC222F' }}
             >
               <Play size={18} className="fill-white !text-white text-white" style={{ color: '#ffffff', fill: '#ffffff' }} />
