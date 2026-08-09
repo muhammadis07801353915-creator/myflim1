@@ -45,8 +45,10 @@ export default function LiveTVScreen({ navigation }: any) {
 
   useFocusEffect(
     useCallback(() => {
-      fetchInitialData();
-    }, [fetchInitialData])
+      if (liveTv.length === 0) {
+        fetchInitialData();
+      }
+    }, [liveTv.length, fetchInitialData])
   );
 
   // ── Category tabs ─────────────────────────────────────────────────────────

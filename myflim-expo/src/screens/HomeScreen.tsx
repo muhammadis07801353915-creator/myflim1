@@ -180,7 +180,12 @@ export default function HomeScreen({ navigation }: any) {
     return Array.from(map.entries());
   }, [categories, movies, isUnlocked, language]);
 
-  const onRefresh = () => fetchInitialData();
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchInitialData();
+    setRefreshing(false);
+  };
   const handlePress = (item: any) => navigation.navigate('Detail', { item });
   const handleSeeAll = (title: string, data: any[], listName?: string) =>
     navigation.navigate('Category', { title, data, listName });
@@ -397,7 +402,7 @@ export default function HomeScreen({ navigation }: any) {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={loading}
+            refreshing={refreshing}
             onRefresh={onRefresh}
             tintColor={COLORS.primary}
           />

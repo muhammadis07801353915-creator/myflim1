@@ -89,7 +89,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   fetchInitialData: async () => {
-    set({ loading: true, error: null });
+    const isAlreadyLoaded = get().movies.length > 0;
+    if (!isAlreadyLoaded) {
+      set({ loading: true, error: null });
+    }
     try {
       // Helper to fetch all rows bypassing 1000 limit
       const fetchAllRows = async (table: string, orderColumn: string, ascending = false) => {
