@@ -213,44 +213,61 @@ export default function PostsScreen() {
   };
 
   const getUserIdentifier = () => {
-    if (user?.name && user.name !== 'User Name') return user.name;
+    if (user?.name && user.name !== 'User Name') {
+      return `usr_${user.name.trim().toLowerCase()}`;
+    }
     return appUserId || 'app_user';
   };
 
+  const isUserLiked = (likes: string[]): boolean => {
+    if (!Array.isArray(likes)) return false;
+    const userKey = getUserIdentifier().toLowerCase();
+    const userName = user?.name ? user.name.toLowerCase() : '';
+    return likes.some(l => {
+      const lower = String(l).toLowerCase();
+      return (
+        lower === userKey ||
+        (userName && (lower === userName || lower === `usr_${userName}`)) ||
+        (appUserId && lower === appUserId.toLowerCase())
+      );
+    });
+  };
+
   const handleLike = async (postId: string) => {
-    const identifier = getUserIdentifier();
+    const userKey = getUserIdentifier();
+
+    const updateLikesArray = (existingLikes: string[]) => {
+      const arr = Array.isArray(existingLikes) ? existingLikes : [];
+      const hasLiked = isUserLiked(arr);
+      if (hasLiked) {
+        const userName = user?.name ? user.name.toLowerCase() : '';
+        const keyLower = userKey.toLowerCase();
+        return arr.filter(l => {
+          const lower = String(l).toLowerCase();
+          return (
+            lower !== keyLower &&
+            lower !== userName &&
+            lower !== `usr_${userName}` &&
+            lower !== (appUserId || '').toLowerCase()
+          );
+        });
+      } else {
+        return Array.from(new Set([...arr, userKey]));
+      }
+    };
 
     // 0ms Optimistic Update
     setPosts(prevPosts =>
-      prevPosts.map(p => {
-        if (p.id !== postId) return p;
-        const currentLikes = Array.isArray(p.likes) ? p.likes : [];
-        const hasLiked = currentLikes.includes(identifier);
-        const newLikes = hasLiked
-          ? currentLikes.filter(id => id !== identifier)
-          : Array.from(new Set([...currentLikes, identifier]));
-        return { ...p, likes: newLikes };
-      })
+      prevPosts.map(p => p.id === postId ? { ...p, likes: updateLikesArray(p.likes) } : p)
     );
 
     try {
       const allPosts = await fetchAllPostsFromDB();
-      const updated = allPosts.map(p => {
-        if (p.id !== postId) return p;
-        const currentLikes = Array.isArray(p.likes) ? p.likes : [];
-        const hasLiked = currentLikes.includes(identifier);
-        const newLikes = hasLiked
-          ? currentLikes.filter(id => id !== identifier)
-          : Array.from(new Set([...currentLikes, identifier]));
-        return {
-          ...p,
-          likes: newLikes
-        };
-      });
+      const updated = allPosts.map(p => p.id === postId ? { ...p, likes: updateLikesArray(p.likes) } : p);
       await saveAllPostsToDB(updated);
+      setPosts(updated);
     } catch (e) {
       console.error('Like error:', e);
-      loadPosts();
     }
   };
 
@@ -290,8 +307,7 @@ export default function PostsScreen() {
   };
 
   const renderPostItem = ({ item }: { item: Post }) => {
-    const userId = user?.name || 'app_user';
-    const isLiked = item.likes.includes(userId);
+    const isLiked = isUserLiked(item.likes);
     const showComments = expandedComments[item.id] || false;
     const commentInput = commentInputs[item.id] || '';
 

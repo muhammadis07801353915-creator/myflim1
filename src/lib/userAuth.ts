@@ -45,8 +45,8 @@ export function getUserAccount(): UserAccount | null {
   if (!name) return null;
 
   let id = localStorage.getItem('myfilm_user_id');
-  if (!id) {
-    id = 'user_' + Math.random().toString(36).substring(2, 10);
+  if (!id || id.startsWith('user_')) {
+    id = 'usr_' + name.trim().toLowerCase();
     localStorage.setItem('myfilm_user_id', id);
   }
 

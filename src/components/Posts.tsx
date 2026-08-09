@@ -201,43 +201,51 @@ export default function Posts() {
     }
   };
 
+  const checkIsLiked = (likes: string[], userAcc: ReturnType<typeof getUserAccount>): boolean => {
+    if (!userAcc || !Array.isArray(likes)) return false;
+    const targetId = userAcc.id.toLowerCase();
+    const targetName = userAcc.name.toLowerCase();
+    const targetKey = `usr_${targetName}`;
+    return likes.some(l => {
+      const lower = String(l).toLowerCase();
+      return lower === targetId || lower === targetName || lower === targetKey;
+    });
+  };
+
   const handleLike = async (postId: string) => {
     if (!userAccount) { setShowAuthModal(true); return; }
 
-    const identifier = userAccount.id || userAccount.name;
+    const userKey = `usr_${userAccount.name.trim().toLowerCase()}`;
+
+    const updateLikesArray = (existingLikes: string[]) => {
+      const arr = Array.isArray(existingLikes) ? existingLikes : [];
+      const hasLiked = checkIsLiked(arr, userAccount);
+      if (hasLiked) {
+        const targetId = userAccount.id.toLowerCase();
+        const targetName = userAccount.name.toLowerCase();
+        const targetKey = `usr_${targetName}`;
+        return arr.filter(l => {
+          const lower = String(l).toLowerCase();
+          return lower !== targetId && lower !== targetName && lower !== targetKey;
+        });
+      } else {
+        return Array.from(new Set([...arr, userKey]));
+      }
+    };
 
     // 1. INSTANT OPTIMISTIC UI UPDATE (0ms delay!)
     setPosts(prevPosts =>
-      prevPosts.map(p => {
-        if (p.id !== postId) return p;
-        const currentLikes = Array.isArray(p.likes) ? p.likes : [];
-        const hasLiked = currentLikes.includes(identifier) || (userAccount.name && currentLikes.includes(userAccount.name));
-        const newLikes = hasLiked
-          ? currentLikes.filter(id => id !== identifier && id !== userAccount.name)
-          : Array.from(new Set([...currentLikes, identifier]));
-        return { ...p, likes: newLikes };
-      })
+      prevPosts.map(p => p.id === postId ? { ...p, likes: updateLikesArray(p.likes) } : p)
     );
 
     // 2. Persist to DB asynchronously in background
     try {
       const allPosts = await fetchAllPostsFromDB();
-      const updated = allPosts.map(p => {
-        if (p.id !== postId) return p;
-        const currentLikes = Array.isArray(p.likes) ? p.likes : [];
-        const hasLiked = currentLikes.includes(identifier) || (userAccount.name && currentLikes.includes(userAccount.name));
-        const newLikes = hasLiked
-          ? currentLikes.filter(id => id !== identifier && id !== userAccount.name)
-          : Array.from(new Set([...currentLikes, identifier]));
-        return {
-          ...p,
-          likes: newLikes
-        };
-      });
+      const updated = allPosts.map(p => p.id === postId ? { ...p, likes: updateLikesArray(p.likes) } : p);
       await saveAllPostsToDB(updated);
+      setPosts(updated);
     } catch (e) {
       console.error('Like error:', e);
-      loadPosts();
     }
   };
 
@@ -452,7 +460,7 @@ function PostCard({
   toggleComments: () => void;
   onAuthRequired: () => void;
 }) {
-  const isLiked = userAccount ? (post.likes.includes(userAccount.id) || post.likes.includes(userAccount.name)) : false;
+  const isLiked = checkIsLiked(post.likes, userAccount);
   const isOwner = userAccount?.id === post.user_id;
   const postAvatar = post.user_avatar || DEFAULT_AVATARS[0];
 
