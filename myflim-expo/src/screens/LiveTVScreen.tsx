@@ -377,22 +377,39 @@ export default function LiveTVScreen({ navigation }: any) {
             {searchResults.map((ch: any) => (
               <TouchableOpacity
                 key={ch.id}
-                style={[s.listRow, { borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}
+                style={[s.listRow, { borderBottomColor: themeColors.border }, isRTL ? { flexDirection: 'row' } : { flexDirection: 'row' }]}
                 onPress={() => handlePress(ch)}
                 activeOpacity={0.85}
               >
-                <View style={s.listInfo}>
-                  <Text numberOfLines={1} style={[s.listName, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{ch.name}</Text>
-                  <Text style={[s.listCat, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>{ch.category}</Text>
+                {/* LTR: Logo left | RTL: Logo right (placed last in row) */}
+                {!isRTL && (
+                  <View style={[s.listLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+                    {ch.image ? (
+                      <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
+                    ) : (
+                      <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={1}>{ch.name[0]}</Text>
+                    )}
+                    <View style={s.listLiveDot} />
+                  </View>
+                )}
+
+                {/* Text info */}
+                <View style={[s.listInfo, isRTL && { alignItems: 'flex-end' }]}>
+                  <Text numberOfLines={1} style={[s.listName, { color: themeColors.text }]}>{ch.name}</Text>
+                  <Text style={[s.listCat, { color: themeColors.textSecondary }]}>{ch.category}</Text>
                 </View>
-                <View style={[s.listLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-                  {ch.image ? (
-                    <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
-                  ) : (
-                    <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={1}>{ch.name[0]}</Text>
-                  )}
-                  <View style={s.listLiveDot} />
-                </View>
+
+                {/* RTL: Logo right */}
+                {isRTL && (
+                  <View style={[s.listLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+                    {ch.image ? (
+                      <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
+                    ) : (
+                      <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={1}>{ch.name[0]}</Text>
+                    )}
+                    <View style={s.listLiveDot} />
+                  </View>
+                )}
               </TouchableOpacity>
             ))}
             {searchResults.length === 0 && (
@@ -464,29 +481,43 @@ export default function LiveTVScreen({ navigation }: any) {
                       )}
                     </View>
 
-                    {/* Channel rows — logo on right, text on left (matching website) */}
+                    {/* Channel rows */}
                     {catChannels.slice(0, 6).map((ch: any) => (
                       <TouchableOpacity
                         key={ch.id}
-                        style={[s.listRow, { borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}
+                        style={[s.listRow, { borderBottomColor: themeColors.border }]}
                         onPress={() => handlePress(ch)}
                         activeOpacity={0.85}
                       >
-                        {/* Text info (left/flexible side) */}
-                        <View style={s.listInfo}>
-                          <Text numberOfLines={1} style={[s.listName, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{ch.name}</Text>
-                          <Text style={[s.listCat, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>{ch.category}</Text>
+                        {/* LTR: Logo on left */}
+                        {!isRTL && (
+                          <View style={[s.listLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+                            {ch.image ? (
+                              <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
+                            ) : (
+                              <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={1}>{ch.name[0]}</Text>
+                            )}
+                            <View style={s.listLiveDot} />
+                          </View>
+                        )}
+
+                        {/* Text info */}
+                        <View style={[s.listInfo, isRTL && { alignItems: 'flex-end' }]}>
+                          <Text numberOfLines={1} style={[s.listName, { color: themeColors.text }]}>{ch.name}</Text>
+                          <Text style={[s.listCat, { color: themeColors.textSecondary }]}>{ch.category}</Text>
                         </View>
 
-                        {/* Channel logo (right side, square with live dot) */}
-                        <View style={[s.listLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-                          {ch.image ? (
-                            <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
-                          ) : (
-                            <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={1}>{ch.name[0]}</Text>
-                          )}
-                          <View style={s.listLiveDot} />
-                        </View>
+                        {/* RTL: Logo on right */}
+                        {isRTL && (
+                          <View style={[s.listLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
+                            {ch.image ? (
+                              <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
+                            ) : (
+                              <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={1}>{ch.name[0]}</Text>
+                            )}
+                            <View style={s.listLiveDot} />
+                          </View>
+                        )}
                       </TouchableOpacity>
                     ))}
                   </View>
