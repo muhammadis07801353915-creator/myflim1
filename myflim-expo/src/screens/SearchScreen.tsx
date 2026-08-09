@@ -229,7 +229,7 @@ export default function SearchScreen({ navigation }: any) {
           onPress={() => isUnlocked && setShowFilterModal(true)}
           activeOpacity={0.8}
         >
-          <SlidersHorizontal size={20} color={(activeType !== 'All' || activeGenre !== 'All' || sortBy !== 'newest') ? 'black' : themeColors.text} />
+          <SlidersHorizontal size={20} color={(activeType !== 'All' || activeGenre !== 'All' || sortBy !== 'newest') ? '#ffffff' : themeColors.text} />
         </TouchableOpacity>
       </View>
 
@@ -378,7 +378,7 @@ export default function SearchScreen({ navigation }: any) {
       >
         <Pressable style={styles.modalOverlay} onPress={() => setShowFilterModal(false)}>
           <View style={[styles.modalContent, { backgroundColor: themeColors.surface }]} onStartShouldSetResponder={() => true}>
-            <View style={styles.modalHeader}>
+            <View style={[styles.modalHeader, isRTL && { flexDirection: 'row-reverse' }]}>
               <Text style={[styles.modalTitle, { color: themeColors.text }]}>{t.filterByType || 'پاڵاوتنی خێرا'}</Text>
               <TouchableOpacity onPress={() => setShowFilterModal(false)}>
                 <X color={themeColors.textSecondary} size={24} />
@@ -399,7 +399,7 @@ export default function SearchScreen({ navigation }: any) {
                   style={[styles.sortChip, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }, sortBy === s.id && styles.sortChipActive]}
                   onPress={() => setSortBy(s.id as any)}
                 >
-                  <Text style={[styles.sortChipText, { color: themeColors.text }, sortBy === s.id && { color: '#000', fontWeight: 'bold' }]}>{s.label}</Text>
+                  <Text style={[styles.sortChipText, { color: themeColors.text }, sortBy === s.id && { color: '#ffffff', fontWeight: 'bold' }]}>{s.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -420,7 +420,7 @@ export default function SearchScreen({ navigation }: any) {
                   <Text style={[styles.filterItemText, { color: themeColors.text }, activeType === option.id && styles.filterItemTextActive]}>
                     {option.label}
                   </Text>
-                  {activeType === option.id && <Check size={18} color="black" />}
+                  {activeType === option.id && <Check size={18} color="#ffffff" />}
                 </TouchableOpacity>
               ))}
             </View>
@@ -607,7 +607,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   filterItemTextActive: {
-    color: 'black',
+    color: '#ffffff',
     fontWeight: 'bold',
   }
 });
