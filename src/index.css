@@ -224,25 +224,24 @@ body.light-mode,
 }
 
 /* 6. EXCEPTIONS: TEXT ON RED/BLUE BUTTONS & POSTER OVERLAYS REMAIN WHITE */
-.light-mode .bg-\[\#CC222F\],
-.light-mode .bg-\[\#CC222F\] *,
-.light-mode .bg-red-600,
-.light-mode .bg-red-600 *,
-.light-mode .bg-red-500,
-.light-mode .bg-red-500 *,
-.light-mode .bg-blue-600,
-.light-mode .bg-blue-600 *,
-.light-mode .bg-\[\#24A1DE\],
-.light-mode .bg-\[\#24A1DE\] *,
-.light-mode .bg-\[\#1877F2\],
-.light-mode .bg-\[\#1877F2\] *,
-.light-mode button.bg-\[\#CC222F\],
-.light-mode button.bg-\[\#CC222F\] *,
-.light-mode button.bg-red-600,
-.light-mode button.bg-red-600 *,
-.light-mode button.bg-blue-600,
-.light-mode button.bg-blue-600 * {
+.btn-watch-now,
+.btn-watch-now *,
+.btn-watch-now span,
+.btn-watch-now svg,
+html.light-mode .btn-watch-now,
+html.light-mode .btn-watch-now *,
+html.light-mode .btn-watch-now span,
+html.light-mode .btn-watch-now svg,
+body.light-mode .btn-watch-now,
+body.light-mode .btn-watch-now *,
+body.light-mode .btn-watch-now span,
+body.light-mode .btn-watch-now svg,
+.light-mode .btn-watch-now,
+.light-mode .btn-watch-now *,
+.light-mode .btn-watch-now span,
+.light-mode .btn-watch-now svg {
   color: #ffffff !important;
+  fill: #ffffff !important;
 }
 
 .light-mode div[class*="aspect-"] *,

@@ -476,11 +476,11 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           <div className="flex items-center gap-3 mb-8" style={{ direction: 'ltr' }}>
             <button 
               onClick={handlePlayClick}
-              className="flex-1 py-3.5 px-6 bg-[#CC222F] hover:bg-red-700 text-white font-black rounded-2xl transition flex items-center justify-center space-x-2 shadow-lg active:scale-95"
+              className="btn-watch-now flex-1 py-3.5 px-6 bg-[#CC222F] hover:bg-red-700 !text-white text-white font-black rounded-2xl transition flex items-center justify-center space-x-2 shadow-lg active:scale-95"
               style={{ color: '#ffffff', backgroundColor: '#CC222F' }}
             >
-              <Play size={18} className="fill-white text-white" style={{ color: '#ffffff', fill: '#ffffff' }} />
-              <span className="text-base font-black text-white" style={{ color: '#ffffff' }}>
+              <Play size={18} className="fill-white !text-white text-white" style={{ color: '#ffffff', fill: '#ffffff' }} />
+              <span className="text-base font-black !text-white text-white" style={{ color: '#ffffff' }}>
                 {language === 'ku' ? 'ئێستا ببینە' : 'Watch Now'}
               </span>
             </button>
