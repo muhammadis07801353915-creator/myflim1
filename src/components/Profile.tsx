@@ -375,8 +375,8 @@ export default function Profile() {
       
       {/* ── TOP PROFILE HEADER (Avatar & Name & Edit Button) ────────── */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4 rtl:space-x-reverse">
-          <div className="relative p-0.5 rounded-full border-2 border-[#CC222F]">
+        <div className="flex items-center gap-5 sm:gap-6 rtl:gap-5">
+          <div className="relative p-0.5 rounded-full border-2 border-red-500/80 light-mode:border-[#CC222F]">
             <div className="w-16 h-16 rounded-full overflow-hidden relative bg-[#181924] light-mode:bg-neutral-200">
               <Image 
                 src={userAccount?.avatar || DEFAULT_AVATARS[0]} 
@@ -418,7 +418,7 @@ export default function Profile() {
                   setShowNameModal(true);
                 }
               }} 
-              className="text-xs font-semibold text-[#CC222F] hover:underline transition flex items-center gap-1 mt-0.5"
+              className="text-xs font-bold text-red-400 light-mode:text-[#CC222F] hover:underline transition flex items-center gap-1 mt-1"
             >
               <span>{userAccount ? (language === 'ku' ? 'دەستکاری پرۆفایل >' : 'Edit Profile >') : (language === 'ku' ? 'دروستکردنی ئەکاونت / چوونە ژوورەوە >' : 'Register Account / Login >')}</span>
             </button>
@@ -434,8 +434,8 @@ export default function Profile() {
           className="bg-[#14151c] light-mode:bg-white hover:bg-[#1a1b24] light-mode:hover:bg-neutral-50 border border-white/6 light-mode:border-neutral-200 rounded-2xl p-4 cursor-pointer transition shadow-sm group"
         >
           <div className="flex items-center justify-between mb-3">
-            <Bookmark size={18} className="text-[#CC222F]" />
-            <div className="w-[18px] h-[18px] rounded-full bg-[#CC222F]/15 flex items-center justify-center text-[#CC222F] font-black text-[10px]">
+            <Bookmark size={18} className="text-red-400 light-mode:text-[#CC222F]" />
+            <div className="w-[18px] h-[18px] rounded-full bg-red-500/15 light-mode:bg-[#CC222F]/15 flex items-center justify-center text-red-400 light-mode:text-[#CC222F] font-black text-[10px]">
               +
             </div>
           </div>
@@ -449,7 +449,7 @@ export default function Profile() {
           className="bg-[#14151c] light-mode:bg-white hover:bg-[#1a1b24] light-mode:hover:bg-neutral-50 border border-white/6 light-mode:border-neutral-200 rounded-2xl p-4 cursor-pointer transition shadow-sm group"
         >
           <div className="flex items-center justify-between mb-3">
-            <Clock size={18} className="text-[#CC222F]" />
+            <Clock size={18} className="text-red-400 light-mode:text-[#CC222F]" />
           </div>
           <p className="text-[11px] font-semibold text-white/60 light-mode:text-neutral-500 mb-1 truncate">{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</p>
           <p className="text-2xl font-black text-white light-mode:text-black tracking-tight">{historyItems.length}</p>
@@ -461,13 +461,13 @@ export default function Profile() {
           className="bg-[#14151c] light-mode:bg-white hover:bg-[#1a1b24] light-mode:hover:bg-neutral-50 border border-white/6 light-mode:border-neutral-200 rounded-2xl p-4 cursor-pointer transition shadow-sm group"
         >
           <div className="flex items-center justify-between mb-3">
-            <Download size={18} className="text-[#CC222F]" />
-            <div className="w-[18px] h-[18px] rounded-full bg-[#CC222F]/15 flex items-center justify-center text-[#CC222F] font-black text-[10px]">
+            <Download size={18} className="text-red-400 light-mode:text-[#CC222F]" />
+            <div className="w-[18px] h-[18px] rounded-full bg-red-500/15 light-mode:bg-[#CC222F]/15 flex items-center justify-center text-red-400 light-mode:text-[#CC222F] font-black text-[10px]">
               +
             </div>
           </div>
           <p className="text-[11px] font-semibold text-white/60 light-mode:text-neutral-500 mb-1 truncate">{language === 'ku' ? 'دابەزاندن' : language === 'ar' ? 'التنزيلات' : 'Downloads'}</p>
-          <p className="text-xs font-extrabold text-[#CC222F] mt-2">{language === 'ku' ? 'بەمزوانە' : language === 'ar' ? 'قريباً' : 'Coming Soon'}</p>
+          <p className="text-xs font-extrabold text-red-400 light-mode:text-[#CC222F] mt-2">{language === 'ku' ? 'بەمزوانە' : language === 'ar' ? 'قريباً' : 'Coming Soon'}</p>
         </div>
       </div>
 
@@ -475,14 +475,14 @@ export default function Profile() {
       {!userAccount && (
         <div 
           onClick={() => setShowAuthModal(true)}
-          className="mb-6 p-4 rounded-2xl bg-[#181924] light-mode:bg-white border border-[#CC222F]/40 light-mode:border-neutral-200 shadow-md flex items-center justify-between cursor-pointer hover:border-[#CC222F] transition group"
+          className="mb-6 p-4 rounded-2xl bg-[#181924] light-mode:bg-white border border-red-500/30 light-mode:border-neutral-200 shadow-md flex items-center justify-between cursor-pointer hover:border-red-500/60 transition group"
         >
-          <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
-            <div className="w-11 h-11 rounded-full bg-[#CC222F]/20 flex items-center justify-center text-[#CC222F]">
+          <div className="flex items-center gap-4 sm:gap-5 rtl:gap-4">
+            <div className="w-11 h-11 rounded-full bg-red-500/15 light-mode:bg-[#CC222F]/10 flex items-center justify-center text-red-400 light-mode:text-[#CC222F]">
               <Key size={22} />
             </div>
             <div>
-              <h3 className="font-extrabold text-sm text-[#CC222F]">
+              <h3 className="font-extrabold text-sm text-red-400 light-mode:text-[#CC222F]">
                 {language === 'ku' ? 'داخڵکردنی کۆد (Taban Play1)' : 'Enter Code (Taban Play1)'}
               </h3>
               <p className="text-xs text-white/50 light-mode:text-neutral-600 mt-0.5">
@@ -490,7 +490,7 @@ export default function Profile() {
               </p>
             </div>
           </div>
-          <ChevronRight size={18} className="text-[#CC222F] rtl:rotate-180 group-hover:translate-x-1 transition-transform" />
+          <ChevronRight size={18} className="text-red-400 light-mode:text-[#CC222F] rtl:rotate-180 group-hover:translate-x-1 transition-transform" />
         </div>
       )}
 
@@ -518,7 +518,7 @@ export default function Profile() {
             onClick={() => setShowLangMenu(!showLangMenu)}
             className="w-full flex items-center justify-between p-4 bg-[#14151c] light-mode:bg-white hover:bg-[#1c1e28] light-mode:hover:bg-neutral-50 rounded-2xl transition border border-white/6 light-mode:border-neutral-200"
           >
-            <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
+            <div className="flex items-center gap-4 sm:gap-5 rtl:gap-4">
               <Languages size={20} className="text-white/80 light-mode:text-neutral-700" />
               <span className="font-bold text-sm text-white light-mode:text-black">
                 {language === 'ku' ? 'گۆڕینی زمان' : language === 'ar' ? 'تغيير اللغة' : 'Change Language'}
@@ -919,7 +919,7 @@ function ProfileMenuItem({
       onClick={onClick}
       className="w-full flex items-center justify-between p-4 bg-[#14151c] light-mode:bg-white hover:bg-[#1c1e28] light-mode:hover:bg-neutral-50 rounded-2xl transition border border-white/6 light-mode:border-neutral-200"
     >
-      <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
+      <div className="flex items-center gap-4 sm:gap-5 rtl:gap-4">
         <Icon size={20} className={iconClass} />
         <span className={`font-bold text-sm ${textClass}`}>{label}</span>
       </div>
