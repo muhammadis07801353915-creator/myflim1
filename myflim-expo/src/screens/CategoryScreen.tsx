@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS, SPACING, SIZES } from '../theme/theme';
+import { COLORS, SPACING, SIZES, getColors } from '../theme/theme';
 import { ChevronLeft, Star } from 'lucide-react-native';
 import { useAppStore } from '../store/useAppStore';
 import { getLocalized } from '../utils/localization';
@@ -29,7 +29,9 @@ const CARD_W = (width - H_PAD * 2 - GAP) / 2;
 export default function CategoryScreen({ route, navigation }: any) {
   const { title, data, type, listName } = route.params;
   const insets = useSafeAreaInsets();
-  const { language } = useAppStore();
+  const { language, theme } = useAppStore();
+  const themeColors = getColors(theme);
+  const isRTL = language === 'ku' || language === 'ar';
   const t = tabTr[language] || tabTr['ku'];
 
   const [activeTab, setActiveTab] = React.useState('All');
@@ -87,12 +89,16 @@ export default function CategoryScreen({ route, navigation }: any) {
       activeOpacity={0.85}
     >
       {/* Poster */}
-      <View style={styles.posterWrap}>
+      <View style={[styles.posterWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
         <Image source={{ uri: item.image }} style={styles.poster} />
 
-        {/* Rating badge — top right */}
+        {/* Rating badge — top right / top left for RTL */}
         {item.rating ? (
-          <View style={styles.ratingBadge}>
+          <View style={[
+            styles.ratingBadge,
+            isRTL ? { left: 8, right: 'auto' } : { right: 8, left: 'auto' },
+            isRTL && { flexDirection: 'row-reverse' }
+          ]}>
             <Star size={10} color="#FBBF24" fill="#FBBF24" />
             <Text style={styles.ratingText}>{item.rating}</Text>
           </View>
@@ -100,10 +106,10 @@ export default function CategoryScreen({ route, navigation }: any) {
       </View>
 
       {/* Title + Year */}
-      <Text numberOfLines={1} style={styles.cardTitle}>
+      <Text numberOfLines={1} style={[styles.cardTitle, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>
         {getLocalized(item, 'title', language)}
       </Text>
-      {item.year ? <Text style={styles.cardYear}>{item.year}</Text> : null}
+      {item.year ? <Text style={[styles.cardYear, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>{item.year}</Text> : null}
     </TouchableOpacity>
   );
 
@@ -114,9 +120,9 @@ export default function CategoryScreen({ route, navigation }: any) {
       onPress={() => navigation.navigate('Detail', { item: { ...item, type: 'LiveTV' } })}
       activeOpacity={0.85}
     >
-      <View style={styles.tvLogoWrap}>
+      <View style={[styles.tvLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
         <Image source={{ uri: item.image }} style={styles.tvLogo} resizeMode="contain" />
-        <View style={styles.liveBadge}>
+        <View style={[styles.liveBadge, isRTL && { flexDirection: 'row-reverse' }]}>
           <View style={styles.liveDot} />
           <Text style={styles.liveText}>LIVE</Text>
         </View>
@@ -131,14 +137,17 @@ export default function CategoryScreen({ route, navigation }: any) {
   const ListHeader = () => (
     <>
       {/* Back + Title */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <ChevronLeft color="white" size={26} />
+      <View style={[styles.header, { paddingTop: insets.top + 8, backgroundColor: themeColors.background }]}>
+        <TouchableOpacity 
+          onPress={() => navigation.goBack()} 
+          style={[styles.backBtn, { backgroundColor: theme === 'light' ? themeColors.surfaceLight : 'rgba(255,255,255,0.08)' }]}
+        >
+          <ChevronLeft color={themeColors.text} size={26} style={{ transform: [{ rotate: isRTL ? '180deg' : '0deg' }] }} />
         </TouchableOpacity>
         <View style={styles.titleBlock}>
-          <Text style={styles.headerTitle}>{title}</Text>
+          <Text style={[styles.headerTitle, { color: themeColors.text }]}>{title}</Text>
           {filteredData.length > 0 ? (
-            <Text style={styles.itemCount}>
+            <Text style={[styles.itemCount, { color: themeColors.textSecondary }]}>
               {language === 'ar' ? `${filteredData.length} عنصر` : language === 'ku' ? `${filteredData.length} ئایتەم` : `${filteredData.length} items`}
             </Text>
           ) : null}
@@ -149,17 +158,27 @@ export default function CategoryScreen({ route, navigation }: any) {
 
       {/* Filter tabs */}
       {tabs.length > 0 ? (
-        <View style={styles.tabsRow}>
+        <View style={[styles.tabsRow, isRTL && { flexDirection: 'row-reverse' }]}>
           {tabs.map((tab) => {
             const active = activeTab === tab.id;
             return (
               <TouchableOpacity
                 key={tab.id}
-                style={[styles.tab, active && styles.tabActive]}
+                style={[
+                  styles.tab,
+                  {
+                    backgroundColor: active ? themeColors.primary : themeColors.surface,
+                    borderColor: active ? themeColors.primary : themeColors.border,
+                  }
+                ]}
                 onPress={() => setActiveTab(tab.id)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.tabLabel, active && styles.tabLabelActive]}>
+                <Text style={[
+                  styles.tabLabel,
+                  { color: active ? '#ffffff' : themeColors.textSecondary },
+                  active && { fontWeight: '700' }
+                ]}>
                   {tab.label}
                 </Text>
               </TouchableOpacity>
@@ -171,8 +190,8 @@ export default function CategoryScreen({ route, navigation }: any) {
   );
 
   return (
-    <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0F0F13" />
+    <View style={[styles.root, { backgroundColor: themeColors.background }]}>
+      <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={themeColors.background} />
 
       <FlatList
         data={filteredData}
@@ -181,7 +200,7 @@ export default function CategoryScreen({ route, navigation }: any) {
         numColumns={2}
         ListHeaderComponent={<ListHeader />}
         contentContainerStyle={styles.listContent}
-        columnWrapperStyle={styles.columnWrapper}
+        columnWrapperStyle={[styles.columnWrapper, isRTL && { flexDirection: 'row-reverse' }]}
         showsVerticalScrollIndicator={false}
       />
     </View>
