@@ -526,16 +526,16 @@ export default function LiveTV() {
   return (
     <div className="bg-[#0a0a0f] light-mode:bg-white min-h-screen text-white light-mode:text-black pb-32 font-sans">
 
-      {/* ── HEADER (Centered Title) ── */}
-      <div className="sticky top-0 z-40 bg-[#0a0a0f] light-mode:bg-white backdrop-blur-xl border-b border-white/5 light-mode:border-neutral-200 px-4 sm:px-6 py-4 flex items-center justify-between relative">
-        <div className="flex items-center gap-3 z-10">
-          {/* ☰ Country filter button — always visible */}
+      {/* ── HEADER (Centered Title + Always Visible Search & Country Buttons) ── */}
+      <div className="sticky top-0 z-40 bg-[#0a0a0f] light-mode:bg-white backdrop-blur-xl border-b border-white/5 light-mode:border-neutral-200 px-4 sm:px-6 py-3.5 flex items-center justify-between">
+        {/* Country filter button */}
+        <div className="flex items-center shrink-0">
           <button
             onClick={() => setIsCountryDrawerOpen(true)}
             className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition text-sm font-bold ${
               selectedCountry
                 ? 'bg-[#CC222F]/15 border-[#CC222F]/40 text-[#CC222F]'
-                : 'bg-white/7 light-mode:bg-neutral-100 border-white/8 light-mode:border-neutral-200 text-white/70 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black'
+                : 'bg-white/7 light-mode:bg-neutral-100 border-white/8 light-mode:border-neutral-200 text-white/80 light-mode:text-neutral-900 hover:text-white light-mode:hover:text-black'
             }`}
           >
             <Menu size={16} />
@@ -567,19 +567,21 @@ export default function LiveTV() {
           </button>
         </div>
 
-        {/* 100% Centered Title "ڕاستەوخۆ" / "Live" */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <h1 className="text-xl font-black tracking-tight whitespace-nowrap text-white light-mode:text-black pointer-events-auto">
-            {language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
-          </h1>
-        </div>
+        {/* Centered Title "ڕاستەوخۆ" / "Live" */}
+        <h1 className="text-xl font-black tracking-tight whitespace-nowrap text-white light-mode:text-black text-center px-2">
+          {language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
+        </h1>
 
-        <button
-          onClick={() => setIsSearchOpen(!isSearchOpen)}
-          className="w-10 h-10 rounded-full bg-white/7 light-mode:bg-neutral-100 border border-white/8 light-mode:border-neutral-200 text-white light-mode:text-neutral-700 flex items-center justify-center hover:bg-white/12 light-mode:hover:bg-neutral-200 transition z-10"
-        >
-          {isSearchOpen ? <X size={18} /> : <Search size={18} />}
-        </button>
+        {/* Search icon button */}
+        <div className="flex items-center justify-end shrink-0">
+          <button
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
+            className="w-10 h-10 rounded-full bg-white/10 light-mode:bg-neutral-200 border border-white/15 light-mode:border-neutral-300 text-white light-mode:text-black flex items-center justify-center hover:bg-white/20 light-mode:hover:bg-neutral-300 transition shadow-sm"
+            aria-label="Search"
+          >
+            {isSearchOpen ? <X size={20} className="text-white light-mode:text-black" /> : <Search size={20} className="text-white light-mode:text-black" />}
+          </button>
+        </div>
       </div>
 
       {/* ── COUNTRY DRAWER / BOTTOM SHEET ── */}
