@@ -17,6 +17,7 @@ import {
   Platform,
   SafeAreaView
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, SIZES, getColors } from '../theme/theme';
@@ -313,6 +314,26 @@ export default function ProfileScreen({ navigation }: any) {
     }
   };
 
+  const handlePickCustomAvatar = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets?.[0]) {
+        const asset = result.assets[0];
+        const imgUri = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+        setSelectedAvatar(imgUri);
+      }
+    } catch (e) {
+      console.warn('Custom avatar pick error:', e);
+    }
+  };
+
   const handleUpdateAccount = () => {
     if (newName.trim()) {
       updateUser({ name: newName, image: selectedAvatar });
@@ -370,13 +391,24 @@ export default function ProfileScreen({ navigation }: any) {
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <View style={[styles.menuLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+      <View style={[styles.menuLeft, { flex: 1 }, isRTL && { flexDirection: 'row-reverse' }]}>
         <View style={styles.menuIconBox}>
           {icon}
         </View>
-        <View>
-          <Text style={[styles.menuTitle, { color: themeColors.text }]}>{title}</Text>
-          {subtitle ? <Text style={[styles.menuSubtitle, { color: themeColors.textSecondary }]}>{subtitle}</Text> : null}
+        <View style={{ flex: 1 }}>
+          <Text 
+            style={[styles.menuTitle, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
+          {subtitle ? (
+            <Text 
+              style={[styles.menuSubtitle, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}
+            >
+              {subtitle}
+            </Text>
+          ) : null}
         </View>
       </View>
       <View style={[styles.menuRight, isRTL && { flexDirection: 'row-reverse' }]}>
@@ -772,11 +804,33 @@ export default function ProfileScreen({ navigation }: any) {
               {language === 'ku' ? 'ڕێکخستنەکانی پرۆفایل' : 'Edit Profile'}
             </Text>
 
-            {/* Avatar Selector */}
-            <Text style={{ color: themeColors.textSecondary, fontSize: 12, fontWeight: 'bold', marginBottom: 8 }}>
+            {/* Avatar Selector (Preset + Gallery Photo Upload) */}
+            <Text style={{ color: themeColors.textSecondary, fontSize: 12, fontWeight: 'bold', marginBottom: 8, textAlign: isRTL ? 'right' : 'left' }}>
               {language === 'ku' ? 'وێنەی پڕۆفایل هەڵبژێرە:' : 'Select Avatar:'}
             </Text>
-            <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16, justifyContent: 'center' }}>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: 10, marginBottom: 16, justifyContent: 'center', alignItems: 'center' }}>
+              {/* Custom Upload Button */}
+              <TouchableOpacity 
+                style={[
+                  styles.avatarChoice, 
+                  { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border, justifyContent: 'center', alignItems: 'center' },
+                  !DEFAULT_AVATARS.includes(selectedAvatar) && styles.avatarChoiceSelected
+                ]} 
+                onPress={handlePickCustomAvatar}
+              >
+                {!DEFAULT_AVATARS.includes(selectedAvatar) && selectedAvatar ? (
+                  <Image source={{ uri: selectedAvatar }} style={{ width: '100%', height: '100%', borderRadius: 27 }} />
+                ) : (
+                  <Camera size={20} color="#CC222F" />
+                )}
+                {!DEFAULT_AVATARS.includes(selectedAvatar) && (
+                  <View style={styles.avatarCheckBadge}>
+                    <Check size={10} color="#fff" />
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              {/* Preset Avatars */}
               {DEFAULT_AVATARS.map((av, idx) => (
                 <TouchableOpacity key={idx} onPress={() => setSelectedAvatar(av)}>
                   <Image source={{ uri: av }} style={[styles.avatarChoice, selectedAvatar === av && styles.avatarChoiceSelected]} />
