@@ -122,6 +122,7 @@ function PostsSkeleton() {
       </div>
     </div>
   );
+}
 function checkIsLiked(likes: string[], userAcc: ReturnType<typeof getUserAccount>): boolean {
   if (!userAcc || !Array.isArray(likes)) return false;
   const targetId = userAcc.id.toLowerCase();
