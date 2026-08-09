@@ -368,7 +368,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   };
 
   return (
-    <div className="bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black pb-24">
+    <div className="bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black pb-24" style={{ direction: 'ltr', textAlign: 'left' }}>
       <div id="player-container" className="relative w-full bg-black aspect-video sm:h-[40vh] md:h-[48vh] aspect-auto overflow-hidden">
         {isPlaying ? (
           <div className="w-full h-full relative bg-black flex items-center justify-center">
@@ -424,7 +424,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             </div>
 
             {/* Overlaid Floating Poster Thumbnail Card (as in Image 2) */}
-            <div className="absolute left-5 -bottom-10 z-30 w-[110px] sm:w-[130px] aspect-[2/3] rounded-2xl overflow-hidden border-2 border-[#CC222F] shadow-[0_12px_30px_rgba(0,0,0,0.8)]">
+            <div className="absolute left-5 -bottom-10 z-30 w-[100px] sm:w-[120px] aspect-[2/3] rounded-2xl overflow-hidden border-2 border-[#CC222F] shadow-[0_12px_30px_rgba(0,0,0,0.8)]">
               <Image 
                 src={item.image || item.backdrop || ''} 
                 alt={item.title} 
@@ -437,24 +437,24 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         )}
       </div>
 
-      <div className="px-5 pt-12 sm:pt-14 relative z-30 max-w-4xl mx-auto">
+      <div className="px-5 pt-12 sm:pt-14 relative z-30 max-w-4xl mx-auto" style={{ direction: 'ltr', textAlign: 'left' }}>
         <h1 
-          className="text-2xl sm:text-3xl font-black mb-2 text-white !text-white drop-shadow-xl tracking-tight"
-          style={{ color: '#ffffff' }}
+          className="text-2xl sm:text-3xl font-black mb-2 text-white !text-white tracking-tight"
+          style={{ color: '#ffffff', textAlign: 'left' }}
         >
-          {getLocalized(item, 'title', language)}
+          {item.title || getLocalized(item, 'title', language)}
         </h1>
 
-        <div className="flex items-center space-x-4 rtl:space-x-reverse text-xs sm:text-sm mb-6 text-neutral-300 font-bold">
-          <span className="flex items-center text-neutral-400 gap-1">
+        <div className="flex items-center space-x-4 text-xs sm:text-sm mb-6 text-neutral-300 font-bold justify-start" style={{ direction: 'ltr' }}>
+          <span className="flex items-center text-neutral-400 gap-1.5">
             <Calendar size={14} className="text-neutral-400" />
             <span>{item.year}</span>
           </span>
-          <span className="flex items-center text-amber-400 gap-1 font-black">
+          <span className="flex items-center text-amber-400 gap-1.5 font-black">
             <Star size={14} className="fill-amber-400 text-amber-400" />
             <span>{item.rating}</span>
           </span>
-          <span className="flex items-center text-neutral-400 gap-1">
+          <span className="flex items-center text-neutral-400 gap-1.5">
             <Eye size={14} className="text-neutral-400" />
             <span>{viewCount.toLocaleString()}</span>
           </span>
@@ -467,7 +467,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             <span>{language === 'ku' ? 'بەمزوانە بەردەست دەبێت' : language === 'ar' ? 'سيتوفر قريباً' : 'Coming Soon'}</span>
           </div>
         ) : (
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-8" style={{ direction: 'ltr' }}>
             <button 
               onClick={handlePlayClick}
               className="flex-1 py-3.5 px-6 bg-white hover:bg-neutral-200 text-black font-black rounded-2xl transition flex items-center justify-center space-x-2 shadow-lg active:scale-95"
@@ -480,7 +480,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
             <button 
               onClick={() => toggleWatchlist(item)}
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center transition border active:scale-95 ${
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center transition border active:scale-95 shrink-0 ${
                 isBookmarked 
                   ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-600/30' 
                   : 'bg-[#14151C] light-mode:bg-neutral-100 border-white/10 light-mode:border-neutral-200 text-white light-mode:text-black hover:bg-[#1a1b24]'
@@ -498,32 +498,32 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                   alert(language === 'ku' ? 'لینکی فیلمەکە کۆپی کرا' : 'Link copied to clipboard');
                 }
               }}
-              className="w-12 h-12 rounded-2xl bg-[#14151C] light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-200 text-white light-mode:text-black hover:bg-[#1a1b24] flex items-center justify-center transition active:scale-95"
+              className="w-12 h-12 rounded-2xl bg-[#14151C] light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-200 text-white light-mode:text-black hover:bg-[#1a1b24] flex items-center justify-center transition active:scale-95 shrink-0"
             >
               <Share2 size={20} />
             </button>
           </div>
         )}
 
-        <div className="mb-8">
-          <h3 className="text-xl font-bold mb-2 text-white light-mode:text-black">
-            {t.storyLine}
+        <div className="mb-8" style={{ textAlign: 'left' }}>
+          <h3 className="text-xl font-bold mb-2 text-white light-mode:text-black text-left" style={{ textAlign: 'left' }}>
+            Storyline
           </h3>
-          <p className="text-neutral-400 light-mode:text-neutral-600 text-sm leading-relaxed">
+          <p className="text-neutral-400 light-mode:text-neutral-600 text-sm leading-relaxed text-left" style={{ textAlign: 'left' }}>
             {getLocalized(item, 'description', language) || item.description}
           </p>
         </div>
 
         {/* Episodes Section - App 2-column Grid Style */}
         {item.type === 'Series' && allEpisodes.length > 0 && (
-          <div className="mb-8">
-             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-white light-mode:text-black">{t.episodesTitle}</h3>
-                <span className="text-red-500 text-sm font-bold">{episodes.length} {t.episodesTitle}</span>
+          <div className="mb-8" style={{ textAlign: 'left' }}>
+             <div className="flex justify-between items-center mb-4" style={{ direction: 'ltr' }}>
+                <h3 className="text-xl font-bold text-white light-mode:text-black text-left">Episodes</h3>
+                <span className="text-red-500 text-sm font-bold">{episodes.length} Episodes</span>
              </div>
 
              {seasons.length > 1 && (
-               <div className="flex space-x-2 overflow-x-auto pb-3 scrollbar-hide mb-4">
+               <div className="flex space-x-2 overflow-x-auto pb-3 scrollbar-hide mb-4" style={{ direction: 'ltr' }}>
                   {seasons.map((season) => (
                      <button 
                         key={season}
@@ -540,14 +540,14 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                </div>
              )}
 
-             <div className="grid grid-cols-2 gap-3">
+             <div className="grid grid-cols-2 gap-3" style={{ direction: 'ltr' }}>
                 {episodes.map((episode: any, index: number) => {
                    const isSelected = currentEpisodeIndex === index;
                    return (
                      <button 
                         key={index}
                         onClick={() => handleEpisodeSelect(index)}
-                        className={`p-3.5 rounded-2xl border transition flex items-center gap-3 text-left rtl:text-right active:scale-95 ${
+                        className={`p-3.5 rounded-2xl border transition flex items-center gap-3 text-left active:scale-95 ${
                           isSelected 
                             ? 'bg-[#1e202c] border-red-500 text-white shadow-lg' 
                             : 'bg-[#14151C] light-mode:bg-neutral-100 border-white/8 light-mode:border-neutral-200 hover:border-white/20'
@@ -556,11 +556,11 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 text-white/70">
                           <Server size={18} className={isSelected ? 'text-red-500' : 'text-neutral-400'} />
                         </div>
-                        <div className="flex-1 min-w-0">
-                           <p className="text-sm font-bold text-white light-mode:text-black truncate">
+                        <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
+                           <p className="text-sm font-bold text-white light-mode:text-black truncate text-left">
                               Ep {episode.number || index + 1}
                            </p>
-                           <p className="text-xs text-neutral-400 truncate">
+                           <p className="text-xs text-neutral-400 truncate text-left">
                               Episode {episode.number || index + 1}
                            </p>
                         </div>
@@ -571,7 +571,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           </div>
         )}
 
-        <div className="flex justify-around border-y border-white/10 light-mode:border-neutral-200 py-4 mb-8">
+        <div className="flex justify-around border-y border-white/10 light-mode:border-neutral-200 py-4 mb-8" style={{ direction: 'ltr' }}>
           <button onClick={handleDownload} className="flex flex-col items-center gap-1.5 text-neutral-400 hover:text-white transition">
             <div className="w-10 h-10 rounded-xl bg-[#14151C] flex items-center justify-center text-neutral-300">
               <Download size={18} />
