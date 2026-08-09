@@ -88,6 +88,13 @@ export default function ProfileScreen({ navigation }: any) {
   const [newName, setNewName] = useState(user.name);
   const [selectedAvatar, setSelectedAvatar] = useState(user.image || DEFAULT_AVATARS[0]);
 
+  // Auth / Code Modal States
+  const [authTab, setAuthTab] = useState<'register' | 'login'>('register');
+  const [authCode, setAuthCode] = useState('Taban Play1');
+  const [authUsername, setAuthUsername] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+
   // Support Chat States
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
@@ -275,42 +282,151 @@ export default function ProfileScreen({ navigation }: any) {
     }
   };
 
-  const handleUnlockSubmit = async () => {
-    const normalized = unlockCode.trim().toLowerCase();
-    if (!normalized) return;
+  const handleRegisterAccount = async () => {
+    const code = authCode.trim().toLowerCase();
+    const username = authUsername.trim();
+    const password = authPassword.trim();
 
+    if (code !== 'taban play1' && code !== 'tabanplay1' && code !== 'myflim1' && code !== 'taban2026' && code !== 'vip2026') {
+      Alert.alert(
+        language === 'ku' ? 'هەڵە' : 'Error',
+        language === 'ku' ? 'کۆدەکە هەڵەیە! تکایە کۆدی Taban Play1 بنووسە.' : 'Invalid Code! Please enter code Taban Play1.'
+      );
+      return;
+    }
+
+    if (!username) {
+      Alert.alert(
+        language === 'ku' ? 'هەڵە' : 'Error',
+        language === 'ku' ? 'تکایە ناوی بەکارهێنەر بنووسە.' : 'Please enter a username.'
+      );
+      return;
+    }
+
+    if (!password) {
+      Alert.alert(
+        language === 'ku' ? 'هەڵە' : 'Error',
+        language === 'ku' ? 'تکایە وشەی نهێنی (پاسۆرد) بنووسە.' : 'Please enter a password.'
+      );
+      return;
+    }
+
+    setAuthLoading(true);
     try {
-      // Check database codes table
-      const { data: codeData } = await supabase
-        .from('codes')
-        .select('*')
-        .eq('code', normalized)
-        .eq('is_used', false)
-        .maybeSingle();
+      const storedUsersRaw = await AsyncStorage.getItem('@myflim_registered_users');
+      const storedUsers = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
+      const exists = storedUsers.find((u: any) => u.username.toLowerCase() === username.toLowerCase());
 
-      const isHardcodedValid = ['myflim1', 'tabanplay1', 'taban play1', 'taban2026', 'vip2026'].includes(normalized);
-
-      if (codeData || isHardcodedValid) {
-        if (codeData) {
-          await supabase.from('codes').update({ is_used: true, used_by: user.name }).eq('id', codeData.id);
-        }
-        await unlockApp('myflim1');
-        await updateUser({ isPro: true });
-        setShowUnlockModal(false);
-        setUnlockCode('');
-        Alert.alert(
-          language === 'ku' ? 'سەرکەوتوو بوو' : 'Success',
-          language === 'ku' ? 'ئەپەکە بە سەرکەوتوویی بەتەواوی کرایەوە!' : 'App successfully unlocked!'
-        );
-      } else {
+      if (exists) {
         Alert.alert(
           language === 'ku' ? 'هەڵە' : 'Error',
-          language === 'ku' ? 'کۆدەکە هەڵەیە یان بەکارهاتووە، تکایە دووبارە هەوڵبدەرەوە.' : 'Invalid or used code, please try again.'
+          language === 'ku' ? 'ئەم ناوی بەکارهێنەرە پێشتر بەکارهاتووە. تکایە چوونە ژوورەوە بکە یان ناوێکی تر بنووسە.' : 'Username already taken. Please login or choose another.'
         );
+        setAuthLoading(false);
+        return;
       }
+
+      const userKey = `usr_${username.toLowerCase()}`;
+      const avatar = user?.image || DEFAULT_AVATARS[0];
+
+      const newAcc = {
+        id: userKey,
+        username,
+        password,
+        avatar,
+        created_at: new Date().toISOString()
+      };
+
+      storedUsers.push(newAcc);
+      await AsyncStorage.setItem('@myflim_registered_users', JSON.stringify(storedUsers));
+      await AsyncStorage.setItem('taban_app_device_user_id', userKey);
+      await AsyncStorage.setItem('app_unlocked', 'true');
+
+      await updateUser({ name: username, image: avatar, isPro: true });
+      useAppStore.setState({ isUnlocked: true });
+
+      try {
+        await supabase.from('profiles').upsert({
+          id: userKey,
+          display_name: username,
+          avatar_url: avatar,
+          updated_at: new Date().toISOString()
+        });
+      } catch (e) {
+        console.warn('Supabase profile sync warning:', e);
+      }
+
+      setShowUnlockModal(false);
+      setAuthUsername('');
+      setAuthPassword('');
+      Alert.alert(
+        language === 'ku' ? 'سەرکەوتوو بوو' : 'Success',
+        language === 'ku' ? `بەخێربێیت ${username}! هەژمارەکەت بە سەرکەوتوویی دروستکرا.` : `Welcome ${username}! Account successfully created.`
+      );
     } catch (e) {
-      console.error('Unlock error:', e);
-      Alert.alert('Error', 'Failed to validate code.');
+      console.error('Register error:', e);
+      Alert.alert('Error', 'Could not create account.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLoginAccount = async () => {
+    const username = authUsername.trim();
+    const password = authPassword.trim();
+
+    if (!username) {
+      Alert.alert(
+        language === 'ku' ? 'هەڵە' : 'Error',
+        language === 'ku' ? 'تکایە ناوی بەکارهێنەر بنووسە.' : 'Please enter username.'
+      );
+      return;
+    }
+
+    if (!password) {
+      Alert.alert(
+        language === 'ku' ? 'هەڵە' : 'Error',
+        language === 'ku' ? 'تکایە وشەی نهێنی (پاسۆرد) بنووسە.' : 'Please enter password.'
+      );
+      return;
+    }
+
+    setAuthLoading(true);
+    try {
+      const storedUsersRaw = await AsyncStorage.getItem('@myflim_registered_users');
+      const storedUsers = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
+      const match = storedUsers.find((u: any) => u.username.toLowerCase() === username.toLowerCase());
+
+      if (!match || match.password !== password) {
+        Alert.alert(
+          language === 'ku' ? 'هەڵە' : 'Error',
+          language === 'ku' ? 'ناوی بەکارهێنەر یان پاسۆردەکە هەڵەیە.' : 'Invalid username or password.'
+        );
+        setAuthLoading(false);
+        return;
+      }
+
+      const userKey = match.id || `usr_${username.toLowerCase()}`;
+      const avatar = match.avatar || user?.image || DEFAULT_AVATARS[0];
+
+      await AsyncStorage.setItem('taban_app_device_user_id', userKey);
+      await AsyncStorage.setItem('app_unlocked', 'true');
+
+      await updateUser({ name: match.username, image: avatar, isPro: true });
+      useAppStore.setState({ isUnlocked: true });
+
+      setShowUnlockModal(false);
+      setAuthUsername('');
+      setAuthPassword('');
+      Alert.alert(
+        language === 'ku' ? 'سەرکەوتوو بوو' : 'Success',
+        language === 'ku' ? `چوونە ژوورەوە بە سەرکەوتوویی ئەنجامدرا. بەخێربێیتەوە ${match.username}!` : `Welcome back ${match.username}!`
+      );
+    } catch (e) {
+      console.error('Login error:', e);
+      Alert.alert('Error', 'Login failed.');
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -906,34 +1022,162 @@ export default function ProfileScreen({ navigation }: any) {
         </Pressable>
       </Modal>
 
-      {/* ── UNLOCK / VIP CODE MODAL ───────────────────────────────── */}
-      <Modal visible={showUnlockModal} transparent animationType="fade">
+      {/* ── WEBSITE-STYLE AUTHENTICATION & CODE MODAL ───────────────────────── */}
+      <Modal visible={showUnlockModal} transparent animationType="fade" onRequestClose={() => setShowUnlockModal(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setShowUnlockModal(false)}>
-          <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>
-              {language === 'ku' ? 'داخڵکردنی کۆد' : 'Enter Code'}
-            </Text>
-            <Text style={{ color: themeColors.textSecondary, marginBottom: 15 }}>
-              {language === 'ku' ? 'کۆدی چالاککردنی ئەپەکە بنووسە:' : 'Please enter activation code:'}
-            </Text>
-            <TextInput
-              style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border }]}
-              value={unlockCode}
-              onChangeText={setUnlockCode}
-              placeholder="Code..."
-              placeholderTextColor={themeColors.textMuted}
-              autoFocus
-              autoCapitalize="none"
-            />
-            <View style={styles.nameModalActions}>
-              <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={() => setShowUnlockModal(false)}>
-                <Text style={[styles.cancelBtnText, { color: themeColors.textSecondary }]}>{t.cancel}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.saveBtn} onPress={handleUnlockSubmit}>
-                <Text style={styles.saveBtnText}>{language === 'ku' ? 'چالاککردن' : 'Activate'}</Text>
+          <Pressable style={[styles.nameModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border, width: width - 32 }]}>
+            
+            {/* Modal Header */}
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <Text style={[styles.nameModalTitle, { color: themeColors.text, marginBottom: 0, fontSize: 18 }]}>
+                {authTab === 'register' 
+                  ? (language === 'ku' ? 'دروستکردنی هەژماری نوێ' : language === 'ar' ? 'إنشاء حساب جديد' : 'Create New Account')
+                  : (language === 'ku' ? 'چوونە ژوورەوە' : language === 'ar' ? 'تسجيل الدخول' : 'Account Log In')
+                }
+              </Text>
+              <TouchableOpacity onPress={() => setShowUnlockModal(false)} style={[styles.closeBtn, { backgroundColor: themeColors.surfaceLight }]}>
+                <X size={18} color={themeColors.text} />
               </TouchableOpacity>
             </View>
-          </View>
+
+            {/* Top Pink Alert Banner */}
+            <View style={{ backgroundColor: 'rgba(204, 34, 47, 0.1)', borderColor: 'rgba(204, 34, 47, 0.3)', borderWidth: 1, padding: 10, borderRadius: 12, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <Key size={16} color="#CC222F" />
+              <Text style={{ color: themeColors.text, fontSize: 11, fontWeight: '700', flex: 1, textAlign: isRTL ? 'right' : 'left' }}>
+                {language === 'ku' 
+                  ? 'تکایە ئەم کۆدە لە بەشی بەکارهێنانی کۆد بنووسە: Taban Play1'
+                  : 'Please enter this code in code entry section: Taban Play1'}
+              </Text>
+            </View>
+
+            {/* Tabs: Register vs Log In */}
+            <View style={{ flexDirection: 'row', backgroundColor: themeColors.surfaceLight, borderRadius: 12, padding: 3, marginBottom: 14 }}>
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: 8, borderRadius: 9, alignItems: 'center', backgroundColor: authTab === 'register' ? '#CC222F' : 'transparent' }}
+                onPress={() => setAuthTab('register')}
+              >
+                <Text style={{ color: authTab === 'register' ? '#fff' : themeColors.textSecondary, fontSize: 13, fontWeight: 'bold' }}>
+                  {language === 'ku' ? 'تۆماربوون' : language === 'ar' ? 'إنشاء حساب' : 'Register'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{ flex: 1, paddingVertical: 8, borderRadius: 9, alignItems: 'center', backgroundColor: authTab === 'login' ? '#CC222F' : 'transparent' }}
+                onPress={() => setAuthTab('login')}
+              >
+                <Text style={{ color: authTab === 'login' ? '#fff' : themeColors.textSecondary, fontSize: 13, fontWeight: 'bold' }}>
+                  {language === 'ku' ? 'چوونە ژوورەوە' : language === 'ar' ? 'تسجيل الدخول' : 'Log In'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Register Form */}
+            {authTab === 'register' ? (
+              <View style={{ gap: 10 }}>
+                <View>
+                  <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
+                    {language === 'ku' ? 'کۆدی چالاککردن:' : 'Activation Code:'}
+                  </Text>
+                  <TextInput
+                    style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
+                    value={authCode}
+                    onChangeText={setAuthCode}
+                    placeholder="Taban Play1"
+                    placeholderTextColor={themeColors.textMuted}
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                <View>
+                  <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
+                    {language === 'ku' ? 'ناوی بەکارهێنەر:' : 'Username:'}
+                  </Text>
+                  <TextInput
+                    style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
+                    value={authUsername}
+                    onChangeText={setAuthUsername}
+                    placeholder={language === 'ku' ? 'ناوێک هەڵبژێرە...' : 'Choose a username...'}
+                    placeholderTextColor={themeColors.textMuted}
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                <View>
+                  <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
+                    {language === 'ku' ? 'وشەی نهێنی (پاسۆرد):' : 'Password:'}
+                  </Text>
+                  <TextInput
+                    style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
+                    value={authPassword}
+                    onChangeText={setAuthPassword}
+                    placeholder="******"
+                    placeholderTextColor={themeColors.textMuted}
+                    secureTextEntry
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.saveBtn, { marginTop: 6, height: 44, justifyContent: 'center', borderRadius: 12 }]}
+                  onPress={handleRegisterAccount}
+                  disabled={authLoading}
+                >
+                  {authLoading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={[styles.saveBtnText, { fontSize: 14, fontWeight: '900' }]}>
+                      {language === 'ku' ? 'دروستکردنی هەژمار' : 'Create Account'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            ) : (
+              /* Log In Form */
+              <View style={{ gap: 10 }}>
+                <View>
+                  <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
+                    {language === 'ku' ? 'ناوی بەکارهێنەر:' : 'Username:'}
+                  </Text>
+                  <TextInput
+                    style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
+                    value={authUsername}
+                    onChangeText={setAuthUsername}
+                    placeholder={language === 'ku' ? 'ناوی بەکارهێنەر بنووسە...' : 'Enter username...'}
+                    placeholderTextColor={themeColors.textMuted}
+                    autoCapitalize="none"
+                  />
+                </View>
+
+                <View>
+                  <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
+                    {language === 'ku' ? 'وشەی نهێنی (پاسۆرد):' : 'Password:'}
+                  </Text>
+                  <TextInput
+                    style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
+                    value={authPassword}
+                    onChangeText={setAuthPassword}
+                    placeholder="******"
+                    placeholderTextColor={themeColors.textMuted}
+                    secureTextEntry
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.saveBtn, { marginTop: 6, height: 44, justifyContent: 'center', borderRadius: 12 }]}
+                  onPress={handleLoginAccount}
+                  disabled={authLoading}
+                >
+                  {authLoading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={[styles.saveBtnText, { fontSize: 14, fontWeight: '900' }]}>
+                      {language === 'ku' ? 'چوونە ژوورەوە' : 'Log In'}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+
+          </Pressable>
         </Pressable>
       </Modal>
 
