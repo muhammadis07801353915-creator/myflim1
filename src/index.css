@@ -339,6 +339,21 @@ body.light-mode .play-btn-circle svg,
   fill: #ffffff !important;
 }
 
+/* Back button icon contrast style */
+.back-btn-icon,
+.back-btn-icon * {
+  color: #ffffff !important;
+}
+
+.light-mode .back-btn-icon,
+html.light-mode .back-btn-icon,
+body.light-mode .back-btn-icon,
+.light-mode .back-btn-icon *,
+html.light-mode .back-btn-icon *,
+body.light-mode .back-btn-icon * {
+  color: #0f172a !important;
+}
+
 /* Light Mode Overrides for Modal List Items */
 .light-mode .modal-list-item,
 html.light-mode .modal-list-item,

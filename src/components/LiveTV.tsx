@@ -482,7 +482,7 @@ export default function LiveTV() {
             onClick={() => setViewAllCategory(null)}
             className="mr-4 rtl:mr-0 rtl:ml-4 hover:text-red-400 transition"
           >
-            <ArrowLeft size={24} className="rtl:rotate-180" />
+            <ArrowLeft size={24} className="rtl:rotate-180 back-btn-icon" />
           </button>
           <h1 className="text-xl font-bold">{pageTitle}</h1>
         </div>
