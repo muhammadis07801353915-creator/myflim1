@@ -170,10 +170,11 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           <button
             key={t.id}
             onClick={() => setActiveType(t.id)}
-            className={`px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${
+            style={{ color: '#ffffff' }}
+            className={`px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border !text-white ${
               activeType === t.id 
                 ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-lg shadow-red-600/25' 
-                : 'bg-[#1a1d24] light-mode:bg-neutral-200 border-neutral-700/50 light-mode:border-neutral-300 text-neutral-300 light-mode:text-neutral-900 hover:text-white light-mode:hover:text-black'
+                : 'bg-[#1a1d24] border-neutral-700/50 text-white hover:bg-neutral-800'
             }`}
           >
             {t.label}
@@ -187,10 +188,11 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           <button
             key={g.id}
             onClick={() => setActiveGenre(g.id)}
-            className={`px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+            style={{ color: '#ffffff' }}
+            className={`px-4 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border !text-white ${
               activeGenre === g.id 
                 ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-md' 
-                : 'bg-[#1a1d24] light-mode:bg-neutral-200 border-neutral-700/50 light-mode:border-neutral-300 text-neutral-300 light-mode:text-neutral-900 hover:text-white light-mode:hover:text-black'
+                : 'bg-[#1a1d24] border-neutral-700/50 text-white hover:bg-neutral-800'
             }`}
           >
             {g.label}
@@ -204,10 +206,11 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           <button
             key={y.id}
             onClick={() => setActiveYear(y.id)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+            style={{ color: '#ffffff' }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border !text-white ${
               activeYear === y.id 
                 ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-md' 
-                : 'bg-[#1a1d24] light-mode:bg-neutral-200 border-neutral-700/50 light-mode:border-neutral-300 text-neutral-300 light-mode:text-neutral-900 hover:text-white light-mode:hover:text-black'
+                : 'bg-[#1a1d24] border-neutral-700/50 text-white hover:bg-neutral-800'
             }`}
           >
             {y.label}

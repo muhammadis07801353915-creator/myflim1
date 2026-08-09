@@ -244,6 +244,22 @@ body.light-mode .btn-watch-now svg,
   fill: #ffffff !important;
 }
 
+/* ALL FILTER PILLS AND CATEGORY BUTTONS ALWAYS RETAIN PURE WHITE TEXT */
+.scrollbar-hide button,
+.scrollbar-hide button *,
+.scrollbar-hide button span,
+html.light-mode .scrollbar-hide button,
+html.light-mode .scrollbar-hide button *,
+html.light-mode .scrollbar-hide button span,
+body.light-mode .scrollbar-hide button,
+body.light-mode .scrollbar-hide button *,
+body.light-mode .scrollbar-hide button span,
+.light-mode .scrollbar-hide button,
+.light-mode .scrollbar-hide button *,
+.light-mode .scrollbar-hide button span {
+  color: #ffffff !important;
+}
+
 .light-mode div[class*="aspect-"] *,
 .light-mode div[class*="aspect-square"] *,
 .light-mode div[class*="bg-gradient-to-t"] *,
