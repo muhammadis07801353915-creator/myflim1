@@ -310,6 +310,43 @@ body.light-mode button.filter-pill-active {
   color: #ffffff !important;
 }
 
+/* Watchlist & History List Items */
+.modal-list-item {
+  background-color: #1c1e28 !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+}
+
+.modal-list-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Light Mode Overrides for Modal List Items */
+.light-mode .modal-list-item,
+html.light-mode .modal-list-item,
+body.light-mode .modal-list-item {
+  background-color: #f1f5f9 !important; /* light slate bg */
+  border-color: #e2e8f0 !important; /* light border */
+  color: #0f172a !important; /* dark text */
+}
+
+.light-mode .modal-list-item *,
+html.light-mode .modal-list-item *,
+body.light-mode .modal-list-item * {
+  color: #0f172a !important;
+}
+
+.light-mode .modal-list-item .text-red-400,
+html.light-mode .modal-list-item .text-red-400 {
+  color: #CC222F !important;
+}
+
+.light-mode .modal-list-item:hover,
+html.light-mode .modal-list-item:hover,
+body.light-mode .modal-list-item:hover {
+  background-color: #e2e8f0 !important; /* light hover bg */
+}
+
 .light-mode div[class*="aspect-"] *,
 .light-mode div[class*="aspect-square"] *,
 .light-mode div[class*="bg-gradient-to-t"] *,

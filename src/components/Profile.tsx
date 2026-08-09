@@ -726,14 +726,14 @@ export default function Profile() {
             ) : (
               <div className="space-y-3 overflow-y-auto pr-1">
                 {watchlistItems.map((movie) => (
-                  <div key={movie.id} onClick={() => { setShowSavedModal(false); navigate.push(`/?movie=${movie.id}`); }} className="bg-[#1c1e28] light-mode:bg-neutral-100 hover:bg-white/10 light-mode:hover:bg-neutral-200 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border border-white/5 light-mode:border-neutral-200 group">
+                  <div key={movie.id} onClick={() => { setShowSavedModal(false); navigate.push(`/?movie=${movie.id}`); }} className="modal-list-item p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border group">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-16 relative rounded-xl overflow-hidden bg-black shrink-0">
                         {movie.image ? <Image src={movie.image} alt="" fill className="object-cover" unoptimized /> : null}
                       </div>
                       <div>
-                        <h4 className="font-bold text-white light-mode:text-black text-sm line-clamp-1">{getLocalized(movie, 'title', language)}</h4>
-                        <p className="text-xs text-white/40 light-mode:text-neutral-500 mt-1">{movie.year || movie.type}</p>
+                        <h4 className="font-bold text-white text-sm line-clamp-1">{getLocalized(movie, 'title', language)}</h4>
+                        <p className="text-xs text-white/40 mt-1">{movie.year || movie.type}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
@@ -762,8 +762,8 @@ export default function Profile() {
           <div className="bg-[#14151c] light-mode:bg-white border border-white/10 light-mode:border-neutral-200 w-full max-w-lg rounded-3xl p-6 shadow-2xl max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4 border-b border-white/10 light-mode:border-neutral-200 pb-4">
               <div className="flex items-center gap-2.5">
-                <Clock size={20} className="text-red-400 light-mode:text-[#CC222F]" />
-                <h3 className="text-lg font-extrabold text-white light-mode:text-black">{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</h3>
+                <Clock size={20} className="text-red-400" />
+                <h3 className="text-lg font-extrabold text-white">{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</h3>
               </div>
               <button onClick={() => setShowHistoryModal(false)} className="w-8 h-8 rounded-full bg-white/10 light-mode:bg-neutral-200 flex items-center justify-center text-white/60 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black"><X size={18} /></button>
             </div>
@@ -775,14 +775,14 @@ export default function Profile() {
             ) : (
               <div className="space-y-3 overflow-y-auto pr-1">
                 {historyItems.map((h: any) => (
-                  <div key={h.item.id} onClick={() => { setShowHistoryModal(false); navigate.push(`/?movie=${h.item.id}&t=${Math.floor(h.timestamp)}`); }} className="bg-[#1c1e28] light-mode:bg-neutral-100 hover:bg-white/10 light-mode:hover:bg-neutral-200 p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border border-white/5 light-mode:border-neutral-200 group">
+                  <div key={h.item.id} onClick={() => { setShowHistoryModal(false); navigate.push(`/?movie=${h.item.id}&t=${Math.floor(h.timestamp)}`); }} className="modal-list-item p-3 rounded-2xl flex items-center justify-between cursor-pointer transition border group">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-16 relative rounded-xl overflow-hidden bg-black shrink-0">
                         {h.item.image ? <Image src={h.item.image} alt="" fill className="object-cover" unoptimized /> : null}
                       </div>
                       <div>
-                        <h4 className="font-bold text-white light-mode:text-black text-sm line-clamp-1">{getLocalized(h.item, 'title', language)}</h4>
-                        <p className="text-xs text-red-400 light-mode:text-[#CC222F] font-bold mt-1">
+                        <h4 className="font-bold text-white text-sm line-clamp-1">{getLocalized(h.item, 'title', language)}</h4>
+                        <p className="text-xs text-red-400 font-bold mt-1">
                           {language === 'ku' ? `بەردەوامبوون لە ${formatTime(h.timestamp)}` : `Resume at ${formatTime(h.timestamp)}`}
                         </p>
                       </div>
