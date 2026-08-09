@@ -41,13 +41,6 @@ export default function Home({
     if (listName === 'Top Contents' || listName === 'Trending Now') {
       items = movies.filter(m => m.top_rank).sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99));
       displayTitle = t.popular || 'Trending Now';
-    } else if (listName === 'Animation') {
-      items = movies.filter(m =>
-        m.genre?.includes('Anime') ||
-        m.genre?.includes('Animation') ||
-        m.type === 'Anime'
-      );
-      displayTitle = language === 'ku' ? 'ئەنیمەیشنەکان' : language === 'ar' ? 'الأنيمي' : 'Animation';
     } else {
       items = movies.filter(m => m.list_name === listName);
       items.sort((a, b) => (b.rating || 0) - (a.rating || 0));
@@ -472,56 +465,6 @@ export default function Home({
                   </div>
 
                   {/* Title & Year */}
-                  <h3 className="mt-3 text-sm font-bold text-white truncate group-hover:text-[#CC222F] transition-colors">
-                    {getLocalized(movie, 'title', language)}
-                  </h3>
-                  <p className="text-[11px] text-neutral-400 mt-0.5 font-medium">{movie.year}</p>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* 3b. ANIMATION / ANIME SECTION */}
-        {animeItems.length > 0 && (
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">
-                {language === 'ku' ? 'ئەنیمەیشنەکان' : language === 'ar' ? 'الأنيمي' : 'Animation'}
-              </h2>
-              <button
-                onClick={() => setViewingList({ rawName: 'Animation' })}
-                className="text-xs md:text-sm font-bold text-[#CC222F] hover:text-red-400 transition flex items-center space-x-1"
-              >
-                <span>See All</span>
-                <ChevronRight size={14} className="rtl:rotate-180" />
-              </button>
-            </div>
-            <div className="flex space-x-4 md:space-x-6 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
-              {animeItems.slice(0, displayLimit).map((movie) => (
-                <motion.div
-                  key={movie.id}
-                  whileHover={{ y: -6, scale: 1.03 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => onSelect(movie)}
-                  className="flex-none w-36 sm:w-44 md:w-52 cursor-pointer group flex flex-col"
-                >
-                  <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-[#14151c] border border-white/10 shadow-xl group-hover:border-[#CC222F]/40 transition-colors">
-                    <Image
-                      src={movie.image}
-                      alt={movie.title}
-                      fill
-                      sizes="(max-width: 768px) 40vw, 220px"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      unoptimized={true}
-                    />
-                    {movie.rating ? (
-                      <div className="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 text-[11px] font-bold text-yellow-400 flex items-center space-x-1">
-                        <Star size={11} className="fill-yellow-400 text-yellow-400" />
-                        <span>{movie.rating}</span>
-                      </div>
-                    ) : null}
-                  </div>
                   <h3 className="mt-3 text-sm font-bold text-white truncate group-hover:text-[#CC222F] transition-colors">
                     {getLocalized(movie, 'title', language)}
                   </h3>

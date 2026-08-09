@@ -132,17 +132,6 @@ export default function HomeScreen({ navigation }: any) {
         .filter((m) => m.top_rank)
         .sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99))
     : [];
-  const animeItems = isUnlocked
-    ? movies.filter(
-        (a) =>
-          a.genre?.includes('Anime') ||
-          a.genre?.includes('Animation') ||
-          a.type === 'Anime' ||
-          a.list_name?.includes('کارتۆن') ||
-          a.list_name?.includes('ئەنیمەیشن')
-      )
-    : [];
-
   // Dynamically compute ALL movie lists present in database (Kurdish Cartoons, Kurdish Dubbed, etc.)
   const allDynamicLists = useMemo(() => {
     if (!isUnlocked) return [];
@@ -420,22 +409,6 @@ export default function HomeScreen({ navigation }: any) {
                 topContents,
                 'Top Contents',
                 true // flame icon
-              )
-            : null}
-
-          {/* ── ANIME / ANIMATION ────────────────────────────────── */}
-          {animeItems.length > 0
-            ? renderSection(
-                language === 'ku'
-                  ? 'ئەنیمەیشنەکان'
-                  : language === 'ar'
-                  ? 'أنيمي'
-                  : 'Animation',
-                animeItems.slice(0, 15),
-                animeItems,
-                'Anime',
-                false,
-                true
               )
             : null}
 
