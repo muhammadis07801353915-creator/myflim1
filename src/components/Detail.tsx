@@ -369,7 +369,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
   return (
     <div className="bg-neutral-950 light-mode:bg-white min-h-screen text-white light-mode:text-black pb-24">
-      <div id="player-container" className={`relative w-full bg-black aspect-video md:h-[70vh] md:aspect-auto`}>
+      <div id="player-container" className="relative w-full bg-black aspect-video sm:h-[40vh] md:h-[48vh] aspect-auto overflow-hidden">
         {isPlaying ? (
           <div className="w-full h-full relative bg-black flex items-center justify-center">
             <div className="flex absolute top-4 right-4 z-[110] space-x-2">
@@ -404,7 +404,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           </div>
         ) : (
           <>
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/60 to-transparent z-10" />
             <Image 
               src={item.backdrop || item.image || ''} 
               alt={item.title} 
@@ -417,132 +417,96 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             <div className="absolute top-0 left-0 w-full p-4 pt-6 z-[100] flex justify-between items-center pointer-events-none">
               <button 
                 onClick={onBack} 
-                className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md transition pointer-events-auto active:scale-90"
+                className="w-10 h-10 bg-black/40 hover:bg-black/60 rounded-full flex items-center justify-center backdrop-blur-md transition pointer-events-auto active:scale-90 border border-white/10"
               >
                 <ArrowLeft size={20} className="text-white" />
               </button>
-              <div className="flex space-x-3 pointer-events-auto">
-                <button 
-                  onClick={() => toggleWatchlist(item)}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md transition ${isBookmarked ? 'bg-red-600 text-white' : 'bg-black/40 hover:bg-black/60 text-white'}`}
-                >
-                  {isBookmarked ? <BookmarkCheck size={20} /> : <BookmarkPlus size={20} />}
-                </button>
-                <button className="w-10 h-10 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center backdrop-blur-md transition">
-                  <Share2 size={20} />
-                </button>
-              </div>
             </div>
 
-            <div className="absolute inset-0 z-20 flex items-center justify-center">
-              <button 
-                onClick={handlePlayClick}
-                className="w-16 h-16 bg-red-600/90 hover:bg-red-600 rounded-full flex items-center justify-center pl-1 backdrop-blur-sm shadow-[0_0_30px_rgba(220,38,38,0.5)] transition hover:scale-105"
-              >
-                <Play size={28} className="fill-white text-white" />
-              </button>
+            {/* Overlaid Floating Poster Thumbnail Card (as in Image 2) */}
+            <div className="absolute left-5 -bottom-10 z-30 w-[110px] sm:w-[130px] aspect-[2/3] rounded-2xl overflow-hidden border-2 border-[#CC222F] shadow-[0_12px_30px_rgba(0,0,0,0.8)]">
+              <Image 
+                src={item.image || item.backdrop || ''} 
+                alt={item.title} 
+                fill 
+                className="object-cover" 
+                unoptimized={true}
+              />
             </div>
           </>
         )}
       </div>
 
-      <div className="px-5 -mt-10 relative z-30">
+      <div className="px-5 pt-12 sm:pt-14 relative z-30 max-w-4xl mx-auto">
         <h1 
-          className="text-3xl font-black mb-3 text-white !text-white drop-shadow-xl tracking-tight"
+          className="text-2xl sm:text-3xl font-black mb-2 text-white !text-white drop-shadow-xl tracking-tight"
           style={{ color: '#ffffff' }}
         >
           {getLocalized(item, 'title', language)}
         </h1>
-        <div className="flex items-center space-x-4 text-sm mb-6">
-          <span className="flex items-center text-amber-500 font-extrabold bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
-            <Star size={16} className="mr-1 fill-amber-500 text-amber-500" />
-            <span className="text-amber-500 font-extrabold">{item.rating}</span>
+
+        <div className="flex items-center space-x-4 rtl:space-x-reverse text-xs sm:text-sm mb-6 text-neutral-300 font-bold">
+          <span className="flex items-center text-neutral-400 gap-1">
+            <Calendar size={14} className="text-neutral-400" />
+            <span>{item.year}</span>
           </span>
-          <span className="text-neutral-300 light-mode:text-slate-700 font-bold">{item.year}</span>
-          <span className="text-neutral-300 light-mode:text-slate-700 font-bold">{item.genre}</span>
+          <span className="flex items-center text-amber-400 gap-1 font-black">
+            <Star size={14} className="fill-amber-400 text-amber-400" />
+            <span>{item.rating}</span>
+          </span>
+          <span className="flex items-center text-neutral-400 gap-1">
+            <Eye size={14} className="text-neutral-400" />
+            <span>{viewCount.toLocaleString()}</span>
+          </span>
         </div>
 
+        {/* Primary Action Buttons Row (Matching Image 2!) */}
         {item.status === 'Coming Soon' ? (
-          <div className="w-full bg-amber-500/10 border border-amber-500/20 text-amber-500 py-4 rounded-xl flex items-center justify-center space-x-2 font-bold mb-8">
+          <div className="w-full bg-amber-500/10 border border-amber-500/20 text-amber-500 py-3.5 rounded-2xl flex items-center justify-center space-x-2 font-bold mb-8">
             <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
             <span>{language === 'ku' ? 'بەمزوانە بەردەست دەبێت' : language === 'ar' ? 'سيتوفر قريباً' : 'Coming Soon'}</span>
           </div>
         ) : (
-          <div className="mb-8">
+          <div className="flex items-center gap-3 mb-8">
             <button 
               onClick={handlePlayClick}
-              className="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl transition flex items-center justify-center space-x-3 shadow-xl shadow-red-600/30 group active:scale-95"
+              className="flex-1 py-3.5 px-6 bg-white hover:bg-neutral-200 text-black font-black rounded-2xl transition flex items-center justify-center space-x-2 shadow-lg active:scale-95"
             >
-              <Play size={22} className="fill-white text-white" />
-              <span className="text-xl uppercase tracking-widest text-white !text-white font-black" style={{ color: '#ffffff' }}>
+              <Play size={18} className="fill-black text-black" />
+              <span className="text-base font-black text-black">
                 {language === 'ku' ? 'ئێستا ببینە' : 'Watch Now'}
               </span>
+            </button>
+
+            <button 
+              onClick={() => toggleWatchlist(item)}
+              className={`w-12 h-12 rounded-2xl flex items-center justify-center transition border active:scale-95 ${
+                isBookmarked 
+                  ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-600/30' 
+                  : 'bg-[#14151C] light-mode:bg-neutral-100 border-white/10 light-mode:border-neutral-200 text-white light-mode:text-black hover:bg-[#1a1b24]'
+              }`}
+            >
+              {isBookmarked ? <BookmarkCheck size={20} /> : <BookmarkPlus size={20} />}
+            </button>
+
+            <button 
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({ title: item.title, url: window.location.href }).catch(() => {});
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                  alert(language === 'ku' ? 'لینکی فیلمەکە کۆپی کرا' : 'Link copied to clipboard');
+                }
+              }}
+              className="w-12 h-12 rounded-2xl bg-[#14151C] light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-200 text-white light-mode:text-black hover:bg-[#1a1b24] flex items-center justify-center transition active:scale-95"
+            >
+              <Share2 size={20} />
             </button>
           </div>
         )}
 
-        <div className="flex justify-around border-y border-neutral-800/60 light-mode:border-neutral-200 py-5 mb-8">
-          <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group cursor-default">
-            <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 flex items-center justify-center mb-2 transition text-red-500">
-              <Eye size={20} />
-            </div>
-            <span className="text-xs font-medium">{viewCount.toLocaleString()} {language === 'ku' ? 'بینین' : language === 'ar' ? 'مشاهدة' : 'Views'}</span>
-          </button>
-          <button 
-            onClick={handleDownload}
-            disabled={isDownloading}
-            className={`flex flex-col items-center transition group ${isDownloading ? 'text-red-500' : 'text-neutral-400 light-mode:text-neutral-600 hover:text-white'}`}
-          >
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition relative overflow-hidden ${isDownloading ? 'bg-red-500/10' : 'bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200'}`}>
-              {isDownloading ? (
-                <>
-                  <div 
-                    className="absolute bottom-0 left-0 w-full bg-red-600 transition-all duration-300" 
-                    style={{ height: `${downloadProgress}%`, opacity: 0.3 }}
-                  />
-                  <span className="text-[10px] font-bold z-10">{downloadProgress}%</span>
-                </>
-              ) : (
-                <Download size={20} />
-              )}
-            </div>
-            <span className="text-xs font-medium">{isDownloading ? (language === 'ku' ? 'دادەبەزێت...' : 'Downloading...') : 'Download'}</span>
-          </button>
-          <button 
-            onClick={handleFullScreen}
-            className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group"
-          >
-            <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200 flex items-center justify-center mb-2 transition">
-              <Maximize2 size={20} />
-            </div>
-            <span className="text-xs font-medium">{language === 'ku' ? 'گەورەکردن' : 'Full Screen'}</span>
-          </button>
-          <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group">
-            <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200 flex items-center justify-center mb-2 transition">
-              <MonitorPlay size={20} />
-            </div>
-            <span className="text-xs font-medium">Trailer</span>
-          </button>
-          <button 
-            onClick={handleReportBroken}
-            disabled={reported}
-            className={`flex flex-col items-center transition group ${reported ? 'text-red-500' : 'text-neutral-400 light-mode:text-neutral-600 hover:text-white'}`}
-          >
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition ${reported ? 'bg-red-500/20' : 'bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200'}`}>
-              <AlertCircle size={20} />
-            </div>
-            <span className="text-xs font-medium">{reported ? 'Reported' : 'Report Issue'}</span>
-          </button>
-          <button className="flex flex-col items-center text-neutral-400 light-mode:text-neutral-600 hover:text-white transition group">
-            <div className="w-12 h-12 rounded-full bg-neutral-900 light-mode:bg-neutral-100 group-hover:bg-neutral-800 light-mode:group-hover:bg-neutral-200 flex items-center justify-center mb-2 transition">
-              <Share2 size={20} />
-            </div>
-            <span className="text-xs font-medium">Share</span>
-          </button>
-        </div>
-
         <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-3 text-white light-mode:text-black">
+          <h3 className="text-xl font-bold mb-2 text-white light-mode:text-black">
             {t.storyLine}
           </h3>
           <p className="text-neutral-400 light-mode:text-neutral-600 text-sm leading-relaxed">
@@ -550,66 +514,56 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           </p>
         </div>
 
-        <CommentSection movieId={item.id} />
-
-        {/* Episodes Section - Requested Design */}
+        {/* Episodes Section - App 2-column Grid Style */}
         {item.type === 'Series' && allEpisodes.length > 0 && (
-          <div className="mt-8">
-             <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-black tracking-tighter text-white light-mode:text-slate-900">{t.seasons}</h3>
-                <span className="text-neutral-500 light-mode:text-slate-500 text-sm font-bold uppercase tracking-widest">{seasons.length} {t.seasons}</span>
-             </div>
-             
-             <div className="flex space-x-3 overflow-x-auto pb-4 scrollbar-hide -mx-5 px-5 mb-6">
-                {seasons.map((season) => (
-                   <button 
-                      key={season}
-                      onClick={() => setSelectedSeason(season)}
-                      className={`px-6 py-2.5 rounded-full border font-bold transition-all duration-300 flex-none ${
-                        selectedSeason === season 
-                          ? 'bg-red-600 border-red-500 text-white shadow-lg shadow-red-600/30' 
-                          : 'bg-neutral-900 light-mode:bg-slate-100 border-neutral-800 light-mode:border-slate-300 text-neutral-400 light-mode:text-slate-700 hover:text-white light-mode:hover:text-black'
-                      }`}
-                   >
-                      Season {season}
-                   </button>
-                ))}
+          <div className="mb-8">
+             <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-white light-mode:text-black">{t.episodesTitle}</h3>
+                <span className="text-red-500 text-sm font-bold">{episodes.length} {t.episodesTitle}</span>
              </div>
 
-             <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-black tracking-tighter text-white light-mode:text-slate-900">{t.episodesTitle}</h3>
-                <span className="text-neutral-500 light-mode:text-slate-500 text-sm font-bold uppercase tracking-widest">{episodes.length} {t.episodesTitle}</span>
-             </div>
-             
-             <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3 md:gap-4">
+             {seasons.length > 1 && (
+               <div className="flex space-x-2 overflow-x-auto pb-3 scrollbar-hide mb-4">
+                  {seasons.map((season) => (
+                     <button 
+                        key={season}
+                        onClick={() => setSelectedSeason(season)}
+                        className={`px-5 py-2 rounded-xl text-xs font-bold border transition ${
+                          selectedSeason === season 
+                            ? 'bg-red-600 border-red-500 text-white' 
+                            : 'bg-[#14151C] border-white/10 text-neutral-400 hover:text-white'
+                        }`}
+                     >
+                        Season {season}
+                     </button>
+                  ))}
+               </div>
+             )}
+
+             <div className="grid grid-cols-2 gap-3">
                 {episodes.map((episode: any, index: number) => {
                    const isSelected = currentEpisodeIndex === index;
                    return (
                      <button 
                         key={index}
                         onClick={() => handleEpisodeSelect(index)}
-                        className={`relative flex flex-col items-center justify-center py-4 rounded-2xl border transition-all duration-300 transform active:scale-95 ${
+                        className={`p-3.5 rounded-2xl border transition flex items-center gap-3 text-left rtl:text-right active:scale-95 ${
                           isSelected 
-                            ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/30 scale-105 z-10' 
-                            : 'bg-[#14151c] light-mode:bg-white border-white/8 light-mode:border-slate-300 hover:bg-[#1a1b24] light-mode:hover:bg-slate-100 shadow-sm'
+                            ? 'bg-[#1e202c] border-red-500 text-white shadow-lg' 
+                            : 'bg-[#14151C] light-mode:bg-neutral-100 border-white/8 light-mode:border-neutral-200 hover:border-white/20'
                         }`}
                      >
-                        <span className={`text-[10px] uppercase font-black tracking-tighter mb-1 ${
-                          isSelected ? 'text-white' : 'text-neutral-400 light-mode:text-slate-500 font-bold'
-                        }`}>
-                           {t.episode}
-                        </span>
-                        <span className={`text-xl font-black leading-none ${
-                          isSelected ? 'text-white' : 'text-white light-mode:text-slate-900 font-extrabold'
-                        }`}>
-                           {episode.number || index + 1}
-                        </span>
-                        
-                        {isSelected && (
-                          <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-white rounded-full flex items-center justify-center shadow-md">
-                             <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                          </div>
-                        )}
+                        <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0 text-white/70">
+                          <Server size={18} className={isSelected ? 'text-red-500' : 'text-neutral-400'} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                           <p className="text-sm font-bold text-white light-mode:text-black truncate">
+                              Ep {episode.number || index + 1}
+                           </p>
+                           <p className="text-xs text-neutral-400 truncate">
+                              Episode {episode.number || index + 1}
+                           </p>
+                        </div>
                      </button>
                    );
                 })}
@@ -617,32 +571,30 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
           </div>
         )}
 
-        {socialLinks.length > 0 && (
-          <div className="mt-12">
-            <h3 className="text-xl font-semibold mb-4 text-white light-mode:text-black">
-              {t.socialMedia}
-            </h3>
-            <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide -mx-5 px-5">
-              {socialLinks.map((link, i) => (
-                <a 
-                  key={i} 
-                  href={link.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="flex items-center space-x-3 bg-neutral-900/50 light-mode:bg-neutral-100 pr-5 p-2 rounded-full border border-neutral-800/50 light-mode:border-neutral-200 flex-none hover:bg-neutral-800 transition active:scale-95"
-                >
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${link.color} shrink-0 shadow-lg`}>
-                    {link.icon}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-white light-mode:text-black">{link.name}</p>
-                    <p className="text-[10px] text-neutral-500 light-mode:text-neutral-600 uppercase tracking-widest font-bold">Follow us</p>
-                  </div>
-                </a>
-              ))}
+        <div className="flex justify-around border-y border-white/10 light-mode:border-neutral-200 py-4 mb-8">
+          <button onClick={handleDownload} className="flex flex-col items-center gap-1.5 text-neutral-400 hover:text-white transition">
+            <div className="w-10 h-10 rounded-xl bg-[#14151C] flex items-center justify-center text-neutral-300">
+              <Download size={18} />
             </div>
-          </div>
-        )}
+            <span className="text-[11px] font-medium">Download</span>
+          </button>
+
+          <button onClick={handleFullScreen} className="flex flex-col items-center gap-1.5 text-neutral-400 hover:text-white transition">
+            <div className="w-10 h-10 rounded-xl bg-[#14151C] flex items-center justify-center text-neutral-300">
+              <Maximize2 size={18} />
+            </div>
+            <span className="text-[11px] font-medium">{language === 'ku' ? 'گەورەکردن' : 'Full Screen'}</span>
+          </button>
+
+          <button onClick={handleReportBroken} className="flex flex-col items-center gap-1.5 text-neutral-400 hover:text-white transition">
+            <div className="w-10 h-10 rounded-xl bg-[#14151C] flex items-center justify-center text-neutral-300">
+              <AlertCircle size={18} />
+            </div>
+            <span className="text-[11px] font-medium">{reported ? 'Reported' : 'Report Issue'}</span>
+          </button>
+        </div>
+
+        <CommentSection movieId={item.id} />
       </div>
 
       {/* Servers Modal */}
