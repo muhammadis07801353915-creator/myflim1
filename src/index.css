@@ -205,6 +205,20 @@ body.light-mode,
   color: #0f172a !important;
 }
 
+/* 6. SEARCH BUTTON CONTRAST IN LIGHT MODE */
+.light-mode button[aria-label="Search"],
+.light-mode .search-toggle-btn {
+  background-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+.light-mode button[aria-label="Search"] svg,
+.light-mode .search-toggle-btn svg {
+  color: #0f172a !important;
+  stroke: #0f172a !important;
+}
+
 /* 6. EXCEPTIONS: TEXT ON RED/BLUE BUTTONS & POSTER OVERLAYS REMAIN WHITE */
 .light-mode .bg-\[\#CC222F\],
 .light-mode .bg-\[\#CC222F\] *,

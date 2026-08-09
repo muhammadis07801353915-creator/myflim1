@@ -576,10 +576,14 @@ export default function LiveTV() {
         <div className="flex items-center justify-end shrink-0">
           <button
             onClick={() => setIsSearchOpen(!isSearchOpen)}
-            className="w-10 h-10 rounded-full bg-white/10 light-mode:bg-neutral-200 border border-white/15 light-mode:border-neutral-300 text-white light-mode:text-black flex items-center justify-center hover:bg-white/20 light-mode:hover:bg-neutral-300 transition shadow-sm"
             aria-label="Search"
+            className="search-toggle-btn w-10 h-10 rounded-full bg-white/10 light-mode:bg-neutral-200 border border-white/15 light-mode:border-neutral-300 text-white light-mode:text-black flex items-center justify-center hover:bg-white/20 light-mode:hover:bg-neutral-300 transition shadow-sm"
           >
-            {isSearchOpen ? <X size={20} className="text-white light-mode:text-black" /> : <Search size={20} className="text-white light-mode:text-black" />}
+            {isSearchOpen ? (
+              <X size={20} className="text-white light-mode:text-black stroke-current" />
+            ) : (
+              <Search size={20} className="text-white light-mode:text-black stroke-current" />
+            )}
           </button>
         </div>
       </div>
