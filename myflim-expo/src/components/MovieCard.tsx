@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Image, Text, StyleSheet, View } from 'react-native';
-import { COLORS, TYPOGRAPHY, SPACING, SIZES } from '../theme/theme';
+import { SPACING, SIZES, getColors } from '../theme/theme';
 import { Star } from 'lucide-react-native';
 import { useAppStore } from '../store/useAppStore';
 import { getLocalized } from '../utils/localization';
@@ -14,7 +14,9 @@ interface MovieCardProps {
 }
 
 export default function MovieCard({ item, onPress, width = 140, height = 200, style }: MovieCardProps) {
+  const theme = useAppStore(state => state.theme);
   const language = useAppStore(state => state.language);
+  const themeColors = getColors(theme);
   
   return (
     <TouchableOpacity 
@@ -22,7 +24,7 @@ export default function MovieCard({ item, onPress, width = 140, height = 200, st
       style={[styles.container, { width }, style]} 
       onPress={() => onPress(item)}
     >
-      <View style={[styles.imageContainer, { height }]}>
+      <View style={[styles.imageContainer, { height, backgroundColor: themeColors.surface }]}>
         <Image 
           source={{ uri: item.image }} 
           style={styles.image}
@@ -40,8 +42,8 @@ export default function MovieCard({ item, onPress, width = 140, height = 200, st
           </View>
         ) : null}
       </View>
-      <Text numberOfLines={1} style={styles.title}>{getLocalized(item, 'title', language)}</Text>
-      <Text numberOfLines={1} style={styles.subtitle}>{item.genre}</Text>
+      <Text numberOfLines={1} style={[styles.title, { color: themeColors.text }]}>{getLocalized(item, 'title', language)}</Text>
+      <Text numberOfLines={1} style={[styles.subtitle, { color: themeColors.textSecondary }]}>{item.genre}</Text>
     </TouchableOpacity>
   );
 }
@@ -54,7 +56,6 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: SIZES.radius,
     overflow: 'hidden',
-    backgroundColor: COLORS.surface,
   },
   image: {
     width: '100%',
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#CC222F',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -92,13 +93,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   title: {
-    color: COLORS.text,
     fontSize: 14,
     fontWeight: 'bold',
     marginTop: SPACING.sm,
   },
   subtitle: {
-    color: COLORS.textMuted,
     fontSize: 12,
     marginTop: 2,
   }
