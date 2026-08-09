@@ -335,8 +335,8 @@ export default function Home({
               {/* Bottom Row Content: Floating Thumbnail + Info Stack */}
               <div className="absolute bottom-3 left-3 right-3 sm:bottom-6 sm:left-8 sm:right-8 z-20 flex items-end gap-3.5 sm:gap-6 rtl:flex-row-reverse">
                 
-                {/* Vertical Poster Thumbnail with Red Border */}
-                <div className="relative w-14 sm:w-20 md:w-24 aspect-[2/3] rounded-xl overflow-hidden border-2 border-[#CC222F] shadow-2xl shrink-0 group-hover:scale-105 transition-transform duration-300">
+                {/* Vertical Poster Thumbnail with Red Border - Increased Size */}
+                <div className="relative w-22 sm:w-28 md:w-32 aspect-[2/3] rounded-2xl overflow-hidden border-2 border-[#CC222F] shadow-[0_10px_25px_rgba(0,0,0,0.8)] shrink-0 group-hover:scale-105 transition-transform duration-300">
                   <Image
                     src={currentFeatured.image}
                     alt={currentFeatured.title || ''}
