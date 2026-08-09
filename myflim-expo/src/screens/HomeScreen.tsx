@@ -400,11 +400,11 @@ export default function HomeScreen({ navigation }: any) {
         {/* ── HERO ───────────────────────────────────── */}
         {renderHero()}
 
-        <View style={styles.body}>
-          {/* ── TRENDING NOW ─────────────────────────────────────── */}
+        <View style={[styles.body, { paddingTop: 24 }]}>
+          {/* ── TOP 250 ─────────────────────────────────────── */}
           {topContents.length > 0
             ? renderSection(
-                language === 'ku' ? 'ناودار' : language === 'ar' ? 'الأكثر مشاهدةً' : 'Trending Now',
+                language === 'ku' ? 'تۆپ 250' : language === 'ar' ? 'أفضل 250' : 'Top 250',
                 topContents.slice(0, 20),
                 topContents,
                 'Top Contents',

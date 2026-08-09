@@ -284,7 +284,7 @@ export default function Home({
 
         return (
           <div
-            className="relative w-full overflow-hidden cursor-pointer select-none group bg-[#0f0f13]"
+            className="relative w-full overflow-hidden cursor-pointer select-none group bg-[#0f0f13] mb-8 sm:mb-10 md:mb-12"
             onClick={() => onSelect(currentFeatured)}
             onTouchStart={(e) => {
               const t = e.touches[0];
@@ -413,7 +413,7 @@ export default function Home({
             <div className="flex items-center justify-between">
               <h2 className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center space-x-2">
                 <Flame size={20} className="text-[#CC222F]" />
-                <span>Trending Now</span>
+                <span>{language === 'ku' ? 'تۆپ 250' : language === 'ar' ? 'أفضل 250' : 'Top 250'}</span>
               </h2>
               <button 
                 onClick={() => setViewingList({ rawName: 'Top Contents' })}
