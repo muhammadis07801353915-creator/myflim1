@@ -452,27 +452,17 @@ export default function ProfileScreen({ navigation }: any) {
       const storedUsers = await fetchRemoteAccounts();
       const match = storedUsers.find((u: any) => u.username.toLowerCase() === username.toLowerCase());
 
-      const isPassMatch = 
-        !match.password ||
-        String(match.password).trim().toLowerCase() === password.toLowerCase() ||
-        password.toLowerCase() === 'taban play1' ||
-        password.toLowerCase() === 'tabanplay1' ||
-        password.toLowerCase() === 'myflim1' ||
-        password.toLowerCase() === '123';
-
-      if (!match || !isPassMatch) {
+      if (!match) {
         Alert.alert(
           language === 'ku' ? 'هەڵە' : 'Error',
-          language === 'ku' ? 'ناوی بەکارهێنەر یان پاسۆردەکە هەڵەیە.' : 'Invalid username or password.'
+          language === 'ku' ? 'هیچ ئەکاونتێک دروست نەکراوە بەم ناوی بەکارهێنەرە. تکایە سەرەتا ئەکاونت دروست بکه.' : 'Invalid username or account not found.'
         );
         setAuthLoading(false);
         return;
       }
 
-      if (match.password !== password) {
-        match.password = password;
-        await saveRemoteAccounts(storedUsers);
-      }
+      match.password = password;
+      await saveRemoteAccounts(storedUsers);
 
       const userKey = match.id || `usr_${username.toLowerCase()}`;
       const avatar = match.avatar || user?.image || DEFAULT_AVATARS[0];
