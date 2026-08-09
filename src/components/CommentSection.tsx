@@ -216,35 +216,37 @@ export default function CommentSection({ movieId }: { movieId: string }) {
       </div>
 
       {/* Input Box - Sticky at bottom */}
-      <div className="fixed bottom-0 left-0 w-full bg-[#0a0a0f] light-mode:bg-white border-t border-neutral-800 light-mode:border-neutral-200 p-4 z-50">
-        <div className="max-w-4xl mx-auto flex items-center space-x-3 rtl:space-x-reverse">
+      <div className="fixed bottom-0 left-0 w-full bg-[#0a0a0f] light-mode:bg-white border-t border-neutral-800 light-mode:border-neutral-200 p-3 sm:p-4 z-50 shadow-2xl">
+        <div className="max-w-4xl mx-auto flex items-center gap-3 rtl:flex-row-reverse">
           <button 
             onClick={() => !userAccount && setShowAuthModal(true)}
-            className="w-10 h-10 rounded-full bg-neutral-800 overflow-hidden relative shrink-0 border border-neutral-700"
+            className="w-10 h-10 rounded-2xl bg-neutral-800 light-mode:bg-neutral-200 overflow-hidden relative shrink-0 border border-neutral-700 light-mode:border-neutral-300"
           >
             {userAccount?.avatar ? (
               <Image src={userAccount.avatar} alt="" fill className="object-cover" unoptimized />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-neutral-500">
+              <div className="w-full h-full flex items-center justify-center text-neutral-400 light-mode:text-neutral-600">
                 <User size={20} />
               </div>
             )}
           </button>
-          <div className="flex-1 relative">
+          <div className="flex-1 flex items-center gap-3.5 rtl:flex-row-reverse">
             <input 
               type="text" 
+              dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
-              placeholder={userAccount ? (language === 'ku' ? 'کۆمێنتێک بنووسە...' : 'Write a comment...') : (language === 'ku' ? 'کۆدەکە بنووسە یان چوونە ژوورەوە بکە بۆ نووسینی کۆمێنت...' : 'Log in to write a comment...')}
+              placeholder={userAccount ? (language === 'ku' ? 'کۆمێنتێک بنووسە...' : language === 'ar' ? 'اكتب تعليقاً...' : 'Write a comment...') : (language === 'ku' ? 'کۆدەکە بنووسە یان چوونە ژوورەوە بکە بۆ نووسینی کۆمێنت...' : 'Log in to write a comment...')}
               onClick={() => !userAccount && setShowAuthModal(true)}
-              className="w-full bg-[#1a1d24] light-mode:bg-neutral-100 border border-neutral-800 light-mode:border-neutral-200 rounded-full px-5 py-3 text-sm text-white light-mode:text-black outline-none focus:border-[#CC222F] transition"
+              className="flex-1 bg-[#1a1d24] light-mode:bg-neutral-100 border border-neutral-800 light-mode:border-neutral-300 rounded-2xl px-4 py-3 text-sm text-white light-mode:text-black placeholder-white/40 light-mode:placeholder-neutral-500 outline-none focus:border-[#CC222F] transition ltr:text-left rtl:text-right"
             />
             <button 
               onClick={handleSendComment}
-              className="absolute right-2 rtl:right-auto rtl:left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-[#CC222F] flex items-center justify-center text-white shadow-md hover:bg-red-700 transition"
+              className="w-11 h-11 rounded-2xl bg-[#CC222F] hover:bg-red-700 flex items-center justify-center text-white shadow-lg shrink-0 transition"
+              title={language === 'ku' ? 'ناردن' : 'Send'}
             >
-              <Send size={16} />
+              <Send size={18} className="rtl:rotate-180" />
             </button>
           </div>
         </div>

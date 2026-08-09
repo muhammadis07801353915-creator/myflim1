@@ -657,10 +657,10 @@ export default function Profile() {
             {/* Chat Body */}
             <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#0a0a0f] light-mode:bg-neutral-50">
               {chatMessages.length === 0 ? (
-                <div className="py-20 text-center text-white/40 light-mode:text-neutral-500 space-y-2">
-                  <MessageSquare size={36} className="mx-auto text-white/20 light-mode:text-neutral-300" />
-                  <p className="text-sm font-bold">{language === 'ku' ? `سڵاو ${userAccount.name}! پەیامێک بنووسە بۆ ئادمین` : `Hi ${userAccount.name}! Send a message to the admin`}</p>
-                  <p className="text-xs">{language === 'ku' ? 'بە زووترین کات وەڵامت دەدرێتەوە' : 'We will reply as soon as possible'}</p>
+                <div className="py-20 text-center text-white/40 light-mode:text-neutral-600 space-y-2">
+                  <MessageSquare size={36} className="mx-auto text-white/20 light-mode:text-neutral-400" />
+                  <p className="text-sm font-bold text-white light-mode:text-black">{language === 'ku' ? `سڵاو ${userAccount.name}! پەیامێک بنووسە بۆ ئادمین` : `Hi ${userAccount.name}! Send a message to the admin`}</p>
+                  <p className="text-xs text-white/40 light-mode:text-neutral-500">{language === 'ku' ? 'بە زووترین کات وەڵامت دەدرێتەوە' : 'We will reply as soon as possible'}</p>
                 </div>
               ) : (
                 chatMessages.map((msg, index) => {
@@ -685,20 +685,21 @@ export default function Profile() {
             </div>
 
             {/* Chat Input */}
-            <form onSubmit={handleSendChatMessage} className="p-3 bg-[#181924] light-mode:bg-white border-t border-white/10 light-mode:border-neutral-200 flex items-center gap-2 shrink-0">
+            <form onSubmit={handleSendChatMessage} className="p-3 bg-[#181924] light-mode:bg-white border-t border-white/10 light-mode:border-neutral-200 flex items-center gap-3 shrink-0 rtl:flex-row-reverse">
               <input
                 type="text"
+                dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}
                 placeholder={language === 'ku' ? 'پەیامەکەت بنووسە...' : language === 'ar' ? 'اكتب رسالتك...' : 'Type a message...'}
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                className="flex-1 bg-white/7 light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-300 rounded-xl px-4 py-2.5 text-xs text-white light-mode:text-black placeholder-white/35 light-mode:placeholder-neutral-400 outline-none focus:border-[#CC222F]"
+                className="flex-1 bg-white/7 light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-300 rounded-2xl px-4 py-3 text-xs text-white light-mode:text-black placeholder-white/40 light-mode:placeholder-neutral-500 outline-none focus:border-[#CC222F] ltr:text-left rtl:text-right"
               />
               <button
                 type="submit"
                 disabled={!chatInput.trim() || sendingChat}
-                className="p-2.5 bg-[#CC222F] hover:bg-red-700 disabled:opacity-50 text-white rounded-xl transition shadow-md shrink-0 flex items-center justify-center"
+                className="w-10 h-10 bg-[#CC222F] hover:bg-red-700 disabled:opacity-50 text-white rounded-2xl transition shadow-md shrink-0 flex items-center justify-center"
               >
-                {sendingChat ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                {sendingChat ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} className="rtl:rotate-180" />}
               </button>
             </form>
 
