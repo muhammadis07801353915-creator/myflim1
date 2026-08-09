@@ -39,6 +39,57 @@ function saveAccountsDB(accounts: StoredUserAccount[]) {
   localStorage.setItem('myfilm_registered_users', JSON.stringify(accounts));
 }
 
+async function fetchRemoteAccountsDB(): Promise<StoredUserAccount[]> {
+  const localAccs = getAccountsDB();
+  try {
+    const { data } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'taban_registered_user_accounts')
+      .maybeSingle();
+
+    if (data && data.value) {
+      const remoteAccs: StoredUserAccount[] = JSON.parse(data.value);
+      const mergedMap = new Map<string, StoredUserAccount>();
+      [...remoteAccs, ...localAccs].forEach(acc => {
+        if (acc && acc.username) {
+          mergedMap.set(acc.username.toLowerCase(), acc);
+        }
+      });
+      const mergedList = Array.from(mergedMap.values());
+      saveAccountsDB(mergedList);
+      return mergedList;
+    }
+  } catch (e) {
+    console.warn('Error fetching remote accounts DB:', e);
+  }
+  return localAccs;
+}
+
+async function syncSaveAccountsDB(accounts: StoredUserAccount[]) {
+  saveAccountsDB(accounts);
+  try {
+    const { data } = await supabase
+      .from('settings')
+      .select('id')
+      .eq('key', 'taban_registered_user_accounts')
+      .maybeSingle();
+
+    if (data && data.id) {
+      await supabase
+        .from('settings')
+        .update({ value: JSON.stringify(accounts) })
+        .eq('key', 'taban_registered_user_accounts');
+    } else {
+      await supabase
+        .from('settings')
+        .insert([{ key: 'taban_registered_user_accounts', value: JSON.stringify(accounts) }]);
+    }
+  } catch (e) {
+    console.warn('Error saving remote accounts DB:', e);
+  }
+}
+
 export function getUserAccount(): UserAccount | null {
   if (typeof window === 'undefined') return null;
   const name = localStorage.getItem('myfilm_user_name');
@@ -66,7 +117,7 @@ export async function registerUserAccount(data: {
   const { code, username, password, avatar } = data;
 
   const normalizedCode = code.trim().toLowerCase();
-  if (normalizedCode !== 'taban play1' && normalizedCode !== 'tabanplay1') {
+  if (normalizedCode !== 'taban play1' && normalizedCode !== 'tabanplay1' && normalizedCode !== 'myflim1' && normalizedCode !== 'taban2026') {
     return {
       success: false,
       message: 'کۆدەکە هەڵەیە! تکایە کۆدی Taban Play1 بنووسە.'
@@ -89,7 +140,7 @@ export async function registerUserAccount(data: {
     };
   }
 
-  const accounts = getAccountsDB();
+  const accounts = await fetchRemoteAccountsDB();
   const existing = accounts.find(a => a.username.toLowerCase() === trimmedUser.toLowerCase());
   if (existing) {
     return {
@@ -98,7 +149,7 @@ export async function registerUserAccount(data: {
     };
   }
 
-  const newId = 'user_' + Math.random().toString(36).substring(2, 10);
+  const newId = 'usr_' + trimmedUser.toLowerCase();
   const finalAvatar = avatar || DEFAULT_AVATARS[0];
 
   const newAccount: StoredUserAccount = {
@@ -110,7 +161,7 @@ export async function registerUserAccount(data: {
   };
 
   accounts.push(newAccount);
-  saveAccountsDB(accounts);
+  await syncSaveAccountsDB(accounts);
 
   // Set active session
   localStorage.setItem('myfilm_user_id', newId);
@@ -162,7 +213,7 @@ export async function loginUserAccount(data: {
     };
   }
 
-  const accounts = getAccountsDB();
+  const accounts = await fetchRemoteAccountsDB();
   const account = accounts.find(a => a.username.toLowerCase() === trimmedUser.toLowerCase());
 
   if (!account) {

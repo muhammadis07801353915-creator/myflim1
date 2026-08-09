@@ -46,7 +46,8 @@ import {
   CheckCircle2,
   MessageSquare,
   Send,
-  Check
+  Check,
+  LogOut
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -282,6 +283,62 @@ export default function ProfileScreen({ navigation }: any) {
     }
   };
 
+  const fetchRemoteAccounts = async (): Promise<any[]> => {
+    try {
+      const rawLocal = await AsyncStorage.getItem('@myflim_registered_users');
+      const localUsers = rawLocal ? JSON.parse(rawLocal) : [];
+
+      const { data } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'taban_registered_user_accounts')
+        .maybeSingle();
+
+      if (data && data.value) {
+        const remoteUsers = JSON.parse(data.value);
+        const mergedMap = new Map<string, any>();
+        [...remoteUsers, ...localUsers].forEach(u => {
+          if (u && u.username) {
+            mergedMap.set(u.username.toLowerCase(), u);
+          }
+        });
+        const mergedList = Array.from(mergedMap.values());
+        await AsyncStorage.setItem('@myflim_registered_users', JSON.stringify(mergedList));
+        return mergedList;
+      }
+      return localUsers;
+    } catch (e) {
+      console.warn('Error fetching remote accounts in App:', e);
+      const rawLocal = await AsyncStorage.getItem('@myflim_registered_users');
+      return rawLocal ? JSON.parse(rawLocal) : [];
+    }
+  };
+
+  const saveRemoteAccounts = async (accounts: any[]) => {
+    try {
+      await AsyncStorage.setItem('@myflim_registered_users', JSON.stringify(accounts));
+
+      const { data } = await supabase
+        .from('settings')
+        .select('id')
+        .eq('key', 'taban_registered_user_accounts')
+        .maybeSingle();
+
+      if (data && data.id) {
+        await supabase
+          .from('settings')
+          .update({ value: JSON.stringify(accounts) })
+          .eq('key', 'taban_registered_user_accounts');
+      } else {
+        await supabase
+          .from('settings')
+          .insert([{ key: 'taban_registered_user_accounts', value: JSON.stringify(accounts) }]);
+      }
+    } catch (e) {
+      console.warn('Error saving remote accounts in App:', e);
+    }
+  };
+
   const handleRegisterAccount = async () => {
     const code = authCode.trim().toLowerCase();
     const username = authUsername.trim();
@@ -313,8 +370,7 @@ export default function ProfileScreen({ navigation }: any) {
 
     setAuthLoading(true);
     try {
-      const storedUsersRaw = await AsyncStorage.getItem('@myflim_registered_users');
-      const storedUsers = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
+      const storedUsers = await fetchRemoteAccounts();
       const exists = storedUsers.find((u: any) => u.username.toLowerCase() === username.toLowerCase());
 
       if (exists) {
@@ -334,11 +390,11 @@ export default function ProfileScreen({ navigation }: any) {
         username,
         password,
         avatar,
-        created_at: new Date().toISOString()
+        createdAt: new Date().toISOString()
       };
 
       storedUsers.push(newAcc);
-      await AsyncStorage.setItem('@myflim_registered_users', JSON.stringify(storedUsers));
+      await saveRemoteAccounts(storedUsers);
       await AsyncStorage.setItem('taban_app_device_user_id', userKey);
       await AsyncStorage.setItem('app_unlocked', 'true');
 
@@ -393,8 +449,7 @@ export default function ProfileScreen({ navigation }: any) {
 
     setAuthLoading(true);
     try {
-      const storedUsersRaw = await AsyncStorage.getItem('@myflim_registered_users');
-      const storedUsers = storedUsersRaw ? JSON.parse(storedUsersRaw) : [];
+      const storedUsers = await fetchRemoteAccounts();
       const match = storedUsers.find((u: any) => u.username.toLowerCase() === username.toLowerCase());
 
       if (!match || match.password !== password) {
@@ -428,6 +483,39 @@ export default function ProfileScreen({ navigation }: any) {
     } finally {
       setAuthLoading(false);
     }
+  };
+
+  const handleLogoutAccount = () => {
+    Alert.alert(
+      language === 'ku' ? 'چوونە دەرەوە لە هەژمار' : 'Log Out',
+      language === 'ku' ? 'ئایا دڵنیایت لە چوونە دەرەوە لە هەژمارەکەت؟' : 'Are you sure you want to log out of your account?',
+      [
+        { text: language === 'ku' ? 'نەخێر' : 'Cancel', style: 'cancel' },
+        {
+          text: language === 'ku' ? 'بەڵێ، بچۆ دەرەوە' : 'Yes, Log Out',
+          style: 'destructive',
+          onPress: async () => {
+            await AsyncStorage.removeItem('app_unlocked');
+            await AsyncStorage.removeItem('user_data');
+            await AsyncStorage.removeItem('taban_app_device_user_id');
+
+            useAppStore.setState({
+              isUnlocked: false,
+              user: {
+                name: 'User Name',
+                image: DEFAULT_AVATARS[0],
+                isPro: false
+              }
+            });
+
+            Alert.alert(
+              language === 'ku' ? 'چوونە دەرەوە' : 'Logged Out',
+              language === 'ku' ? 'بە سەرکەوتوویی لە هەژمارەکەت چوویتە دەرەوە.' : 'Successfully logged out.'
+            );
+          }
+        }
+      ]
+    );
   };
 
   const handlePickCustomAvatar = async () => {
@@ -617,29 +705,25 @@ export default function ProfileScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* ── ENTER CODE / PRO BANNER ─────────────────────────────── */}
-        <TouchableOpacity style={styles.proBanner} onPress={() => setShowUnlockModal(true)}>
-          <View style={[styles.proLeft, isRTL && { flexDirection: 'row-reverse' }]}>
-            <View style={styles.crownIconCircle}>
-               <Key size={22} color="#CC222F" />
+        {/* ── ENTER CODE / PRO BANNER (Shown only when logged out) ─────────────────────────────── */}
+        {!isUnlocked && (
+          <TouchableOpacity style={styles.proBanner} onPress={() => setShowUnlockModal(true)}>
+            <View style={[styles.proLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={styles.crownIconCircle}>
+                 <Key size={22} color="#CC222F" />
+              </View>
+              <View style={styles.proTextContainer}>
+                <Text style={[styles.proTitle, { color: '#ffffff', fontWeight: '900' }]}>
+                  {language === 'ku' ? 'دروستکردنی هەژمار / داخڵکردنی کۆد' : 'Register Account / Enter Code'}
+                </Text>
+                <Text style={[styles.proSubtitle, { color: 'rgba(255,255,255,0.92)' }]}>
+                  {language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکان' : 'Enter code to unlock all sections of the app'}
+                </Text>
+              </View>
             </View>
-            <View style={styles.proTextContainer}>
-              <Text style={[styles.proTitle, { color: '#ffffff', fontWeight: '900' }]}>
-                {isUnlocked 
-                  ? (language === 'ku' ? 'کۆد چالاککراوە' : 'Code Activated') 
-                  : (language === 'ku' ? 'داخڵکردنی کۆد' : 'Enter Code')
-                }
-              </Text>
-              <Text style={[styles.proSubtitle, { color: 'rgba(255,255,255,0.92)' }]}>
-                {isUnlocked 
-                  ? (language === 'ku' ? 'سەرجەم بەشەکان بە سەرکەوتوویی کراونەتەوە' : 'All app sections successfully unlocked') 
-                  : (language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکان' : 'Enter code to unlock all sections of the app')
-                }
-              </Text>
-            </View>
-          </View>
-          <ChevronRight size={20} color="#CC222F" style={isRTL ? { transform: [{ rotate: '180deg' }] } : undefined} />
-        </TouchableOpacity>
+            <ChevronRight size={20} color="#CC222F" style={isRTL ? { transform: [{ rotate: '180deg' }] } : undefined} />
+          </TouchableOpacity>
+        )}
 
         {/* ── MENU OPTIONS LIST ────────────────────────────────────── */}
         <View style={styles.menuSection}>
@@ -678,6 +762,53 @@ export default function ProfileScreen({ navigation }: any) {
             language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play',
             `v${currentVersion}`,
             () => setShowAboutModal(true)
+          )}
+
+          {/* Log Out or Register/Login Button */}
+          {isUnlocked ? (
+            <TouchableOpacity 
+              style={[
+                styles.menuItem, 
+                { backgroundColor: 'rgba(239, 68, 68, 0.1)', borderColor: 'rgba(239, 68, 68, 0.35)', marginTop: 8 },
+                isRTL && { flexDirection: 'row-reverse' }
+              ]} 
+              onPress={handleLogoutAccount}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.menuLeft, { flex: 1 }, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.menuIconBox}>
+                  <LogOut size={20} color="#ef4444" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.menuTitle, { color: '#ef4444', fontWeight: '800' }, isRTL && { textAlign: 'right' }]} numberOfLines={1}>
+                    {language === 'ku' ? 'چوونە دەرەوە لە هەژمار' : language === 'ar' ? 'تسجيل الخروج' : 'Log Out'}
+                  </Text>
+                </View>
+              </View>
+              <ChevronRight size={18} color="#ef4444" style={isRTL ? { transform: [{ rotate: '180deg' }] } : undefined} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              style={[
+                styles.menuItem, 
+                { backgroundColor: 'rgba(204, 34, 47, 0.12)', borderColor: 'rgba(204, 34, 47, 0.35)', marginTop: 8 },
+                isRTL && { flexDirection: 'row-reverse' }
+              ]} 
+              onPress={() => setShowUnlockModal(true)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.menuLeft, { flex: 1 }, isRTL && { flexDirection: 'row-reverse' }]}>
+                <View style={styles.menuIconBox}>
+                  <Key size={20} color="#CC222F" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.menuTitle, { color: '#CC222F', fontWeight: '800' }, isRTL && { textAlign: 'right' }]} numberOfLines={1}>
+                    {language === 'ku' ? 'دروستکردنی هەژمار / داخڵکردنی کۆد' : language === 'ar' ? 'إنشاء حساب / إدخال الكود' : 'Register Account / Enter Code'}
+                  </Text>
+                </View>
+              </View>
+              <ChevronRight size={18} color="#CC222F" style={isRTL ? { transform: [{ rotate: '180deg' }] } : undefined} />
+            </TouchableOpacity>
           )}
         </View>
 
