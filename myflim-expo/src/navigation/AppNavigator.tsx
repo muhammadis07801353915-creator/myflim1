@@ -39,10 +39,10 @@ function TabNavigator() {
       icon: ({ color, size }: any) => <Home color={color} size={size} />,
     },
     {
-      name: "PostsTab",
-      component: PostsScreen,
-      label: language === 'ku' ? 'پۆستەکان' : language === 'ar' ? 'المنشورات' : 'Posts',
-      icon: ({ color, size }: any) => <LayoutGrid color={color} size={size} />,
+      name: "SearchTab",
+      component: SearchScreen,
+      label: t.search,
+      icon: ({ color, size }: any) => <Search color={color} size={size} />,
     },
     {
       name: "LiveTVTab",
@@ -51,10 +51,10 @@ function TabNavigator() {
       icon: ({ color, size }: any) => <Tv color={color} size={size} />,
     },
     {
-      name: "SearchTab",
-      component: SearchScreen,
-      label: t.search,
-      icon: ({ color, size }: any) => <Search color={color} size={size} />,
+      name: "PostsTab",
+      component: PostsScreen,
+      label: language === 'ku' ? 'پۆستەکان' : language === 'ar' ? 'المنشورات' : 'Posts',
+      icon: ({ color, size }: any) => <LayoutGrid color={color} size={size} />,
     },
     {
       name: "ProfileTab",
