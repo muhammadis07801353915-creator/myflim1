@@ -539,7 +539,7 @@ const s = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerSide: {
-    minWidth: 100,
+    flexShrink: 0,
     alignItems: 'flex-start',
   },
   headerTitle: {
