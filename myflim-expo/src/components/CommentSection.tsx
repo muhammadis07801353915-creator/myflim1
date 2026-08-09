@@ -7,6 +7,7 @@ import {
 import { Send, User, MessageSquare, Save, ChevronRight, Pencil } from 'lucide-react-native';
 import { supabase } from '../api/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAppStore } from '../store/useAppStore';
 
 interface Comment {
   id: string; user_id: string; content: string; created_at: string;
@@ -47,6 +48,8 @@ export default function CommentSection({ movieId }: Props) {
   const [showEdit, setShowEdit] = useState(false);
   const [editName, setEditName] = useState('');
 
+  const { user: storeUser, language } = useAppStore();
+
   useEffect(() => {
     checkUser();
     fetchComments();
@@ -56,21 +59,42 @@ export default function CommentSection({ movieId }: Props) {
         () => fetchComments())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [movieId]);
+  }, [movieId, storeUser?.name]);
 
   const checkUser = async () => {
-    // Restore saved session
-    const savedUid = await AsyncStorage.getItem('anon_uid');
+    const savedUid = await AsyncStorage.getItem('taban_app_device_user_id') || await AsyncStorage.getItem('anon_uid');
+    
+    if (storeUser?.name && storeUser.name !== 'User Name') {
+      const uKey = savedUid || `usr_${storeUser.name.toLowerCase().replace(/\s+/g, '')}`;
+      setUser({ id: uKey });
+      setDisplayName(storeUser.name);
+      return;
+    }
+
+    const rawUserData = await AsyncStorage.getItem('user_data');
+    if (rawUserData) {
+      try {
+        const parsed = JSON.parse(rawUserData);
+        if (parsed?.name && parsed.name !== 'User Name') {
+          const uKey = savedUid || `usr_${parsed.name.toLowerCase().replace(/\s+/g, '')}`;
+          setUser({ id: uKey });
+          setDisplayName(parsed.name);
+          return;
+        }
+      } catch (e) {}
+    }
+
     const savedName = await AsyncStorage.getItem('anon_name');
     if (savedUid && savedName) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.id === savedUid) { setUser(user); setDisplayName(savedName); return; }
+      setUser({ id: savedUid });
+      setDisplayName(savedName);
+      return;
     }
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setUser(user);
-      const saved = await AsyncStorage.getItem('anon_name');
-      setDisplayName(saved || 'User');
+
+    const { data: { user: sbUser } } = await supabase.auth.getUser();
+    if (sbUser) {
+      setUser(sbUser);
+      setDisplayName(savedName || 'User');
     }
   };
 
@@ -137,14 +161,51 @@ export default function CommentSection({ movieId }: Props) {
   };
 
   const handleSendComment = async () => {
-    if (!user) { setShowLogin(true); return; }
     if (!newComment.trim()) return;
+
+    const activeStoreUser = useAppStore.getState().user;
+    let activeName = displayName;
+    if (activeStoreUser?.name && activeStoreUser.name !== 'User Name') {
+      activeName = activeStoreUser.name;
+    }
+    
+    let activeUid = user?.id;
+    if (!activeUid) {
+      const savedUid = await AsyncStorage.getItem('taban_app_device_user_id') || await AsyncStorage.getItem('anon_uid');
+      if (savedUid) {
+        activeUid = savedUid;
+      } else if (activeName) {
+        activeUid = `usr_${activeName.toLowerCase().replace(/\s+/g, '')}`;
+      }
+    }
+
+    if (!activeUid || !activeName) {
+      setShowLogin(true);
+      return;
+    }
+
     setSending(true);
-    await supabase.from('comments').insert([{
-      movie_id: String(movieId), user_id: user.id, content: newComment.trim(),
-    }]);
-    setNewComment(''); fetchComments();
-    setSending(false);
+    try {
+      await supabase.from('profiles').upsert({
+        id: activeUid,
+        display_name: activeName,
+        avatar_url: activeStoreUser?.image || '',
+        updated_at: new Date().toISOString(),
+      });
+
+      await supabase.from('comments').insert([{
+        movie_id: String(movieId),
+        user_id: activeUid,
+        content: newComment.trim(),
+      }]);
+
+      setNewComment('');
+      fetchComments();
+    } catch (e) {
+      console.error('Error posting comment:', e);
+    } finally {
+      setSending(false);
+    }
   };
 
   const renderComment = ({ item }: { item: Comment }) => {
