@@ -61,7 +61,6 @@ body.light-mode,
   color: #0f172a !important;
 }
 
-/* 1. SURFACE BACKGROUND OVERRIDES IN LIGHT MODE */
 .light-mode header,
 .light-mode main,
 .light-mode .sticky,
@@ -75,13 +74,6 @@ body.light-mode,
 .light-mode .bg-\[\#14151C\],
 .light-mode .bg-\[\#161720\],
 .light-mode .bg-\[\#161722\],
-.light-mode .bg-\[\#181924\],
-.light-mode .bg-\[\#1c1e28\],
-.light-mode .bg-\[\#1c1d29\],
-.light-mode .bg-\[\#1a1d24\],
-.light-mode .bg-\[\#1A1D24\],
-.light-mode .bg-\[\#22252D\],
-.light-mode .bg-\[\#22252d\],
 .light-mode .bg-neutral-950,
 .light-mode .bg-neutral-900,
 .light-mode .bg-neutral-900\/50,
@@ -89,6 +81,18 @@ body.light-mode,
 .light-mode .bg-neutral-800\/50 {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
+}
+
+/* Secondary action buttons in Light Mode */
+.light-mode .action-btn-secondary {
+  background-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+.light-mode .action-btn-secondary svg,
+.light-mode .action-btn-secondary * {
+  color: #0f172a !important;
+  stroke: #0f172a !important;
 }
 
 /* Sub-containers & input wrappers in Light Mode */

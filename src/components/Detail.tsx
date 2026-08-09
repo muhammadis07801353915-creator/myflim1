@@ -477,7 +477,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             <button 
               onClick={handlePlayClick}
               className="flex-1 py-3.5 px-6 bg-[#CC222F] hover:bg-red-700 text-white font-black rounded-2xl transition flex items-center justify-center space-x-2 shadow-lg active:scale-95"
-              style={{ color: '#ffffff' }}
+              style={{ color: '#ffffff', backgroundColor: '#CC222F' }}
             >
               <Play size={18} className="fill-white text-white" style={{ color: '#ffffff', fill: '#ffffff' }} />
               <span className="text-base font-black text-white" style={{ color: '#ffffff' }}>
@@ -490,11 +490,11 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
               className={`w-12 h-12 rounded-2xl flex items-center justify-center transition border active:scale-95 shrink-0 ${
                 isBookmarked 
                   ? 'bg-[#CC222F] border-[#CC222F] text-white shadow-lg shadow-red-600/30' 
-                  : 'bg-[#181924] light-mode:bg-neutral-200 border-white/10 light-mode:border-neutral-300 text-white light-mode:text-black hover:bg-[#222432] light-mode:hover:bg-neutral-300'
+                  : 'action-btn-secondary bg-[#181924] border-white/10 text-white hover:bg-[#222432]'
               }`}
               title={language === 'ku' ? 'سەیڤکردن' : 'Bookmark'}
             >
-              {isBookmarked ? <BookmarkCheck size={20} className="text-white" /> : <BookmarkPlus size={20} className="text-white light-mode:text-black" />}
+              {isBookmarked ? <BookmarkCheck size={20} className="text-white" /> : <BookmarkPlus size={20} />}
             </button>
 
             <button 
@@ -506,10 +506,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                   alert(language === 'ku' ? 'لینکی فیلمەکە کۆپی کرا' : 'Link copied to clipboard');
                 }
               }}
-              className="w-12 h-12 rounded-2xl bg-[#181924] light-mode:bg-neutral-200 border border-white/10 light-mode:border-neutral-300 text-white light-mode:text-black hover:bg-[#222432] light-mode:hover:bg-neutral-300 flex items-center justify-center transition active:scale-95 shrink-0"
+              className="action-btn-secondary w-12 h-12 rounded-2xl bg-[#181924] border border-white/10 text-white hover:bg-[#222432] flex items-center justify-center transition active:scale-95 shrink-0"
               title={language === 'ku' ? 'بەشکردن' : 'Share'}
             >
-              <Share2 size={20} className="text-white light-mode:text-black" />
+              <Share2 size={20} />
             </button>
           </div>
         )}
