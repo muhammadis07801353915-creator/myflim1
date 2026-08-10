@@ -28,12 +28,30 @@ const formatNotifTime = (d: string, lang: string) => {
   if (!d) return '';
   const diff = Date.now() - new Date(d).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return lang === 'ku' ? 'ئێستا' : lang === 'ar' ? 'الآن' : 'just now';
-  if (mins < 60) return lang === 'ku' ? `پێش ${mins} خولەک` : lang === 'ar' ? `قبل ${mins} دقيقة` : `${mins}m ago`;
+  if (mins < 1) {
+    if (lang === 'ku') return 'ئێستا';
+    if (lang === 'badini') return 'نوکە';
+    if (lang === 'ar') return 'الآن';
+    return 'just now';
+  }
+  if (mins < 60) {
+    if (lang === 'ku') return `پێش ${mins} خولەک`;
+    if (lang === 'badini') return `بەری ${mins} خولەکان`;
+    if (lang === 'ar') return `قبل ${mins} دقيقة`;
+    return `${mins}m ago`;
+  }
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return lang === 'ku' ? `پێش ${hours} کاتژمێر` : lang === 'ar' ? `قبل ${hours} ساعة` : `${hours}h ago`;
+  if (hours < 24) {
+    if (lang === 'ku') return `پێش ${hours} کاتژمێر`;
+    if (lang === 'badini') return `بەری ${hours} دەمژمێران`;
+    if (lang === 'ar') return `قبل ${hours} ساعة`;
+    return `${hours}h ago`;
+  }
   const days = Math.floor(hours / 24);
-  return lang === 'ku' ? `پێش ${days} ڕۆژ` : lang === 'ar' ? `قبل ${days} يوم` : `${days}d ago`;
+  if (lang === 'ku') return `پێش ${days} ڕۆژ`;
+  if (lang === 'badini') return `بەری ${days} ڕۆژان`;
+  if (lang === 'ar') return `قبل ${days} يوم`;
+  return `${days}d ago`;
 };
 
 const { width } = Dimensions.get('window');
@@ -102,8 +120,9 @@ function SectionHeader({
   language?: string;
   themeColors: any;
 }) {
-  const isRTL = language === 'ku' || language === 'ar';
-  const seeAllText = language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All';
+  const isRTL = language === 'ku' || language === 'badini' || language === 'ar';
+  const t = translations[(language as Language) || 'ku'] || translations.ku;
+  const seeAllText = t.seeAll || 'See All';
 
   return (
     <View style={[sh.row, isRTL && { flexDirection: 'row-reverse' }]}>
@@ -142,8 +161,8 @@ export default function HomeScreen({ navigation }: any) {
   const themeColors = getColors(theme);
   const [activeIndex, setActiveIndex] = useState(0);
   const [showNotifModal, setShowNotifModal] = useState(false);
-  const t = translations[language];
-  const isRTL = language === 'ku' || language === 'ar';
+  const t = translations[(language as Language) || 'ku'] || translations.ku;
+  const isRTL = language === 'ku' || language === 'badini' || language === 'ar';
 
   const handleOpenNotifModal = () => {
     setShowNotifModal(true);
@@ -243,9 +262,7 @@ export default function HomeScreen({ navigation }: any) {
         <View style={hero.lockedWrap}>
           <Text style={hero.lockedTitle}>Taban Play</Text>
           <Text style={hero.lockedSub}>
-            {language === 'ku'
-              ? 'داخڵکردنی کۆد بۆ کردنەوەی سەرجەم بەشەکان'
-              : 'Enter code to unlock all sections'}
+            {t.enterCodeToUnlock}
           </Text>
         </View>
       );
@@ -438,7 +455,7 @@ export default function HomeScreen({ navigation }: any) {
           {/* ── TOP 250 ─────────────────────────────────────── */}
           {topContents.length > 0
             ? renderSection(
-                language === 'ku' ? 'تۆپ 250' : language === 'ar' ? 'أفضل 250' : 'Top 250',
+                t.popular,
                 topContents.slice(0, 20),
                 topContents,
                 'Top Contents',
@@ -480,7 +497,7 @@ export default function HomeScreen({ navigation }: any) {
               <View style={[styles.notifHeaderLeft, isRTL && { flexDirection: 'row-reverse' }]}>
                 <Bell size={20} color="#CC222F" />
                 <Text style={[styles.notifHeaderTitle, { color: themeColors.text }]}>
-                  {language === 'ku' ? 'ئاگادارکردنەوەکان' : language === 'ar' ? 'الإشعارات' : 'Notifications'}
+                  {t.notifications}
                 </Text>
                 {notifications.length > 0 && (
                   <View style={[styles.notifBadgeCount, { backgroundColor: themeColors.surfaceLight }]}>
@@ -505,7 +522,7 @@ export default function HomeScreen({ navigation }: any) {
                 <View style={styles.notifEmptyWrap}>
                   <Bell size={42} color={themeColors.textMuted} />
                   <Text style={[styles.notifEmptyText, { color: themeColors.textMuted }]}>
-                    {language === 'ku' ? 'هیچ ئاگادارکردنەوە یان تێبینییەک نییە' : language === 'ar' ? 'لا توجد إشعارات حالياً' : 'No notifications available yet'}
+                    {t.noNotifications}
                   </Text>
                 </View>
               ) : (
@@ -526,14 +543,14 @@ export default function HomeScreen({ navigation }: any) {
                             <>
                               <Bell size={14} color="#CC222F" />
                               <Text style={[styles.notifTypeTagText, { color: '#CC222F' }]}>
-                                {language === 'ku' ? '📣 ڕاگەیاندن' : language === 'ar' ? 'إعلان عام' : 'Push Notice'}
+                                {t.pushNotice}
                               </Text>
                             </>
                           ) : (
                             <>
                               <Info size={14} color="#2196F3" />
                               <Text style={[styles.notifTypeTagText, { color: '#2196F3' }]}>
-                                {language === 'ku' ? '📥 تێبینی / هەواڵ' : language === 'ar' ? 'ملاحظة' : 'Notice'}
+                                {t.generalNotice}
                               </Text>
                             </>
                           )}

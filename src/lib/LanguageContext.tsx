@@ -15,7 +15,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('app_language') || localStorage.getItem('myfilm_language');
-      if (saved && (saved === 'ku' || saved === 'ar' || saved === 'en' || saved === 'hi')) {
+      if (saved && (saved === 'ku' || saved === 'badini' || saved === 'ar' || saved === 'en')) {
         return saved as Language;
       }
     }
@@ -32,7 +32,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Set direction and lang attribute based on language
-    const isRtl = language === 'ku' || language === 'ar';
+    const isRtl = language === 'ku' || language === 'badini' || language === 'ar';
     document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
     document.documentElement.lang = language;
 

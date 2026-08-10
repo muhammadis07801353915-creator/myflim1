@@ -19,7 +19,7 @@ interface AppState {
     isPro: boolean;
   };
   theme: 'dark' | 'light';
-  language: 'ku' | 'ar' | 'en';
+  language: 'ku' | 'badini' | 'ar' | 'en';
   loading: boolean;
   error: string | null;
   isUnlocked: boolean;
@@ -38,7 +38,7 @@ interface AppState {
   removeFromHistory: (itemId: string | number) => Promise<void>;
   updateUser: (data: Partial<{ name: string; image: string; isPro: boolean }>) => Promise<void>;
   toggleTheme: () => void;
-  setLanguage: (lang: 'ku' | 'ar' | 'en') => void;
+  setLanguage: (lang: 'ku' | 'badini' | 'ar' | 'en') => void;
 }
 
 const DEFAULT_USER = {
@@ -418,7 +418,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     AsyncStorage.setItem('app_theme', newTheme);
   },
 
-  setLanguage: (lang: 'ku' | 'ar' | 'en') => {
+  setLanguage: (lang: 'ku' | 'badini' | 'ar' | 'en') => {
     set({ language: lang });
     AsyncStorage.setItem('app_language', lang);
   }

@@ -220,9 +220,9 @@ export default function Home({
           return (
             <div className="flex items-center space-x-2 rtl:space-x-reverse mb-8 overflow-x-auto pb-2 scrollbar-hide">
               {[
-                { id: 'all', label: language === 'ku' ? 'گشتی' : t.all },
-                { id: 'Movie', label: language === 'ku' ? 'فیلم' : t.movies },
-                { id: 'Series', label: language === 'ku' ? 'زنجیرە' : t.series }
+                { id: 'all', label: t.all },
+                { id: 'Movie', label: t.movies },
+                { id: 'Series', label: t.series }
               ].map((f) => (
                 <button
                   key={f.id}
@@ -465,13 +465,13 @@ export default function Home({
             <div className="flex items-center justify-between">
               <h2 className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center space-x-2">
                 <Flame size={20} className="text-[#CC222F]" />
-                <span>{language === 'ku' ? 'تۆپ 250' : language === 'ar' ? 'أفضل 250' : 'Top 250'}</span>
+                <span>{t.popular}</span>
               </h2>
               <button 
                 onClick={() => setViewingList({ rawName: 'Top Contents' })}
                 className="text-xs md:text-sm font-bold text-[#CC222F] hover:text-red-400 transition flex items-center space-x-1"
               >
-                <span>See All</span>
+                <span>{t.seeAll}</span>
                 <ChevronRight size={14} className="rtl:rotate-180" />
               </button>
             </div>
@@ -544,7 +544,7 @@ export default function Home({
                   onClick={() => setViewingList({ rawName: list.name })}
                   className="text-xs md:text-sm font-bold text-[#CC222F] hover:text-red-400 transition flex items-center space-x-1"
                 >
-                  <span>See All</span>
+                  <span>{t.seeAll}</span>
                   <ChevronRight size={14} className="rtl:rotate-180" />
                 </button>
               </div>
@@ -618,7 +618,7 @@ export default function Home({
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-white light-mode:text-black">
-                      {language === 'ku' ? 'ئاگادارکردنەوەکان' : language === 'ar' ? 'الإشعارات' : 'Notifications'}
+                      {t.notifications}
                     </h3>
                   </div>
                   {webNotifications.length > 0 && (
@@ -641,7 +641,7 @@ export default function Home({
                   <div className="flex flex-col items-center justify-center py-12 space-y-3 text-neutral-500">
                     <Bell size={44} className="opacity-30" />
                     <p className="text-sm font-medium">
-                      {language === 'ku' ? 'هیچ ئاگادارکردنەوە یان تێبینییەک نییە' : language === 'ar' ? 'لا توجد إشعارات حالياً' : 'No notifications available yet'}
+                      {t.noNotifications}
                     </p>
                   </div>
                 ) : (
@@ -662,14 +662,14 @@ export default function Home({
                               <>
                                 <Bell size={14} className="text-[#CC222F]" />
                                 <span className="text-[#CC222F]">
-                                  {language === 'ku' ? '📣 ڕاگەیاندن' : language === 'ar' ? 'إعلان عام' : 'Push Notice'}
+                                  {t.pushNotice}
                                 </span>
                               </>
                             ) : (
                               <>
                                 <Info size={14} className="text-blue-400" />
                                 <span className="text-blue-400">
-                                  {language === 'ku' ? '📥 تێبینی / هەواڵ' : language === 'ar' ? 'ملاحظة' : 'Notice'}
+                                  {t.generalNotice}
                                 </span>
                               </>
                             )}
