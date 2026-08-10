@@ -54,6 +54,27 @@ import {
 
 const { width } = Dimensions.get('window');
 
+const KurdistanFlag = () => (
+  <View style={{ width: 34, height: 22, borderRadius: 5, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', position: 'relative' }}>
+    <View style={{ flex: 1, backgroundColor: '#ED1C24' }} />
+    <View style={{ flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+      <View style={{ width: 7, height: 7, borderRadius: 3.5, backgroundColor: '#FECE00' }} />
+      <View style={{ position: 'absolute', width: 9, height: 9, borderRadius: 4.5, borderWidth: 1, borderColor: '#FECE00' }} />
+    </View>
+    <View style={{ flex: 1, backgroundColor: '#1E9D47' }} />
+  </View>
+);
+
+const IraqFlag = () => (
+  <View style={{ width: 34, height: 22, borderRadius: 5, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(0,0,0,0.18)', position: 'relative' }}>
+    <View style={{ flex: 1, backgroundColor: '#CE1126' }} />
+    <View style={{ flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ fontSize: 7, color: '#007A3D', fontWeight: '900' }}>الله أكبر</Text>
+    </View>
+    <View style={{ flex: 1, backgroundColor: '#000000' }} />
+  </View>
+);
+
 const DEFAULT_AVATARS = [
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200&auto=format&fit=crop',
@@ -1189,7 +1210,7 @@ export default function ProfileScreen({ navigation }: any) {
                 </Text>
 
                 <View style={styles.langFlagBadge}>
-                  <Text style={styles.langFlagEmoji}>☀️</Text>
+                  <KurdistanFlag />
                 </View>
               </TouchableOpacity>
 
@@ -1213,7 +1234,7 @@ export default function ProfileScreen({ navigation }: any) {
                 </Text>
 
                 <View style={styles.langFlagBadge}>
-                  <Text style={styles.langFlagEmoji}>☀️</Text>
+                  <KurdistanFlag />
                 </View>
               </TouchableOpacity>
 
@@ -1240,7 +1261,7 @@ export default function ProfileScreen({ navigation }: any) {
                 </Text>
 
                 <View style={styles.langFlagBadge}>
-                  <Text style={styles.langFlagEmoji}>🇮🇶</Text>
+                  <IraqFlag />
                 </View>
               </TouchableOpacity>
 

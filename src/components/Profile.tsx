@@ -34,7 +34,27 @@ import { getLocalized } from '../lib/translations';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import { getUserAccount, UserAccount, DEFAULT_AVATARS, logoutUserAccount } from '../lib/userAuth';
-import AuthModal from './AuthModal';
+const KurdistanFlag = () => (
+  <div className="w-8 h-5 rounded overflow-hidden border border-black/20 flex flex-col relative shadow-sm shrink-0">
+    <div className="h-1/3 bg-[#ED1C24]" />
+    <div className="h-1/3 bg-white flex items-center justify-center relative">
+      <div className="w-2 h-2 rounded-full bg-[#FECE00] flex items-center justify-center relative">
+        <div className="absolute w-3 h-3 rounded-full border border-[#FECE00]/70" />
+      </div>
+    </div>
+    <div className="h-1/3 bg-[#1E9D47]" />
+  </div>
+);
+
+const IraqFlag = () => (
+  <div className="w-8 h-5 rounded overflow-hidden border border-black/20 flex flex-col relative shadow-sm shrink-0">
+    <div className="h-1/3 bg-[#CE1126]" />
+    <div className="h-1/3 bg-white flex items-center justify-center">
+      <span className="text-[7px] font-black text-[#007A3D] leading-none">الله أكبر</span>
+    </div>
+    <div className="h-1/3 bg-black" />
+  </div>
+);
 
 interface ChatMessage {
   id: string;
@@ -612,7 +632,7 @@ export default function Profile() {
                           کوردی (سۆرانی)
                         </span>
                       </div>
-                      <span className="text-xl">☀️</span>
+                      <KurdistanFlag />
                     </button>
 
                     {/* 2. Kurdish Badini */}
@@ -626,7 +646,7 @@ export default function Profile() {
                           کوردی (بادینی)
                         </span>
                       </div>
-                      <span className="text-xl">☀️</span>
+                      <KurdistanFlag />
                     </button>
 
                     {/* 3. Arabic */}
@@ -648,7 +668,7 @@ export default function Profile() {
                           العربية
                         </span>
                       </div>
-                      <span className="text-xl">🇮🇶</span>
+                      <IraqFlag />
                     </button>
 
                     {/* 4. English */}
