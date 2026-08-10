@@ -509,9 +509,11 @@ export default function DetailScreen({ route, navigation }: any) {
           </View>
 
           <View style={styles.synopsisContainer}>
-            <Text style={[styles.sectionTitle, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{(t as any)?.storyLine || 'Storyline'}</Text>
+            <Text style={[styles.sectionTitle, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>
+              {t.storyLine}
+            </Text>
             <Text style={[styles.synopsisText, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>
-              {getLocalized(item, 'description', language) || item.description || 'No description available.'}
+              {getLocalized(item, 'description', language) || item.description || t.noDescription}
             </Text>
           </View>
 
@@ -520,9 +522,11 @@ export default function DetailScreen({ route, navigation }: any) {
             <View ref={serversRef} style={styles.episodesContainer}>
               <View style={[styles.episodesHeader, isRTL && { flexDirection: 'row-reverse' }]}>
                 <Text style={[styles.sectionTitle, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>
-                  {isSeriesContent ? ((t as any)?.episodesTitle || 'Episodes') : ((t as any)?.servers || 'Servers')}
+                  {isSeriesContent ? t.episodesTitle : t.availableServers}
                 </Text>
-                <Text style={styles.episodesCount}>{gridItems.length} {isSeriesContent ? 'Episodes' : 'Available'}</Text>
+                <Text style={styles.episodesCount}>
+                  {gridItems.length} {isSeriesContent ? t.episodes : t.available}
+                </Text>
               </View>
 
               <View style={[styles.episodesGrid, isRTL && { flexDirection: 'row-reverse' }]}>
@@ -531,12 +535,27 @@ export default function DetailScreen({ route, navigation }: any) {
                     ? selectedEpisodeIndex === index 
                     : selectedMovieServerIndex === index;
 
+                  const epNum = gridItem.number || (typeof gridItem.name === 'string' && gridItem.name.match(/\d+/) ? gridItem.name.match(/\d+/)[0] : index + 1);
+
+                  let epTitle = `Ep ${epNum}`;
+                  let epSub = `Episode ${epNum}`;
+                  if (language === 'ku') {
+                    epTitle = `ئەڵقەی ${epNum}`;
+                    epSub = `ئەڵقەی ${epNum}`;
+                  } else if (language === 'badini') {
+                    epTitle = `ئەڵقەیا ${epNum}`;
+                    epSub = `ئەڵقەیا ${epNum}`;
+                  } else if (language === 'ar') {
+                    epTitle = `الحلقة ${epNum}`;
+                    epSub = `الحلقة ${epNum}`;
+                  }
+
                   const displayName = isSeriesContent 
-                    ? (gridItem.number ? `Ep ${gridItem.number}` : `Ep ${index + 1}`)
+                    ? epTitle
                     : (gridItem.name || `Server ${index + 1}`);
 
                   const subLabel = isSeriesContent 
-                    ? (gridItem.name || `Episode ${index + 1}`)
+                    ? epSub
                     : (gridItem.quality || 'HD');
 
                   return (

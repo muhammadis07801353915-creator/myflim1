@@ -248,7 +248,7 @@ export default function CommentSection({ movieId }: Props) {
         <View style={[styles.headerLeft, isRTL && { flexDirection: 'row-reverse' }]}>
           <MessageSquare size={20} color="#E53935" />
           <Text style={[styles.headerTitle, { color: themeColors.text }]}>
-            {language === 'ku' ? 'کۆمێنتەکان' : language === 'ar' ? 'التعليقات' : 'Comments'}
+            {language === 'ku' ? 'کۆمێنتەکان' : language === 'badini' ? 'کۆمێنت' : language === 'ar' ? 'التعليقات' : 'Comments'}
           </Text>
         </View>
         <Text style={[styles.commentCount, { color: themeColors.textSecondary, backgroundColor: themeColors.surfaceLight }]}>{comments.length}</Text>
@@ -261,7 +261,7 @@ export default function CommentSection({ movieId }: Props) {
           ? <View style={styles.empty}>
               <MessageSquare size={36} color={themeColors.textMuted} />
               <Text style={[styles.emptyText, { color: themeColors.textMuted }]}>
-                {language === 'ku' ? 'هیچ کۆمێنتێک نییە. یەکەم کەس بنووسە!' : language === 'ar' ? 'لا توجد تعليقات بعد. كن الأول!' : 'No comments yet. Be the first!'}
+                {language === 'ku' ? 'هیچ کۆمێنتێک نییە. یەکەم کەس بنووسە!' : language === 'badini' ? 'هیچ کۆمێنتەک نینە. یەکەم کەس بە کو بڤێسی!' : language === 'ar' ? 'لا توجد تعليقات بعد. كن الأول!' : 'No comments yet. Be the first!'}
               </Text>
             </View>
           : <FlatList data={comments} renderItem={renderComment}
@@ -286,7 +286,9 @@ export default function CommentSection({ movieId }: Props) {
             <Pencil size={13} color={themeColors.textMuted} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleSignOut}>
-            <Text style={styles.signOut}>{language === 'ku' ? 'چوونەدەرەوە' : language === 'ar' ? 'تسجيل الخروج' : 'Sign Out'}</Text>
+            <Text style={styles.signOut}>
+              {language === 'ku' ? 'چوونە دەرەوە' : language === 'badini' ? 'دەركەفتن' : language === 'ar' ? 'تسجيل الخروج' : 'Sign Out'}
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -316,8 +318,8 @@ export default function CommentSection({ movieId }: Props) {
             ]}
             value={newComment} onChangeText={setNewComment}
             placeholder={user 
-              ? (language === 'ku' ? `کۆمێنتێک بنووسە وەک ${displayName}...` : language === 'ar' ? `اكتب تعليقاً باسم ${displayName}...` : `Write a comment as ${displayName}...`) 
-              : (language === 'ku' ? 'ناوێک هەڵبژێرە بۆ کۆمێنت...' : language === 'ar' ? 'اختر اسماً للتعليق...' : 'Pick a name to comment...')}
+              ? (language === 'ku' ? `کۆمێنتێک بنووسە وەک ${displayName}...` : language === 'badini' ? `کۆمێنتەکێ بنڤێسە وەکو ${displayName}...` : language === 'ar' ? `اكتب تعليقاً باسم ${displayName}...` : `Write a comment as ${displayName}...`) 
+              : (language === 'ku' ? 'ناوێک هەڵبژێرە بۆ کۆمێنت...' : language === 'badini' ? 'ناڤەکێ هەڵبژێرە بۆ کۆمێنتێ...' : language === 'ar' ? 'اختر اسماً للتعليق...' : 'Pick a name to comment...')}
             placeholderTextColor={themeColors.textMuted}
             onFocus={() => { if (!user) setShowLogin(true); }}
           />

@@ -516,10 +516,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
         <div className="mb-8" style={{ textAlign: 'left' }}>
           <h3 className="text-xl font-bold mb-2 text-white light-mode:text-black text-left" style={{ textAlign: 'left' }}>
-            Storyline
+            {t.storyLine}
           </h3>
           <p className="text-neutral-400 light-mode:text-neutral-600 text-sm leading-relaxed text-left" style={{ textAlign: 'left' }}>
-            {getLocalized(item, 'description', language) || item.description}
+            {getLocalized(item, 'description', language) || item.description || t.noDescription}
           </p>
         </div>
 
@@ -527,31 +527,53 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
         {item.type === 'Series' && allEpisodes.length > 0 && (
           <div className="mb-8" style={{ textAlign: 'left' }}>
              <div className="flex justify-between items-center mb-4" style={{ direction: 'ltr' }}>
-                <h3 className="text-xl font-bold text-white light-mode:text-black text-left">Episodes</h3>
-                <span className="text-red-500 text-sm font-bold">{episodes.length} Episodes</span>
+                <h3 className="text-xl font-bold text-white light-mode:text-black text-left">{t.episodesTitle}</h3>
+                <span className="text-red-500 text-sm font-bold">{episodes.length} {t.episodes}</span>
              </div>
 
              {seasons.length > 1 && (
                <div className="flex space-x-2 overflow-x-auto pb-3 scrollbar-hide mb-4" style={{ direction: 'ltr' }}>
-                  {seasons.map((season) => (
-                     <button 
-                        key={season}
-                        onClick={() => setSelectedSeason(season)}
-                        className={`px-5 py-2 rounded-xl text-xs font-bold border transition ${
-                          selectedSeason === season 
-                            ? 'bg-red-600 border-red-500 text-white' 
-                            : 'bg-[#14151C] light-mode:bg-neutral-100 border-white/10 light-mode:border-neutral-300 text-neutral-400 light-mode:text-neutral-700 hover:text-white'
-                        }`}
-                     >
-                        Season {season}
-                     </button>
-                  ))}
+                  {seasons.map((season) => {
+                    let seasonLabel = `Season ${season}`;
+                    if (language === 'ku') seasonLabel = `وەرزی ${season}`;
+                    else if (language === 'badini') seasonLabel = `وەرزێ ${season}`;
+                    else if (language === 'ar') seasonLabel = `الموسم ${season}`;
+
+                    return (
+                      <button 
+                         key={season}
+                         onClick={() => setSelectedSeason(season)}
+                         className={`px-5 py-2 rounded-xl text-xs font-bold border transition ${
+                           selectedSeason === season 
+                             ? 'bg-red-600 border-red-500 text-white' 
+                             : 'bg-[#14151C] light-mode:bg-neutral-100 border-white/10 light-mode:border-neutral-300 text-neutral-400 light-mode:text-neutral-700 hover:text-white'
+                         }`}
+                      >
+                         {seasonLabel}
+                      </button>
+                    );
+                  })}
                </div>
              )}
 
              <div className="grid grid-cols-2 gap-3" style={{ direction: 'ltr' }}>
                 {episodes.map((episode: any, index: number) => {
                    const isSelected = currentEpisodeIndex === index;
+                   const epNum = episode.number || (typeof episode.name === 'string' && episode.name.match(/\d+/) ? episode.name.match(/\d+/)[0] : index + 1);
+
+                   let epTitle = `Ep ${epNum}`;
+                   let epSub = `Episode ${epNum}`;
+                   if (language === 'ku') {
+                     epTitle = `ئەڵقەی ${epNum}`;
+                     epSub = `ئەڵقەی ${epNum}`;
+                   } else if (language === 'badini') {
+                     epTitle = `ئەڵقەیا ${epNum}`;
+                     epSub = `ئەڵقەیا ${epNum}`;
+                   } else if (language === 'ar') {
+                     epTitle = `الحلقة ${epNum}`;
+                     epSub = `الحلقة ${epNum}`;
+                   }
+
                    return (
                      <button 
                         key={index}
@@ -567,10 +589,10 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                         </div>
                         <div className="flex-1 min-w-0" style={{ textAlign: 'left' }}>
                            <p className={`text-sm font-bold truncate text-left ${isSelected ? 'text-[#CC222F]' : 'text-white light-mode:text-black'}`}>
-                              Ep {episode.number || index + 1}
+                              {epTitle}
                            </p>
                            <p className="text-xs text-neutral-400 light-mode:text-neutral-500 truncate text-left">
-                              Episode {episode.number || index + 1}
+                              {epSub}
                            </p>
                         </div>
                      </button>

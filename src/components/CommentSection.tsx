@@ -154,11 +154,11 @@ export default function CommentSection({ movieId }: { movieId: string }) {
 
   return (
     <div className="mt-10 border-t border-neutral-800 light-mode:border-neutral-200 pt-8 pb-32">
-      <div className="flex items-center justify-between mb-8" style={{ direction: language === 'ku' || language === 'ar' ? 'rtl' : 'ltr' }}>
+      <div className="flex items-center justify-between mb-8" style={{ direction: language === 'ku' || language === 'badini' || language === 'ar' ? 'rtl' : 'ltr' }}>
         <h3 className="text-2xl font-bold text-white light-mode:text-black">
-          {language === 'ku' ? 'کۆمێنتەکان' : language === 'ar' ? 'التعليقات' : 'Comments'}
+          {t.comments}
         </h3>
-        <span className="text-neutral-500 font-medium">{comments.length} {language === 'ku' ? 'کۆمێنت' : 'Comments'}</span>
+        <span className="text-neutral-500 font-medium">{comments.length} {t.comments}</span>
       </div>
 
       <div className="space-y-6 mb-10">
@@ -176,11 +176,11 @@ export default function CommentSection({ movieId }: { movieId: string }) {
           </div>
         ) : comments.length === 0 ? (
           <div className="text-center py-10 text-neutral-500 font-medium">
-            {language === 'ku' ? 'هیچ کۆمێنتێک بۆ ئەم فیلمە نییە، یەکەم کەس بە کۆمێنت بنووسە!' : 'No comments yet. Be the first to comment!'}
+            {t.noComments}
           </div>
         ) : (
           comments.map((comment) => {
-            const displayName = comment.profiles?.display_name || comment.display_name || 'Bexawer User';
+            const displayName = comment.profiles?.display_name || comment.display_name || t.anonymousUser;
             const avatarUrl = comment.profiles?.avatar_url || comment.avatar_url;
 
             return (
@@ -233,11 +233,11 @@ export default function CommentSection({ movieId }: { movieId: string }) {
           <div className="flex-1 flex items-center gap-3.5 rtl:flex-row-reverse">
             <input 
               type="text" 
-              dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}
+              dir={language === 'ku' || language === 'badini' || language === 'ar' ? 'rtl' : 'ltr'}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendComment()}
-              placeholder={userAccount ? (language === 'ku' ? 'کۆمێنتێک بنووسە...' : language === 'ar' ? 'اكتب تعليقاً...' : 'Write a comment...') : (language === 'ku' ? 'کۆدەکە بنووسە یان چوونە ژوورەوە بکە بۆ نووسینی کۆمێنت...' : 'Log in to write a comment...')}
+              placeholder={userAccount ? t.writeComment : t.loginToComment}
               onClick={() => !userAccount && setShowAuthModal(true)}
               className="flex-1 bg-[#1a1d24] light-mode:bg-neutral-100 border border-neutral-800 light-mode:border-neutral-300 rounded-2xl px-4 py-3 text-sm text-white light-mode:text-black placeholder-white/40 light-mode:placeholder-neutral-500 outline-none focus:border-[#CC222F] transition ltr:text-left rtl:text-right"
             />
