@@ -1261,7 +1261,7 @@ export default function ProfileScreen({ navigation }: any) {
                 </Text>
 
                 <View style={styles.langFlagBadge}>
-                  <IraqFlag />
+                  <Text style={styles.langFlagEmoji}>🇮🇶</Text>
                 </View>
               </TouchableOpacity>
 
