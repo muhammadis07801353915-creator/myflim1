@@ -44,6 +44,71 @@ export default function SettingsAdmin() {
     { id: 'app', name: 'App Config', icon: <Smartphone size={18} /> },
   ];
 
+  // Notifications tab state
+  const [notifTitle, setNotifTitle] = useState('');
+  const [notifBody, setNotifBody] = useState('');
+  const [notifType, setNotifType] = useState<'push_and_inbox' | 'inbox_only'>('push_and_inbox');
+  const [notifAudience, setNotifAudience] = useState('all');
+  const [sendingNotif, setSendingNotif] = useState(false);
+  const [sentNotifications, setSentNotifications] = useState<any[]>([]);
+  const [loadingSentNotifs, setLoadingSentNotifs] = useState(false);
+
+  const fetchSentNotifications = async () => {
+    setLoadingSentNotifs(true);
+    try {
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (data) setSentNotifications(data);
+    } catch (e: any) {
+      console.error('Error fetching notifications:', e);
+    } finally {
+      setLoadingSentNotifs(false);
+    }
+  };
+
+  const sendNotification = async () => {
+    if (!notifTitle.trim() || !notifBody.trim()) {
+      alert('تکایە ناونیشان و دەقی ئاگادارکردنەوە بنووسە / Please enter title and message!');
+      return;
+    }
+    setSendingNotif(true);
+    try {
+      const newNotif = {
+        title: notifTitle.trim(),
+        body: notifBody.trim(),
+        type: notifType,
+        target_audience: notifAudience,
+        created_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('notifications')
+        .insert([newNotif]);
+
+      if (error) {
+        alert('Error sending notification: ' + error.message);
+      } else {
+        alert('ئاگادارکردنەوەکە بە سەرکەوتوویی نێردرا! / Notification sent successfully!');
+        setNotifTitle('');
+        setNotifBody('');
+        fetchSentNotifications();
+      }
+    } catch (e: any) {
+      alert('Error: ' + e.message);
+    } finally {
+      setSendingNotif(false);
+    }
+  };
+
+  const deleteNotification = async (id: string) => {
+    if (window.confirm('ئایا دڵنیایت لە سڕینەوەی ئەم ئاگادارکردنەوەیە؟')) {
+      await supabase.from('notifications').delete().eq('id', id);
+      fetchSentNotifications();
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'about') {
       fetchAboutText();
@@ -53,6 +118,9 @@ export default function SettingsAdmin() {
     }
     if (activeTab === 'social') {
       fetchSocialLinks();
+    }
+    if (activeTab === 'notifications') {
+      fetchSentNotifications();
     }
   }, [activeTab]);
 
@@ -435,31 +503,167 @@ export default function SettingsAdmin() {
             </div>
           )}
 
-          {/* Push Notifications Tab */}
+          {/* Notifications Tab */}
           {activeTab === 'notifications' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium mb-4">Send Push Notification</h3>
-              <div className="space-y-4">
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">ناردنی ئاگادارکردنەوە و تێبینی / Push & In-App Notifications</h3>
+                <p className="text-xs text-neutral-400">
+                  لێراوە دەتوانیت نۆتیڤیکشنی ڕاستەوخۆ یان تێبینی/هەواڵ بۆ ناو ئەپەکەی بەکارهێنەران بنێریت.
+                </p>
+              </div>
+
+              {/* Notification Creation Form */}
+              <div className="bg-neutral-900/60 p-6 rounded-xl border border-neutral-800 space-y-6">
+                
+                {/* Notification Type Selector */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-neutral-300">Notification Title</label>
-                  <input type="text" placeholder="e.g. New Episode Available!" className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" />
+                  <label className="text-sm font-semibold text-neutral-200">جۆری نۆتیڤێکشن / Notification Type</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setNotifType('push_and_inbox')}
+                      className={`p-4 rounded-xl border text-right transition flex items-start space-x-3 ${
+                        notifType === 'push_and_inbox'
+                          ? 'bg-red-500/10 border-red-500/50 text-white'
+                          : 'bg-[#1a1d24] border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                      }`}
+                    >
+                      <div className="p-2 bg-red-500/20 text-red-400 rounded-lg ml-3">
+                        <Bell size={20} />
+                      </div>
+                      <div>
+                        <div className="font-bold text-sm text-white">📣 نۆتیڤیکشنی ڕاستەوخۆ + ناو ئەپ</div>
+                        <div className="text-xs text-neutral-400 mt-1">
+                          نۆتیڤیکشنی ڕاستەوخۆ بۆ سەر شاشەی مۆبایلەکەیان دەڕوات + لە سندوقی ئاگادارکردنەوەش (Bell Icon) خەزن دەبێت.
+                        </div>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setNotifType('inbox_only')}
+                      className={`p-4 rounded-xl border text-right transition flex items-start space-x-3 ${
+                        notifType === 'inbox_only'
+                          ? 'bg-blue-500/10 border-blue-500/50 text-white'
+                          : 'bg-[#1a1d24] border-neutral-800 text-neutral-400 hover:border-neutral-700'
+                      }`}
+                    >
+                      <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg ml-3">
+                        <Info size={20} />
+                      </div>
+                      <div>
+                        <div className="font-bold text-sm text-white">📥 تەنها لە سندوقی ئاگادارکردنەوە (تێبینی/هەواڵ)</div>
+                        <div className="text-xs text-neutral-400 mt-1">
+                          بەبێ ناردنی نۆتیڤیکشنی ڕاستەوخۆ، تەنها وەک تێبینی یان هەواڵ کاتێک ئایکۆنی نۆتیڤیکشنیان داگرت دەیبینن.
+                        </div>
+                      </div>
+                    </button>
+                  </div>
                 </div>
+
+                {/* Title */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-neutral-300">Message Body</label>
-                  <textarea rows={3} placeholder="Watch the latest episode of..." className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition resize-none"></textarea>
+                  <label className="text-sm font-medium text-neutral-300">ناونیشان / Title</label>
+                  <input
+                    type="text"
+                    value={notifTitle}
+                    onChange={(e) => setNotifTitle(e.target.value)}
+                    placeholder="نموونە: زنجیرەی نوێ زێدە کراوە / New Episode Release!"
+                    className="w-full bg-[#1a1d24] border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition text-sm"
+                  />
                 </div>
+
+                {/* Body */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-neutral-300">Target Audience</label>
-                  <select className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition">
-                    <option>All Users</option>
-                    <option>Free Users Only</option>
-                    <option>Premium Users Only</option>
+                  <label className="text-sm font-medium text-neutral-300">دەقی ئاگادارکردنەوە / Message Body</label>
+                  <textarea
+                    rows={3}
+                    value={notifBody}
+                    onChange={(e) => setNotifBody(e.target.value)}
+                    placeholder="نموونە: بەشی چوارەمی ئەنیمەیشنی تابان پڵەی ئێستا بەردەستە بە ژێرنووسی کوردی..."
+                    className="w-full bg-[#1a1d24] border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition resize-none text-sm"
+                  />
+                </div>
+
+                {/* Target Audience */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-300">ئامانج / Target Audience</label>
+                  <select
+                    value={notifAudience}
+                    onChange={(e) => setNotifAudience(e.target.value)}
+                    className="w-full bg-[#1a1d24] border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition text-sm"
+                  >
+                    <option value="all">هەموو بەکارهێنەران (All Users)</option>
+                    <option value="free">بەکارهێنەرانی ئاسایی (Free Users)</option>
+                    <option value="premium">بەکارهێنەرانی پریمۆم/پڕۆ (Premium Users)</option>
                   </select>
                 </div>
-                <button className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition w-full flex justify-center items-center space-x-2 mt-4">
-                  <Bell size={18} />
-                  <span>Send Notification Now</span>
+
+                {/* Submit Button */}
+                <button
+                  onClick={sendNotification}
+                  disabled={sendingNotif}
+                  className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition w-full flex justify-center items-center space-x-2 text-sm shadow-lg shadow-red-600/20 disabled:opacity-50"
+                >
+                  {sendingNotif ? <Loader2 size={18} className="animate-spin mr-2" /> : <Bell size={18} className="mr-2" />}
+                  <span>{sendingNotif ? 'لە ناردندایە...' : 'ناردنی ئاگادارکردنەوە / Send Notification'}</span>
                 </button>
+              </div>
+
+              {/* Sent Notifications History */}
+              <div>
+                <h4 className="text-md font-bold text-neutral-200 mb-3">مێژووی ئاگادارکردنەوە نێردراوەکان / Sent History</h4>
+                <div className="bg-[#1a1d24] border border-neutral-800 rounded-xl overflow-hidden">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-neutral-900/50 text-neutral-400">
+                      <tr>
+                        <th className="px-6 py-3.5 font-medium">جۆر / Type</th>
+                        <th className="px-6 py-3.5 font-medium">ناونیشان / Title</th>
+                        <th className="px-6 py-3.5 font-medium">دەق / Message</th>
+                        <th className="px-6 py-3.5 font-medium">کاتی ناردن / Date</th>
+                        <th className="px-6 py-3.5 font-medium text-right">سڕینەوە / Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-800">
+                      {loadingSentNotifs ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-8 text-center text-neutral-500">لە بارکردندایە...</td>
+                        </tr>
+                      ) : sentNotifications.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-8 text-center text-neutral-500">هیچ ئاگادارکردنەوەیەک نەدۆزرایەوە.</td>
+                        </tr>
+                      ) : (
+                        sentNotifications.map((n) => (
+                          <tr key={n.id} className="hover:bg-neutral-800/40 transition">
+                            <td className="px-6 py-4">
+                              {n.type === 'push_and_inbox' ? (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
+                                  📣 ڕاستەوخۆ + ناو ئەپ
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                  📥 تەنها ناو ئەپ (تێبینی)
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 font-bold text-white">{n.title}</td>
+                            <td className="px-6 py-4 text-neutral-300 max-w-xs truncate">{n.body}</td>
+                            <td className="px-6 py-4 text-neutral-400 text-xs">
+                              {new Date(n.created_at).toLocaleString()}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <button onClick={() => deleteNotification(n.id)} className="text-neutral-500 hover:text-red-500 transition p-1.5">
+                                <Trash2 size={16} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

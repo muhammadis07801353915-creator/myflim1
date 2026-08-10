@@ -23,8 +23,12 @@ interface AppState {
   loading: boolean;
   error: string | null;
   isUnlocked: boolean;
+  notifications: any[];
+  unreadNotifCount: number;
   
   fetchInitialData: () => Promise<void>;
+  fetchNotifications: () => Promise<void>;
+  markNotificationsRead: () => Promise<void>;
   unlockApp: (code: string) => Promise<boolean>;
   fetchMoviesByList: (listName: string) => Promise<any[]>;
   incrementViews: (id: string | number, currentViews: number) => Promise<void>;
@@ -55,11 +59,37 @@ export const useAppStore = create<AppState>((set, get) => ({
   watchlist: [],
   watchHistory: {},
   user: DEFAULT_USER,
-  theme: 'dark',
-  language: 'ku', // Default language is Kurdish
-  loading: false,
-  error: null,
-  isUnlocked: false,
+  notifications: [],
+  unreadNotifCount: 0,
+
+  fetchNotifications: async () => {
+    try {
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (data) {
+        const lastReadTimeStr = await AsyncStorage.getItem('last_read_notif_time');
+        const lastReadTime = lastReadTimeStr ? new Date(lastReadTimeStr).getTime() : 0;
+
+        const unread = data.filter((n: any) => new Date(n.created_at).getTime() > lastReadTime).length;
+
+        set({
+          notifications: data,
+          unreadNotifCount: unread
+        });
+      }
+    } catch (e) {
+      console.warn('Error fetching notifications:', e);
+    }
+  },
+
+  markNotificationsRead: async () => {
+    const nowIso = new Date().toISOString();
+    set({ unreadNotifCount: 0 });
+    await AsyncStorage.setItem('last_read_notif_time', nowIso);
+  },
 
   unlockApp: async (code: string) => {
     if (code.toLowerCase() === 'myflim1') {
@@ -210,6 +240,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         isUnlocked: storedUnlocked,
         loading: false 
       });
+
+      get().fetchNotifications();
     } catch (err: any) {
       console.error('Fetch error:', err);
       set({ error: err.message, loading: false });

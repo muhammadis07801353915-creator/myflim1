@@ -11,16 +11,30 @@ import {
   ActivityIndicator,
   RefreshControl,
   PanResponder,
+  Modal,
+  Pressable,
 } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, getColors } from '../theme/theme';
 import { useAppStore } from '../store/useAppStore';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Star, Flame, ChevronRight, ChevronLeft, Search, Bell } from 'lucide-react-native';
+import { Star, Flame, ChevronRight, ChevronLeft, Search, Bell, Info, X } from 'lucide-react-native';
 import { translations } from '../utils/translations';
 import { getLocalized } from '../utils/localization';
 import FloatingSocialButton from '../components/FloatingSocialButton';
+
+const formatNotifTime = (d: string, lang: string) => {
+  if (!d) return '';
+  const diff = Date.now() - new Date(d).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return lang === 'ku' ? 'ئێستا' : lang === 'ar' ? 'الآن' : 'just now';
+  if (mins < 60) return lang === 'ku' ? `پێش ${mins} خولەک` : lang === 'ar' ? `قبل ${mins} دقيقة` : `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return lang === 'ku' ? `پێش ${hours} کاتژمێر` : lang === 'ar' ? `قبل ${hours} ساعة` : `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return lang === 'ku' ? `پێش ${days} ڕۆژ` : lang === 'ar' ? `قبل ${days} يوم` : `${days}d ago`;
+};
 
 const { width } = Dimensions.get('window');
 const HERO_HEIGHT = width * 0.64; // ~16:10
@@ -119,12 +133,22 @@ export default function HomeScreen({ navigation }: any) {
     language,
     isUnlocked,
     theme,
+    notifications,
+    unreadNotifCount,
+    markNotificationsRead,
+    fetchNotifications,
   } = useAppStore();
 
   const themeColors = getColors(theme);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [showNotifModal, setShowNotifModal] = useState(false);
   const t = translations[language];
   const isRTL = language === 'ku' || language === 'ar';
+
+  const handleOpenNotifModal = () => {
+    setShowNotifModal(true);
+    markNotificationsRead();
+  };
 
   const featured = isUnlocked ? movies.filter((m) => m.is_featured) : [];
   const topContents = isUnlocked
@@ -370,9 +394,13 @@ export default function HomeScreen({ navigation }: any) {
         {/* Right: Bell Notifications */}
         <View style={[header.actions, isRTL && { flexDirection: 'row-reverse' }]}>
           <View>
-            <TouchableOpacity style={[header.iconBtn, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]} activeOpacity={0.8}>
+            <TouchableOpacity 
+              style={[header.iconBtn, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]} 
+              onPress={() => setShowNotifModal(true)}
+              activeOpacity={0.8}
+            >
               <Bell size={18} color={themeColors.text} />
-              <View style={header.notifDot} />
+              {unreadNotifCount > 0 && <View style={header.notifDot} />}
             </TouchableOpacity>
           </View>
         </View>
@@ -421,6 +449,102 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* Floating Social Media Button */}
       <FloatingSocialButton />
+
+      {/* ── NOTIFICATIONS / ANNOUNCEMENTS INBOX MODAL ───────────────── */}
+      <Modal
+        visible={showNotifModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowNotifModal(false)}
+      >
+        <Pressable style={styles.notifOverlay} onPress={() => setShowNotifModal(false)}>
+          <Pressable style={[styles.notifSheet, { backgroundColor: themeColors.surface }]} onPress={() => {}}>
+            {/* Sheet Handle */}
+            <View style={[styles.notifHandle, { backgroundColor: themeColors.border }]} />
+
+            {/* Header */}
+            <View style={[styles.notifHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={[styles.notifHeaderLeft, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Bell size={20} color="#CC222F" />
+                <Text style={[styles.notifHeaderTitle, { color: themeColors.text }]}>
+                  {language === 'ku' ? 'ئاگادارکردنەوەکان' : language === 'ar' ? 'الإشعارات' : 'Notifications'}
+                </Text>
+                {notifications.length > 0 && (
+                  <View style={[styles.notifBadgeCount, { backgroundColor: themeColors.surfaceLight }]}>
+                    <Text style={[styles.notifBadgeCountText, { color: themeColors.textSecondary }]}>
+                      {notifications.length}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <TouchableOpacity onPress={() => setShowNotifModal(false)} style={styles.notifCloseBtn}>
+                <X size={20} color={themeColors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Notifications List */}
+            <ScrollView
+              style={{ maxHeight: 420 }}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24, gap: 12 }}
+              showsVerticalScrollIndicator={false}
+            >
+              {notifications.length === 0 ? (
+                <View style={styles.notifEmptyWrap}>
+                  <Bell size={42} color={themeColors.textMuted} />
+                  <Text style={[styles.notifEmptyText, { color: themeColors.textMuted }]}>
+                    {language === 'ku' ? 'هیچ ئاگادارکردنەوە یان تێبینییەک نییە' : language === 'ar' ? 'لا توجد إشعارات حالياً' : 'No notifications available yet'}
+                  </Text>
+                </View>
+              ) : (
+                notifications.map((item: any) => {
+                  const isPush = item.type === 'push_and_inbox';
+                  return (
+                    <View
+                      key={item.id}
+                      style={[
+                        styles.notifItemCard,
+                        { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border },
+                        isPush && { borderLeftWidth: 4, borderLeftColor: '#CC222F' }
+                      ]}
+                    >
+                      <View style={[styles.notifItemHeader, isRTL && { flexDirection: 'row-reverse' }]}>
+                        <View style={[styles.notifTypeTag, isRTL && { flexDirection: 'row-reverse' }]}>
+                          {isPush ? (
+                            <>
+                              <Bell size={14} color="#CC222F" />
+                              <Text style={[styles.notifTypeTagText, { color: '#CC222F' }]}>
+                                {language === 'ku' ? '📣 ڕاگەیاندن' : language === 'ar' ? 'إعلان عام' : 'Push Notice'}
+                              </Text>
+                            </>
+                          ) : (
+                            <>
+                              <Info size={14} color="#2196F3" />
+                              <Text style={[styles.notifTypeTagText, { color: '#2196F3' }]}>
+                                {language === 'ku' ? '📥 تێبینی / هەواڵ' : language === 'ar' ? 'ملاحظة' : 'Notice'}
+                              </Text>
+                            </>
+                          )}
+                        </View>
+                        <Text style={[styles.notifTimeText, { color: themeColors.textMuted }]}>
+                          {formatNotifTime(item.created_at, language)}
+                        </Text>
+                      </View>
+
+                      <Text style={[styles.notifItemTitle, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>
+                        {item.title}
+                      </Text>
+
+                      <Text style={[styles.notifItemBody, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>
+                        {item.body}
+                      </Text>
+                    </View>
+                  );
+                })
+              )}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -663,8 +787,94 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 10,
     borderBottomWidth: 1,
+  },
+  notifOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'flex-end',
+  },
+  notifSheet: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 12,
+  },
+  notifHandle: {
+    width: 38,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 12,
+  },
+  notifHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  notifHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  notifHeaderTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  notifBadgeCount: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  notifBadgeCountText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  notifCloseBtn: {
+    padding: 4,
+  },
+  notifEmptyWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    gap: 12,
+  },
+  notifEmptyText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  notifItemCard: {
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  notifItemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  notifTypeTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  notifTypeTagText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  notifTimeText: {
+    fontSize: 11,
+  },
+  notifItemTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  notifItemBody: {
+    fontSize: 13,
+    lineHeight: 19,
   },
 });
 
