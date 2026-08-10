@@ -377,7 +377,7 @@ export default function HomeScreen({ navigation }: any) {
     <View style={[styles.root, { backgroundColor: themeColors.background }]}>
 
       {/* ── STICKY HEADER BAR (RTL Dynamic) ─────────────────────────── */}
-      <View style={[styles.headerBar, { paddingTop: insets.top + 6, backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}>
+      <View style={[styles.headerBar, { paddingTop: insets.top + 8, paddingBottom: 12, backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}>
         {/* Logo + Brand */}
         <View style={[header.brand, isRTL && { flexDirection: 'row-reverse' }]}>
           <Image
@@ -408,7 +408,7 @@ export default function HomeScreen({ navigation }: any) {
 
       <ScrollView
         style={[styles.root, { backgroundColor: themeColors.background }]}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingTop: 10, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -890,7 +890,7 @@ const header = StyleSheet.create({
   brand: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   logo: {
     width: 36,
@@ -900,7 +900,7 @@ const header = StyleSheet.create({
   brandText: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 2,
+    gap: 3,
   },
   brandBold: {
     fontSize: 20,
