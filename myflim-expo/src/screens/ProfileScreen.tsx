@@ -988,8 +988,7 @@ export default function ProfileScreen({ navigation }: any) {
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: themeColors.border, paddingTop: 10 }}>
-              <Text style={{ color: themeColors.textMuted, fontSize: 11 }}>Version {currentVersion}</Text>
+            <View style={{ alignItems: 'center', borderTopWidth: 1, borderTopColor: themeColors.border, paddingTop: 10 }}>
               <Text style={{ color: themeColors.textMuted, fontSize: 11 }}>© 2026 Taban Play</Text>
             </View>
           </View>
