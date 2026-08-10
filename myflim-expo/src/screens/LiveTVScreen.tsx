@@ -17,8 +17,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAppStore } from '../store/useAppStore';
 import { getColors, COLORS } from '../theme/theme';
-import { getLocalized } from '../utils/localization';
-import { Play, Menu, X, Globe, CheckCircle2, Search } from 'lucide-react-native';
+import { getLocalized, translateCategoryName } from '../utils/localization';
+import { Play, Menu, X, Globe, CheckCircle2, Search, Sparkles } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -54,13 +54,18 @@ export default function LiveTVScreen({ navigation }: any) {
 
   // ── Category tabs ─────────────────────────────────────────────────────────
   const tabs = [
-    { id: 'All', label: language === 'ku' ? 'هەموو' : language === 'ar' ? 'الكل' : 'All' },
-    ...channelCategories.map((c) => ({ id: c.name, label: c.name })),
+    { id: 'All', label: language === 'ku' ? 'هەموو' : language === 'badini' ? 'هەمی' : language === 'ar' ? 'الكل' : 'All' },
+    ...channelCategories.map((c) => ({
+      id: c.name,
+      label: getLocalized(c, 'name', language) || translateCategoryName(c.name, language),
+    })),
   ];
 
   // ── Country-filtered channels ─────────────────────────────────────────────
   const countryFiltered = selectedCountry
-    ? liveTv.filter((c) => c.country === selectedCountry)
+    ? (selectedCountry === 'Taban Play VIP'
+        ? liveTv.filter((c) => c.country === 'Taban Play VIP' || c.category === 'Taban Play VIP' || c.is_pro === true)
+        : liveTv.filter((c) => c.country === selectedCountry))
     : liveTv;
 
   // ── Category-filtered channels ────────────────────────────────────────────
@@ -290,6 +295,27 @@ export default function LiveTVScreen({ navigation }: any) {
               </TouchableOpacity>
             )}
 
+            {/* Taban Play VIP Option (Option #1 right below All Countries) */}
+            {(!countrySearchQuery.trim() || 'taban play vip'.includes(countrySearchQuery.toLowerCase()) || 'تابان پڵەی vip'.includes(countrySearchQuery.toLowerCase())) && (
+              <TouchableOpacity
+                style={[
+                  s.countryItem,
+                  { backgroundColor: 'rgba(245, 158, 11, 0.12)', borderColor: 'rgba(245, 158, 11, 0.4)' },
+                  selectedCountry === 'Taban Play VIP' && s.countryItemActive,
+                ]}
+                onPress={() => { setSelectedCountry('Taban Play VIP'); setIsCountryModalOpen(false); setCountrySearchQuery(''); }}
+                activeOpacity={0.8}
+              >
+                <View style={[s.countryItemFlag, { backgroundColor: '#F59E0B', borderColor: '#F59E0B' }]}>
+                  <Sparkles size={20} color="#000" />
+                </View>
+                <Text style={[s.countryItemName, { color: '#F59E0B', fontWeight: '900' }]}>
+                  {language === 'ku' ? 'تابان پڵەی VIP' : language === 'badini' ? 'تابان پڵەی VIP' : language === 'ar' ? 'تابان بلاي VIP' : 'Taban Play VIP'}
+                </Text>
+                {selectedCountry === 'Taban Play VIP' && <CheckCircle2 size={20} color="#F59E0B" />}
+              </TouchableOpacity>
+            )}
+
             <View style={[s.modalDivider, { backgroundColor: themeColors.border }]} />
 
             {/* Country list */}
@@ -475,7 +501,7 @@ export default function LiveTVScreen({ navigation }: any) {
                   <View style={s.section}>
                     <View style={[s.sectionRow, isRTL && { flexDirection: 'row-reverse' }]}>
                       <Text style={[s.sectionTitle, { color: themeColors.text }]}>
-                        {getLocalized(cat, 'name', language) || cat.name}
+                        {getLocalized(cat, 'name', language) || translateCategoryName(cat.name, language)}
                       </Text>
                       {catChannels.length > 6 && (
                         <TouchableOpacity onPress={() => handleViewAll(cat.name)}>
