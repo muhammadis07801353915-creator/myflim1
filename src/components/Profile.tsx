@@ -548,22 +548,22 @@ export default function Profile() {
       {!userAccount && (
         <div 
           onClick={() => setShowAuthModal(true)}
-          className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-red-950/40 via-[#14151c] to-[#14151c] light-mode:from-red-50 light-mode:via-white light-mode:to-white border border-red-500/40 light-mode:border-red-200 shadow-md flex items-center justify-between cursor-pointer hover:border-red-500 transition group"
+          className="mb-6 p-4 rounded-2xl bg-[#CC222F] shadow-lg shadow-red-600/25 flex items-center justify-between cursor-pointer hover:bg-[#b01c27] transition group"
         >
           <div className="flex items-center gap-4 sm:gap-5 rtl:gap-4">
-            <div className="w-11 h-11 rounded-full bg-red-500/20 light-mode:bg-red-100 flex items-center justify-center text-red-400 light-mode:text-[#CC222F] shrink-0">
-              <Key size={22} />
+            <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center text-[#CC222F] shrink-0 shadow-sm">
+              <Key size={22} className="text-[#CC222F]" />
             </div>
             <div>
-              <h3 className="font-black text-sm text-red-400 light-mode:text-[#CC222F]">
-                {language === 'ku' ? 'داخڵکردنی کۆد (Taban Play1)' : language === 'badini' ? 'توومارکرنا کۆدی (Taban Play1)' : language === 'ar' ? 'إدخال الكود (Taban Play1)' : 'Enter Code (Taban Play1)'}
+              <h3 className="font-extrabold text-sm text-white">
+                {language === 'ku' ? 'دروستکردنی هەژمار / داخڵکردنی کۆد' : language === 'badini' ? 'چێکرنا هەژمارێ / توومارکرنا کۆدی' : language === 'ar' ? 'إنشاء حساب / إدخال الكود' : 'Register Account / Enter Code'}
               </h3>
-              <p className="text-xs font-semibold text-white/80 light-mode:text-slate-700 mt-0.5">
-                {language === 'ku' ? 'کۆدەکە بنووسە یان چوونە ژوورەوە بکە بۆ دروستکردنی ئەکاونت' : language === 'badini' ? 'کۆدی بنڤێسە یان تێکەڤە بۆ چێکرنا ئەکاونتی' : language === 'ar' ? 'أدخل الكود أو سجل الدخول لإنشاء حساب' : 'Enter code or log in to create account'}
+              <p className="text-xs font-medium text-white/90 mt-0.5">
+                {language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکان' : language === 'badini' ? 'کۆدی بنڤێسە بۆ چالاککرنا هەمی بەشێن ئەپێ' : language === 'ar' ? 'أدخل الكود لتفعيل جميع أجزاء التطبيق' : 'Enter code to unlock all sections of the app'}
               </p>
             </div>
           </div>
-          <ChevronRight size={18} className="text-red-400 light-mode:text-[#CC222F] rtl:rotate-180 group-hover:translate-x-1 transition-transform shrink-0" />
+          <ChevronRight size={20} className="text-white rtl:rotate-180 group-hover:translate-x-1 transition-transform shrink-0" />
         </div>
       )}
 
