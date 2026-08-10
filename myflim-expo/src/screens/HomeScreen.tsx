@@ -156,41 +156,49 @@ export default function HomeScreen({ navigation }: any) {
         .filter((m) => m.top_rank)
         .sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99))
     : [];
-  // Dynamically compute ALL movie lists present in database (Kurdish Cartoons, Kurdish Dubbed, etc.)
+  // Dynamically compute ALL movie lists present in database without duplicates
   const allDynamicLists = useMemo(() => {
     if (!isUnlocked) return [];
-    const map = new Map<string, any[]>();
+    const listMap = new Map<string, any[]>();
+    const addedRawNames = new Set<string>();
 
     // 1. Add lists from categories (movie_lists table)
     (categories || []).forEach((cat: any) => {
-      const title = getLocalized(cat, 'name', language) || cat.name || '';
-      if (!title) return;
+      const rawName = cat.name || '';
+      if (!rawName) return;
+
+      const title = getLocalized(cat, 'name', language) || rawName;
 
       const matched = movies.filter(
         (m) =>
-          m.list_name === cat.name ||
-          m.category === cat.name ||
-          (m.list_name && m.list_name.includes(cat.name)) ||
-          (m.genre && m.genre.includes(cat.name))
+          m.list_name === rawName ||
+          m.category === rawName ||
+          (m.list_name && m.list_name.includes(rawName)) ||
+          (m.genre && m.genre.includes(rawName))
       );
 
-      if (matched.length > 0) {
-        map.set(title, matched);
+      if (matched.length > 0 && !listMap.has(title)) {
+        listMap.set(title, matched);
+        addedRawNames.add(rawName);
       }
     });
 
-    // 2. Add any other custom list_name present in movies database
+    // 2. Add any other custom list_name present in movies database (if not added in step 1)
     movies.forEach((m) => {
-      const listName = m.list_name;
-      if (listName && !map.has(listName)) {
-        const matched = movies.filter((x) => x.list_name === listName);
-        if (matched.length > 0) {
-          map.set(listName, matched);
-        }
+      const rawName = m.list_name;
+      if (!rawName || addedRawNames.has(rawName)) return;
+
+      const title = getLocalized({ name: rawName, name_ku: rawName }, 'name', language) || rawName;
+      if (listMap.has(title)) return;
+
+      const matched = movies.filter((x) => x.list_name === rawName);
+      if (matched.length > 0) {
+        listMap.set(title, matched);
+        addedRawNames.add(rawName);
       }
     });
 
-    return Array.from(map.entries());
+    return Array.from(listMap.entries());
   }, [categories, movies, isUnlocked, language]);
 
   const [refreshing, setRefreshing] = useState(false);
