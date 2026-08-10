@@ -104,17 +104,17 @@ async function saveAllPostsToDB(posts: Post[]) {
 
 function timeAgo(dateStr: string, language: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (diff < 60) return language === 'ku' ? 'ئێستا' : language === 'ar' ? 'الآن' : 'Just now';
+  if (diff < 60) return language === 'ku' ? 'ئێستا' : language === 'badini' ? 'نوکە' : language === 'ar' ? 'الآن' : 'Just now';
   if (diff < 3600) {
     const m = Math.floor(diff / 60);
-    return language === 'ku' ? `${m} خولەک` : language === 'ar' ? `${m} دقيقة` : `${m}m ago`;
+    return language === 'ku' ? `${m} خولەک` : language === 'badini' ? `${m} دەقە` : language === 'ar' ? `${m} دقيقة` : `${m}m ago`;
   }
   if (diff < 86400) {
     const h = Math.floor(diff / 3600);
-    return language === 'ku' ? `${h} کاتژمێر` : language === 'ar' ? `${h} ساعة` : `${h}h ago`;
+    return language === 'ku' ? `${h} کاتژمێر` : language === 'badini' ? `${h} دەمژمێر` : language === 'ar' ? `${h} ساعة` : `${h}h ago`;
   }
   const d = Math.floor(diff / 86400);
-  return language === 'ku' ? `${d} ڕۆژ` : language === 'ar' ? `${d} يوم` : `${d}d ago`;
+  return language === 'ku' ? `${d} ڕۆژ` : language === 'badini' ? `${d} ڕۆژ` : language === 'ar' ? `${d} يوم` : `${d}d ago`;
 }
 
 export default function PostsScreen() {
@@ -173,8 +173,8 @@ export default function PostsScreen() {
     } catch (e) {
       console.warn('ImagePicker error:', e);
       Alert.alert(
-        language === 'ku' ? 'هەڵە' : 'Error',
-        language === 'ku' ? 'نەتوانرا گەلەریی بكرێتەوە.' : 'Could not open photo gallery.'
+        language === 'ku' ? 'هەڵە' : language === 'badini' ? 'شاشی' : language === 'ar' ? 'خطأ' : 'Error',
+        language === 'ku' ? 'نەتوانرا گەلەریی بكرێتەوە.' : language === 'badini' ? 'نەهاتە لێگەڕیان ب گەلەریێ.' : language === 'ar' ? 'تعذر فتح معرض الصور.' : 'Could not open photo gallery.'
       );
     }
   };
@@ -350,7 +350,7 @@ export default function PostsScreen() {
           {item.comments.length > 0 && (
             <TouchableOpacity onPress={() => setExpandedComments(prev => ({ ...prev, [item.id]: !prev[item.id] }))} style={styles.commentsCountRow}>
               <Text style={[styles.countText, { color: themeColors.textSecondary }]}>
-                {item.comments.length} {language === 'ku' ? 'کۆمێنت' : 'comments'}
+                {item.comments.length} {language === 'ku' ? 'کۆمێنت' : language === 'badini' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'comments'}
               </Text>
               <ChevronDown color={themeColors.textSecondary} size={14} style={{ transform: [{ rotate: showComments ? '180deg' : '0deg' }] }} />
             </TouchableOpacity>
@@ -365,7 +365,7 @@ export default function PostsScreen() {
           >
             <Heart color={isLiked ? '#ef4444' : themeColors.textSecondary} size={18} fill={isLiked ? '#ef4444' : 'transparent'} />
             <Text style={[styles.actionBtnText, { color: isLiked ? '#ef4444' : themeColors.textSecondary }]}>
-              {language === 'ku' ? 'بەدڵبوون' : 'Like'}
+              {language === 'ku' ? 'بەدڵبوون' : language === 'badini' ? 'حەژێکرن' : language === 'ar' ? 'إعجاب' : 'Like'}
             </Text>
           </TouchableOpacity>
 
@@ -375,7 +375,7 @@ export default function PostsScreen() {
           >
             <MessageCircle color={themeColors.textSecondary} size={18} />
             <Text style={[styles.actionBtnText, { color: themeColors.textSecondary }]}>
-              {language === 'ku' ? 'کۆمێنت' : 'Comment'}
+              {language === 'ku' ? 'کۆمێنت' : language === 'badini' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'Comment'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -399,7 +399,7 @@ export default function PostsScreen() {
               <View style={[styles.commentInputContainer, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
                 <TextInput
                   style={[styles.commentInput, { color: themeColors.text }]}
-                  placeholder={language === 'ku' ? 'کۆمێنتێک بنووسە...' : 'Write a comment...'}
+                  placeholder={language === 'ku' ? 'کۆمێنتێک بنووسە...' : language === 'badini' ? 'کۆمێنتەکێ بنڤێسە...' : language === 'ar' ? 'اكتب تعليقاً...' : 'Write a comment...'}
                   placeholderTextColor={themeColors.textSecondary}
                   value={commentInput}
                   onChangeText={val => setCommentInputs(prev => ({ ...prev, [item.id]: val }))}
@@ -421,7 +421,7 @@ export default function PostsScreen() {
       {/* Top Header Bar */}
       <View style={[styles.header, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
         <Text style={[styles.headerTitle, { color: themeColors.text }]}>
-          {language === 'ku' ? 'پۆستەکان' : language === 'ar' ? 'المنشورات' : 'Community Posts'}
+          {language === 'ku' ? 'پۆستەکان' : language === 'badini' ? 'پۆست' : language === 'ar' ? 'المنشورات' : 'Community Posts'}
         </Text>
       </View>
 
@@ -444,7 +444,7 @@ export default function PostsScreen() {
               <TextInput
                 style={[styles.createInput, { color: themeColors.text }]}
                 multiline
-                placeholder={language === 'ku' ? `${user?.name || ''}، چیت لە مێشکتدایە؟` : language === 'ar' ? 'ما الذي تفكر به؟' : "What's on your mind?"}
+                placeholder={language === 'ku' ? `${user?.name || ''}، چیت لە مێشکتدایە؟` : language === 'badini' ? `${user?.name || ''}، چی تە د مێشکیدایە؟` : language === 'ar' ? 'ما الذي تفكر به؟' : "What's on your mind?"}
                 placeholderTextColor={themeColors.textSecondary}
                 value={newPostText}
                 onChangeText={setNewPostText}
@@ -464,7 +464,7 @@ export default function PostsScreen() {
               {/* Photo Upload Button: Direct Phone Gallery Picker (Exactly like Website) */}
               <TouchableOpacity style={[styles.mediaBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={handlePickImageFromGallery}>
                 <ImagePlus color="#4ade80" size={18} />
-                <Text style={[styles.mediaBtnText, { color: '#4ade80' }]}>{language === 'ku' ? 'وێنە' : 'Photo'}</Text>
+                <Text style={[styles.mediaBtnText, { color: '#4ade80' }]}>{language === 'ku' ? 'وێنە' : language === 'badini' ? 'وێنە' : language === 'ar' ? 'صورة' : 'Photo'}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -473,7 +473,7 @@ export default function PostsScreen() {
                 disabled={publishing || (!newPostText.trim() && !newPostImage)}
               >
                 {publishing ? <ActivityIndicator size="small" color="#fff" /> : <Send color="#fff" size={16} />}
-                <Text style={styles.publishBtnText}>{language === 'ku' ? 'بڵاوکردنەوە' : 'Post'}</Text>
+                <Text style={styles.publishBtnText}>{language === 'ku' ? 'بڵاوکردنەوە' : language === 'badini' ? 'بەلاڤکرن' : language === 'ar' ? 'نشر' : 'Post'}</Text>
               </TouchableOpacity>
             </View>
           </View>

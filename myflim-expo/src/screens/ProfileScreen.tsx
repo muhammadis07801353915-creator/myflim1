@@ -696,11 +696,11 @@ export default function ProfileScreen({ navigation }: any) {
             </View>
             <View style={[styles.userTextCol, isRTL && { alignItems: 'flex-end' }]}>
               <Text style={[styles.greetingText, { color: themeColors.text }]}>
-                {language === 'ku' ? `سڵاو، ${user?.name || 'کاربەر'}` : language === 'ar' ? `مرحباً، ${user?.name || 'مستخدم'}` : `Hi, ${user?.name || 'User'}`}
+                {language === 'ku' ? `سڵاو، ${user?.name || 'کاربەر'}` : language === 'badini' ? `سڵاڤ، ${user?.name || 'کاربەر'}` : language === 'ar' ? `مرحباً، ${user?.name || 'مستخدم'}` : `Hi, ${user?.name || 'User'}`}
               </Text>
               <TouchableOpacity onPress={() => setShowNameModal(true)}>
                 <Text style={[styles.editProfileLink, { color: themeColors.textSecondary }]}>
-                  {language === 'ku' ? 'دەستکاری پرۆفایل >' : language === 'ar' ? 'تعديل الملف الشخصي >' : 'Edit Profile >'}
+                  {language === 'ku' ? 'دەستکاری پرۆفایل >' : language === 'badini' ? 'دەستکاریا پرۆفایلی >' : language === 'ar' ? 'تعديل الملف الشخصي >' : 'Edit Profile >'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -725,7 +725,7 @@ export default function ProfileScreen({ navigation }: any) {
                 <Text style={styles.badgePlusText}>+</Text>
               </View>
             </View>
-            <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>{language === 'ku' ? 'سەیڤکراوەکان' : language === 'ar' ? 'المحفوظات' : 'Saved'}</Text>
+            <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>{language === 'ku' ? 'سەیڤکراوەکان' : language === 'badini' ? 'پاراستی' : language === 'ar' ? 'المحفوظات' : 'Saved'}</Text>
             <Text style={[styles.statCount, { color: themeColors.text }]}>{watchlist?.length || 0}</Text>
           </TouchableOpacity>
 
@@ -738,14 +738,14 @@ export default function ProfileScreen({ navigation }: any) {
             <View style={styles.statCardHeader}>
               <Clock size={18} color="#CC222F" />
             </View>
-            <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</Text>
+            <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>{language === 'ku' ? 'لە هەمان شوێن' : language === 'badini' ? 'یا بەردەوام' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</Text>
             <Text style={[styles.statCount, { color: themeColors.text }]}>{historyItems.length}</Text>
           </TouchableOpacity>
 
           {/* Card 3: Downloads */}
           <TouchableOpacity 
             style={[styles.statCard, { width: cardW, backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-            onPress={() => Alert.alert('Downloads', language === 'ku' ? 'بەشی دابەزاندن بەمزوانە بەردەست دەبێت!' : 'Downloads section coming soon!')}
+            onPress={() => Alert.alert('Downloads', language === 'ku' ? 'بەشی دابەزاندن بەمزوانە بەردەست دەبێت!' : language === 'badini' ? 'پشکا داگرتنێ ب نێزیکی بەردەست دبیت!' : language === 'ar' ? 'قسم التنزيلات قريباً!' : 'Downloads section coming soon!')}
             activeOpacity={0.85}
           >
             <View style={styles.statCardHeader}>
@@ -754,8 +754,8 @@ export default function ProfileScreen({ navigation }: any) {
                 <Text style={styles.badgePlusText}>+</Text>
               </View>
             </View>
-            <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>{language === 'ku' ? 'دابەزاندن' : language === 'ar' ? 'التنزيلات' : 'Downloads'}</Text>
-            <Text style={styles.statCountSmall}>{language === 'ku' ? 'بەمزوانە' : language === 'ar' ? 'قريباً' : 'Coming Soon'}</Text>
+            <Text style={[styles.statLabel, { color: themeColors.textSecondary }]}>{language === 'ku' ? 'دابەزاندن' : language === 'badini' ? 'داگرتن' : language === 'ar' ? 'التنزيلات' : 'Downloads'}</Text>
+            <Text style={styles.statCountSmall}>{language === 'ku' ? 'بەمزوانە' : language === 'badini' ? 'ب نێزیکی' : language === 'ar' ? 'قريباً' : 'Coming Soon'}</Text>
           </TouchableOpacity>
         </View>
 
@@ -768,10 +768,10 @@ export default function ProfileScreen({ navigation }: any) {
               </View>
               <View style={styles.proTextContainer}>
                 <Text style={[styles.proTitle, { color: '#ffffff', fontWeight: '900' }]}>
-                  {language === 'ku' ? 'دروستکردنی هەژمار / داخڵکردنی کۆد' : 'Register Account / Enter Code'}
+                  {language === 'ku' ? 'دروستکردنی هەژمار / داخڵکردنی کۆد' : language === 'badini' ? 'چێکرنا هەژمارێ / توومارکرنا کۆدی' : language === 'ar' ? 'إنشاء حساب / إدخال الكود' : 'Register Account / Enter Code'}
                 </Text>
                 <Text style={[styles.proSubtitle, { color: 'rgba(255,255,255,0.92)' }]}>
-                  {language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکان' : 'Enter code to unlock all sections of the app'}
+                  {language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکان' : language === 'badini' ? 'کۆدی بنڤێسە بۆ چالاککرنا هەمی بەشێن ئەپێ' : language === 'ar' ? 'أدخل الكود لتفعيل جميع أجزاء التطبيق' : 'Enter code to unlock all sections of the app'}
                 </Text>
               </View>
             </View>
@@ -790,7 +790,7 @@ export default function ProfileScreen({ navigation }: any) {
 
           {renderMenuItem(
             <User size={20} color={themeColors.text} />,
-            language === 'ku' ? 'ڕێکخستنەکانی هەژمار' : language === 'ar' ? 'إعدادات الحساب' : 'Account Settings',
+            language === 'ku' ? 'ڕێکخستنەکانی هەژمار' : language === 'badini' ? 'ڕێکخستنێن ئەکاونتی' : language === 'ar' ? 'إعدادات الحساب' : 'Account Settings',
             undefined,
             () => setShowNameModal(true)
           )}
@@ -803,22 +803,22 @@ export default function ProfileScreen({ navigation }: any) {
                 <View style={{ position: 'absolute', top: -3, right: -3, width: 9, height: 9, borderRadius: 5, backgroundColor: '#CC222F', borderWidth: 1.5, borderColor: themeColors.surface }} />
               )}
             </View>,
-            language === 'ku' ? 'پشتیوانی و چاتی ڕاستەوخۆ' : language === 'ar' ? 'الدعم والدردشة المباشرة' : 'Support & Live Chat',
-            hasUnreadChat ? (language === 'ku' ? 'نامەی نوێ 🔴' : language === 'ar' ? 'رسالة جديدة 🔴' : 'New reply 🔴') : undefined,
+            language === 'ku' ? 'پشتیوانی و چاتی ڕاستەوخۆ' : language === 'badini' ? 'پشتیڤانی و چاتا ڕاستەوخۆ' : language === 'ar' ? 'الدعم والدردشة المباشرة' : 'Support & Live Chat',
+            hasUnreadChat ? (language === 'ku' ? 'نامەی نوێ 🔴' : language === 'badini' ? 'نامەیا نوو 🔴' : language === 'ar' ? 'رسالة جديدة 🔴' : 'New reply 🔴') : undefined,
             handleOpenChatModal
           )}
 
           {/* Language Menu Option */}
           {renderMenuItem(
             <Languages size={20} color={themeColors.text} />,
-            language === 'ku' ? 'گۆڕینی زمان' : language === 'ar' ? 'تغيير اللغة' : 'Change Language',
+            language === 'ku' ? 'گۆڕینی زمان' : language === 'badini' ? 'گوهۆڕینا زمانی' : language === 'ar' ? 'تغيير اللغة' : 'Change Language',
             language.toUpperCase(),
             () => setShowLangModal(true)
           )}
 
           {renderMenuItem(
             <Info size={20} color={themeColors.text} />,
-            language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play',
+            language === 'ku' ? 'دەربارەی Taban Play' : language === 'badini' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play',
             undefined,
             () => setShowAboutModal(true)
           )}
@@ -840,7 +840,7 @@ export default function ProfileScreen({ navigation }: any) {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.menuTitle, { color: '#ef4444', fontWeight: '800' }, isRTL && { textAlign: 'right' }]} numberOfLines={1}>
-                    {language === 'ku' ? 'چوونە دەرەوە لە هەژمار' : language === 'ar' ? 'تسجيل الخروج' : 'Log Out'}
+                    {language === 'ku' ? 'چوونە دەرەوە لە هەژمار' : language === 'badini' ? 'دەرکەڤتن ژ هەژمارێ' : language === 'ar' ? 'تسجيل الخروج' : 'Log Out'}
                   </Text>
                 </View>
               </View>
@@ -862,7 +862,7 @@ export default function ProfileScreen({ navigation }: any) {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.menuTitle, { color: '#CC222F', fontWeight: '800' }, isRTL && { textAlign: 'right' }]} numberOfLines={1}>
-                    {language === 'ku' ? 'دروستکردنی هەژمار / داخڵکردنی کۆد' : language === 'ar' ? 'إنشاء حساب / إدخال الكود' : 'Register Account / Enter Code'}
+                    {language === 'ku' ? 'دروستکردنی هەژمار / داخڵکردنی کۆد' : language === 'badini' ? 'چێکرنا هەژمارێ / توومارکرنا کۆدی' : language === 'ar' ? 'إنشاء حساب / إدخال الكود' : 'Register Account / Enter Code'}
                   </Text>
                 </View>
               </View>
@@ -1243,18 +1243,21 @@ export default function ProfileScreen({ navigation }: any) {
               <TouchableOpacity
                 style={[
                   styles.langCardItem,
-                  { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border, borderWidth: 1 },
+                  { backgroundColor: language === 'badini' ? (theme === 'light' ? '#FFF5F5' : 'rgba(204,34,47,0.14)') : themeColors.surfaceLight },
+                  language === 'badini' ? { borderColor: '#CC222F', borderWidth: 1.5 } : { borderColor: themeColors.border, borderWidth: 1 },
                   isRTL && { flexDirection: 'row-reverse' }
                 ]}
                 onPress={() => {
-                  setLanguage('ku');
+                  setLanguage('badini');
                   setShowLangModal(false);
                 }}
                 activeOpacity={0.8}
               >
-                <View style={[styles.langRadioCircle, { backgroundColor: theme === 'light' ? '#E5E7EB' : 'rgba(255,255,255,0.1)' }]} />
+                <View style={[styles.langRadioCircle, language === 'badini' ? { backgroundColor: '#CC222F' } : { backgroundColor: theme === 'light' ? '#E5E7EB' : 'rgba(255,255,255,0.1)' }]}>
+                  {language === 'badini' && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+                </View>
 
-                <Text style={[styles.langCardLabel, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>
+                <Text style={[styles.langCardLabel, { color: language === 'badini' ? '#CC222F' : themeColors.text }, isRTL && { textAlign: 'right' }]}>
                   کوردی (بادینی)
                 </Text>
 

@@ -79,17 +79,17 @@ async function saveAllPostsToDB(posts: Post[]) {
 
 function timeAgo(dateStr: string, language: string): string {
   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (diff < 60) return language === 'ku' ? 'ئێستا' : language === 'ar' ? 'الآن' : 'Just now';
+  if (diff < 60) return language === 'ku' ? 'ئێستا' : language === 'badini' ? 'نوکە' : language === 'ar' ? 'الآن' : 'Just now';
   if (diff < 3600) {
     const m = Math.floor(diff / 60);
-    return language === 'ku' ? `${m} خولەک` : language === 'ar' ? `${m} دقيقة` : `${m}m ago`;
+    return language === 'ku' ? `${m} خولەک` : language === 'badini' ? `${m} دەقە` : language === 'ar' ? `${m} دقيقة` : `${m}m ago`;
   }
   if (diff < 86400) {
     const h = Math.floor(diff / 3600);
-    return language === 'ku' ? `${h} کاتژمێر` : language === 'ar' ? `${h} ساعة` : `${h}h ago`;
+    return language === 'ku' ? `${h} کاتژمێر` : language === 'badini' ? `${h} دەمژمێر` : language === 'ar' ? `${h} ساعة` : `${h}h ago`;
   }
   const d = Math.floor(diff / 86400);
-  return language === 'ku' ? `${d} ڕۆژ` : language === 'ar' ? `${d} يوم` : `${d}d ago`;
+  return language === 'ku' ? `${d} ڕۆژ` : language === 'badini' ? `${d} ڕۆژ` : language === 'ar' ? `${d} يوم` : `${d}d ago`;
 }
 
 // ─── Loading skeleton shown while client mounts ─────────────
@@ -310,7 +310,7 @@ export default function Posts() {
       {/* Header */}
       <div className="sticky top-0 z-40 bg-[#0F0F13]/95 light-mode:bg-white/95 backdrop-blur-md border-b border-white/7 light-mode:border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
         <h1 className="text-xl font-black text-white light-mode:text-slate-900">
-          {language === 'ku' ? 'پۆستەکان' : language === 'ar' ? 'المنشورات' : 'Community Posts'}
+          {language === 'ku' ? 'پۆستەکان' : language === 'badini' ? 'پۆست' : language === 'ar' ? 'المنشورات' : 'Community Posts'}
         </h1>
         <div className="w-8 h-8 rounded-full bg-[#CC222F]/15 flex items-center justify-center">
           <Globe size={16} className="text-[#CC222F]" />
@@ -346,8 +346,8 @@ export default function Posts() {
                   }}
                   placeholder={
                     userAccount
-                      ? (language === 'ku' ? `${userAccount.name}، چیت لە مێشکتدایە؟` : language === 'ar' ? 'ما الذي تفكر به؟' : "What's on your mind?")
-                      : (language === 'ku' ? 'بچۆ ژوورەوە بۆ نووسینی پۆست...' : language === 'ar' ? 'سجل الدخول للنشر...' : 'Login to post...')
+                      ? (language === 'ku' ? `${userAccount.name}، چیت لە مێشکتدایە؟` : language === 'badini' ? `${userAccount.name}، چی تە د مێشکیدایە؟` : language === 'ar' ? 'ما الذي تفكر به؟' : "What's on your mind?")
+                      : (language === 'ku' ? 'بچۆ ژوورەوە بۆ نووسینی پۆست...' : language === 'badini' ? 'تێکەڤە بۆ نڤێسینا پۆستی...' : language === 'ar' ? 'سجل الدخول للنشر...' : 'Login to post...')
                   }
                   className="w-full bg-transparent text-white light-mode:text-slate-900 placeholder:text-white/40 light-mode:placeholder:text-slate-400 text-sm font-medium resize-none outline-none border-none p-0 focus:ring-0"
                 />
@@ -378,13 +378,13 @@ export default function Posts() {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/6 light-mode:bg-slate-100 hover:bg-white/10 light-mode:hover:bg-slate-200 transition text-[#4ade80] text-xs font-semibold"
               >
                 <ImagePlus size={15} />
-                <span>{language === 'ku' ? 'وێنە' : language === 'ar' ? 'صورة' : 'Photo'}</span>
+                <span>{language === 'ku' ? 'وێنە' : language === 'badini' ? 'وێنە' : language === 'ar' ? 'صورة' : 'Photo'}</span>
               </button>
               <button
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/6 light-mode:bg-slate-100 hover:bg-white/10 light-mode:hover:bg-slate-200 transition text-amber-400 text-xs font-semibold"
               >
                 <Smile size={15} />
-                <span>{language === 'ku' ? 'هەستیار' : language === 'ar' ? 'شعور' : 'Feeling'}</span>
+                <span>{language === 'ku' ? 'هەستیار' : language === 'badini' ? 'هەستیار' : language === 'ar' ? 'شعور' : 'Feeling'}</span>
               </button>
             </div>
 
@@ -394,7 +394,7 @@ export default function Posts() {
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#CC222F] hover:bg-red-700 text-white text-xs font-black disabled:opacity-40 transition shadow-md shadow-red-600/20"
             >
               {publishing ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-              <span>{language === 'ku' ? 'بڵاوکردنەوە' : language === 'ar' ? 'نشر' : 'Post'}</span>
+              <span>{language === 'ku' ? 'بڵاوکردنەوە' : language === 'badini' ? 'بەلاڤکرن' : language === 'ar' ? 'نشر' : 'Post'}</span>
             </button>
           </div>
         </div>
@@ -410,7 +410,7 @@ export default function Posts() {
               <MessageCircle size={28} className="text-[#CC222F]" />
             </div>
             <p className="text-sm font-semibold text-white/40 light-mode:text-slate-400">
-              {language === 'ku' ? 'هیچ پۆستێک نییە. یەکەم کەس بە!' : language === 'ar' ? 'لا منشورات. كن أول من ينشر!' : 'No posts yet. Be the first!'}
+              {language === 'ku' ? 'هیچ پۆستێک نییە. یەکەم کەس بە!' : language === 'badini' ? 'هیچ پۆستەک نینە. یەکەم کەس بە!' : language === 'ar' ? 'لا منشورات. كن أول من ينشر!' : 'No posts yet. Be the first!'}
             </p>
           </div>
         ) : (
@@ -484,7 +484,7 @@ function PostCard({
         </div>
         {isOwner && (
           <button
-            onClick={() => { if (confirm(language === 'ku' ? 'ئایا دڵنیایت لە سڕینەوەی پۆستەکە؟' : 'Delete this post?')) onDelete(post.id); }}
+            onClick={() => { if (confirm(language === 'ku' ? 'ئایا دڵنیایت لە سڕینەوەی پۆستەکە؟' : language === 'badini' ? 'تە دڤێت ڤی پۆستی بڕەشینی؟' : language === 'ar' ? 'هل أنت متأكد من حذف المنشور؟' : 'Delete this post?')) onDelete(post.id); }}
             className="w-8 h-8 rounded-full flex items-center justify-center text-white/30 light-mode:text-slate-400 hover:text-red-500 transition"
           >
             <MoreHorizontal size={18} />
@@ -521,7 +521,7 @@ function PostCard({
         </div>
         {post.comments.length > 0 && (
           <button onClick={toggleComments} className="flex items-center gap-1 text-xs text-white/35 light-mode:text-slate-500 hover:text-white/70 light-mode:hover:text-slate-800 transition">
-            <span>{post.comments.length} {language === 'ku' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'comment'}</span>
+            <span>{post.comments.length} {language === 'ku' ? 'کۆمێنت' : language === 'badini' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'comment'}</span>
             <ChevronDown size={13} className={`transition-transform ${showComments ? 'rotate-180' : ''}`} />
           </button>
         )}
@@ -538,7 +538,7 @@ function PostCard({
           }`}
         >
           <Heart size={17} className={isLiked ? 'fill-red-500' : ''} />
-          <span>{language === 'ku' ? 'بەدڵبوون' : language === 'ar' ? 'إعجاب' : 'Like'}</span>
+          <span>{language === 'ku' ? 'بەدڵبوون' : language === 'badini' ? 'حەژێکرن' : language === 'ar' ? 'إعجاب' : 'Like'}</span>
         </button>
 
         <button
@@ -546,7 +546,7 @@ function PostCard({
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-white/50 light-mode:text-slate-500 hover:bg-white/5 light-mode:hover:bg-slate-100 transition font-bold text-sm"
         >
           <MessageCircle size={17} />
-          <span>{language === 'ku' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'Comment'}</span>
+          <span>{language === 'ku' ? 'کۆمێنت' : language === 'badini' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'Comment'}</span>
         </button>
 
         <button
@@ -554,7 +554,7 @@ function PostCard({
           className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-white/50 light-mode:text-slate-500 hover:bg-white/5 light-mode:hover:bg-slate-100 transition font-bold text-sm"
         >
           <Share2 size={17} />
-          <span>{language === 'ku' ? 'بەشکردن' : language === 'ar' ? 'مشاركة' : 'Share'}</span>
+          <span>{language === 'ku' ? 'بەشکردن' : language === 'badini' ? 'پارڤەکرن' : language === 'ar' ? 'مشاركة' : 'Share'}</span>
         </button>
       </div>
 
@@ -597,8 +597,8 @@ function PostCard({
                 onClick={() => { if (!userAccount) onAuthRequired(); }}
                 placeholder={
                   userAccount
-                    ? (language === 'ku' ? 'کۆمێنتێک بنووسە...' : language === 'ar' ? 'اكتب تعليقًا...' : 'Write a comment...')
-                    : (language === 'ku' ? 'بچۆ ژوورەوە...' : 'Login to comment...')
+                    ? (language === 'ku' ? 'کۆمێنتێک بنووسە...' : language === 'badini' ? 'کۆمێنتەکێ بنڤێسە...' : language === 'ar' ? 'اكتب تعليقًا...' : 'Write a comment...')
+                    : (language === 'ku' ? 'بچۆ ژوورەوە...' : language === 'badini' ? 'تێکەڤە...' : language === 'ar' ? 'سجل الدخول...' : 'Login to comment...')
                 }
                 className="flex-1 bg-transparent text-xs text-white light-mode:text-slate-900 placeholder:text-white/30 light-mode:placeholder:text-slate-400 outline-none border-none focus:ring-0"
               />

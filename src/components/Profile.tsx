@@ -512,7 +512,7 @@ export default function Profile() {
               +
             </div>
           </div>
-          <p className="text-[11px] font-semibold text-white/60 light-mode:text-neutral-500 mb-1 truncate">{language === 'ku' ? 'سەیڤکراو' : language === 'ar' ? 'المحفوظات' : 'Saved'}</p>
+          <p className="text-[11px] font-semibold text-white/60 light-mode:text-neutral-500 mb-1 truncate">{language === 'ku' ? 'سەیڤکراو' : language === 'badini' ? 'پاراستی' : language === 'ar' ? 'المحفوظات' : 'Saved'}</p>
           <p className="text-2xl font-black text-white light-mode:text-black tracking-tight">{watchlistItems.length}</p>
         </div>
 
@@ -524,13 +524,13 @@ export default function Profile() {
           <div className="flex items-center justify-between mb-3">
             <Clock size={18} className="text-red-400 light-mode:text-[#CC222F]" />
           </div>
-          <p className="text-[11px] font-semibold text-white/60 light-mode:text-neutral-500 mb-1 truncate">{language === 'ku' ? 'لە هەمان شوێن' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</p>
+          <p className="text-[11px] font-semibold text-white/60 light-mode:text-neutral-500 mb-1 truncate">{language === 'ku' ? 'لە هەمان شوێن' : language === 'badini' ? 'یا بەردەوام' : language === 'ar' ? 'متابعة المشاهدة' : 'Continue Watching'}</p>
           <p className="text-2xl font-black text-white light-mode:text-black tracking-tight">{historyItems.length}</p>
         </div>
 
         {/* Card 3: Downloads */}
         <div 
-          onClick={() => alert(language === 'ku' ? 'بەشی دابەزاندن بەمزوانە بەردەست دەبێت!' : 'Downloads feature coming soon!')}
+          onClick={() => alert(language === 'ku' ? 'بەشی دابەزاندن بەمزوانە بەردەست دەبێت!' : language === 'badini' ? 'پشکا داگرتنێ ب نێزیکی بەردەست دبیت!' : language === 'ar' ? 'قسم التنزيلات قريباً!' : 'Downloads feature coming soon!')}
           className="bg-[#14151c] light-mode:bg-white hover:bg-[#1a1b24] light-mode:hover:bg-neutral-50 border border-white/6 light-mode:border-neutral-200 rounded-2xl p-4 cursor-pointer transition shadow-sm group"
         >
           <div className="flex items-center justify-between mb-3">
@@ -539,8 +539,8 @@ export default function Profile() {
               +
             </div>
           </div>
-          <p className="text-[11px] font-semibold text-white/60 light-mode:text-neutral-500 mb-1 truncate">{language === 'ku' ? 'دابەزاندن' : language === 'ar' ? 'التنزيلات' : 'Downloads'}</p>
-          <p className="text-xs font-extrabold text-red-400 light-mode:text-[#CC222F] mt-2">{language === 'ku' ? 'بەمزوانە' : language === 'ar' ? 'قريباً' : 'Coming Soon'}</p>
+          <p className="text-[11px] font-semibold text-white/60 light-mode:text-neutral-500 mb-1 truncate">{language === 'ku' ? 'دابەزاندن' : language === 'badini' ? 'داگرتن' : language === 'ar' ? 'التنزيلات' : 'Downloads'}</p>
+          <p className="text-xs font-extrabold text-red-400 light-mode:text-[#CC222F] mt-2">{language === 'ku' ? 'بەمزوانە' : language === 'badini' ? 'ب نێزیکی' : language === 'ar' ? 'قريباً' : 'Coming Soon'}</p>
         </div>
       </div>
 
@@ -556,10 +556,10 @@ export default function Profile() {
             </div>
             <div>
               <h3 className="font-extrabold text-sm text-red-400 light-mode:text-[#CC222F]">
-                {language === 'ku' ? 'داخڵکردنی کۆد (Taban Play1)' : 'Enter Code (Taban Play1)'}
+                {language === 'ku' ? 'داخڵکردنی کۆد (Taban Play1)' : language === 'badini' ? 'توومارکرنا کۆدی (Taban Play1)' : language === 'ar' ? 'إدخال الكود (Taban Play1)' : 'Enter Code (Taban Play1)'}
               </h3>
               <p className="text-xs text-white/50 light-mode:text-neutral-600 mt-0.5">
-                {language === 'ku' ? 'کۆدەکە بنووسە یان چوونە ژوورەوە بکە بۆ دروستکردنی ئەکاونت' : 'Enter code or log in to create account'}
+                {language === 'ku' ? 'کۆدەکە بنووسە یان چوونە ژوورەوە بکە بۆ دروستکردنی ئەکاونت' : language === 'badini' ? 'کۆدی بنڤێسە یان تێکەڤە بۆ چێکرنا ئەکاونتی' : language === 'ar' ? 'أدخل الكود أو سجل الدخول لإنشاء حساب' : 'Enter code or log in to create account'}
               </p>
             </div>
           </div>
@@ -573,7 +573,7 @@ export default function Profile() {
         {/* Account Settings */}
         <ProfileMenuItem 
           icon={User} 
-          label={language === 'ku' ? 'ڕێکخستنەکانی هەژمار' : language === 'ar' ? 'إعدادات الحساب' : 'Account Settings'} 
+          label={language === 'ku' ? 'ڕێکخستنەکانی هەژمار' : language === 'badini' ? 'ڕێکخستنێن ئەکاونتی' : language === 'ar' ? 'إعدادات الحساب' : 'Account Settings'} 
           onClick={() => {
             if (!userAccount) {
               setShowAuthModal(true);
@@ -594,7 +594,7 @@ export default function Profile() {
             <div className="flex items-center gap-4 sm:gap-5 rtl:gap-4">
               <Languages size={20} className="text-white/80 light-mode:text-neutral-700" />
               <span className="font-bold text-sm text-white light-mode:text-black">
-                {language === 'ku' ? 'گۆڕینی زمان' : language === 'ar' ? 'تغيير اللغة' : 'Change Language'}
+                {language === 'ku' ? 'گۆڕینی زمان' : language === 'badini' ? 'گوهۆڕینا زمانی' : language === 'ar' ? 'تغيير اللغة' : 'Change Language'}
               </span>
             </div>
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -633,7 +633,7 @@ export default function Profile() {
                       <ChevronLeft size={18} />
                     </button>
                     <h3 className="text-lg font-bold text-white light-mode:text-black text-center flex-1">
-                      {language === 'ku' ? 'هەڵبژاردنی زمان' : language === 'ar' ? 'اختيار اللغة' : 'Select Language'}
+                      {language === 'ku' ? 'هەڵبژاردنی زمان' : language === 'badini' ? 'هەڵبژارتنا زمانی' : language === 'ar' ? 'اختيار اللغة' : 'Select Language'}
                     </h3>
                     <div className="w-9"></div>
                   </div>
@@ -664,12 +664,20 @@ export default function Profile() {
 
                     {/* 2. Kurdish Badini */}
                     <button
-                      onClick={() => { setLanguage('ku'); setShowLangMenu(false); }}
-                      className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 light-mode:bg-neutral-100 border border-white/5 light-mode:border-neutral-200 hover:border-white/20 transition-all"
+                      onClick={() => { setLanguage('badini'); setShowLangMenu(false); }}
+                      className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                        language === 'badini'
+                          ? 'bg-red-500/10 light-mode:bg-red-50 border-[#CC222F]'
+                          : 'bg-white/5 light-mode:bg-neutral-100 border-white/5 light-mode:border-neutral-200 hover:border-white/20'
+                      }`}
                     >
                       <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                        <div className="w-6 h-6 rounded-full bg-white/10 light-mode:bg-neutral-200"></div>
-                        <span className="font-bold text-base text-white light-mode:text-black">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          language === 'badini' ? 'bg-[#CC222F] text-white' : 'bg-white/10 light-mode:bg-neutral-200'
+                        }`}>
+                          {language === 'badini' && <Check size={13} strokeWidth={3} />}
+                        </div>
+                        <span className={`font-bold text-base ${language === 'badini' ? 'text-[#CC222F]' : 'text-white light-mode:text-black'}`}>
                           کوردی (بادینی)
                         </span>
                       </div>
@@ -730,8 +738,8 @@ export default function Profile() {
         <ProfileMenuItem 
           icon={isDarkMode ? Moon : Sun} 
           label={isDarkMode 
-            ? (language === 'ku' ? 'دۆخی شەو (تاریک)' : language === 'ar' ? 'الوضع الليلي' : 'Night Mode') 
-            : (language === 'ku' ? 'دۆخی ڕۆژ (ڕووناک)' : language === 'ar' ? 'الوضع النهار' : 'Day Mode')
+            ? (language === 'ku' ? 'دۆخی شەو (تاریک)' : language === 'badini' ? 'بارێ شەڤێ (تاری)' : language === 'ar' ? 'الوضع الليلي' : 'Night Mode') 
+            : (language === 'ku' ? 'دۆخی ڕۆژ (ڕووناک)' : language === 'badini' ? 'بارێ ڕۆژێ (رۆن)' : language === 'ar' ? 'الوضع النهار' : 'Day Mode')
           } 
           iconClass={isDarkMode ? "text-indigo-400" : "text-amber-400"}
           onClick={toggleTheme} 
@@ -747,10 +755,10 @@ export default function Profile() {
               )}
             </div>
           )} 
-          label={language === 'ku' ? 'قسەکردن لەگەڵ ئادمین' : language === 'ar' ? 'التحدث مع الأدمن' : 'Chat with Admin'} 
+          label={language === 'ku' ? 'قسەکردن لەگەڵ ئادمین' : language === 'badini' ? 'ئاخڤتن دگەڵ ئادمنی' : language === 'ar' ? 'التحدث مع الأدمن' : 'Chat with Admin'} 
           badge={hasUnreadWebChat ? (
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600/20 text-red-500 border border-red-500/30">
-              {language === 'ku' ? 'نامەی نوێ 🔴' : language === 'ar' ? 'رسالة جديدة 🔴' : 'New reply 🔴'}
+              {language === 'ku' ? 'نامەی نوێ 🔴' : language === 'badini' ? 'نامەیا نوو 🔴' : language === 'ar' ? 'رسالة جديدة 🔴' : 'New reply 🔴'}
             </span>
           ) : undefined}
           onClick={handleOpenWebChatModal} 
@@ -759,7 +767,7 @@ export default function Profile() {
         {/* About Taban Play */}
         <ProfileMenuItem 
           icon={Info} 
-          label={language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play'} 
+          label={language === 'ku' ? 'دەربارەی Taban Play' : language === 'badini' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play'} 
           onClick={() => setShowAboutModal(true)} 
         />
 
@@ -767,7 +775,7 @@ export default function Profile() {
         {userAccount && (
           <ProfileMenuItem 
             icon={LogOut} 
-            label={language === 'ku' ? 'چوونە دەرەوە' : language === 'ar' ? 'تسجيل الخروج' : 'Log Out'} 
+            label={language === 'ku' ? 'چوونە دەرەوە' : language === 'badini' ? 'دەرکەڤتن' : language === 'ar' ? 'تسجيل الخروج' : 'Log Out'} 
             iconClass="text-red-500"
             textClass="text-red-500"
             onClick={handleLogout} 
