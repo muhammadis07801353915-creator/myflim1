@@ -92,8 +92,12 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           <Key size={18} className="shrink-0 mt-0.5 text-red-400 light-mode:text-[#CC222F]" />
           <p className="leading-relaxed text-white light-mode:text-[#CC222F]">
             {language === 'ku' 
-              ? 'تکایە ئەو کۆدە داخل بکە لە بەشی داخڵ کردنی کۆد: Taban Play1' 
-              : 'Please enter this code in code entry section: Taban Play1'}
+              ? 'تکایە کۆدەکە دابنێ ئینجا یوزەرنەیم و پاسۆرد دابنێ' 
+              : language === 'badini'
+              ? 'تکایە کۆدی بنڤێسە پاشی یوزەرنەیچی و پاسۆردی بنڤێسە'
+              : language === 'ar'
+              ? 'الرجاء أدخل الكود ثم أدخل اسم المستخدم وكلمة المرور'
+              : 'Please enter the code then enter username and password'}
           </p>
         </div>
 

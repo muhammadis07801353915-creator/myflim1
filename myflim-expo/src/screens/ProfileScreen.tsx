@@ -114,7 +114,7 @@ export default function ProfileScreen({ navigation }: any) {
 
   // Auth / Code Modal States
   const [authTab, setAuthTab] = useState<'register' | 'login'>('register');
-  const [authCode, setAuthCode] = useState('Taban Play1');
+  const [authCode, setAuthCode] = useState('');
   const [authUsername, setAuthUsername] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
@@ -1333,8 +1333,8 @@ export default function ProfileScreen({ navigation }: any) {
             <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <Text style={[styles.nameModalTitle, { color: themeColors.text, marginBottom: 0, fontSize: 18 }]}>
                 {authTab === 'register' 
-                  ? (language === 'ku' ? 'دروستکردنی هەژماری نوێ' : language === 'ar' ? 'إنشاء حساب جديد' : 'Create New Account')
-                  : (language === 'ku' ? 'چوونە ژوورەوە' : language === 'ar' ? 'تسجيل الدخول' : 'Account Log In')
+                  ? (language === 'ku' ? 'دروستکردنی هەژماری نوێ' : language === 'badini' ? 'چێکرنا هەژمارەکێ نوو' : language === 'ar' ? 'إنشاء حساب جديد' : 'Create New Account')
+                  : (language === 'ku' ? 'چوونە ژوورەوە' : language === 'badini' ? 'تێکەڤتن' : language === 'ar' ? 'تسجيل الدخول' : 'Account Log In')
                 }
               </Text>
               <TouchableOpacity onPress={() => setShowUnlockModal(false)} style={[styles.closeBtn, { backgroundColor: themeColors.surfaceLight }]}>
@@ -1347,8 +1347,12 @@ export default function ProfileScreen({ navigation }: any) {
               <Key size={16} color="#CC222F" />
               <Text style={{ color: themeColors.text, fontSize: 11, fontWeight: '700', flex: 1, textAlign: isRTL ? 'right' : 'left' }}>
                 {language === 'ku' 
-                  ? 'تکایە ئەم کۆدە لە بەشی بەکارهێنانی کۆد بنووسە: Taban Play1'
-                  : 'Please enter this code in code entry section: Taban Play1'}
+                  ? 'تکایە کۆدەکە دابنێ ئینجا یوزەرنەیم و پاسۆرد دابنێ'
+                  : language === 'badini'
+                  ? 'تکایە کۆدی بنڤێسە پاشی یوزەرنەیچی و پاسۆردی بنڤێسە'
+                  : language === 'ar'
+                  ? 'الرجاء أدخل الكود ثم أدخل اسم المستخدم وكلمة المرور'
+                  : 'Please enter the code then enter username and password'}
               </Text>
             </View>
 
@@ -1359,7 +1363,7 @@ export default function ProfileScreen({ navigation }: any) {
                 onPress={() => setAuthTab('register')}
               >
                 <Text style={{ color: authTab === 'register' ? '#fff' : themeColors.textSecondary, fontSize: 13, fontWeight: 'bold' }}>
-                  {language === 'ku' ? 'تۆماربوون' : language === 'ar' ? 'إنشاء حساب' : 'Register'}
+                  {language === 'ku' ? 'تۆماربوون' : language === 'badini' ? 'تۆماربوون' : language === 'ar' ? 'إنشاء حساب' : 'Register'}
                 </Text>
               </TouchableOpacity>
 
@@ -1368,7 +1372,7 @@ export default function ProfileScreen({ navigation }: any) {
                 onPress={() => setAuthTab('login')}
               >
                 <Text style={{ color: authTab === 'login' ? '#fff' : themeColors.textSecondary, fontSize: 13, fontWeight: 'bold' }}>
-                  {language === 'ku' ? 'چوونە ژوورەوە' : language === 'ar' ? 'تسجيل الدخول' : 'Log In'}
+                  {language === 'ku' ? 'چوونە ژوورەوە' : language === 'badini' ? 'تێکەڤتن' : language === 'ar' ? 'تسجيل الدخول' : 'Log In'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1378,13 +1382,13 @@ export default function ProfileScreen({ navigation }: any) {
               <View style={{ gap: 10 }}>
                 <View>
                   <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
-                    {language === 'ku' ? 'کۆدی چالاککردن:' : 'Activation Code:'}
+                    {language === 'ku' ? 'کۆدی چالاککردن:' : language === 'badini' ? 'کۆدێ چالاککرنێ:' : language === 'ar' ? 'رمز التفعيل:' : 'Activation Code:'}
                   </Text>
                   <TextInput
                     style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
                     value={authCode}
                     onChangeText={setAuthCode}
-                    placeholder="Taban Play1"
+                    placeholder={language === 'ku' ? 'کۆدەکە بنووسە...' : language === 'badini' ? 'کۆدی بنڤێسە...' : language === 'ar' ? 'أدخل الكود...' : 'Enter code...'}
                     placeholderTextColor={themeColors.textMuted}
                     autoCapitalize="none"
                   />
@@ -1392,13 +1396,13 @@ export default function ProfileScreen({ navigation }: any) {
 
                 <View>
                   <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
-                    {language === 'ku' ? 'ناوی بەکارهێنەر:' : 'Username:'}
+                    {language === 'ku' ? 'ناوی بەکارهێنەر:' : language === 'badini' ? 'ناوی بەکارهێنەری:' : language === 'ar' ? 'اسم المستخدم:' : 'Username:'}
                   </Text>
                   <TextInput
                     style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
                     value={authUsername}
                     onChangeText={setAuthUsername}
-                    placeholder={language === 'ku' ? 'ناوێک هەڵبژێرە...' : 'Choose a username...'}
+                    placeholder={language === 'ku' ? 'یوزەرنەیمێک هەڵبژێرە...' : language === 'badini' ? 'یوزەرنەیمەکێ هەڵبژێره...' : language === 'ar' ? 'اختر اسم المستخدم...' : 'Choose username...'}
                     placeholderTextColor={themeColors.textMuted}
                     autoCapitalize="none"
                   />
@@ -1406,13 +1410,13 @@ export default function ProfileScreen({ navigation }: any) {
 
                 <View>
                   <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
-                    {language === 'ku' ? 'وشەی نهێنی (پاسۆرد):' : 'Password:'}
+                    {language === 'ku' ? 'وشەی نهێنی (پاسۆرد):' : language === 'badini' ? 'وشەیا نهێنی (پاسۆرد):' : language === 'ar' ? 'كلمة المرور:' : 'Password:'}
                   </Text>
                   <TextInput
                     style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
                     value={authPassword}
                     onChangeText={setAuthPassword}
-                    placeholder={language === 'ku' ? 'پاسۆردێک بنووسە...' : 'Enter password...'}
+                    placeholder={language === 'ku' ? 'پاسۆردێک بنووسە...' : language === 'badini' ? 'پاسۆردەکێ بنڤێسە...' : language === 'ar' ? 'أدخل كلمة المرور...' : 'Enter password...'}
                     placeholderTextColor={themeColors.textMuted}
                   />
                 </View>
@@ -1426,7 +1430,7 @@ export default function ProfileScreen({ navigation }: any) {
                     <ActivityIndicator color="#fff" />
                   ) : (
                     <Text style={[styles.saveBtnText, { fontSize: 14, fontWeight: '900' }]}>
-                      {language === 'ku' ? 'دروستکردنی هەژمار' : 'Create Account'}
+                      {language === 'ku' ? 'دروستکردنی هەژمار' : language === 'badini' ? 'چێکرنا هەژمارێ' : language === 'ar' ? 'إنشاء حساب' : 'Create Account'}
                     </Text>
                   )}
                 </TouchableOpacity>
@@ -1436,13 +1440,13 @@ export default function ProfileScreen({ navigation }: any) {
               <View style={{ gap: 10 }}>
                 <View>
                   <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
-                    {language === 'ku' ? 'ناوی بەکارهێنەر:' : 'Username:'}
+                    {language === 'ku' ? 'ناوی بەکارهێنەر:' : language === 'badini' ? 'ناوی بەکارهێنەری:' : language === 'ar' ? 'اسم المستخدم:' : 'Username:'}
                   </Text>
                   <TextInput
                     style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
                     value={authUsername}
                     onChangeText={setAuthUsername}
-                    placeholder={language === 'ku' ? 'ناوی بەکارهێنەر بنووسە...' : 'Enter username...'}
+                    placeholder={language === 'ku' ? 'ناوی بەکارهێنەر بنووسە...' : language === 'badini' ? 'ناوی بەکارهێنەری بنڤێسە...' : language === 'ar' ? 'أدخل اسم المستخدم...' : 'Enter username...'}
                     placeholderTextColor={themeColors.textMuted}
                     autoCapitalize="none"
                   />
@@ -1450,13 +1454,13 @@ export default function ProfileScreen({ navigation }: any) {
 
                 <View>
                   <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
-                    {language === 'ku' ? 'وشەی نهێنی (پاسۆرد):' : 'Password:'}
+                    {language === 'ku' ? 'وشەی نهێنی (پاسۆرد):' : language === 'badini' ? 'وشەیا نهێنی (پاسۆرد):' : language === 'ar' ? 'كلمة المرور:' : 'Password:'}
                   </Text>
                   <TextInput
                     style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
                     value={authPassword}
                     onChangeText={setAuthPassword}
-                    placeholder={language === 'ku' ? 'پاسۆردەکەت بنووسە...' : 'Enter password...'}
+                    placeholder={language === 'ku' ? 'پاسۆردەکەت بنووسە...' : language === 'badini' ? 'پاسۆردێ خۆ بنڤێسە...' : language === 'ar' ? 'أدخل كلمة المرور...' : 'Enter password...'}
                     placeholderTextColor={themeColors.textMuted}
                   />
                 </View>
@@ -1470,7 +1474,7 @@ export default function ProfileScreen({ navigation }: any) {
                     <ActivityIndicator color="#fff" />
                   ) : (
                     <Text style={[styles.saveBtnText, { fontSize: 14, fontWeight: '900' }]}>
-                      {language === 'ku' ? 'چوونە ژوورەوە' : 'Log In'}
+                      {language === 'ku' ? 'چوونە ژوورەوە' : language === 'badini' ? 'تێکەڤتن' : language === 'ar' ? 'تسجيل الدخول' : 'Log In'}
                     </Text>
                   )}
                 </TouchableOpacity>
