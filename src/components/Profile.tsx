@@ -552,18 +552,18 @@ export default function Profile() {
         >
           <div className="flex items-center gap-4 sm:gap-5 rtl:gap-4">
             <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center text-[#CC222F] shrink-0 shadow-sm">
-              <Key size={22} className="text-[#CC222F]" />
+              <Key size={22} className="text-[#CC222F]" style={{ color: '#CC222F' }} />
             </div>
             <div>
-              <h3 className="font-extrabold text-sm text-white">
+              <h3 className="font-extrabold text-sm !text-white" style={{ color: '#ffffff' }}>
                 {language === 'ku' ? 'دروستکردنی هەژمار / داخڵکردنی کۆد' : language === 'badini' ? 'چێکرنا هەژمارێ / توومارکرنا کۆدی' : language === 'ar' ? 'إنشاء حساب / إدخال الكود' : 'Register Account / Enter Code'}
               </h3>
-              <p className="text-xs font-medium text-white/90 mt-0.5">
+              <p className="text-xs font-medium !text-white mt-0.5" style={{ color: '#ffffff', opacity: 0.95 }}>
                 {language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکان' : language === 'badini' ? 'کۆدی بنڤێسە بۆ چالاککرنا هەمی بەشێن ئەپێ' : language === 'ar' ? 'أدخل الكود لتفعيل جميع أجزاء التطبيق' : 'Enter code to unlock all sections of the app'}
               </p>
             </div>
           </div>
-          <ChevronRight size={20} className="text-white rtl:rotate-180 group-hover:translate-x-1 transition-transform shrink-0" />
+          <ChevronRight size={20} className="!text-white rtl:rotate-180 group-hover:translate-x-1 transition-transform shrink-0" style={{ color: '#ffffff' }} />
         </div>
       )}
 
