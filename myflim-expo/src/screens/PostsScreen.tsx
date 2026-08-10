@@ -416,6 +416,18 @@ export default function PostsScreen() {
     );
   };
 
+  const isRestrictedUser = user?.name?.toLowerCase() === 'taban1';
+
+  if (isRestrictedUser) {
+    return (
+      <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top, justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: themeColors.textSecondary, fontSize: 14, fontWeight: 'bold' }}>
+          {language === 'ku' ? 'هیچ پۆستێک بەردەست نییە' : 'No posts available'}
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
       {/* Top Header Bar */}

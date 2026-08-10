@@ -156,6 +156,7 @@ export default function HomeScreen({ navigation }: any) {
     unreadNotifCount,
     markNotificationsRead,
     fetchNotifications,
+    user,
   } = useAppStore();
 
   const themeColors = getColors(theme);
@@ -163,6 +164,8 @@ export default function HomeScreen({ navigation }: any) {
   const [showNotifModal, setShowNotifModal] = useState(false);
   const t = translations[(language as Language) || 'ku'] || translations.ku;
   const isRTL = language === 'ku' || language === 'badini' || language === 'ar';
+
+  const isRestrictedUser = user?.name?.toLowerCase() === 'taban1';
 
   const handleOpenNotifModal = () => {
     setShowNotifModal(true);
@@ -174,8 +177,8 @@ export default function HomeScreen({ navigation }: any) {
     markNotificationsRead();
   };
 
-  const featured = isUnlocked ? movies.filter((m) => m.is_featured) : [];
-  const topContents = isUnlocked
+  const featured = isUnlocked && !isRestrictedUser ? movies.filter((m) => m.is_featured) : [];
+  const topContents = isUnlocked && !isRestrictedUser
     ? movies
         .filter((m) => m.top_rank)
         .sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99))
@@ -183,6 +186,26 @@ export default function HomeScreen({ navigation }: any) {
   // Dynamically compute ALL movie lists present in database without duplicates
   const allDynamicLists = useMemo(() => {
     if (!isUnlocked) return [];
+
+    if (isRestrictedUser) {
+      const dubbedSeries = movies.filter(
+        (m) =>
+          m.list_name === 'زنجیرەی کوردی دۆبلاژ' ||
+          m.category === 'زنجیرەی کوردی دۆبلاژ' ||
+          (m.list_name && m.list_name.includes('زنجیرەی کوردی دۆبلاژ')) ||
+          (m.genre && m.genre.includes('زنجیرەی کوردی دۆبلاژ')) ||
+          (m.list_name && m.list_name.includes('دۆبلاژ') && m.type === 'Series') ||
+          (m.genre && m.genre.includes('دۆبلاژ') && m.type === 'Series')
+      );
+
+      const fallbackList = dubbedSeries.length > 0
+        ? dubbedSeries
+        : movies.filter((m) => m.type === 'Series');
+
+      const title = getLocalized({ name: 'زنجیرەی کوردی دۆبلاژ', name_ku: 'زنجیرەی کوردی دۆبلاژ' }, 'name', language) || 'زنجیرەی کوردی دۆبلاژ';
+      return [[title, fallbackList]];
+    }
+
     const listMap = new Map<string, any[]>();
     const addedRawNames = new Set<string>();
 
@@ -223,7 +246,7 @@ export default function HomeScreen({ navigation }: any) {
     });
 
     return Array.from(listMap.entries());
-  }, [categories, movies, isUnlocked, language]);
+  }, [categories, movies, isUnlocked, language, isRestrictedUser]);
 
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = async () => {

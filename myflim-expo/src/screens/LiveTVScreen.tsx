@@ -24,9 +24,10 @@ const { width } = Dimensions.get('window');
 
 export default function LiveTVScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { liveTv, channelCategories, banners, countries, loading, fetchInitialData, language, isUnlocked, theme } = useAppStore();
+  const { liveTv, channelCategories, banners, countries, loading, fetchInitialData, language, isUnlocked, theme, user } = useAppStore();
   const themeColors = getColors(theme);
   const isRTL = language === 'ku' || language === 'ar';
+  const isRestrictedUser = user?.name?.toLowerCase() === 'taban1';
 
   const categoryScrollRef = useRef<ScrollView>(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -133,6 +134,16 @@ export default function LiveTVScreen({ navigation }: any) {
   const selectedCountryObj = selectedCountry
     ? countries.find((c: any) => c.name_en === selectedCountry)
     : null;
+
+  if (isRestrictedUser) {
+    return (
+      <View style={[s.center, { backgroundColor: themeColors.background, flex: 1 }]}>
+        <Text style={{ color: themeColors.textMuted, fontSize: 14, fontWeight: 'bold' }}>
+          {language === 'ku' ? 'هیچ پەخشێک بەردەست نییە' : 'No channels available'}
+        </Text>
+      </View>
+    );
+  }
 
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading && liveTv.length === 0) {

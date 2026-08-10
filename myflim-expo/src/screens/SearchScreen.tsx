@@ -23,10 +23,11 @@ const CARD_WIDTH = (width - 44) / 2; // Symmetrical 16px outer padding + 12px ce
 
 export default function SearchScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const { movies, series, anime, liveTv, language, isUnlocked, theme } = useAppStore();
+  const { movies, series, anime, liveTv, language, isUnlocked, theme, user } = useAppStore();
   const themeColors = getColors(theme);
   const t = translations[language];
   const isRTL = language === 'ku' || language === 'ar';
+  const isRestrictedUser = user?.name?.toLowerCase() === 'taban1';
 
   const typeScrollRef = useRef<ScrollView>(null);
   const genreScrollRef = useRef<ScrollView>(null);
@@ -128,7 +129,7 @@ export default function SearchScreen({ navigation }: any) {
   };
 
   useEffect(() => {
-    if (!isUnlocked) {
+    if (!isUnlocked || isRestrictedUser) {
       setResults([]);
       return;
     }
