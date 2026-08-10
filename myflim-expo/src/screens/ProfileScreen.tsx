@@ -256,12 +256,6 @@ export default function ProfileScreen({ navigation }: any) {
     };
   }, [user]);
 
-    return () => {
-      clearInterval(interval);
-      supabase.removeChannel(channel);
-    };
-  }, [showChatModal, user?.name]);
-
   const handleSendChat = async () => {
     if (!chatInput.trim()) return;
     setSendingChat(true);
