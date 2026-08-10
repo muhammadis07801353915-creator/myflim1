@@ -3,6 +3,7 @@
 import { 
   User, 
   ChevronRight, 
+  ChevronLeft,
   Languages, 
   Sun, 
   Moon, 
@@ -17,6 +18,7 @@ import {
   Key,
   Play,
   CheckCircle2,
+  Check,
   Upload,
   MessageSquare,
   Send,
@@ -554,31 +556,127 @@ export default function Profile() {
             </div>
           </button>
           
-          {showLangMenu && (
-            <div className="mt-2 p-2 bg-[#181924] light-mode:bg-white border border-white/10 light-mode:border-neutral-200 rounded-2xl space-y-1 shadow-xl">
-              {[
-                { code: 'ku', label: 'کوردی (Kurdish)' },
-                { code: 'ar', label: 'العربية (Arabic)' },
-                { code: 'en', label: 'English' }
-              ].map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => {
-                    setLanguage(lang.code as any);
-                    setShowLangMenu(false);
-                  }}
-                  className={`w-full text-right rtl:text-right ltr:text-left px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-between ${
-                    language === lang.code 
-                      ? 'bg-[#CC222F] text-white' 
-                      : 'text-white/70 light-mode:text-neutral-700 hover:bg-white/5 light-mode:hover:bg-neutral-100'
-                  }`}
+          {/* Web Language Selection Modal matching Image 2 */}
+          <AnimatePresence>
+            {showLangMenu && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+                onClick={() => setShowLangMenu(false)}
+              >
+                <motion.div
+                  initial={{ y: '100%', opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: '100%', opacity: 0 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+                  className="bg-[#14151c] light-mode:bg-white border-t sm:border border-white/10 light-mode:border-neutral-200 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl overflow-hidden"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <span>{lang.label}</span>
-                  {language === lang.code && <CheckCircle2 size={16} />}
-                </button>
-              ))}
-            </div>
-          )}
+                  {/* Sheet Handle */}
+                  <div className="w-9 h-1 bg-white/20 light-mode:bg-neutral-300 rounded-full mx-auto mb-4"></div>
+
+                  {/* Header Row: Back Arrow + Centered Title */}
+                  <div className="flex items-center justify-between mb-6">
+                    <button
+                      onClick={() => setShowLangMenu(false)}
+                      className="w-9 h-9 rounded-full bg-white/5 light-mode:bg-neutral-100 hover:bg-white/10 text-white light-mode:text-black flex items-center justify-center border border-white/10 light-mode:border-neutral-200 transition"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <h3 className="text-lg font-bold text-white light-mode:text-black text-center flex-1">
+                      {language === 'ku' ? 'هەڵبژاردنی زمان' : language === 'ar' ? 'اختيار اللغة' : 'Select Language'}
+                    </h3>
+                    <div className="w-9"></div>
+                  </div>
+
+                  {/* Options List Matching Image 2 */}
+                  <div className="space-y-3">
+                    {/* 1. Kurdish Sorani */}
+                    <button
+                      onClick={() => { setLanguage('ku'); setShowLangMenu(false); }}
+                      className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                        language === 'ku'
+                          ? 'bg-red-500/10 light-mode:bg-red-50 border-[#CC222F]'
+                          : 'bg-white/5 light-mode:bg-neutral-100 border-white/5 light-mode:border-neutral-200 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          language === 'ku' ? 'bg-[#CC222F] text-white' : 'bg-white/10 light-mode:bg-neutral-200'
+                        }`}>
+                          {language === 'ku' && <Check size={13} strokeWidth={3} />}
+                        </div>
+                        <span className={`font-bold text-base ${language === 'ku' ? 'text-[#CC222F]' : 'text-white light-mode:text-black'}`}>
+                          کوردی (سۆرانی)
+                        </span>
+                      </div>
+                      <span className="text-xl">☀️</span>
+                    </button>
+
+                    {/* 2. Kurdish Badini */}
+                    <button
+                      onClick={() => { setLanguage('ku'); setShowLangMenu(false); }}
+                      className="w-full flex items-center justify-between p-4 rounded-2xl bg-white/5 light-mode:bg-neutral-100 border border-white/5 light-mode:border-neutral-200 hover:border-white/20 transition-all"
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className="w-6 h-6 rounded-full bg-white/10 light-mode:bg-neutral-200"></div>
+                        <span className="font-bold text-base text-white light-mode:text-black">
+                          کوردی (بادینی)
+                        </span>
+                      </div>
+                      <span className="text-xl">☀️</span>
+                    </button>
+
+                    {/* 3. Arabic */}
+                    <button
+                      onClick={() => { setLanguage('ar'); setShowLangMenu(false); }}
+                      className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                        language === 'ar'
+                          ? 'bg-red-500/10 light-mode:bg-red-50 border-[#CC222F]'
+                          : 'bg-white/5 light-mode:bg-neutral-100 border-white/5 light-mode:border-neutral-200 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          language === 'ar' ? 'bg-[#CC222F] text-white' : 'bg-white/10 light-mode:bg-neutral-200'
+                        }`}>
+                          {language === 'ar' && <Check size={13} strokeWidth={3} />}
+                        </div>
+                        <span className={`font-bold text-base ${language === 'ar' ? 'text-[#CC222F]' : 'text-white light-mode:text-black'}`}>
+                          العربية
+                        </span>
+                      </div>
+                      <span className="text-xl">🇮🇶</span>
+                    </button>
+
+                    {/* 4. English */}
+                    <button
+                      onClick={() => { setLanguage('en'); setShowLangMenu(false); }}
+                      className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                        language === 'en'
+                          ? 'bg-red-500/10 light-mode:bg-red-50 border-[#CC222F]'
+                          : 'bg-white/5 light-mode:bg-neutral-100 border-white/5 light-mode:border-neutral-200 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          language === 'en' ? 'bg-[#CC222F] text-white' : 'bg-white/10 light-mode:bg-neutral-200'
+                        }`}>
+                          {language === 'en' && <Check size={13} strokeWidth={3} />}
+                        </div>
+                        <span className={`font-bold text-base ${language === 'en' ? 'text-[#CC222F]' : 'text-white light-mode:text-black'}`}>
+                          English
+                        </span>
+                      </div>
+                      <span className="text-xl">🇬🇧</span>
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Theme Toggle (Night / Day Mode) */}

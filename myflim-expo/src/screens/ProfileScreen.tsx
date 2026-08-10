@@ -29,6 +29,7 @@ import { supabase } from '../api/supabase';
 import { 
   Crown, 
   ChevronRight,
+  ChevronLeft,
   Languages,
   Download,
   Camera,
@@ -1141,42 +1142,136 @@ export default function ProfileScreen({ navigation }: any) {
         </Pressable>
       </Modal>
 
-      {/* ── LANGUAGE MODAL ───────────────────────────────────────── */}
-      <Modal visible={showLangModal} transparent animationType="fade">
-        <Pressable style={styles.modalOverlay} onPress={() => setShowLangModal(false)}>
-          <View style={[styles.nameModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-            <Text style={[styles.nameModalTitle, { color: themeColors.text }]}>{language === 'ku' ? 'گۆڕینی زمان' : language === 'ar' ? 'تغيير اللغة' : 'Change Language'}</Text>
-            
-            <TouchableOpacity 
-              style={[styles.langOption, { backgroundColor: themeColors.surfaceLight }, language === 'ku' && styles.langOptionActive]} 
-              onPress={() => { setLanguage('ku'); setShowLangModal(false); }}
-            >
-              <Text style={styles.langFlag}>☀️</Text>
-              <Text style={[styles.langText, { color: themeColors.text }]}>Kurdish (کوردی)</Text>
-            </TouchableOpacity>
+      {/* ── LANGUAGE SELECTION MODAL (MATCHING IMAGE 2) ───────────────────────── */}
+      <Modal visible={showLangModal} transparent animationType="slide" onRequestClose={() => setShowLangModal(false)}>
+        <Pressable style={styles.langOverlay} onPress={() => setShowLangModal(false)}>
+          <Pressable style={[styles.langSheetContent, { backgroundColor: themeColors.surface }]} onPress={() => {}}>
+            {/* Sheet Handle Bar */}
+            <View style={[styles.sheetHandleBar, { backgroundColor: themeColors.border }]} />
 
-            <TouchableOpacity 
-              style={[styles.langOption, { backgroundColor: themeColors.surfaceLight }, language === 'ar' && styles.langOptionActive]} 
-              onPress={() => { setLanguage('ar'); setShowLangModal(false); }}
-            >
-              <Text style={styles.langFlag}>🇮🇶</Text>
-              <Text style={[styles.langText, { color: themeColors.text }]}>Arabic (عربي)</Text>
-            </TouchableOpacity>
+            {/* Header Row: Back Arrow + Centered Title */}
+            <View style={[styles.langHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
+              <TouchableOpacity
+                style={[styles.langBackBtn, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}
+                onPress={() => setShowLangModal(false)}
+                activeOpacity={0.8}
+              >
+                <ChevronLeft size={18} color={themeColors.text} />
+              </TouchableOpacity>
+              <Text style={[styles.langHeaderTitle, { color: themeColors.text }]}>
+                {language === 'ku' ? 'هەڵبژاردنی زمان' : language === 'ar' ? 'اختيار اللغة' : 'Select Language'}
+              </Text>
+              <View style={{ width: 36 }} />
+            </View>
 
-            <TouchableOpacity 
-              style={[styles.langOption, { backgroundColor: themeColors.surfaceLight }, language === 'en' && styles.langOptionActive]} 
-              onPress={() => { setLanguage('en'); setShowLangModal(false); }}
-            >
-              <Text style={styles.langFlag}>🇬🇧</Text>
-              <Text style={[styles.langText, { color: themeColors.text }]}>English</Text>
-            </TouchableOpacity>
+            {/* Language Options List */}
+            <View style={{ gap: 12, marginTop: 16 }}>
+              {/* 1. Kurdish Sorani */}
+              <TouchableOpacity
+                style={[
+                  styles.langCardItem,
+                  { backgroundColor: language === 'ku' ? (theme === 'light' ? '#FFF5F5' : 'rgba(204,34,47,0.14)') : themeColors.surfaceLight },
+                  language === 'ku' ? { borderColor: '#CC222F', borderWidth: 1.5 } : { borderColor: themeColors.border, borderWidth: 1 },
+                  isRTL && { flexDirection: 'row-reverse' }
+                ]}
+                onPress={() => {
+                  setLanguage('ku');
+                  setShowLangModal(false);
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.langRadioCircle, language === 'ku' ? { backgroundColor: '#CC222F' } : { backgroundColor: theme === 'light' ? '#E5E7EB' : 'rgba(255,255,255,0.1)' }]}>
+                  {language === 'ku' && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+                </View>
 
-            <View style={[styles.nameModalActions, { marginTop: 16 }]}>
-              <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: themeColors.surfaceLight }]} onPress={() => setShowLangModal(false)}>
-                <Text style={[styles.cancelBtnText, { color: themeColors.textSecondary }]}>{t.cancel}</Text>
+                <Text style={[styles.langCardLabel, { color: language === 'ku' ? '#CC222F' : themeColors.text }, isRTL && { textAlign: 'right' }]}>
+                  کوردی (سۆرانی)
+                </Text>
+
+                <View style={styles.langFlagBadge}>
+                  <Text style={styles.langFlagEmoji}>☀️</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* 2. Kurdish Badini */}
+              <TouchableOpacity
+                style={[
+                  styles.langCardItem,
+                  { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border, borderWidth: 1 },
+                  isRTL && { flexDirection: 'row-reverse' }
+                ]}
+                onPress={() => {
+                  setLanguage('ku');
+                  setShowLangModal(false);
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.langRadioCircle, { backgroundColor: theme === 'light' ? '#E5E7EB' : 'rgba(255,255,255,0.1)' }]} />
+
+                <Text style={[styles.langCardLabel, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>
+                  کوردی (بادینی)
+                </Text>
+
+                <View style={styles.langFlagBadge}>
+                  <Text style={styles.langFlagEmoji}>☀️</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* 3. Arabic */}
+              <TouchableOpacity
+                style={[
+                  styles.langCardItem,
+                  { backgroundColor: language === 'ar' ? (theme === 'light' ? '#FFF5F5' : 'rgba(204,34,47,0.14)') : themeColors.surfaceLight },
+                  language === 'ar' ? { borderColor: '#CC222F', borderWidth: 1.5 } : { borderColor: themeColors.border, borderWidth: 1 },
+                  isRTL && { flexDirection: 'row-reverse' }
+                ]}
+                onPress={() => {
+                  setLanguage('ar');
+                  setShowLangModal(false);
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.langRadioCircle, language === 'ar' ? { backgroundColor: '#CC222F' } : { backgroundColor: theme === 'light' ? '#E5E7EB' : 'rgba(255,255,255,0.1)' }]}>
+                  {language === 'ar' && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+                </View>
+
+                <Text style={[styles.langCardLabel, { color: language === 'ar' ? '#CC222F' : themeColors.text }, isRTL && { textAlign: 'right' }]}>
+                  العربية
+                </Text>
+
+                <View style={styles.langFlagBadge}>
+                  <Text style={styles.langFlagEmoji}>🇮🇶</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* 4. English */}
+              <TouchableOpacity
+                style={[
+                  styles.langCardItem,
+                  { backgroundColor: language === 'en' ? (theme === 'light' ? '#FFF5F5' : 'rgba(204,34,47,0.14)') : themeColors.surfaceLight },
+                  language === 'en' ? { borderColor: '#CC222F', borderWidth: 1.5 } : { borderColor: themeColors.border, borderWidth: 1 },
+                  isRTL && { flexDirection: 'row-reverse' }
+                ]}
+                onPress={() => {
+                  setLanguage('en');
+                  setShowLangModal(false);
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.langRadioCircle, language === 'en' ? { backgroundColor: '#CC222F' } : { backgroundColor: theme === 'light' ? '#E5E7EB' : 'rgba(255,255,255,0.1)' }]}>
+                  {language === 'en' && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
+                </View>
+
+                <Text style={[styles.langCardLabel, { color: language === 'en' ? '#CC222F' : themeColors.text }, isRTL && { textAlign: 'right' }]}>
+                  English
+                </Text>
+
+                <View style={styles.langFlagBadge}>
+                  <Text style={styles.langFlagEmoji}>🇬🇧</Text>
+                </View>
               </TouchableOpacity>
             </View>
-          </View>
+          </Pressable>
         </Pressable>
       </Modal>
 
@@ -1842,5 +1937,76 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // Language Selection Modal Styles (Matching Image 2)
+  langOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'flex-end',
+  },
+  langSheetContent: {
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 36,
+  },
+  sheetHandleBar: {
+    width: 38,
+    height: 4,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  langHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  langBackBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  langHeaderTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    flex: 1,
+    textAlign: 'center',
+  },
+  langCardItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+  },
+  langRadioCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  langCardLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    flex: 1,
+    marginHorizontal: 12,
+  },
+  langFlagBadge: {
+    width: 36,
+    height: 26,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  langFlagEmoji: {
+    fontSize: 18,
   },
 });
