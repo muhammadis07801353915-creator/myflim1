@@ -123,6 +123,27 @@ export default function ProfileScreen({ navigation }: any) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [sendingChat, setSendingChat] = useState(false);
+  const [hasUnreadChat, setHasUnreadChat] = useState(false);
+
+  const checkUnreadChat = async (messages: ChatMessage[]) => {
+    try {
+      const lastReadStr = await AsyncStorage.getItem('@myflim_last_read_chat');
+      const lastReadTime = lastReadStr ? new Date(lastReadStr).getTime() : 0;
+
+      const unreadAdminMsgs = messages.filter(
+        (m) => m.sender === 'admin' && new Date(m.created_at).getTime() > lastReadTime
+      );
+
+      setHasUnreadChat(unreadAdminMsgs.length > 0);
+    } catch {}
+  };
+
+  const handleOpenChatModal = async () => {
+    setShowChatModal(true);
+    setHasUnreadChat(false);
+    const futureIso = new Date(Date.now() + 10000).toISOString();
+    await AsyncStorage.setItem('@myflim_last_read_chat', futureIso);
+  };
 
   const [availableUpdate, setAvailableUpdate] = useState<AppUpdateInfo | null>(null);
   const [checkingUpdates, setCheckingUpdates] = useState(false);
@@ -145,8 +166,6 @@ export default function ProfileScreen({ navigation }: any) {
 
   // Fetch Support Chat messages (Synced with Admin Panel & Web app key 'taban_live_support_chats')
   useEffect(() => {
-    if (!showChatModal) return;
-
     const userName = user?.name || 'app_user';
     const storageKey = `@myflim_chat_history_${userName}`;
 
@@ -157,6 +176,7 @@ export default function ProfileScreen({ navigation }: any) {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setChatMessages(parsed);
+            checkUnreadChat(parsed);
           }
         }
       } catch (e) {
@@ -208,6 +228,7 @@ export default function ProfileScreen({ navigation }: any) {
         msgs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         if (msgs.length > 0) {
           setChatMessages(msgs);
+          checkUnreadChat(msgs);
           await AsyncStorage.setItem(storageKey, JSON.stringify(msgs));
         }
       } catch (e) {
@@ -218,7 +239,7 @@ export default function ProfileScreen({ navigation }: any) {
     loadLocalMessages();
     fetchChatMessages();
 
-    const interval = setInterval(fetchChatMessages, 3000);
+    const interval = setInterval(fetchChatMessages, 4000);
 
     const channel = supabase
       .channel(`mobile_support_chat_${userName}`)
@@ -228,6 +249,12 @@ export default function ProfileScreen({ navigation }: any) {
         () => fetchChatMessages()
       )
       .subscribe();
+
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
     return () => {
       clearInterval(interval);
@@ -776,10 +803,15 @@ export default function ProfileScreen({ navigation }: any) {
 
           {/* Support Live Chat (پشتیوانی ڕاستەوخۆ) */}
           {renderMenuItem(
-            <MessageSquare size={20} color="#CC222F" />,
+            <View style={{ position: 'relative' }}>
+              <MessageSquare size={20} color="#CC222F" />
+              {hasUnreadChat && (
+                <View style={{ position: 'absolute', top: -3, right: -3, width: 9, height: 9, borderRadius: 5, backgroundColor: '#CC222F', borderWidth: 1.5, borderColor: themeColors.surface }} />
+              )}
+            </View>,
             language === 'ku' ? 'پشتیوانی و چاتی ڕاستەوخۆ' : language === 'ar' ? 'الدعم والدردشة المباشرة' : 'Support & Live Chat',
-            undefined,
-            () => setShowChatModal(true)
+            hasUnreadChat ? (language === 'ku' ? 'نامەی نوێ 🔴' : language === 'ar' ? 'رسالة جديدة 🔴' : 'New reply 🔴') : undefined,
+            handleOpenChatModal
           )}
 
           {/* Language Menu Option */}
@@ -793,7 +825,7 @@ export default function ProfileScreen({ navigation }: any) {
           {renderMenuItem(
             <Info size={20} color={themeColors.text} />,
             language === 'ku' ? 'دەربارەی Taban Play' : language === 'ar' ? 'حول Taban Play' : 'About Taban Play',
-            `v${currentVersion}`,
+            undefined,
             () => setShowAboutModal(true)
           )}
 

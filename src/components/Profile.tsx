@@ -94,7 +94,30 @@ export default function Profile() {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [sendingChat, setSendingChat] = useState(false);
+  const [hasUnreadWebChat, setHasUnreadWebChat] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const checkUnreadWebChat = (messages: ChatMessage[]) => {
+    try {
+      const lastReadStr = localStorage.getItem('web_last_read_chat_time');
+      const lastReadTime = lastReadStr ? new Date(lastReadStr).getTime() : 0;
+      const unreadAdminMsgs = messages.filter(
+        (m) => m.sender === 'admin' && new Date(m.created_at).getTime() > lastReadTime
+      );
+      setHasUnreadWebChat(unreadAdminMsgs.length > 0);
+    } catch {}
+  };
+
+  const handleOpenWebChatModal = () => {
+    if (!userAccount) {
+      setShowAuthModal(true);
+    } else {
+      setShowChatModal(true);
+      setHasUnreadWebChat(false);
+      const futureIso = new Date(Date.now() + 10000).toISOString();
+      localStorage.setItem('web_last_read_chat_time', futureIso);
+    }
+  };
 
   useEffect(() => {
     syncUser();
@@ -226,6 +249,7 @@ export default function Profile() {
 
         msgs.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
         setChatMessages(msgs);
+        checkUnreadWebChat(msgs);
         localStorage.setItem(storageKey, JSON.stringify(msgs));
       } catch (e) {
         console.warn(e);
@@ -715,16 +739,21 @@ export default function Profile() {
 
         {/* Chat with Admin (قسەکردن لەگەڵ ئادمین) */}
         <ProfileMenuItem 
-          icon={MessageSquare} 
+          icon={() => (
+            <div className="relative">
+              <MessageSquare size={20} className="text-red-500" />
+              {hasUnreadWebChat && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#CC222F] rounded-full animate-pulse ring-2 ring-[#14151c]" />
+              )}
+            </div>
+          )} 
           label={language === 'ku' ? 'قسەکردن لەگەڵ ئادمین' : language === 'ar' ? 'التحدث مع الأدمن' : 'Chat with Admin'} 
-          iconClass="text-red-500"
-          onClick={() => {
-            if (!userAccount) {
-              setShowAuthModal(true);
-            } else {
-              setShowChatModal(true);
-            }
-          }} 
+          badge={hasUnreadWebChat ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-600/20 text-red-500 border border-red-500/30">
+              {language === 'ku' ? 'نامەی نوێ 🔴' : language === 'ar' ? 'رسالة جديدة 🔴' : 'New reply 🔴'}
+            </span>
+          ) : undefined}
+          onClick={handleOpenWebChatModal} 
         />
 
         {/* About Taban Play */}
@@ -1053,8 +1082,7 @@ export default function Profile() {
               )}
             </div>
 
-            <div className="pt-2 border-t border-white/10 light-mode:border-neutral-200 flex justify-between items-center text-[11px] text-white/40 light-mode:text-neutral-500 font-bold">
-              <span>Taban Play v2.4.0</span>
+            <div className="pt-2 border-t border-white/10 light-mode:border-neutral-200 flex justify-center items-center text-[11px] text-white/40 light-mode:text-neutral-500 font-bold">
               <span>© 2026 All Rights Reserved</span>
             </div>
           </div>
@@ -1069,12 +1097,14 @@ function ProfileMenuItem({
   icon: Icon, 
   label, 
   onClick, 
+  badge,
   iconClass = "text-white/80 light-mode:text-neutral-700",
   textClass = "text-white light-mode:text-black"
 }: { 
   icon: any; 
   label: string; 
   onClick: () => void; 
+  badge?: React.ReactNode;
   iconClass?: string;
   textClass?: string;
 }) {
@@ -1084,10 +1114,17 @@ function ProfileMenuItem({
       className="w-full flex items-center justify-between p-4 bg-[#14151c] light-mode:bg-white hover:bg-[#1c1e28] light-mode:hover:bg-neutral-50 rounded-2xl transition border border-white/6 light-mode:border-neutral-200"
     >
       <div className="flex items-center gap-4 sm:gap-5 rtl:gap-4">
-        <Icon size={20} className={iconClass} />
+        {typeof Icon === 'function' ? (
+          <Icon />
+        ) : (
+          <Icon size={20} className={iconClass} />
+        )}
         <span className={`font-bold text-sm ${textClass}`}>{label}</span>
       </div>
-      <ChevronRight size={18} className="text-white/40 light-mode:text-neutral-400 rtl:rotate-180" />
+      <div className="flex items-center space-x-2 rtl:space-x-reverse">
+        {badge}
+        <ChevronRight size={18} className="text-white/40 light-mode:text-neutral-400 rtl:rotate-180" />
+      </div>
     </button>
   );
 }
