@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAppStore } from '../store/useAppStore';
 import { getColors, COLORS } from '../theme/theme';
+import { getLocalized } from '../utils/localization';
 import { Play, Menu, X, Globe, CheckCircle2, Search } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
