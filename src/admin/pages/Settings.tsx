@@ -56,11 +56,43 @@ export default function SettingsAdmin() {
   const fetchSentNotifications = async () => {
     setLoadingSentNotifs(true);
     try {
-      const { data } = await supabase
+      // 1. Try notifications table first
+      const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .order('created_at', { ascending: false });
-      if (data) setSentNotifications(data);
+
+      if (!error && data && data.length >= 0) {
+        // Also check if settings table has items and merge or return
+        const { data: sData } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'app_notifications_list')
+          .maybeSingle();
+
+        let sList: any[] = [];
+        if (sData?.value) {
+          try { sList = JSON.parse(sData.value); } catch {}
+        }
+
+        const combined = Array.from(new Map([...data, ...sList].map((item: any) => [item.id || item.created_at, item])).values());
+        combined.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        setSentNotifications(combined);
+        return;
+      }
+
+      // 2. Fallback to settings table
+      const { data: sData } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'app_notifications_list')
+        .maybeSingle();
+
+      if (sData?.value) {
+        setSentNotifications(JSON.parse(sData.value));
+      } else {
+        setSentNotifications([]);
+      }
     } catch (e: any) {
       console.error('Error fetching notifications:', e);
     } finally {
@@ -76,6 +108,7 @@ export default function SettingsAdmin() {
     setSendingNotif(true);
     try {
       const newNotif = {
+        id: 'notif_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now(),
         title: notifTitle.trim(),
         body: notifBody.trim(),
         type: notifType,
@@ -83,18 +116,39 @@ export default function SettingsAdmin() {
         created_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
-        .from('notifications')
-        .insert([newNotif]);
+      // Try sending to notifications table
+      let inserted = false;
+      try {
+        const { error } = await supabase
+          .from('notifications')
+          .insert([newNotif]);
+        if (!error) inserted = true;
+      } catch (e) {}
 
-      if (error) {
-        alert('Error sending notification: ' + error.message);
-      } else {
-        alert('ئاگادارکردنەوەکە بە سەرکەوتوویی نێردرا! / Notification sent successfully!');
-        setNotifTitle('');
-        setNotifBody('');
-        fetchSentNotifications();
+      // Always backup/store in settings table to guarantee instant delivery
+      const { data: sData } = await supabase
+        .from('settings')
+        .select('id, value')
+        .eq('key', 'app_notifications_list')
+        .maybeSingle();
+
+      let currentList: any[] = [];
+      if (sData?.value) {
+        try { currentList = JSON.parse(sData.value); } catch {}
       }
+
+      const updatedList = [newNotif, ...currentList];
+
+      if (sData?.id) {
+        await supabase.from('settings').update({ value: JSON.stringify(updatedList) }).eq('key', 'app_notifications_list');
+      } else {
+        await supabase.from('settings').insert([{ key: 'app_notifications_list', value: JSON.stringify(updatedList) }]);
+      }
+
+      alert('ئاگادارکردنەوەکە بە سەرکەوتوویی نێردرا! / Notification sent successfully!');
+      setNotifTitle('');
+      setNotifBody('');
+      fetchSentNotifications();
     } catch (e: any) {
       alert('Error: ' + e.message);
     } finally {
@@ -104,7 +158,24 @@ export default function SettingsAdmin() {
 
   const deleteNotification = async (id: string) => {
     if (window.confirm('ئایا دڵنیایت لە سڕینەوەی ئەم ئاگادارکردنەوەیە؟')) {
-      await supabase.from('notifications').delete().eq('id', id);
+      try {
+        await supabase.from('notifications').delete().eq('id', id);
+      } catch {}
+
+      const { data: sData } = await supabase
+        .from('settings')
+        .select('id, value')
+        .eq('key', 'app_notifications_list')
+        .maybeSingle();
+
+      if (sData?.value) {
+        try {
+          const currentList = JSON.parse(sData.value);
+          const updatedList = currentList.filter((item: any) => String(item.id) !== String(id));
+          await supabase.from('settings').update({ value: JSON.stringify(updatedList) }).eq('key', 'app_notifications_list');
+        } catch {}
+      }
+
       fetchSentNotifications();
     }
   };

@@ -64,22 +64,42 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   fetchNotifications: async () => {
     try {
-      const { data } = await supabase
+      let fetchedNotifs: any[] = [];
+
+      // 1. Try fetching from notifications table
+      const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (data) {
-        const lastReadTimeStr = await AsyncStorage.getItem('last_read_notif_time');
-        const lastReadTime = lastReadTimeStr ? new Date(lastReadTimeStr).getTime() : 0;
-
-        const unread = data.filter((n: any) => new Date(n.created_at).getTime() > lastReadTime).length;
-
-        set({
-          notifications: data,
-          unreadNotifCount: unread
-        });
+      if (!error && data) {
+        fetchedNotifs = data;
       }
+
+      // 2. Also check settings table for fallback/backup items
+      const { data: sData } = await supabase
+        .from('settings')
+        .select('value')
+        .eq('key', 'app_notifications_list')
+        .maybeSingle();
+
+      if (sData?.value) {
+        try {
+          const sList = JSON.parse(sData.value);
+          fetchedNotifs = Array.from(new Map([...fetchedNotifs, ...sList].map((item: any) => [item.id || item.created_at, item])).values());
+          fetchedNotifs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        } catch {}
+      }
+
+      const lastReadTimeStr = await AsyncStorage.getItem('last_read_notif_time');
+      const lastReadTime = lastReadTimeStr ? new Date(lastReadTimeStr).getTime() : 0;
+
+      const unread = fetchedNotifs.filter((n: any) => new Date(n.created_at).getTime() > lastReadTime).length;
+
+      set({
+        notifications: fetchedNotifs,
+        unreadNotifCount: unread
+      });
     } catch (e) {
       console.warn('Error fetching notifications:', e);
     }
