@@ -106,9 +106,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   markNotificationsRead: async () => {
-    const nowIso = new Date().toISOString();
+    const futureTimeIso = new Date(Date.now() + 10000).toISOString();
     set({ unreadNotifCount: 0 });
-    await AsyncStorage.setItem('last_read_notif_time', nowIso);
+    await AsyncStorage.setItem('last_read_notif_time', futureTimeIso);
   },
 
   unlockApp: async (code: string) => {

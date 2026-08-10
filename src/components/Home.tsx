@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { 
   Play, Plus, Star, ChevronLeft, Bell, Search, 
-  ChevronRight, Bookmark, Check, Info, Sparkles, Flame
+  ChevronRight, Bookmark, Check, Info, Sparkles, Flame, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
@@ -30,6 +30,53 @@ export default function Home({
   const [displayLimit, setDisplayLimit] = useState(10);
   const [filterType, setFilterType] = useState<'all' | 'Movie' | 'Series'>('all');
   const [watchlistIds, setWatchlistIds] = useState<string[]>([]);
+  const [showWebNotifModal, setShowWebNotifModal] = useState(false);
+  const [webNotifications, setWebNotifications] = useState<any[]>([]);
+  const [unreadWebNotifCount, setUnreadWebNotifCount] = useState(0);
+
+  const fetchWebNotifications = useCallback(async () => {
+    try {
+      let fetched: any[] = [];
+      const { data, error } = await supabase.from('notifications').select('*').order('created_at', { ascending: false });
+      if (!error && data) fetched = data;
+
+      const { data: sData } = await supabase.from('settings').select('value').eq('key', 'app_notifications_list').maybeSingle();
+      if (sData?.value) {
+        try {
+          const sList = JSON.parse(sData.value);
+          fetched = Array.from(new Map([...fetched, ...sList].map((i: any) => [i.id || i.created_at, i])).values());
+          fetched.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        } catch {}
+      }
+
+      const lastRead = localStorage.getItem('web_last_read_notif_time');
+      const lastReadTime = lastRead ? new Date(lastRead).getTime() : 0;
+      const unread = fetched.filter(n => new Date(n.created_at).getTime() > lastReadTime).length;
+
+      setWebNotifications(fetched);
+      setUnreadWebNotifCount(unread);
+    } catch (e) {
+      console.warn('Error fetching web notifications:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchWebNotifications();
+  }, [fetchWebNotifications]);
+
+  const handleOpenWebNotifs = () => {
+    setShowWebNotifModal(true);
+    setUnreadWebNotifCount(0);
+    const futureTimeIso = new Date(Date.now() + 10000).toISOString();
+    localStorage.setItem('web_last_read_notif_time', futureTimeIso);
+  };
+
+  const handleCloseWebNotifs = () => {
+    setShowWebNotifModal(false);
+    setUnreadWebNotifCount(0);
+    const futureTimeIso = new Date(Date.now() + 10000).toISOString();
+    localStorage.setItem('web_last_read_notif_time', futureTimeIso);
+  };
 
   // Derive viewingList from URL
   const listName = searchParams ? searchParams.get('list') : null;
@@ -264,10 +311,15 @@ export default function Home({
         {/* Header Right Tools */}
         <div className="flex items-center space-x-3 rtl:space-x-reverse">
           <div className="relative">
-            <button className="p-2.5 rounded-full bg-[#14151c] light-mode:bg-neutral-100 hover:bg-neutral-800 light-mode:hover:bg-neutral-200 text-neutral-300 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black border border-white/10 light-mode:border-neutral-200 transition">
+            <button 
+              onClick={handleOpenWebNotifs}
+              className="p-2.5 rounded-full bg-[#14151c] light-mode:bg-neutral-100 hover:bg-neutral-800 light-mode:hover:bg-neutral-200 text-neutral-300 light-mode:text-neutral-700 hover:text-white light-mode:hover:text-black border border-white/10 light-mode:border-neutral-200 transition relative"
+            >
               <Bell size={18} />
+              {unreadWebNotifCount > 0 && (
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#CC222F] rounded-full animate-pulse"></span>
+              )}
             </button>
-            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#CC222F] rounded-full light-mode:hidden"></span>
           </div>
         </div>
       </header>
@@ -540,6 +592,103 @@ export default function Home({
       </div>
 
       <FloatingSocialButton />
+
+      {/* ── WEB NOTIFICATIONS / ANNOUNCEMENTS MODAL ───────────────── */}
+      <AnimatePresence>
+        {showWebNotifModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[150] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={handleCloseWebNotifs}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="bg-[#14151c] light-mode:bg-white border border-white/10 light-mode:border-neutral-200 rounded-3xl max-w-md w-full overflow-hidden shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 light-mode:border-neutral-200">
+                <div className="flex items-center space-x-3 rtl:space-x-reverse">
+                  <div className="p-2.5 rounded-2xl bg-red-600/10 text-[#CC222F]">
+                    <Bell size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-white light-mode:text-black">
+                      {language === 'ku' ? 'ئاگادارکردنەوەکان' : language === 'ar' ? 'الإشعارات' : 'Notifications'}
+                    </h3>
+                  </div>
+                  {webNotifications.length > 0 && (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/10 text-neutral-300 light-mode:bg-neutral-100 light-mode:text-neutral-700">
+                      {webNotifications.length}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={handleCloseWebNotifs}
+                  className="p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 max-h-[440px] overflow-y-auto space-y-3">
+                {webNotifications.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 space-y-3 text-neutral-500">
+                    <Bell size={44} className="opacity-30" />
+                    <p className="text-sm font-medium">
+                      {language === 'ku' ? 'هیچ ئاگادارکردنەوە یان تێبینییەک نییە' : language === 'ar' ? 'لا توجد إشعارات حالياً' : 'No notifications available yet'}
+                    </p>
+                  </div>
+                ) : (
+                  webNotifications.map((item: any) => {
+                    const isPush = item.type === 'push_and_inbox';
+                    return (
+                      <div
+                        key={item.id || item.created_at}
+                        className={`p-4 rounded-2xl border transition ${
+                          isPush
+                            ? 'bg-red-500/10 border-red-500/30 text-white'
+                            : 'bg-white/5 light-mode:bg-neutral-100 border-white/5 light-mode:border-neutral-200 text-white light-mode:text-black'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-1.5 rtl:space-x-reverse text-xs font-bold">
+                            {isPush ? (
+                              <>
+                                <Bell size={14} className="text-[#CC222F]" />
+                                <span className="text-[#CC222F]">
+                                  {language === 'ku' ? '📣 ڕاگەیاندن' : language === 'ar' ? 'إعلان عام' : 'Push Notice'}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <Info size={14} className="text-blue-400" />
+                                <span className="text-blue-400">
+                                  {language === 'ku' ? '📥 تێبینی / هەواڵ' : language === 'ar' ? 'ملاحظة' : 'Notice'}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          <span className="text-[11px] text-neutral-400">
+                            {new Date(item.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-sm text-white light-mode:text-black mb-1">{item.title}</h4>
+                        <p className="text-xs text-neutral-300 light-mode:text-neutral-600 leading-relaxed">{item.body}</p>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

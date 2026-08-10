@@ -150,6 +150,11 @@ export default function HomeScreen({ navigation }: any) {
     markNotificationsRead();
   };
 
+  const handleCloseNotifModal = () => {
+    setShowNotifModal(false);
+    markNotificationsRead();
+  };
+
   const featured = isUnlocked ? movies.filter((m) => m.is_featured) : [];
   const topContents = isUnlocked
     ? movies
@@ -463,9 +468,9 @@ export default function HomeScreen({ navigation }: any) {
         visible={showNotifModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowNotifModal(false)}
+        onRequestClose={handleCloseNotifModal}
       >
-        <Pressable style={styles.notifOverlay} onPress={() => setShowNotifModal(false)}>
+        <Pressable style={styles.notifOverlay} onPress={handleCloseNotifModal}>
           <Pressable style={[styles.notifSheet, { backgroundColor: themeColors.surface }]} onPress={() => {}}>
             {/* Sheet Handle */}
             <View style={[styles.notifHandle, { backgroundColor: themeColors.border }]} />
@@ -485,7 +490,7 @@ export default function HomeScreen({ navigation }: any) {
                   </View>
                 )}
               </View>
-              <TouchableOpacity onPress={() => setShowNotifModal(false)} style={styles.notifCloseBtn}>
+              <TouchableOpacity onPress={handleCloseNotifModal} style={styles.notifCloseBtn}>
                 <X size={20} color={themeColors.textSecondary} />
               </TouchableOpacity>
             </View>
