@@ -17,15 +17,15 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
   const [sortBy, setSortBy] = useState<'newest' | 'rating' | 'popular'>('newest');
 
   const typeOptions = [
-    { id: 'All', label: language === 'ku' ? 'هەمووی' : language === 'ar' ? 'الكل' : 'All' },
-    { id: 'Movie', label: language === 'ku' ? 'فیلمەکان' : language === 'ar' ? 'أفلام' : 'Movies' },
-    { id: 'Series', label: language === 'ku' ? 'زنجیرەکان' : language === 'ar' ? 'مسلسلات' : 'Series' },
-    { id: 'Anime', label: language === 'ku' ? 'ئەنیمەیشن' : language === 'ar' ? 'أنيمي' : 'Anime' },
-    { id: 'LiveTV', label: language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'Live TV' },
+    { id: 'All', label: language === 'ku' ? 'هەمووی' : language === 'badini' ? 'هەمی' : language === 'ar' ? 'الكل' : 'All' },
+    { id: 'Movie', label: language === 'ku' ? 'فیلمەکان' : language === 'badini' ? 'فیلم' : language === 'ar' ? 'أفلام' : 'Movies' },
+    { id: 'Series', label: language === 'ku' ? 'زنجیرەکان' : language === 'badini' ? 'زنجیرە' : language === 'ar' ? 'مسلسلات' : 'Series' },
+    { id: 'Anime', label: language === 'ku' ? 'ئەنیمەیشن' : language === 'badini' ? 'ئەنیمەیشن' : language === 'ar' ? 'أنيمي' : 'Anime' },
+    { id: 'LiveTV', label: language === 'ku' ? 'ڕاستەوخۆ' : language === 'badini' ? 'ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'Live TV' },
   ];
 
   const yearsList = [
-    { id: 'All', label: language === 'ku' ? 'هەموو ساڵەکان' : language === 'ar' ? 'جميع السنوات' : 'All Years' },
+    { id: 'All', label: language === 'ku' ? 'هەموو ساڵەکان' : language === 'badini' ? 'تەڤایا ساڵان' : language === 'ar' ? 'جميع السنوات' : 'All Years' },
     { id: '2026', label: '2026' },
     { id: '2025', label: '2025' },
     { id: '2024', label: '2024' },
@@ -37,21 +37,21 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
     { id: '2018', label: '2018' },
     { id: '2015', label: '2015' },
     { id: '2010', label: '2010' },
-    { id: '2000s', label: language === 'ku' ? 'ساڵانی 2000' : '2000s' },
-    { id: '1990s', label: language === 'ku' ? 'ساڵانی 1990' : '1990s' },
+    { id: '2000s', label: language === 'ku' ? 'ساڵانی 2000' : language === 'badini' ? 'ساڵێن 2000' : language === 'ar' ? 'عقد 2000' : '2000s' },
+    { id: '1990s', label: language === 'ku' ? 'ساڵانی 1990' : language === 'badini' ? 'ساڵێن 1990' : language === 'ar' ? 'عقد 1990' : '1990s' },
   ];
 
   const genresList = [
-    { id: 'All', label: language === 'ku' ? 'هەموو جۆرەکان' : language === 'ar' ? 'جميع الأنواع' : 'All Genres' },
-    { id: 'Action', label: language === 'ku' ? 'ئەکشن' : language === 'ar' ? 'أكشن' : 'Action' },
-    { id: 'Comedy', label: language === 'ku' ? 'کۆمیدی' : language === 'ar' ? 'كوميدي' : 'Comedy' },
-    { id: 'Drama', label: language === 'ku' ? 'دراما' : language === 'ar' ? 'دراما' : 'Drama' },
-    { id: 'Horror', label: language === 'ku' ? 'ترسناک' : language === 'ar' ? 'رعب' : 'Horror' },
-    { id: 'Romance', label: language === 'ku' ? 'رۆمانسی' : language === 'ar' ? 'رومانسي' : 'Romance' },
-    { id: 'Sci-Fi', label: language === 'ku' ? 'زانستی' : language === 'ar' ? 'خيال علمي' : 'Sci-Fi' },
-    { id: 'Crime', label: language === 'ku' ? 'تاوان کاری' : language === 'ar' ? 'جريمة' : 'Crime' },
-    { id: 'Animation', label: language === 'ku' ? 'ئەنیمەیشن' : language === 'ar' ? 'رسوم متحركة' : 'Animation' },
-    { id: 'زنجیرەی کوردی دۆبلاژ', label: language === 'ku' ? 'کوردی دۆبلاژ' : language === 'ar' ? 'مدبلج كودي' : 'Kurdish Dubbed' },
+    { id: 'All', label: language === 'ku' ? 'هەموو جۆرەکان' : language === 'badini' ? 'تەڤایا جۆران' : language === 'ar' ? 'جميع الأنواع' : 'All Genres' },
+    { id: 'Action', label: language === 'ku' ? 'ئەکشن' : language === 'badini' ? 'ئەکشن' : language === 'ar' ? 'أكشن' : 'Action' },
+    { id: 'Comedy', label: language === 'ku' ? 'کۆمیدی' : language === 'badini' ? 'کۆمیدی' : language === 'ar' ? 'كوميدي' : 'Comedy' },
+    { id: 'Drama', label: language === 'ku' ? 'دراما' : language === 'badini' ? 'دراما' : language === 'ar' ? 'دراما' : 'Drama' },
+    { id: 'Horror', label: language === 'ku' ? 'ترسناک' : language === 'badini' ? 'ترسناک' : language === 'ar' ? 'رعب' : 'Horror' },
+    { id: 'Romance', label: language === 'ku' ? 'رۆمانسی' : language === 'badini' ? 'رۆمانسی' : language === 'ar' ? 'رومانسي' : 'Romance' },
+    { id: 'Sci-Fi', label: language === 'ku' ? 'زانستی' : language === 'badini' ? 'زانستی' : language === 'ar' ? 'خيال علمي' : 'Sci-Fi' },
+    { id: 'Crime', label: language === 'ku' ? 'تاوان کاری' : language === 'badini' ? 'تاوان کاری' : language === 'ar' ? 'جريمة' : 'Crime' },
+    { id: 'Animation', label: language === 'ku' ? 'ئەنیمەیشن' : language === 'badini' ? 'ئەنیمەیشن' : language === 'ar' ? 'رسوم متحركة' : 'Animation' },
+    { id: 'زنجیرەی کوردی دۆبلاژ', label: language === 'ku' ? 'کوردی دۆبلاژ' : language === 'badini' ? 'دۆبلاژکری یێن کوردی' : language === 'ar' ? 'مدبلج كوردي' : 'Kurdish Dubbed' },
   ];
 
   const isAnimeItem = (m: any) => {
@@ -149,7 +149,7 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
         <SearchIcon className="absolute left-4 rtl:left-auto rtl:right-4 top-1/2 -translate-y-1/2 text-white/40 light-mode:text-neutral-500" size={20} />
         <input
           type="text"
-          placeholder={language === 'ku' ? 'گەڕان بۆ فیلم، زنجیرە، لایڤ تەلەڤیزیۆن...' : language === 'ar' ? 'البحث عن فيلم، مسلسل، بث مباشر...' : 'Search movies, series, live TV...'}
+          placeholder={language === 'ku' ? 'گەڕان بۆ فیلم، زنجیرە، لایڤ تەلەڤیزیۆن...' : language === 'badini' ? 'لێگەڕیان بۆ فیلم، زنجیرە، لایڤ تەلەڤیزیۆن...' : language === 'ar' ? 'البحث عن فيلم، مسلسل، بث مباشر...' : 'Search movies, series, live TV...'}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="w-full bg-white/7 light-mode:bg-white border border-white/10 light-mode:border-neutral-300 text-white light-mode:text-black placeholder-white/40 light-mode:placeholder-neutral-400 rounded-2xl py-4 pl-12 pr-10 rtl:pl-10 rtl:pr-12 focus:outline-none focus:border-[#CC222F]/60 transition-colors shadow-lg text-base"
@@ -213,8 +213,8 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-bold text-white light-mode:text-black tracking-tight">
           {query || activeType !== 'All' || activeGenre !== 'All'
-            ? `${language === 'ku' ? 'ئەنجامەکان' : language === 'ar' ? 'النتائج' : 'Results'} (${filteredItems.length})`
-            : (language === 'ku' ? 'ناو بەرز و دیارەکان' : language === 'ar' ? 'الرائج الآن' : 'Trending Now')}
+            ? `${language === 'ku' ? 'ئەنجامەکان' : language === 'badini' ? 'ئەنجام' : language === 'ar' ? 'النتائج' : 'Results'} (${filteredItems.length})`
+            : (language === 'ku' ? 'تۆپ 250' : language === 'badini' ? 'تۆپ 250' : language === 'ar' ? 'الرائج الآن' : 'Trending Now')}
         </h2>
 
         <button
@@ -224,10 +224,10 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
           <ArrowUpDown size={14} className="text-[#CC222F]" />
           <span>
             {sortBy === 'newest'
-              ? (language === 'ku' ? 'نوێترین' : language === 'ar' ? 'الأحدث' : 'Newest')
+              ? (language === 'ku' ? 'نوێترین' : language === 'badini' ? 'نوی‌ترین' : language === 'ar' ? 'الأحدث' : 'Newest')
               : sortBy === 'rating'
-              ? (language === 'ku' ? 'هەڵسەنگاندن' : language === 'ar' ? 'الأعلى تقييماً' : 'Rating')
-              : (language === 'ku' ? 'ناودارتر' : language === 'ar' ? 'الأكثر شعبية' : 'Popular')}
+              ? (language === 'ku' ? 'هەڵسەنگاندن' : language === 'badini' ? 'هەلسەنگاندن' : language === 'ar' ? 'الأعلى تقييماً' : 'Rating')
+              : (language === 'ku' ? 'ناودارتر' : language === 'badini' ? 'دیارترین' : language === 'ar' ? 'الأكثر شعبية' : 'Popular')}
           </span>
         </button>
       </div>

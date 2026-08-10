@@ -41,28 +41,28 @@ export default function SearchScreen({ navigation }: any) {
   const [showFilterModal, setShowFilterModal] = useState(false);
 
   const typeOptions = [
-    { id: 'All', label: language === 'ku' ? 'هەمووی' : language === 'ar' ? 'الكل' : 'All' },
-    { id: 'Movie', label: language === 'ku' ? 'فیلمەکان' : language === 'ar' ? 'أفلام' : 'Movies' },
-    { id: 'Series', label: language === 'ku' ? 'زنجیرەکان' : language === 'ar' ? 'مسلسلات' : 'Series' },
-    { id: 'Anime', label: language === 'ku' ? 'ئەنیمەیشن' : language === 'ar' ? 'أنيمي' : 'Anime' },
-    { id: 'LiveTV', label: language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'Live TV' },
+    { id: 'All', label: language === 'ku' ? 'هەمووی' : language === 'badini' ? 'هەمی' : language === 'ar' ? 'الكل' : 'All' },
+    { id: 'Movie', label: language === 'ku' ? 'فیلمەکان' : language === 'badini' ? 'فیلم' : language === 'ar' ? 'أفلام' : 'Movies' },
+    { id: 'Series', label: language === 'ku' ? 'زنجیرەکان' : language === 'badini' ? 'زنجیرە' : language === 'ar' ? 'مسلسلات' : 'Series' },
+    { id: 'Anime', label: language === 'ku' ? 'ئەنیمەیشن' : language === 'badini' ? 'ئەنیمەیشن' : language === 'ar' ? 'أنيمي' : 'Anime' },
+    { id: 'LiveTV', label: language === 'ku' ? 'ڕاستەوخۆ' : language === 'badini' ? 'ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'Live TV' },
   ];
 
   const genresList = [
-    { id: 'All', label: language === 'ku' ? 'هەموو جۆرەکان' : language === 'ar' ? 'جميع الأنواع' : 'All Genres' },
-    { id: 'Action', label: language === 'ku' ? 'ئەکشن' : language === 'ar' ? 'أكشن' : 'Action' },
-    { id: 'Comedy', label: language === 'ku' ? 'کۆمیدی' : language === 'ar' ? 'كوميدي' : 'Comedy' },
-    { id: 'Drama', label: language === 'ku' ? 'دراما' : language === 'ar' ? 'دراما' : 'Drama' },
-    { id: 'Horror', label: language === 'ku' ? 'ترسناک' : language === 'ar' ? 'رعب' : 'Horror' },
-    { id: 'Romance', label: language === 'ku' ? 'رۆمانسی' : language === 'ar' ? 'رومانسي' : 'Romance' },
-    { id: 'Sci-Fi', label: language === 'ku' ? 'زانستی' : language === 'ar' ? 'خيال علمي' : 'Sci-Fi' },
-    { id: 'Crime', label: language === 'ku' ? 'تاوان کاری' : language === 'ar' ? 'جريمة' : 'Crime' },
-    { id: 'Animation', label: language === 'ku' ? 'ئەنیمەیشن' : language === 'ar' ? 'رسوم متحركة' : 'Animation' },
-    { id: 'زنجیرەی کوردی دۆبلاژ', label: language === 'ku' ? 'کوردی دۆبلاژ' : language === 'ar' ? 'مدبلج كودي' : 'Kurdish Dubbed' },
+    { id: 'All', label: language === 'ku' ? 'هەموو جۆرەکان' : language === 'badini' ? 'تەڤایا جۆران' : language === 'ar' ? 'جميع الأنواع' : 'All Genres' },
+    { id: 'Action', label: language === 'ku' ? 'ئەکشن' : language === 'badini' ? 'ئەکشن' : language === 'ar' ? 'أكشن' : 'Action' },
+    { id: 'Comedy', label: language === 'ku' ? 'کۆمیدی' : language === 'badini' ? 'کۆمیدی' : language === 'ar' ? 'كوميدي' : 'Comedy' },
+    { id: 'Drama', label: language === 'ku' ? 'دراما' : language === 'badini' ? 'دراما' : language === 'ar' ? 'دراما' : 'Drama' },
+    { id: 'Horror', label: language === 'ku' ? 'ترسناک' : language === 'badini' ? 'ترسناک' : language === 'ar' ? 'رعب' : 'Horror' },
+    { id: 'Romance', label: language === 'ku' ? 'رۆمانسی' : language === 'badini' ? 'رۆمانسی' : language === 'ar' ? 'رومانسي' : 'Romance' },
+    { id: 'Sci-Fi', label: language === 'ku' ? 'زانستی' : language === 'badini' ? 'زانستی' : language === 'ar' ? 'خيال علمي' : 'Sci-Fi' },
+    { id: 'Crime', label: language === 'ku' ? 'تاوان کاری' : language === 'badini' ? 'تاوان کاری' : language === 'ar' ? 'جريمة' : 'Crime' },
+    { id: 'Animation', label: language === 'ku' ? 'ئەنیمەیشن' : language === 'badini' ? 'ئەنیمەیشن' : language === 'ar' ? 'رسوم متحركة' : 'Animation' },
+    { id: 'زنجیرەی کوردی دۆبلاژ', label: language === 'ku' ? 'کوردی دۆبلاژ' : language === 'badini' ? 'دۆبلاژکری یێن کوردی' : language === 'ar' ? 'مدبلج كوردي' : 'Kurdish Dubbed' },
   ];
 
   const yearsList = [
-    { id: 'All', label: language === 'ku' ? 'هەموو ساڵەکان' : language === 'ar' ? 'جميع السنوات' : 'All Years' },
+    { id: 'All', label: language === 'ku' ? 'هەموو ساڵەکان' : language === 'badini' ? 'تەڤایا ساڵان' : language === 'ar' ? 'جميع السنوات' : 'All Years' },
     { id: '2026', label: '2026' },
     { id: '2025', label: '2025' },
     { id: '2024', label: '2024' },
@@ -74,8 +74,8 @@ export default function SearchScreen({ navigation }: any) {
     { id: '2018', label: '2018' },
     { id: '2015', label: '2015' },
     { id: '2010', label: '2010' },
-    { id: '2000s', label: language === 'ku' ? 'ساڵانی 2000' : '2000s' },
-    { id: '1990s', label: language === 'ku' ? 'ساڵانی 1990' : '1990s' },
+    { id: '2000s', label: language === 'ku' ? 'ساڵانی 2000' : language === 'badini' ? 'ساڵێن 2000' : language === 'ar' ? 'عقد 2000' : '2000s' },
+    { id: '1990s', label: language === 'ku' ? 'ساڵانی 1990' : language === 'badini' ? 'ساڵێن 1990' : language === 'ar' ? 'عقد 1990' : '1990s' },
   ];
 
   const scrollToRightEdgeRTL = (ref: React.RefObject<ScrollView | null>) => {
@@ -336,8 +336,8 @@ export default function SearchScreen({ navigation }: any) {
             <View style={[styles.listHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
               <Text style={[styles.listHeader, { color: themeColors.text }]}>
                 {query.length > 0 || activeType !== 'All' || activeGenre !== 'All'
-                  ? `${t.results || 'ئەنجامەکان'} (${results.length})` 
-                  : (language === 'ku' ? 'ناو بەرز و دیارەکان' : language === 'ar' ? 'الرائج الآن' : 'Trending Now')}
+                  ? `${language === 'ku' ? 'ئەنجامەکان' : language === 'badini' ? 'ئەنجام' : language === 'ar' ? 'النتائج' : 'Results'} (${results.length})` 
+                  : (language === 'ku' ? 'تۆپ 250' : language === 'badini' ? 'تۆپ 250' : language === 'ar' ? 'الرائج الآن' : 'Trending Now')}
               </Text>
               
               <TouchableOpacity 
@@ -347,10 +347,10 @@ export default function SearchScreen({ navigation }: any) {
                 <ArrowUpDown size={14} color="#CC222F" />
                 <Text style={[styles.sortBtnText, { color: themeColors.textSecondary }]}>
                   {sortBy === 'newest' 
-                    ? (language === 'ku' ? 'نوێترین' : language === 'ar' ? 'الأحدث' : 'Newest')
+                    ? (language === 'ku' ? 'نوێترین' : language === 'badini' ? 'نوی‌ترین' : language === 'ar' ? 'الأحدث' : 'Newest')
                     : sortBy === 'rating'
-                    ? (language === 'ku' ? 'هەڵسەنگاندن' : language === 'ar' ? 'الأعلى تقييماً' : 'Rating')
-                    : (language === 'ku' ? 'ناودارتر' : language === 'ar' ? 'الأكثر شعبية' : 'Popular')}
+                    ? (language === 'ku' ? 'هەڵسەنگاندن' : language === 'badini' ? 'هەلسەنگاندن' : language === 'ar' ? 'الأعلى تقييماً' : 'Rating')
+                    : (language === 'ku' ? 'ناودارتر' : language === 'badini' ? 'دیارترین' : language === 'ar' ? 'الأكثر شعبية' : 'Popular')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -362,7 +362,7 @@ export default function SearchScreen({ navigation }: any) {
           <View style={styles.emptyContainer}>
             <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
               {isUnlocked 
-                ? (language === 'ku' ? 'هیچ ئەنجامێک نەدۆزرایەوە' : language === 'ar' ? 'لم يتم العثور على نتائج' : t.noResults)
+                ? (language === 'ku' ? 'هیچ ئەنجامێک نەدۆزرایەوە' : language === 'badini' ? 'هیچ ئەنجامەک نەهاتە دیتن' : language === 'ar' ? 'لم يتم العثور على نتائج' : t.noResults)
                 : t.noResults}
             </Text>
           </View>
@@ -379,20 +379,22 @@ export default function SearchScreen({ navigation }: any) {
         <Pressable style={styles.modalOverlay} onPress={() => setShowFilterModal(false)}>
           <View style={[styles.modalContent, { backgroundColor: themeColors.surface }]} onStartShouldSetResponder={() => true}>
             <View style={[styles.modalHeader, isRTL && { flexDirection: 'row-reverse' }]}>
-              <Text style={[styles.modalTitle, { color: themeColors.text }]}>{t.filterByType || 'پاڵاوتنی خێرا'}</Text>
+              <Text style={[styles.modalTitle, { color: themeColors.text }]}>
+                {language === 'ku' ? 'پاڵاوتنی خێرا' : language === 'badini' ? 'پاڵاوتنا خێرا' : language === 'ar' ? 'تصفية سريعة' : 'Quick Filter'}
+              </Text>
               <TouchableOpacity onPress={() => setShowFilterModal(false)}>
                 <X color={themeColors.textSecondary} size={24} />
               </TouchableOpacity>
             </View>
 
             <Text style={[styles.filterGroupTitle, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>
-              {language === 'ku' ? 'ڕێکخستن بەپێی:' : language === 'ar' ? 'الترتيب حسب:' : 'Sort By:'}
+              {language === 'ku' ? 'ڕێکخستن بەپێی:' : language === 'badini' ? 'ڕێکخستن ل دویڤ:' : language === 'ar' ? 'الترتيب حسب:' : 'Sort By:'}
             </Text>
             <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', gap: 8, marginBottom: 20 }}>
               {[
-                { id: 'newest', label: language === 'ku' ? 'نوێترین' : 'Newest' },
-                { id: 'rating', label: language === 'ku' ? 'بەرزترین پلە' : 'Top Rated' },
-                { id: 'popular', label: language === 'ku' ? 'ناودارترین' : 'Popular' },
+                { id: 'newest', label: language === 'ku' ? 'نوێترین' : language === 'badini' ? 'نوی‌ترین' : language === 'ar' ? 'الأحدث' : 'Newest' },
+                { id: 'rating', label: language === 'ku' ? 'بەرزترین پلە' : language === 'badini' ? 'بەرزترین هەلسەنگاندن' : language === 'ar' ? 'الأعلى تقييماً' : 'Top Rated' },
+                { id: 'popular', label: language === 'ku' ? 'ناودارترین' : language === 'badini' ? 'دیارترین' : language === 'ar' ? 'الأكثر شعبية' : 'Popular' },
               ].map(s => (
                 <TouchableOpacity
                   key={s.id}
@@ -405,7 +407,7 @@ export default function SearchScreen({ navigation }: any) {
             </View>
 
             <Text style={[styles.filterGroupTitle, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>
-              {language === 'ku' ? 'جۆری ناوەرۆک:' : language === 'ar' ? 'نوع المحتوى:' : 'Content Type:'}
+              {language === 'ku' ? 'جۆری ناوەرۆک:' : language === 'badini' ? 'جۆرێ ناوەڕۆکێ:' : language === 'ar' ? 'نوع المحتوى:' : 'Content Type:'}
             </Text>
             <View style={styles.filterList}>
               {typeOptions.map(option => (
