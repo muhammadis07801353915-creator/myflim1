@@ -288,7 +288,7 @@ export default function LiveTV() {
             const embedUrl = getLiveEmbedUrl(activeUrl);
             const isIframe = !isM3u8 && !isDirectVideo && embedUrl !== '';
 
-            const liveLabelText = language === 'ku' ? 'پەخشی ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'LIVE BROADCAST';
+            const liveLabelText = language === 'ku' ? 'پەخشی ڕاستەوخۆ' : language === 'badini' ? 'پەخسا ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'LIVE BROADCAST';
 
             return !activeUrl ? (
               <div className="w-full h-full flex items-center justify-center bg-neutral-900 text-neutral-400 absolute inset-0">
@@ -391,7 +391,7 @@ export default function LiveTV() {
                 <span>LIVE</span>
                 <span className="opacity-40">•</span>
                 <span className="text-white font-mono">{realLiveViewers.toLocaleString()}</span>
-                <span className="text-[11px] text-white/60 font-normal">{language === 'ku' ? 'بینەر' : language === 'ar' ? 'مشاهد' : 'viewers'}</span>
+                <span className="text-[11px] text-white/60 font-normal">{language === 'ku' ? 'بینەر' : language === 'badini' ? 'بینەر' : language === 'ar' ? 'مشاهد' : 'viewers'}</span>
               </div>
             </div>
           </div>
@@ -463,15 +463,15 @@ export default function LiveTV() {
   }
 
   if (viewAllCategory) {
-    const isMostWatched = viewAllCategory === 'Most Watched' || viewAllCategory === 'زۆرترین بیندراو' || viewAllCategory === 'الأكثر مشاهدة';
+    const isMostWatched = viewAllCategory === 'Most Watched' || viewAllCategory === 'زۆرترین بیندراو' || viewAllCategory === 'زۆرترین سەحکری' || viewAllCategory === 'الأكثر مشاهدة';
     const isVip = viewAllCategory === 'Taban Play VIP' || viewAllCategory === 'تابان پڵەی VIP';
     const categoryChannels = isMostWatched 
       ? mostWatchedChannels 
       : (isVip ? vipChannels : (channelsByCategory[viewAllCategory] || []));
     const pageTitle = isMostWatched
-      ? (language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched')
+      ? (language === 'ku' ? 'زۆرترین بیندراو' : language === 'badini' ? 'زۆرترین سەحکری' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched')
       : (isVip 
-          ? (language === 'ku' ? 'تابان پڵەی VIP' : language === 'ar' ? 'تابان بلاي VIP' : 'Taban Play VIP')
+          ? (language === 'ku' ? 'تابان پڵەی VIP' : language === 'badini' ? 'تابان پڵەی VIP' : language === 'ar' ? 'تابان بلاي VIP' : 'Taban Play VIP')
           : (getLocalized(viewAllCategory, 'name', language) || viewAllCategory));
 
     return (
@@ -560,14 +560,14 @@ export default function LiveTV() {
                 <X size={12} className="shrink-0" onClick={(e) => { e.stopPropagation(); setSelectedCountry(null); }} />
               </>
             ) : (
-              <span>{language === 'ku' ? 'وڵات' : language === 'ar' ? 'الدولة' : 'Country'}</span>
+              <span>{language === 'ku' ? 'وڵات' : language === 'badini' ? 'وەڵات' : language === 'ar' ? 'الدولة' : 'Country'}</span>
             )}
           </button>
         </div>
 
         {/* Centered Title "ڕاستەوخۆ" / "Live" */}
         <h1 className="text-xl font-black tracking-tight whitespace-nowrap text-white light-mode:text-black text-center px-2">
-          {language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
+          {language === 'ku' ? 'ڕاستەوخۆ' : language === 'badini' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
         </h1>
 
         {/* Search icon button */}
@@ -604,10 +604,10 @@ export default function LiveTV() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0">
               <div>
                 <h2 className="text-xl font-black text-white tracking-tight">
-                  {language === 'ku' ? 'وڵاتەکان' : language === 'ar' ? 'الدول' : 'Countries'}
+                  {language === 'ku' ? 'وڵاتەکان' : language === 'badini' ? 'وەڵات' : language === 'ar' ? 'الدول' : 'Countries'}
                 </h2>
                 <p className="text-xs text-white/50 mt-0.5">
-                  {language === 'ku' ? 'وڵاتێک هەلبژێرە بۆ فلتەرکردنی کەناڵ' : language === 'ar' ? 'اختر دولة لتصفية القنوات' : 'Select a country to filter channels'}
+                  {language === 'ku' ? 'وڵاتێک هەلبژێرە بۆ فلتەرکردنی کەناڵ' : language === 'badini' ? 'وەڵاتەکێ هەڵبژێرە بۆ فلتەرکرنا کەناڵان' : language === 'ar' ? 'اختر دولة لتصفية القنوات' : 'Select a country to filter channels'}
                 </p>
               </div>
               <button 
@@ -624,7 +624,7 @@ export default function LiveTV() {
                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
                 <input
                   type="text"
-                  placeholder={language === 'ku' ? 'گەڕان بۆ وڵات...' : language === 'ar' ? 'البحث عن دولة...' : 'Search country...'}
+                  placeholder={language === 'ku' ? 'گەڕان بۆ وڵات...' : language === 'badini' ? 'لێگەڕیان بۆ وەڵاتی...' : language === 'ar' ? 'البحث عن دولة...' : 'Search country...'}
                   value={countrySearchQuery}
                   onChange={(e) => setCountrySearchQuery(e.target.value)}
                   className="w-full bg-white/7 border border-white/10 rounded-xl pl-10 pr-9 py-2.5 text-sm text-white placeholder-white/35 outline-none focus:border-[#CC222F]/50 transition"
@@ -655,7 +655,7 @@ export default function LiveTV() {
                   <div className="w-14 h-9 rounded-lg bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
                     <Globe size={22} className="text-white/60" />
                   </div>
-                  <span className="text-[17px] flex-1">{language === 'ku' ? 'هەموو وڵاتەکان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}</span>
+                  <span className="text-[17px] flex-1">{language === 'ku' ? 'هەموو وڵاتەکان' : language === 'badini' ? 'تەڤایا وەڵاتان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}</span>
                   {!selectedCountry && <CheckCircle2 size={20} className="text-[#CC222F] shrink-0" />}
                 </button>
               )}
@@ -673,8 +673,8 @@ export default function LiveTV() {
                   <div className="w-14 h-9.5 rounded-lg overflow-hidden bg-gradient-to-r from-amber-500 to-yellow-400 shrink-0 border border-amber-300/50 flex items-center justify-center shadow-md">
                     <Sparkles size={20} className="text-black fill-black" />
                   </div>
-                  <span className="text-[17px] font-black text-amber-300 tracking-tight flex-1 text-right" dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}>
-                    {language === 'ku' ? 'تابان پڵەی VIP' : language === 'ar' ? 'تابان بلاي VIP' : 'Taban Play VIP'}
+                  <span className="text-[17px] font-black text-amber-300 tracking-tight flex-1 text-right" dir={language === 'ku' || language === 'badini' || language === 'ar' ? 'rtl' : 'ltr'}>
+                    {language === 'ku' ? 'تابان پڵەی VIP' : language === 'badini' ? 'تابان پڵەی VIP' : language === 'ar' ? 'تابان بلاي VIP' : 'Taban Play VIP'}
                   </span>
                   {selectedCountry === 'Taban Play VIP' && <CheckCircle2 size={20} className="text-amber-400 shrink-0" />}
                 </button>
@@ -691,7 +691,7 @@ export default function LiveTV() {
                       className={`flex items-center gap-4 px-5 py-3.5 rounded-2xl transition border ${
                         isSelected
                           ? 'bg-[#CC222F]/20 border-[#CC222F]/50 text-white font-bold shadow-lg shadow-[#CC222F]/10'
-                          : 'bg-white/5 border-white/5 text-white/80 hover:bg-white/10 hover:border-white/10 hover:text-white'
+                          : 'bg-white/5 border border-white/5 text-white/80 hover:bg-white/10 hover:border-white/10 hover:text-white'
                       }`}
                     >
                       <div className="w-14 h-9.5 rounded-lg overflow-hidden bg-neutral-900 shrink-0 border border-white/15 flex items-center justify-center shadow-sm relative">
@@ -709,7 +709,7 @@ export default function LiveTV() {
                           <Globe size={18} className="text-white/40" />
                         )}
                       </div>
-                      <span className="text-[17px] font-bold text-right flex-1 tracking-tight" dir={language === 'ku' || language === 'ar' ? 'rtl' : 'ltr'}>
+                      <span className="text-[17px] font-bold text-right flex-1 tracking-tight" dir={language === 'ku' || language === 'badini' || language === 'ar' ? 'rtl' : 'ltr'}>
                         {getCountryName(c)}
                       </span>
                       {isSelected && <CheckCircle2 size={20} className="text-[#CC222F] shrink-0" />}
@@ -718,7 +718,7 @@ export default function LiveTV() {
                 })}
                 {filteredCountries.length === 0 && (
                   <div className="text-center py-10 text-white/40 text-sm">
-                    {language === 'ku' ? 'هیچ وڵاتێک نەدۆزرایەوە' : language === 'ar' ? 'لم يتم العثور على دولة' : 'No countries found'}
+                    {language === 'ku' ? 'هیچ وڵاتێک نەدۆزرایەوە' : language === 'badini' ? 'هیچ وەڵاتەک نەهاتە دیتن' : language === 'ar' ? 'لم يتم العثور على دولة' : 'No countries found'}
                   </div>
                 )}
               </div>
@@ -748,7 +748,7 @@ export default function LiveTV() {
       {/* ── CATEGORY TABS ── */}
       <div className="flex items-center gap-2 px-4 sm:px-6 py-4 overflow-x-auto scrollbar-hide">
         {[
-          { id: 'All', label: language === 'ku' ? 'هەموو' : language === 'ar' ? 'الكل' : 'All' },
+          { id: 'All', label: language === 'ku' ? 'هەموو' : language === 'badini' ? 'هەمی' : language === 'ar' ? 'الكل' : 'All' },
           ...categories.map(c => ({ id: c.name, label: getLocalized(c, 'name', language) || c.name }))
         ].map(tab => (
           <button
@@ -766,7 +766,7 @@ export default function LiveTV() {
       {/* Main Content */}
       {searchQuery.trim() ? (
         <div className="px-4 sm:px-6 space-y-1">
-          <p className="text-sm text-white/40 font-semibold mb-4">{searchResults.length} channels</p>
+          <p className="text-sm text-white/40 font-semibold mb-4">{searchResults.length} {language === 'ku' ? 'کەناڵ' : language === 'ar' ? 'قناة' : 'channels'}</p>
           {searchResults.map(channel => (
             <div key={channel.id} onClick={() => handleChannelSelect(channel)}
               className="flex items-center gap-4 py-3 border-b border-white/5 cursor-pointer group">
@@ -786,7 +786,7 @@ export default function LiveTV() {
             </div>
           ))}
           {searchResults.length === 0 && (
-            <div className="text-center py-16 text-white/30">No channels found</div>
+            <div className="text-center py-16 text-white/30">{language === 'ku' ? 'هیچ کەناڵێک نەدۆزرایەوە' : language === 'badini' ? 'هیچ کەناڵەک نەهاتە دیتن' : language === 'ar' ? 'لا توجد قنوات' : 'No channels found'}</div>
           )}
         </div>
       ) : (
@@ -797,13 +797,13 @@ export default function LiveTV() {
               <section className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h2 className="text-[18px] font-black tracking-tight">
-                    {language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched'}
+                    {language === 'ku' ? 'زۆرترین بیندراو' : language === 'badini' ? 'زۆرترین سەحکری' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched'}
                   </h2>
                   <button 
                     onClick={() => setViewAllCategory('Most Watched')} 
                     className="text-[#CC222F] text-sm font-bold hover:text-red-400 transition"
                   >
-                    {language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All'}
+                    {language === 'ku' ? 'هەموویان' : language === 'badini' ? 'سەحکرنا هەمیان' : language === 'ar' ? 'عرض الكل' : 'See All'}
                   </button>
                 </div>
 
@@ -845,7 +845,7 @@ export default function LiveTV() {
                       <Sparkles size={16} className="fill-black" />
                     </div>
                     <h2 className="text-[18px] font-black tracking-tight text-amber-400">
-                      {language === 'ku' ? 'تابان پڵەی VIP' : language === 'ar' ? 'تابان بلاي VIP' : 'Taban Play VIP'}
+                      {language === 'ku' ? 'تابان پڵەی VIP' : language === 'badini' ? 'تابان پڵەی VIP' : language === 'ar' ? 'تابان بلاي VIP' : 'Taban Play VIP'}
                     </h2>
                   </div>
                   {vipChannels.length > 6 && (
@@ -853,7 +853,7 @@ export default function LiveTV() {
                       onClick={() => setViewAllCategory('Taban Play VIP')} 
                       className="text-amber-400 text-sm font-bold hover:text-amber-300 transition"
                     >
-                      {language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All'}
+                      {language === 'ku' ? 'هەموویان' : language === 'badini' ? 'سەحکرنا هەمیان' : language === 'ar' ? 'عرض الكل' : 'See All'}
                     </button>
                   )}
                 </div>
@@ -898,7 +898,9 @@ export default function LiveTV() {
                   <div className="flex items-center justify-between">
                     <h2 className="text-[18px] font-black tracking-tight">{getLocalized(catObj, 'name', language) || category}</h2>
                     {categoryChannels.length > 6 && (
-                      <button onClick={() => setViewAllCategory(category)} className="text-[#CC222F] text-sm font-bold hover:text-red-400 transition">See All</button>
+                      <button onClick={() => setViewAllCategory(category)} className="text-[#CC222F] text-sm font-bold hover:text-red-400 transition">
+                        {language === 'ku' ? 'هەموویان' : language === 'badini' ? 'سەحکرنا هەمیان' : language === 'ar' ? 'عرض الكل' : 'See All'}
+                      </button>
                     )}
                   </div>
                   <div className="space-y-1">

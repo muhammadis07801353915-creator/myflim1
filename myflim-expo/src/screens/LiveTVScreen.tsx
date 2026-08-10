@@ -176,7 +176,7 @@ export default function LiveTVScreen({ navigation }: any) {
                 <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryBtnFlag} />
               ) : null}
               <Text style={[s.countryBtnText, { color: selectedCountry ? '#CC222F' : themeColors.text }]} numberOfLines={1}>
-                {selectedCountryObj ? getCountryName(selectedCountryObj) : 'Country'}
+                {selectedCountryObj ? getCountryName(selectedCountryObj) : (language === 'ku' ? 'وڵات' : language === 'badini' ? 'وەڵات' : language === 'ar' ? 'الدولة' : 'Country')}
               </Text>
               {selectedCountry && (
                 <TouchableOpacity onPress={() => setSelectedCountry(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -189,7 +189,7 @@ export default function LiveTVScreen({ navigation }: any) {
 
         {/* Centered Title */}
         <Text style={[s.headerTitle, { color: themeColors.text }]} numberOfLines={1}>
-          {language === 'ku' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
+          {language === 'ku' ? 'ڕاستەوخۆ' : language === 'badini' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
         </Text>
 
         {/* RIGHT SIDE: Search button (LTR) or Country button (RTL) */}
@@ -211,7 +211,7 @@ export default function LiveTVScreen({ navigation }: any) {
                 <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryBtnFlag} />
               ) : null}
               <Text style={[s.countryBtnText, { color: selectedCountry ? '#CC222F' : themeColors.text }]} numberOfLines={1}>
-                {selectedCountryObj ? getCountryName(selectedCountryObj) : (language === 'ku' ? 'وڵات' : 'الدولة')}
+                {selectedCountryObj ? getCountryName(selectedCountryObj) : (language === 'ku' ? 'وڵات' : language === 'badini' ? 'وەڵات' : language === 'ar' ? 'الدولة' : 'Country')}
               </Text>
               {selectedCountry && (
                 <TouchableOpacity onPress={() => setSelectedCountry(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -244,10 +244,10 @@ export default function LiveTVScreen({ navigation }: any) {
             <View style={[s.modalHeader, { borderBottomColor: themeColors.border }]}>
               <View>
                 <Text style={[s.modalTitle, { color: themeColors.text }]}>
-                  {language === 'ku' ? 'وڵاتەکان' : language === 'ar' ? 'الدول' : 'Countries'}
+                  {language === 'ku' ? 'وڵاتەکان' : language === 'badini' ? 'وەڵات' : language === 'ar' ? 'الدول' : 'Countries'}
                 </Text>
                 <Text style={[s.modalSubtitle, { color: themeColors.textSecondary }]}>
-                  {language === 'ku' ? 'وڵاتێک هەلبژێرە' : language === 'ar' ? 'اختر دولة' : 'Select a country to filter'}
+                  {language === 'ku' ? 'وڵاتێک هەلبژێرە' : language === 'badini' ? 'وەڵاتەکێ هەڵبژێرە' : language === 'ar' ? 'اختر دولة' : 'Select a country to filter'}
                 </Text>
               </View>
               <TouchableOpacity onPress={() => { setIsCountryModalOpen(false); setCountrySearchQuery(''); }} style={[s.modalClose, { backgroundColor: themeColors.surfaceLight }]}>
@@ -260,7 +260,7 @@ export default function LiveTVScreen({ navigation }: any) {
               <Search size={16} color={themeColors.textSecondary} />
               <TextInput
                 style={[s.modalSearchInput, { color: themeColors.text }]}
-                placeholder={language === 'ku' ? 'گەڕان بۆ وڵات...' : language === 'ar' ? 'البحث عن دولة...' : 'Search country...'}
+                placeholder={language === 'ku' ? 'گەڕان بۆ وڵات...' : language === 'badini' ? 'لێگەڕیان بۆ وەڵاتی...' : language === 'ar' ? 'البحث عن دولة...' : 'Search country...'}
                 placeholderTextColor={themeColors.textMuted}
                 value={countrySearchQuery}
                 onChangeText={setCountrySearchQuery}
@@ -283,7 +283,7 @@ export default function LiveTVScreen({ navigation }: any) {
                   <Globe size={22} color={themeColors.textSecondary} />
                 </View>
                 <Text style={[s.countryItemName, { color: themeColors.text }, !selectedCountry && s.countryItemNameActive]}>
-                  {language === 'ku' ? 'هەموو وڵاتەکان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}
+                  {language === 'ku' ? 'هەموو وڵاتەکان' : language === 'badini' ? 'تەڤایا وەڵاتان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}
                 </Text>
                 {!selectedCountry && <CheckCircle2 size={20} color="#CC222F" />}
               </TouchableOpacity>
@@ -357,7 +357,7 @@ export default function LiveTVScreen({ navigation }: any) {
             <Search size={16} color={themeColors.textSecondary} />
             <TextInput
               style={[s.searchInput, { color: themeColors.text }]}
-              placeholder={language === 'ku' ? 'گەڕانی کەناڵ...' : language === 'ar' ? 'البحث عن قناة...' : 'Search channels...'}
+              placeholder={language === 'ku' ? 'گەڕانی کەناڵ...' : language === 'badini' ? 'لێگەڕیانا کەناڵان...' : language === 'ar' ? 'البحث عن قناة...' : 'Search channels...'}
               placeholderTextColor={themeColors.textMuted}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -415,7 +415,7 @@ export default function LiveTVScreen({ navigation }: any) {
             {searchResults.length === 0 && (
               <View style={s.emptyState}>
                 <Text style={[s.emptyText, { color: themeColors.textSecondary }]}>
-                  {language === 'ku' ? 'هیچ کەناڵێک نەدۆزرایەوە' : language === 'ar' ? 'لا توجد قنوات' : 'No channels found'}
+                  {language === 'ku' ? 'هیچ کەناڵێک نەدۆزرایەوە' : language === 'badini' ? 'هیچ کەناڵەک نەهاتە دیتن' : language === 'ar' ? 'لا توجد قنوات' : 'No channels found'}
                 </Text>
               </View>
             )}
@@ -427,10 +427,10 @@ export default function LiveTVScreen({ navigation }: any) {
               <View style={s.section}>
                 <View style={[s.sectionRow, isRTL && { flexDirection: 'row-reverse' }]}>
                   <Text style={[s.sectionTitle, { color: themeColors.text }]}>
-                    {language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched'}
+                    {language === 'ku' ? 'زۆرترین بیندراو' : language === 'badini' ? 'زۆرترین سەحکری' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched'}
                   </Text>
-                  <TouchableOpacity onPress={() => handleViewAll(language === 'ku' ? 'زۆرترین بیندراو' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched')}>
-                    <Text style={s.seeAll}>{language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All'}</Text>
+                  <TouchableOpacity onPress={() => handleViewAll(language === 'ku' ? 'زۆرترین بیندراو' : language === 'badini' ? 'زۆرترین سەحکری' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched')}>
+                    <Text style={s.seeAll}>{language === 'ku' ? 'هەموویان' : language === 'badini' ? 'سەحکرنا هەمیان' : language === 'ar' ? 'عرض الكل' : 'See All'}</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -473,10 +473,12 @@ export default function LiveTVScreen({ navigation }: any) {
                 <React.Fragment key={cat.id || cat.name}>
                   <View style={s.section}>
                     <View style={[s.sectionRow, isRTL && { flexDirection: 'row-reverse' }]}>
-                      <Text style={[s.sectionTitle, { color: themeColors.text }]}>{cat.name}</Text>
+                      <Text style={[s.sectionTitle, { color: themeColors.text }]}>
+                        {getLocalized(cat, 'name', language) || cat.name}
+                      </Text>
                       {catChannels.length > 6 && (
                         <TouchableOpacity onPress={() => handleViewAll(cat.name)}>
-                          <Text style={s.seeAll}>{language === 'ku' ? 'هەموویان' : language === 'ar' ? 'عرض الكل' : 'See All'}</Text>
+                          <Text style={s.seeAll}>{language === 'ku' ? 'هەموویان' : language === 'badini' ? 'سەحکرنا هەمیان' : language === 'ar' ? 'عرض الكل' : 'See All'}</Text>
                         </TouchableOpacity>
                       )}
                     </View>
@@ -537,7 +539,7 @@ export default function LiveTVScreen({ navigation }: any) {
               <View style={s.emptyState}>
                 <Globe size={40} color={themeColors.textMuted} />
                 <Text style={[s.emptyText, { color: themeColors.textSecondary }]}>
-                  {language === 'ku' ? 'هیچ کەناڵێک نەدۆزرایەوە بۆ ئەم وڵاتە' : language === 'ar' ? 'لا توجد قنوات لهذه الدولة' : 'No channels found for this country'}
+                  {language === 'ku' ? 'هیچ کەناڵێک نەدۆزرایەوە بۆ ئەم وڵاتە' : language === 'badini' ? 'هیچ کەناڵەک نەهاتە دیتن بۆ ڤی وەڵاتی' : language === 'ar' ? 'لا توجد قنوات لهذه الدولة' : 'No channels found for this country'}
                 </Text>
               </View>
             )}
