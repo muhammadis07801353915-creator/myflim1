@@ -51,7 +51,6 @@ export default function AccessScreen() {
               setCode(text);
               setError('');
             }}
-            secureTextEntry
             autoCapitalize="none"
             onSubmitEditing={handleSubmit}
           />

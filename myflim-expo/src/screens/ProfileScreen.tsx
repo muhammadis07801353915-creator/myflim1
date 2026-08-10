@@ -1412,9 +1412,8 @@ export default function ProfileScreen({ navigation }: any) {
                     style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
                     value={authPassword}
                     onChangeText={setAuthPassword}
-                    placeholder="******"
+                    placeholder={language === 'ku' ? 'پاسۆردێک بنووسە...' : 'Enter password...'}
                     placeholderTextColor={themeColors.textMuted}
-                    secureTextEntry
                   />
                 </View>
 
@@ -1457,9 +1456,8 @@ export default function ProfileScreen({ navigation }: any) {
                     style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
                     value={authPassword}
                     onChangeText={setAuthPassword}
-                    placeholder="******"
+                    placeholder={language === 'ku' ? 'پاسۆردەکەت بنووسە...' : 'Enter password...'}
                     placeholderTextColor={themeColors.textMuted}
-                    secureTextEntry
                   />
                 </View>
 

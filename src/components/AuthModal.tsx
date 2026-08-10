@@ -171,8 +171,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 {language === 'ku' ? 'وشەی نهێنی (پاسۆرد)' : 'Password'}
               </label>
               <input
-                type="password"
-                placeholder="******"
+                type="text"
+                placeholder={language === 'ku' ? 'پاسۆردێک بنووسە...' : 'Enter password...'}
                 value={registerPassword}
                 onChange={(e) => setRegisterPassword(e.target.value)}
                 className="w-full bg-white/7 light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-300 rounded-xl px-4 py-2.5 text-white light-mode:text-black placeholder-white/30 light-mode:placeholder-neutral-400 outline-none focus:border-[#CC222F] text-xs font-semibold"
@@ -213,8 +213,8 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
                 {language === 'ku' ? 'وشەی نهێنی (پاسۆرد)' : 'Password'}
               </label>
               <input
-                type="password"
-                placeholder="******"
+                type="text"
+                placeholder={language === 'ku' ? 'پاسۆردەکەت بنووسە...' : 'Enter your password...'}
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 className="w-full bg-white/7 light-mode:bg-neutral-100 border border-white/10 light-mode:border-neutral-300 rounded-xl px-4 py-2.5 text-white light-mode:text-black placeholder-white/30 light-mode:placeholder-neutral-400 outline-none focus:border-[#CC222F] text-xs font-semibold"
