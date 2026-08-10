@@ -35,6 +35,8 @@ import { getLocalized } from '../lib/translations';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabase';
 import { getUserAccount, UserAccount, DEFAULT_AVATARS, logoutUserAccount } from '../lib/userAuth';
+import AuthModal from './AuthModal';
+
 const KurdistanFlag = () => (
   <div className="w-8 h-5 rounded overflow-hidden border border-black/20 flex flex-col relative shadow-sm shrink-0">
     <div className="h-1/3 bg-[#ED1C24]" />
