@@ -700,10 +700,17 @@ export default function ProfileScreen({ navigation }: any) {
         <View style={[styles.headerRow, isRTL && { flexDirection: 'row-reverse' }]}>
           <View style={[styles.userInfo, isRTL && { flexDirection: 'row-reverse' }]}>
             <View style={styles.avatarWrapper}>
-              <Image 
-                source={{ uri: user?.image || DEFAULT_AVATARS[0] }} 
-                style={styles.avatar} 
-              />
+              <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#ffffff', justifyContent: 'center', alignItems: 'center', overflow: 'hidden', padding: 8 }}>
+                <Image 
+                  source={
+                    user?.image && !user.image.includes('unsplash')
+                      ? { uri: user.image }
+                      : require('../../assets/app-logo-new.png')
+                  } 
+                  style={{ width: '85%', height: '85%' }}
+                  resizeMode="contain" 
+                />
+              </View>
               <TouchableOpacity style={styles.cameraButton} onPress={() => setShowNameModal(true)}>
                 <Camera size={11} color="white" />
               </TouchableOpacity>

@@ -449,13 +449,14 @@ export default function Profile() {
       {/* ── TOP PROFILE HEADER (Avatar & Name & Edit Button) ────────── */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-5 sm:gap-6 rtl:gap-5">
-          <div className="relative p-0.5 rounded-full border-2 border-red-500/80 light-mode:border-[#CC222F]">
-            <div className="w-16 h-16 rounded-full overflow-hidden relative bg-[#181924] light-mode:bg-neutral-200">
+          <div className="relative p-1 rounded-full border-2 border-[#CC222F] bg-white">
+            <div className="w-16 h-16 rounded-full overflow-hidden relative bg-white flex items-center justify-center p-2.5">
               <Image 
-                src={userAccount?.avatar || DEFAULT_AVATARS[0]} 
+                src={userAccount?.avatar && !userAccount.avatar.includes('unsplash') ? userAccount.avatar : '/app-logo-new.png'} 
                 alt={userAccount?.name || 'User'} 
-                fill 
-                className="object-cover"
+                width={44}
+                height={44}
+                className="object-contain"
                 unoptimized
               />
             </div>
