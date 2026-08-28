@@ -38,27 +38,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
   const party = useWatchParty();
 
-  // Listen for real-time video sync events from Host
-  const registerSync = party.registerVideoSyncListener;
-  useEffect(() => {
-    registerSync((payload) => {
-      if (payload.type === 'PLAY') {
-        setIsPlaying(true);
-      } else if (payload.type === 'PAUSE') {
-        setIsPlaying(false);
-      }
-    });
-  }, [registerSync]);
 
-  // Auto-play when party is accepted
-  const isInParty = party.isInParty;
-  useEffect(() => {
-    if (isInParty && !isPlaying) {
-      const srvUrl = (servers && servers.length > 0 ? servers[0]?.url : null) || item?.url || '';
-      if (srvUrl) setSelectedServerUrl(srvUrl);
-      setIsPlaying(true);
-    }
-  }, [isInParty, isPlaying, item?.url]);
 
   useEffect(() => {
     // هەرکاتێک بەکارهێنەر دەگەڕێتەوە ناو فیلمەکە، ژمارە تازەکە دەهێنین
@@ -208,6 +188,28 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       default: sub.lang === 'ku'
     }));
   }, [subtitles]);
+
+  // Listen for real-time video sync events from Host
+  const registerSync = party.registerVideoSyncListener;
+  useEffect(() => {
+    registerSync((payload) => {
+      if (payload.type === 'PLAY') {
+        setIsPlaying(true);
+      } else if (payload.type === 'PAUSE') {
+        setIsPlaying(false);
+      }
+    });
+  }, [registerSync]);
+
+  // Auto-play when party is accepted
+  const isInParty = party.isInParty;
+  useEffect(() => {
+    if (isInParty && !isPlaying) {
+      const srvUrl = (servers && servers.length > 0 ? servers[0]?.url : null) || item?.url || '';
+      if (srvUrl) setSelectedServerUrl(srvUrl);
+      setIsPlaying(true);
+    }
+  }, [isInParty, isPlaying, item?.url, servers]);
 
   const incrementViews = async () => {
     if (viewIncremented || !item.id) return;
