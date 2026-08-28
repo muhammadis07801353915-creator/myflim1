@@ -14,12 +14,15 @@ import Sidebar from './components/Sidebar';
 import { useData } from './lib/DataContext';
 import { supabase } from './lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
+import WatchPartyModal from './components/WatchPartyModal';
+import { useWatchParty } from './lib/useWatchParty';
 
 export default function ClientApp() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [currentTab, setCurrentTab] = useState('home');
   const { movies, loading } = useData();
+  const party = useWatchParty();
 
   // URL-based navigation
   const movieId = searchParams ? searchParams.get('movie') : null;
@@ -176,6 +179,27 @@ export default function ClientApp() {
           <BottomNav currentTab={currentTab} onChange={setCurrentTab} />
         </div>
       </main>
+
+      {/* Global Watch Party Invite Modal */}
+      <WatchPartyModal
+        isOpen={false}
+        onClose={() => {}}
+        onSendInvite={async () => ({ success: false })}
+        incomingInvite={party.incomingInvite}
+        onAcceptInvite={(invite) => {
+          party.acceptInvite(invite);
+          if (invite.movie_id) {
+            handleSelectItem({ id: invite.movie_id });
+          }
+        }}
+        onDeclineInvite={(inviteId) => party.declineInvite(inviteId)}
+        activeParty={party.activeInvite}
+        isHost={party.isHost}
+        isMicOn={party.isMicOn}
+        onToggleMic={party.toggleMic}
+        onLeaveParty={party.leaveParty}
+        partnerUsername={party.partnerUsername}
+      />
     </div>
   );
 }

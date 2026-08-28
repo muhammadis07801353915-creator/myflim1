@@ -24,46 +24,92 @@ export function useWatchParty() {
   const [isMicOn, setIsMicOn] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'connected' | 'error'>('idle');
   const [partnerUsername, setPartnerUsername] = useState<string>('');
+  const [currentUser, setCurrentUser] = useState<string>('');
 
   const channelRef = useRef<any>(null);
+  const globalChannelRef = useRef<any>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const currentUser = getUserAccount()?.name || 'User';
-
-  // 1. Listen for incoming invitations
+  // Keep currentUser synced dynamically
   useEffect(() => {
-    if (!currentUser || currentUser === 'User') return;
-
-    const checkInvites = async () => {
-      try {
-        const { data } = await supabase.from('settings').select('value').eq('key', 'watch_party_invites').maybeSingle();
-        if (data?.value) {
-          const list: WatchPartyInvite[] = JSON.parse(data.value);
-          const pending = list.find(inv => inv.guest_username.toLowerCase() === currentUser.toLowerCase() && inv.status === 'pending');
-          if (pending && (!incomingInvite || incomingInvite.id !== pending.id)) {
-            setIncomingInvite(pending);
-          }
-        }
-      } catch (e) {
-        console.warn('Check invites error:', e);
+    const update = () => {
+      const acc = getUserAccount();
+      if (acc?.name) {
+        setCurrentUser(acc.name);
+      } else {
+        setCurrentUser('');
       }
     };
+    update();
+    window.addEventListener('userAccountUpdated', update);
+    const interval = setInterval(update, 2000);
+    return () => {
+      window.removeEventListener('userAccountUpdated', update);
+      clearInterval(interval);
+    };
+  }, []);
 
-    checkInvites();
-    const interval = setInterval(checkInvites, 4000);
-    return () => clearInterval(interval);
-  }, [currentUser, incomingInvite]);
+  // Check invites helper
+  const checkPendingInvites = useCallback(async (activeUsername: string) => {
+    if (!activeUsername) return;
+    try {
+      const { data } = await supabase.from('settings').select('value').eq('key', 'watch_party_invites').maybeSingle();
+      if (data?.value) {
+        const list: WatchPartyInvite[] = JSON.parse(data.value);
+        const pending = list.find(inv => 
+          inv.guest_username.trim().toLowerCase() === activeUsername.trim().toLowerCase() && 
+          inv.status === 'pending'
+        );
+        if (pending && (!incomingInvite || incomingInvite.id !== pending.id)) {
+          setIncomingInvite(pending);
+        }
+      }
+    } catch (e) {
+      console.warn('Check invites error:', e);
+    }
+  }, [incomingInvite]);
 
-  // 2. Send Invitation to a friend
+  // Global Realtime Broadcast listener for invites
+  useEffect(() => {
+    if (!currentUser) return;
+
+    checkPendingInvites(currentUser);
+
+    const globalChannel = supabase.channel('global_watch_parties', {
+      config: { broadcast: { self: false } }
+    });
+
+    globalChannel
+      .on('broadcast', { event: 'new_invite' }, ({ payload }) => {
+        if (payload?.guest_username && payload.guest_username.trim().toLowerCase() === currentUser.trim().toLowerCase()) {
+          setIncomingInvite(payload);
+        }
+      })
+      .subscribe();
+
+    globalChannelRef.current = globalChannel;
+
+    const interval = setInterval(() => checkPendingInvites(currentUser), 3000);
+
+    return () => {
+      clearInterval(interval);
+      if (globalChannelRef.current) {
+        supabase.removeChannel(globalChannelRef.current);
+      }
+    };
+  }, [currentUser, checkPendingInvites]);
+
+  // Send Invitation to a friend
   const sendInvite = async (friendUsername: string, movie: any) => {
-    if (!currentUser) return { success: false, message: 'تکایە سەرەتا ئەکاونت دروست بکە یان چوونە ژوورەوە بکە.' };
+    const sender = currentUser || getUserAccount()?.name;
+    if (!sender) return { success: false, message: 'تکایە سەرەتا ئەکاونت دروست بکە یان چوونە ژوورەوە بکە.' };
 
     const inviteId = `wp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const newInvite: WatchPartyInvite = {
       id: inviteId,
-      host_username: currentUser,
+      host_username: sender,
       guest_username: friendUsername.trim(),
       movie_id: movie.id,
       movie_title: movie.title || movie.name || 'Movie',
@@ -75,16 +121,24 @@ export function useWatchParty() {
     try {
       const { data } = await supabase.from('settings').select('value').eq('key', 'watch_party_invites').maybeSingle();
       let list: WatchPartyInvite[] = data?.value ? JSON.parse(data.value) : [];
-      // Keep recent 50 invites
       list = [newInvite, ...list.filter(i => Date.now() - new Date(i.created_at).getTime() < 86400000)].slice(0, 50);
 
       await supabase.from('settings').upsert({ key: 'watch_party_invites', value: JSON.stringify(list) });
+
+      // Broadcast global invite signal for 0ms instant popup
+      if (globalChannelRef.current) {
+        globalChannelRef.current.send({
+          type: 'broadcast',
+          event: 'new_invite',
+          payload: newInvite
+        });
+      }
 
       setActiveInvite(newInvite);
       setIsHost(true);
       setPartnerUsername(friendUsername);
       setIsInParty(true);
-      setupPartyChannel(newInvite, true);
+      setupPartyChannel(newInvite);
 
       return { success: true, invite: newInvite };
     } catch (e: any) {
@@ -92,7 +146,7 @@ export function useWatchParty() {
     }
   };
 
-  // 3. Accept Invitation
+  // Accept Invitation
   const acceptInvite = async (invite: WatchPartyInvite) => {
     try {
       const { data } = await supabase.from('settings').select('value').eq('key', 'watch_party_invites').maybeSingle();
@@ -108,13 +162,13 @@ export function useWatchParty() {
       setIsHost(false);
       setPartnerUsername(invite.host_username);
       setIsInParty(true);
-      setupPartyChannel(updatedInvite, false);
+      setupPartyChannel(updatedInvite);
     } catch (e) {
       console.warn('Accept invite error:', e);
     }
   };
 
-  // 4. Decline Invitation
+  // Decline Invitation
   const declineInvite = async (inviteId: string) => {
     setIncomingInvite(null);
     try {
@@ -127,8 +181,8 @@ export function useWatchParty() {
     } catch (e) {}
   };
 
-  // 5. Setup Supabase Realtime Broadcast Channel & WebRTC P2P Voice
-  const setupPartyChannel = (invite: WatchPartyInvite, hostRole: boolean) => {
+  // Setup Supabase Realtime Broadcast Channel & WebRTC P2P Voice
+  const setupPartyChannel = (invite: WatchPartyInvite) => {
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
@@ -154,7 +208,7 @@ export function useWatchParty() {
     channelRef.current = channel;
   };
 
-  // 6. Broadcast Video Control Commands (Play, Pause, Seek) from Host
+  // Broadcast Video Control Commands (Play, Pause, Seek) from Host
   const broadcastVideoSync = useCallback((type: 'PLAY' | 'PAUSE' | 'SEEK', currentTime: number) => {
     if (!channelRef.current || !isHost) return;
     channelRef.current.send({
@@ -164,16 +218,14 @@ export function useWatchParty() {
     });
   }, [isHost]);
 
-  // 7. WebRTC P2P Voice Setup (Zero Server / DB Audio Overhead)
+  // WebRTC P2P Voice Setup (Zero Server / DB Audio Overhead)
   const toggleMic = async () => {
     if (isMicOn) {
-      // Mute
       if (localStreamRef.current) {
         localStreamRef.current.getAudioTracks().forEach(t => { t.enabled = false; });
       }
       setIsMicOn(false);
     } else {
-      // Enable Mic
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         localStreamRef.current = stream;
@@ -256,7 +308,7 @@ export function useWatchParty() {
     }
   };
 
-  // 8. Leave / End Watch Party
+  // Leave / End Watch Party
   const leaveParty = () => {
     if (channelRef.current) {
       if (isHost) {

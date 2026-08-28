@@ -21,6 +21,10 @@ import { Platform, StyleSheet } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import WatchPartyModal from '../components/WatchPartyModal';
+import { useWatchParty } from '../utils/useWatchParty';
+import { useNavigationContainerRef } from '@react-navigation/native';
+
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
@@ -104,20 +108,40 @@ function TabNavigator() {
 }
 
 export default function AppNavigator() {
-  const { theme } = useAppStore();
+  const { theme, movies } = useAppStore();
   const themeColors = getColors(theme);
+  const party = useWatchParty();
   
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: themeColors.background },
-      }}
-    >
-      <Stack.Screen name="MainTabs" component={TabNavigator} />
-      <Stack.Screen name="Detail" component={DetailScreen} />
-      <Stack.Screen name="Category" component={CategoryScreen} />
-      <Stack.Screen name="Watchlist" component={WatchlistScreen} />
-    </Stack.Navigator>
+    <React.Fragment>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: themeColors.background },
+        }}
+      >
+        <Stack.Screen name="MainTabs" component={TabNavigator} />
+        <Stack.Screen name="Detail" component={DetailScreen} />
+        <Stack.Screen name="Category" component={CategoryScreen} />
+        <Stack.Screen name="Watchlist" component={WatchlistScreen} />
+      </Stack.Navigator>
+
+      <WatchPartyModal
+        isOpen={false}
+        onClose={() => {}}
+        onSendInvite={async () => ({ success: false })}
+        incomingInvite={party.incomingInvite}
+        onAcceptInvite={(invite) => {
+          party.acceptInvite(invite);
+        }}
+        onDeclineInvite={(inviteId) => party.declineInvite(inviteId)}
+        activeParty={party.activeInvite}
+        isHost={party.isHost}
+        isMicOn={party.isMicOn}
+        onToggleMic={party.toggleMic}
+        onLeaveParty={party.leaveParty}
+        partnerUsername={party.partnerUsername}
+      />
+    </React.Fragment>
   );
 }
