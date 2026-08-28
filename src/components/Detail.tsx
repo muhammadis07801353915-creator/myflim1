@@ -52,9 +52,13 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   // Auto-play when party is accepted
   useEffect(() => {
     if (party.isInParty) {
+      if (!selectedServerUrl) {
+        const srvUrl = (servers && servers.length > 0 ? servers[0]?.url : null) || item?.url || '';
+        if (srvUrl) setSelectedServerUrl(srvUrl);
+      }
       setIsPlaying(true);
     }
-  }, [party.isInParty]);
+  }, [party.isInParty, servers, item, selectedServerUrl]);
 
   useEffect(() => {
     // هەرکاتێک بەکارهێنەر دەگەڕێتەوە ناو فیلمەکە، ژمارە تازەکە دەهێنین

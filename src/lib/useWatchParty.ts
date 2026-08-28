@@ -176,20 +176,33 @@ export function useWatchParty() {
     }
   };
 
-  // Join party directly by Party ID / Link / Code
+  // Join party directly by Party ID / Link / Code (Instant Join)
   const joinByPartyId = async (partyId: string) => {
+    let matchInvite: WatchPartyInvite | null = null;
     try {
       const { data } = await supabase.from('settings').select('value').eq('key', 'watch_party_invites').maybeSingle();
       if (data?.value) {
         const list: WatchPartyInvite[] = JSON.parse(data.value);
-        const match = list.find(i => i.id === partyId || i.room_code === partyId.toUpperCase());
-        if (match) {
-          acceptInvite(match);
-          return match;
-        }
+        const found = list.find(i => i.id === partyId || i.room_code === partyId.toUpperCase());
+        if (found) matchInvite = found;
       }
     } catch (e) {}
-    return null;
+
+    if (!matchInvite) {
+      matchInvite = {
+        id: partyId,
+        room_code: partyId,
+        host_username: 'Host',
+        guest_username: currentUser || 'Guest',
+        movie_id: '',
+        movie_title: 'Watch Party',
+        status: 'accepted',
+        created_at: new Date().toISOString()
+      };
+    }
+
+    acceptInvite(matchInvite);
+    return matchInvite;
   };
 
   // Accept Invitation

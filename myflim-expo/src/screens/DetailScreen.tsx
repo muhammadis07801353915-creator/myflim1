@@ -56,9 +56,14 @@ export default function DetailScreen({ route, navigation }: any) {
   // Auto-play when party is accepted
   useEffect(() => {
     if (party.isInParty) {
+      if (!currentVideoUrl) {
+        const srvs = activeMovieServers.length > 0 ? activeMovieServers : (item?.servers || []);
+        const url = srvs[0]?.url || item?.url || '';
+        if (url) setCurrentVideoUrl(url);
+      }
       setIsPlaying(true);
     }
-  }, [party.isInParty]);
+  }, [party.isInParty, activeMovieServers, item, currentVideoUrl]);
 
   // Real-time Supabase Presence for live viewers count in app
   useEffect(() => {
