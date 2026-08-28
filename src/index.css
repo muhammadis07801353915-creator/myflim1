@@ -23,21 +23,34 @@ body {
 }
 
 /* ──────────────────────────────────────────────────────────────
-   GLOBAL SCROLLBAR HIDE (REMOVES ALL GREY SCROLLBAR LINES UNDER LISTS)
+   CUSTOM SLEEK DESKTOP SCROLLBAR FOR PC
 ────────────────────────────────────────────────────────────── */
-* {
-  -ms-overflow-style: none !important;
-  scrollbar-width: none !important;
-}
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px !important;
+    height: 8px !important;
+    display: block !important;
+  }
 
-::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
+  ::-webkit-scrollbar-track {
+    background: #0a0a0f !important;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #282a36 !important;
+    border-radius: 9999px !important;
+    border: 2px solid #0a0a0f !important;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #CC222F !important;
+  }
 }
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 .scrollbar-hide {
