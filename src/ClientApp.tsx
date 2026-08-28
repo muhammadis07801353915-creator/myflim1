@@ -130,10 +130,10 @@ export default function ClientApp() {
   };
 
   return (
-    <div className="bg-neutral-950 light-mode:bg-gray-50 text-white light-mode:text-black min-h-screen flex flex-col md:flex-row font-sans relative">
+    <div className="bg-[#0a0a0f] text-white min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row font-sans relative">
       <Sidebar currentTab={currentTab} onChange={setCurrentTab} />
       
-      <main className="flex-1 min-h-screen relative md:overflow-y-auto">
+      <main className="flex-1 w-full min-w-0 md:h-screen md:overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 relative">
         <div className="max-w-7xl mx-auto w-full transition-all duration-500">
           {loading ? (
             <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-4">

@@ -378,7 +378,7 @@ export default function Home({
                     }
                   }}
                 >
-                  <div className="relative w-full aspect-[16/10] sm:aspect-[21/9] md:aspect-[2.5/1] lg:aspect-[3/1]">
+                  <div className="relative w-full aspect-[16/10] sm:aspect-[21/9] md:aspect-[3.6/1] lg:aspect-[4.2/1] md:max-h-[300px] lg:max-h-[340px]">
                     {bgImg && (
                       <Image
                         src={bgImg}
@@ -406,15 +406,15 @@ export default function Home({
                     )}
 
                     {/* Bottom Row Content: Floating Thumbnail + Title Stack */}
-                    <div className="absolute bottom-3 left-3 right-3 sm:bottom-6 sm:left-8 sm:right-8 z-20 flex items-end gap-3.5 sm:gap-6 rtl:flex-row-reverse">
+                    <div className="absolute bottom-3 left-3 right-3 sm:bottom-5 sm:left-6 sm:right-6 z-20 flex items-end gap-3.5 sm:gap-5 rtl:flex-row-reverse">
                       
-                      {/* Vertical Poster Thumbnail */}
-                      <div className="relative w-22 sm:w-28 md:w-36 aspect-[2/3] rounded-2xl overflow-hidden border-2 border-[#CC222F] shadow-2xl shrink-0 group-hover:scale-105 transition-transform duration-300">
+                      {/* Compact Vertical Poster Thumbnail on PC */}
+                      <div className="relative w-20 sm:w-24 md:w-28 aspect-[2/3] rounded-xl sm:rounded-2xl overflow-hidden border-2 border-[#CC222F] shadow-2xl shrink-0 group-hover:scale-105 transition-transform duration-300">
                         <Image
                           src={currentFeatured.image}
                           alt={currentFeatured.title || ''}
                           fill
-                          sizes="(max-width: 768px) 90px, 150px"
+                          sizes="(max-width: 768px) 80px, 120px"
                           className="object-cover"
                           unoptimized={true}
                         />
@@ -422,7 +422,7 @@ export default function Home({
 
                       {/* Info Stack */}
                       <div className="flex-1 min-w-0 flex flex-col justify-end space-y-1 ltr:pl-1 rtl:pr-1">
-                        <h1 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight drop-shadow-md truncate">
+                        <h1 className="text-base sm:text-2xl md:text-2xl lg:text-3xl font-black text-white tracking-tight leading-tight drop-shadow-md truncate">
                           {getLocalized(currentFeatured, 'title', language)}
                         </h1>
 
