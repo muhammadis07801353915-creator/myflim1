@@ -23,6 +23,8 @@ import CommentSection from '../components/CommentSection';
 import { getLocalized } from '../utils/localization';
 import { translations } from '../utils/translations';
 import { supabase } from '../api/supabase';
+import WatchPartyModal from '../components/WatchPartyModal';
+import { useWatchParty } from '../utils/useWatchParty';
 
 const { width, height } = Dimensions.get('window');
 
@@ -35,6 +37,8 @@ export default function DetailScreen({ route, navigation }: any) {
   const themeColors = getColors(theme);
   const isRTL = language === 'ku' || language === 'ar';
   const t = translations[language];
+  const party = useWatchParty();
+  const [showPartyModal, setShowPartyModal] = useState(false);
   const [activeChannel, setActiveChannel] = useState(item);
   const [realLiveViewers, setRealLiveViewers] = useState<number>(1);
 
@@ -497,6 +501,14 @@ export default function DetailScreen({ route, navigation }: any) {
               <Play size={20} color={theme === 'light' ? 'white' : 'black'} fill={theme === 'light' ? 'white' : 'black'} />
               <Text style={[styles.mainPlayText, { color: theme === 'light' ? 'white' : 'black' }]}>{t.watchNow || 'Watch Now'}</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity 
+               style={[styles.iconAction, { backgroundColor: 'rgba(229, 57, 53, 0.15)', borderColor: 'rgba(229, 57, 53, 0.3)', borderWidth: 1 }]}
+               onPress={() => setShowPartyModal(true)}
+            >
+              <Users size={22} color="#E53935" />
+            </TouchableOpacity>
+
             <TouchableOpacity 
                style={[styles.iconAction, { backgroundColor: theme === 'light' ? themeColors.surfaceLight : 'rgba(255,255,255,0.1)' }]}
                onPress={handleWatchlist}
@@ -623,6 +635,27 @@ export default function DetailScreen({ route, navigation }: any) {
           </View>
         </Pressable>
       </Modal>
+
+      {/* Watch Party Modal */}
+      <WatchPartyModal
+        isOpen={showPartyModal}
+        onClose={() => setShowPartyModal(false)}
+        onSendInvite={(friendUsername) => party.sendInvite(friendUsername, item)}
+        incomingInvite={party.incomingInvite}
+        onAcceptInvite={(invite) => party.acceptInvite(invite)}
+        onDeclineInvite={(inviteId) => party.declineInvite(inviteId)}
+        activeParty={party.activeInvite}
+        isHost={party.isHost}
+        isMicOn={party.isMicOn}
+        onToggleMic={party.toggleMic}
+        onLeaveParty={party.leaveParty}
+        partnerUsername={party.partnerUsername}
+        onNavigateToMovie={(movieId) => {
+          if (movieId && movieId !== item.id) {
+            navigation.replace('Detail', { item: { ...item, id: movieId } });
+          }
+        }}
+      />
     </View>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle, Type, Maximize2, Plus, Send, Facebook, Instagram, Music2, Calendar } from 'lucide-react';
+import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle, Type, Maximize2, Plus, Send, Facebook, Instagram, Music2, Calendar, Users } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import PremiumPlayer from './PremiumPlayer';
@@ -14,6 +14,8 @@ import { getProStatusLocal } from '../lib/pro';
 import CommentSection from './CommentSection';
 import { useLanguage } from '../lib/LanguageContext';
 import { getLocalized } from '../lib/translations';
+import WatchPartyModal from './WatchPartyModal';
+import { useWatchParty } from '../lib/useWatchParty';
 
 export default function Detail({ item, onBack }: { item: any, onBack: () => void }) {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -29,9 +31,12 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const [downloadProgress, setDownloadProgress] = useState(0);
   const [isDownloading, setIsDownloading] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState(1);
+  const [showPartyModal, setShowPartyModal] = useState(false);
   const { isInWatchlist, toggleWatchlist } = useWatchlist();
   const { t, language } = useLanguage();
   const [socialLinks, setSocialLinks] = useState<any[]>([]);
+
+  const party = useWatchParty();
 
   useEffect(() => {
     // هەرکاتێک بەکارهێنەر دەگەڕێتەوە ناو فیلمەکە، ژمارە تازەکە دەهێنین
@@ -486,6 +491,14 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             </button>
 
             <button 
+              onClick={() => setShowPartyModal(true)}
+              className="action-btn-secondary w-12 h-12 rounded-2xl bg-[#CC222F]/20 border border-[#CC222F]/40 text-[#CC222F] hover:bg-[#CC222F]/30 flex items-center justify-center transition active:scale-95 shrink-0"
+              title={language === 'ku' ? 'سەیری فیلم پێکەوە' : 'Watch Together'}
+            >
+              <Users size={20} className="text-red-400" />
+            </button>
+
+            <button 
               onClick={() => toggleWatchlist(item)}
               className={`w-12 h-12 rounded-2xl flex items-center justify-center transition border active:scale-95 shrink-0 ${
                 isBookmarked 
@@ -711,6 +724,22 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
       {/* Pro Modal */}
       <ProSubscriptionModal isOpen={showProModal} onClose={() => setShowProModal(false)} />
+
+      {/* Watch Party Modal */}
+      <WatchPartyModal
+        isOpen={showPartyModal}
+        onClose={() => setShowPartyModal(false)}
+        onSendInvite={(friendUsername) => party.sendInvite(friendUsername, item)}
+        incomingInvite={party.incomingInvite}
+        onAcceptInvite={(invite) => party.acceptInvite(invite)}
+        onDeclineInvite={(inviteId) => party.declineInvite(inviteId)}
+        activeParty={party.activeInvite}
+        isHost={party.isHost}
+        isMicOn={party.isMicOn}
+        onToggleMic={party.toggleMic}
+        onLeaveParty={party.leaveParty}
+        partnerUsername={party.partnerUsername}
+      />
     </div>
   );
 }

@@ -3,7 +3,7 @@
     "name": "Taban Play",
     "slug": "myflim-mobile",
     "scheme": "myflim",
-    "version": "2.0.0",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/app-logo-new.png",
     "userInterfaceStyle": "light",
