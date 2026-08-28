@@ -444,33 +444,8 @@ export default function DetailScreen({ route, navigation }: any) {
                 userAgent="Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36"
                 originWhitelist={['*']}
                 allowsFullscreenVideo={true}
-                androidLayerType="hardware"
-                startInLoadingState={true}
-                onShouldStartLoadWithRequest={(request) => {
-                  if (
-                    request.url.startsWith('about:') ||
-                    request.url.startsWith('data:') ||
-                    request.url === activeVideoUrl ||
-                    request.url.includes('vidsrc') ||
-                    request.url.includes('vidapi') ||
-                    request.url.includes('vidlink') ||
-                    request.url.includes('ok.ru') ||
-                    request.url.includes('dailymotion') ||
-                    request.url.includes('m3u8') ||
-                    request.url.includes('mp4') ||
-                    request.url.includes('stream') ||
-                    request.url.includes('embed') ||
-                    request.url.includes('player')
-                  ) {
-                    return true;
-                  }
-                  return false;
-                }}
-                renderLoading={() => (
-                  <View style={[StyleSheet.absoluteFill, { backgroundColor: 'black', justifyContent: 'center', alignItems: 'center' }]}>
-                    <ActivityIndicator color="#E53935" size="large" />
-                  </View>
-                )}
+                androidLayerType="software"
+                startInLoadingState={false}
               />
             )
           ) : (
@@ -525,13 +500,6 @@ export default function DetailScreen({ route, navigation }: any) {
             <TouchableOpacity style={[styles.mainPlayButton, { backgroundColor: theme === 'light' ? themeColors.primary : '#fff' }]} onPress={handleWatchNow}>
               <Play size={20} color={theme === 'light' ? 'white' : 'black'} fill={theme === 'light' ? 'white' : 'black'} />
               <Text style={[styles.mainPlayText, { color: theme === 'light' ? 'white' : 'black' }]}>{t.watchNow || 'Watch Now'}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-               style={[styles.iconAction, { backgroundColor: 'rgba(229, 57, 53, 0.15)', borderColor: 'rgba(229, 57, 53, 0.3)', borderWidth: 1 }]}
-               onPress={() => setShowPartyModal(true)}
-            >
-              <Users size={22} color="#E53935" />
             </TouchableOpacity>
 
             <TouchableOpacity 

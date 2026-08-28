@@ -117,6 +117,7 @@ export default function AppNavigator() {
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
+          animation: 'slide_from_right',
           contentStyle: { backgroundColor: themeColors.background },
         }}
       >
@@ -125,23 +126,6 @@ export default function AppNavigator() {
         <Stack.Screen name="Category" component={CategoryScreen} />
         <Stack.Screen name="Watchlist" component={WatchlistScreen} />
       </Stack.Navigator>
-
-      <WatchPartyModal
-        isOpen={false}
-        onClose={() => {}}
-        onSendInvite={async () => ({ success: false })}
-        incomingInvite={party.incomingInvite}
-        onAcceptInvite={(invite) => {
-          party.acceptInvite(invite);
-        }}
-        onDeclineInvite={(inviteId) => party.declineInvite(inviteId)}
-        activeParty={party.activeInvite}
-        isHost={party.isHost}
-        isMicOn={party.isMicOn}
-        onToggleMic={party.toggleMic}
-        onLeaveParty={party.leaveParty}
-        partnerUsername={party.partnerUsername}
-      />
     </React.Fragment>
   );
 }

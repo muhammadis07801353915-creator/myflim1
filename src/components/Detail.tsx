@@ -539,14 +539,6 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
             </button>
 
             <button 
-              onClick={() => setShowPartyModal(true)}
-              className="action-btn-secondary w-12 h-12 rounded-2xl bg-[#CC222F]/20 border border-[#CC222F]/40 text-[#CC222F] hover:bg-[#CC222F]/30 flex items-center justify-center transition active:scale-95 shrink-0"
-              title={language === 'ku' ? 'سەیری فیلم پێکەوە' : 'Watch Together'}
-            >
-              <Users size={20} className="text-red-400" />
-            </button>
-
-            <button 
               onClick={() => toggleWatchlist(item)}
               className={`w-12 h-12 rounded-2xl flex items-center justify-center transition border active:scale-95 shrink-0 ${
                 isBookmarked 

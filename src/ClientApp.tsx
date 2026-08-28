@@ -189,27 +189,6 @@ export default function ClientApp() {
           <BottomNav currentTab={currentTab} onChange={setCurrentTab} />
         </div>
       </main>
-
-      {/* Global Watch Party Invite Modal */}
-      <WatchPartyModal
-        isOpen={false}
-        onClose={() => {}}
-        onSendInvite={async () => ({ success: false })}
-        incomingInvite={party.incomingInvite}
-        onAcceptInvite={(invite) => {
-          party.acceptInvite(invite);
-          if (invite.movie_id) {
-            handleSelectItem({ id: invite.movie_id });
-          }
-        }}
-        onDeclineInvite={(inviteId) => party.declineInvite(inviteId)}
-        activeParty={party.activeInvite}
-        isHost={party.isHost}
-        isMicOn={party.isMicOn}
-        onToggleMic={party.toggleMic}
-        onLeaveParty={party.leaveParty}
-        partnerUsername={party.partnerUsername}
-      />
     </div>
   );
 }
