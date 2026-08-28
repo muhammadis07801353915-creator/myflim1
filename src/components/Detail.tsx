@@ -383,7 +383,11 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       return `${finalUrl}${separator}embed=1`;
     }
     if (finalUrl.includes('ok.ru/video/')) {
-      return finalUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
+      finalUrl = finalUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
+    }
+    if (finalUrl.includes('ok.ru/videoembed/') && !finalUrl.includes('autoplay=')) {
+      const sep = finalUrl.includes('?') ? '&' : '?';
+      finalUrl += `${sep}autoplay=1`;
     }
     if (finalUrl.includes('dailymotion.com/video/')) {
       return finalUrl.replace('dailymotion.com/video/', 'dailymotion.com/embed/video/');

@@ -197,6 +197,10 @@ export default function DetailScreen({ route, navigation }: any) {
   if (activeVideoUrl?.includes('ok.ru/video/')) {
     activeVideoUrl = activeVideoUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
   }
+  if (activeVideoUrl?.includes('ok.ru/videoembed/') && !activeVideoUrl.includes('autoplay=')) {
+    const sep = activeVideoUrl.includes('?') ? '&' : '?';
+    activeVideoUrl += `${sep}autoplay=1`;
+  }
   if (activeVideoUrl?.includes('dailymotion.com/video/')) {
     activeVideoUrl = activeVideoUrl.replace('dailymotion.com/video/', 'dailymotion.com/embed/video/');
   }
@@ -206,13 +210,17 @@ export default function DetailScreen({ route, navigation }: any) {
 
   const injectedJS = `
     (function() {
-      const style = document.createElement('style');
-      style.innerHTML = 'div[class*="join-ok"], .vp-layer_join-ok, .footer, .header, .side-bar { display: none !important; }';
-      document.head.appendChild(style);
-      const video = document.querySelector("video");
-      if (video) {
-        video.play();
-      }
+      try {
+        const style = document.createElement('style');
+        style.innerHTML = '.footer, .header, .side-bar { display: none !important; }';
+        document.head.appendChild(style);
+        const video = document.querySelector("video");
+        if (video) {
+          video.style.display = "block";
+          video.style.visibility = "visible";
+          video.play().catch(function(){});
+        }
+      } catch(e) {}
     })();
     true;
   `;
@@ -444,7 +452,7 @@ export default function DetailScreen({ route, navigation }: any) {
                 userAgent="Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36"
                 originWhitelist={['*']}
                 allowsFullscreenVideo={true}
-                androidLayerType="software"
+                androidLayerType="none"
                 startInLoadingState={false}
               />
             )
