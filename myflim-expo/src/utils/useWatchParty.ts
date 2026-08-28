@@ -25,6 +25,12 @@ export function useWatchParty() {
   const channelRef = useRef<any>(null);
   const globalChannelRef = useRef<any>(null);
   const currentUser = user?.name || '';
+  const onVideoSyncCallbackRef = useRef<((payload: { type: 'PLAY' | 'PAUSE' | 'SEEK'; currentTime: number }) => void) | null>(null);
+
+  // Register Video Sync Event Listener
+  const registerVideoSyncListener = useCallback((cb: (payload: { type: 'PLAY' | 'PAUSE' | 'SEEK'; currentTime: number }) => void) => {
+    onVideoSyncCallbackRef.current = cb;
+  }, []);
 
   // Check pending invites
   const checkPendingInvites = useCallback(async (activeUsername: string) => {
@@ -170,6 +176,11 @@ export function useWatchParty() {
     });
 
     channel
+      .on('broadcast', { event: 'video_sync' }, ({ payload }) => {
+        if (onVideoSyncCallbackRef.current) {
+          onVideoSyncCallbackRef.current(payload);
+        }
+      })
       .on('broadcast', { event: 'party_ended' }, () => {
         leaveParty();
       })
@@ -219,6 +230,7 @@ export function useWatchParty() {
     sendInvite,
     acceptInvite,
     declineInvite,
+    registerVideoSyncListener,
     broadcastVideoSync,
     toggleMic,
     leaveParty,

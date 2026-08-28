@@ -38,6 +38,24 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
 
   const party = useWatchParty();
 
+  // Listen for real-time video sync events from Host
+  useEffect(() => {
+    party.registerVideoSyncListener((payload) => {
+      if (payload.type === 'PLAY') {
+        setIsPlaying(true);
+      } else if (payload.type === 'PAUSE') {
+        setIsPlaying(false);
+      }
+    });
+  }, [party]);
+
+  // Auto-play when party is accepted
+  useEffect(() => {
+    if (party.isInParty) {
+      setIsPlaying(true);
+    }
+  }, [party.isInParty]);
+
   useEffect(() => {
     // هەرکاتێک بەکارهێنەر دەگەڕێتەوە ناو فیلمەکە، ژمارە تازەکە دەهێنین
     if (item?.id) {
@@ -262,6 +280,9 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     } else {
       setSelectedServerUrl(currentServers[0]?.url || '');
       setIsPlaying(true);
+      if (party.isInParty && party.isHost) {
+        party.broadcastVideoSync('PLAY', 0);
+      }
       handleWatchProgress(0, 0);
     }
   };

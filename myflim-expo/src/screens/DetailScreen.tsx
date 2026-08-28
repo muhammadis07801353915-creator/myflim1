@@ -42,6 +42,24 @@ export default function DetailScreen({ route, navigation }: any) {
   const [activeChannel, setActiveChannel] = useState(item);
   const [realLiveViewers, setRealLiveViewers] = useState<number>(1);
 
+  // Listen for real-time video sync events from Host
+  useEffect(() => {
+    party.registerVideoSyncListener((payload) => {
+      if (payload.type === 'PLAY') {
+        setIsPlaying(true);
+      } else if (payload.type === 'PAUSE') {
+        setIsPlaying(false);
+      }
+    });
+  }, [party]);
+
+  // Auto-play when party is accepted
+  useEffect(() => {
+    if (party.isInParty) {
+      setIsPlaying(true);
+    }
+  }, [party.isInParty]);
+
   // Real-time Supabase Presence for live viewers count in app
   useEffect(() => {
     if (item.type !== 'LiveTV' || !activeChannel?.id) return;
@@ -232,6 +250,9 @@ export default function DetailScreen({ route, navigation }: any) {
     setCurrentVideoUrl(url);
     setIsPlaying(true);
     setShowServerModal(false);
+    if (party.isInParty && party.isHost) {
+      party.broadcastVideoSync('PLAY', 0);
+    }
     if (item.type !== 'LiveTV') {
       saveWatchProgress(item, 0, 0);
     }

@@ -32,6 +32,7 @@ export function useWatchParty() {
   const peerRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
+  const onVideoSyncCallbackRef = useRef<((payload: { type: 'PLAY' | 'PAUSE' | 'SEEK'; currentTime: number }) => void) | null>(null);
 
   // Keep currentUser synced dynamically
   useEffect(() => {
@@ -54,6 +55,11 @@ export function useWatchParty() {
     };
   }, []);
 
+  // Register Video Sync Event Listener
+  const registerVideoSyncListener = useCallback((cb: (payload: { type: 'PLAY' | 'PAUSE' | 'SEEK'; currentTime: number }) => void) => {
+    onVideoSyncCallbackRef.current = cb;
+  }, []);
+
   // Check URL params for direct join link (?party=ID)
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -64,7 +70,7 @@ export function useWatchParty() {
     }
   }, [isInParty, activeInvite]);
 
-  // Check pending invites helper (bypassing REST cache)
+  // Check pending invites helper
   const checkPendingInvites = useCallback(async (activeUsername: string) => {
     if (!activeUsername) return;
     try {
@@ -147,7 +153,6 @@ export function useWatchParty() {
 
       await supabase.from('settings').upsert({ key: 'watch_party_invites', value: JSON.stringify(list) });
 
-      // Broadcast global invite signal for 0ms instant popup
       if (globalChannelRef.current) {
         globalChannelRef.current.send({
           type: 'broadcast',
@@ -233,6 +238,11 @@ export function useWatchParty() {
     });
 
     channel
+      .on('broadcast', { event: 'video_sync' }, ({ payload }) => {
+        if (onVideoSyncCallbackRef.current) {
+          onVideoSyncCallbackRef.current(payload);
+        }
+      })
       .on('broadcast', { event: 'webrtc_signal' }, ({ payload }) => {
         handleWebRTCSignal(payload);
       })
@@ -388,6 +398,7 @@ export function useWatchParty() {
     acceptInvite,
     declineInvite,
     joinByPartyId,
+    registerVideoSyncListener,
     broadcastVideoSync,
     toggleMic,
     leaveParty,
