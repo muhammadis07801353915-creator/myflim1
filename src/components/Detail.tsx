@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowLeft, Share2, BookmarkPlus, BookmarkCheck, Play, Star, Download, MonitorPlay, X, Server, ExternalLink, Eye, AlertCircle, Type, Maximize2, Plus, Send, Facebook, Instagram, Music2, Calendar, Users } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import ReactPlayer from 'react-player';
 import PremiumPlayer from './PremiumPlayer';
 import { useWatchlist } from '../lib/useWatchlist';
