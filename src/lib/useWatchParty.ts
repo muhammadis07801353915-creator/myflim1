@@ -167,9 +167,8 @@ export function useWatchParty() {
       setIsInParty(true);
       setupPartyChannel(newInvite);
 
-      const shareUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}${window.location.pathname}?movie=${movie.id}&party=${inviteId}` 
-        : `https://myflim.com/?movie=${movie.id}&party=${inviteId}`;
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://myflim.com';
+      const shareUrl = `${baseUrl}/?movie=${movie.id}&party=${inviteId}`;
 
       return { success: true, invite: newInvite, shareUrl };
     } catch (e: any) {
@@ -186,9 +185,11 @@ export function useWatchParty() {
         const match = list.find(i => i.id === partyId || i.room_code === partyId.toUpperCase());
         if (match) {
           acceptInvite(match);
+          return match;
         }
       }
     } catch (e) {}
+    return null;
   };
 
   // Accept Invitation

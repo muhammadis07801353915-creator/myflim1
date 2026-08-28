@@ -237,12 +237,11 @@ export default function WatchPartyModal({
                 if (res.shareUrl) {
                   Alert.alert(
                     language === 'ku' ? 'داوەتنامەی سەیری فیلم پێکەوە 🎬' : 'Watch Together Link',
-                    language === 'ku' ? 'لینکی داوەتنامەکە دروستکرا و ئامادەیە بۆ ناردن! دەتوانیت لە واتسئەپ، تێلیگرام یان فەیسبووک بنێریت.' : 'Watch Party link is ready to share!'
+                    language === 'ku' ? 'لینکی داوەتنامەکە ئامادەیە! بەشکردن (Share) بکە بۆ تێلیگرام یان واتسئەپ.' : 'Watch Party link is ready to share!'
                   );
                   try {
                     await Share.share({
-                      title: 'سەیری فیلم پێکەوە 🎬',
-                      message: `وەرە بەیەکەوە سەیری ئەم فیلمە بکەین! 🎬\n${res.shareUrl}`,
+                      message: res.shareUrl,
                       url: res.shareUrl
                     });
                   } catch (e) {}
