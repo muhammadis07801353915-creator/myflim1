@@ -18,6 +18,7 @@ import WatchPartyModal from './WatchPartyModal';
 import { useWatchParty } from '../lib/useWatchParty';
 
 export default function Detail({ item, onBack }: { item: any, onBack: () => void }) {
+  const playerRef = useRef<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showServersModal, setShowServersModal] = useState(false);
   const [selectedServerUrl, setSelectedServerUrl] = useState('');
@@ -195,8 +196,15 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
     registerSync((payload) => {
       if (payload.type === 'PLAY') {
         setIsPlaying(true);
+        if (payload.currentTime && playerRef.current) {
+          playerRef.current.seekTo(payload.currentTime);
+        }
       } else if (payload.type === 'PAUSE') {
         setIsPlaying(false);
+      } else if (payload.type === 'SEEK') {
+        if (payload.currentTime && playerRef.current) {
+          playerRef.current.seekTo(payload.currentTime);
+        }
       }
     });
   }, [registerSync]);
@@ -424,17 +432,30 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                     src={getEmbedUrl(selectedServerUrl)} 
                     className="w-full h-full border-0 absolute inset-0 z-50"
                     allowFullScreen
-                    allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write"
+                    allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-downloads"
                     referrerPolicy="no-referrer"
                   ></iframe>
                 </div>
               ) : (
                 <PremiumPlayer 
+                  ref={playerRef}
                   url={selectedServerUrl} 
                   title={getLocalized(item, 'title', language)}
+                  isGuest={party.isInParty && !party.isHost}
                   onBack={() => setIsPlaying(false)}
                   onError={handleReportBroken}
-                  onProgress={handleWatchProgress}
+                  onProgress={(currTime, dur) => {
+                    handleWatchProgress(currTime, dur);
+                    if (party.isInParty && party.isHost && Math.floor(currTime) % 4 === 0) {
+                      party.broadcastVideoSync('SEEK', currTime);
+                    }
+                  }}
+                  onHostSeek={(seekTime) => {
+                    if (party.isInParty && party.isHost) {
+                      party.broadcastVideoSync('SEEK', seekTime);
+                    }
+                  }}
                   tracks={videoTracks}
                 />
               );

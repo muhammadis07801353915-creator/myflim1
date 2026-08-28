@@ -24,6 +24,16 @@ export default function ClientApp() {
   const { movies, loading } = useData();
   const party = useWatchParty();
 
+  // Global Popup Ad Blocker
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.open = function() {
+        console.warn('Blocked popup ad window');
+        return null;
+      };
+    }
+  }, []);
+
   // URL-based navigation
   const movieId = searchParams ? searchParams.get('movie') : null;
   const selectedItem = (movieId && Array.isArray(movies)) 

@@ -1,15 +1,17 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
 import Hls from 'hls.js';
-import { Play, Pause, RotateCcw, RotateCw, Maximize, Minimize, Volume2, VolumeX, Type, ArrowLeft, Settings } from 'lucide-react';
+import { Play, Pause, RotateCcw, RotateCw, Maximize, Minimize, Volume2, VolumeX, Type, ArrowLeft, Settings, Lock } from 'lucide-react';
 
 interface PremiumPlayerProps {
   url: string;
   title?: string;
+  isGuest?: boolean;
   onBack?: () => void;
   onError?: () => void;
   onProgress?: (currentTime: number, duration: number) => void;
+  onHostSeek?: (seekTime: number) => void;
   tracks?: Array<{
     kind: string;
     src: string;
@@ -19,7 +21,22 @@ interface PremiumPlayerProps {
   }>;
 }
 
-export default function PremiumPlayer({ url, title, onBack, onError, onProgress, tracks }: PremiumPlayerProps) {
+export interface PremiumPlayerRef {
+  seekTo: (time: number) => void;
+  play: () => void;
+  pause: () => void;
+}
+
+const PremiumPlayer = forwardRef<PremiumPlayerRef, PremiumPlayerProps>(({
+  url,
+  title,
+  isGuest = false,
+  onBack,
+  onError,
+  onProgress,
+  onHostSeek,
+  tracks
+}, ref) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -31,6 +48,22 @@ export default function PremiumPlayer({ url, title, onBack, onError, onProgress,
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    seekTo: (time: number) => {
+      if (videoRef.current && Math.abs(videoRef.current.currentTime - time) > 1.5) {
+        videoRef.current.currentTime = time;
+      }
+    },
+    play: () => {
+      videoRef.current?.play().catch(() => {});
+      setIsPlaying(true);
+    },
+    pause: () => {
+      videoRef.current?.pause();
+      setIsPlaying(false);
+    }
+  }));
 
   useEffect(() => {
     const video = videoRef.current;
@@ -60,6 +93,7 @@ export default function PremiumPlayer({ url, title, onBack, onError, onProgress,
   }, [url, onError]);
 
   const togglePlay = () => {
+    if (isGuest) return;
     if (videoRef.current) {
       if (isPlaying) videoRef.current.pause();
       else videoRef.current.play();
@@ -68,8 +102,10 @@ export default function PremiumPlayer({ url, title, onBack, onError, onProgress,
   };
 
   const skip = (amount: number) => {
+    if (isGuest) return;
     if (videoRef.current) {
       videoRef.current.currentTime += amount;
+      if (onHostSeek) onHostSeek(videoRef.current.currentTime);
     }
   };
 
@@ -88,17 +124,19 @@ export default function PremiumPlayer({ url, title, onBack, onError, onProgress,
     setCurrentTime(formatTime(video.currentTime));
     setDuration(formatTime(video.duration || 0));
 
-    if (onProgress && video.currentTime > 2) {
+    if (onProgress && video.currentTime > 0) {
       onProgress(video.currentTime, video.duration || 0);
     }
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isGuest) return;
     const video = videoRef.current;
     if (!video) return;
     const seekTime = (parseFloat(e.target.value) / 100) * video.duration;
     video.currentTime = seekTime;
     setProgress(parseFloat(e.target.value));
+    if (onHostSeek) onHostSeek(seekTime);
   };
 
   const toggleFullscreen = () => {
@@ -151,22 +189,40 @@ export default function PremiumPlayer({ url, title, onBack, onError, onProgress,
             <h2 className="text-sm md:text-lg font-medium truncate max-w-[200px] md:max-w-md">{title}</h2>
           </div>
           <div className="flex items-center space-x-2">
+            {isGuest && (
+              <span className="px-2.5 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-400 text-xs font-bold flex items-center gap-1.5">
+                <Lock size={12} />
+                <span>کۆنترۆڵ لای سەرپەرشتیارە 👑</span>
+              </span>
+            )}
             <button className="p-2 hover:bg-white/10 rounded-full transition"><Settings size={20} /></button>
           </div>
         </div>
 
         {/* Center Controls */}
         <div className="flex items-center justify-center space-x-8 md:space-x-16 rtl:space-x-reverse">
-          <button onClick={() => skip(-10)} className="p-3 hover:bg-white/10 rounded-full transition active:scale-90">
+          <button 
+            onClick={() => skip(-10)} 
+            disabled={isGuest}
+            className={`p-3 hover:bg-white/10 rounded-full transition active:scale-90 ${isGuest ? 'opacity-30 cursor-not-allowed' : ''}`}
+          >
             <RotateCcw size={32} className="md:w-12 md:h-12" />
             <span className="absolute text-[10px] font-bold mt-[-22px] ml-[10px] md:mt-[-34px] md:ml-[16px]">10</span>
           </button>
           
-          <button onClick={togglePlay} className="p-4 bg-white/10 hover:bg-white/20 rounded-full transition transform hover:scale-110 active:scale-95 border border-white/20 backdrop-blur-md">
+          <button 
+            onClick={togglePlay} 
+            disabled={isGuest}
+            className={`p-4 bg-white/10 hover:bg-white/20 rounded-full transition transform hover:scale-110 active:scale-95 border border-white/20 backdrop-blur-md ${isGuest ? 'opacity-40 cursor-not-allowed' : ''}`}
+          >
             {isPlaying ? <Pause size={48} className="md:w-16 md:h-16" fill="currentColor" /> : <Play size={48} className="md:w-16 md:h-16 ml-1" fill="currentColor" />}
           </button>
 
-          <button onClick={() => skip(10)} className="p-3 hover:bg-white/10 rounded-full transition active:scale-90">
+          <button 
+            onClick={() => skip(10)} 
+            disabled={isGuest}
+            className={`p-3 hover:bg-white/10 rounded-full transition active:scale-90 ${isGuest ? 'opacity-30 cursor-not-allowed' : ''}`}
+          >
             <RotateCw size={32} className="md:w-12 md:h-12" />
             <span className="absolute text-[10px] font-bold mt-[-22px] ml-[10px] md:mt-[-34px] md:ml-[16px]">10</span>
           </button>
@@ -176,7 +232,7 @@ export default function PremiumPlayer({ url, title, onBack, onError, onProgress,
         <div className="p-4 pt-10 bg-gradient-to-t from-black/80 to-transparent">
           <div className="flex flex-col space-y-4">
             {/* Progress Slider */}
-            <div className="relative w-full h-1.5 group/progress flex items-center">
+            <div className={`relative w-full h-1.5 group/progress flex items-center ${isGuest ? 'pointer-events-none opacity-80' : ''}`}>
               <div className="absolute w-full h-1 bg-white/20 rounded-full overflow-hidden">
                 <div className="h-full bg-red-600 rounded-full transition-all duration-100" style={{ width: `${progress}%` }} />
               </div>
@@ -186,6 +242,7 @@ export default function PremiumPlayer({ url, title, onBack, onError, onProgress,
                 max="100" 
                 value={progress} 
                 onChange={handleSeek}
+                disabled={isGuest}
                 className="absolute w-full h-full opacity-0 cursor-pointer z-10"
               />
               <div className="absolute w-3 h-3 bg-red-600 rounded-full shadow-lg pointer-events-none transform -translate-y-0.5 group-hover/progress:scale-125 transition-transform" style={{ left: `${progress}%`, marginLeft: '-6px' }} />
@@ -220,4 +277,6 @@ export default function PremiumPlayer({ url, title, onBack, onError, onProgress,
       </div>
     </div>
   );
-}
+});
+
+export default PremiumPlayer;
