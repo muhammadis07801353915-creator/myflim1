@@ -57,13 +57,12 @@ export default function DetailScreen({ route, navigation }: any) {
   useEffect(() => {
     if (party.isInParty) {
       if (!currentVideoUrl) {
-        const srvs = activeMovieServers.length > 0 ? activeMovieServers : (item?.servers || []);
-        const url = srvs[0]?.url || item?.url || '';
-        if (url) setCurrentVideoUrl(url);
+        const srvUrl = (item?.servers && item.servers.length > 0 ? item.servers[0]?.url : null) || item?.url || item?.video_url || '';
+        if (srvUrl) setCurrentVideoUrl(srvUrl);
       }
       setIsPlaying(true);
     }
-  }, [party.isInParty, activeMovieServers, item, currentVideoUrl]);
+  }, [party.isInParty, item, currentVideoUrl]);
 
   // Real-time Supabase Presence for live viewers count in app
   useEffect(() => {
