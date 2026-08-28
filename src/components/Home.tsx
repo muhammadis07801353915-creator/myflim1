@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { 
   Play, Plus, Star, ChevronLeft, Bell, Search, 
-  ChevronRight, Bookmark, Check, Info, Sparkles, Flame, X, Film, Tv
+  ChevronRight, Bookmark, Check, Info, Sparkles, Flame, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { supabase } from '../lib/supabase';
@@ -108,7 +108,7 @@ export default function Home({
 
   useEffect(() => {
     const handleResize = () => {
-      setDisplayLimit(window.innerWidth < 768 ? 6 : 18);
+      setDisplayLimit(window.innerWidth < 768 ? 8 : 18);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -245,7 +245,7 @@ export default function Home({
   return (
     <div className="bg-[#0a0a0f] min-h-screen text-white pb-32">
 
-      {/* Modern Desktop Glassmorphic Header */}
+      {/* Modern Header Bar (Original Mobile layout on mobile, Glassmorphic Desktop header on PC) */}
       <header className="flex items-center justify-between px-4 sm:px-6 md:px-10 py-4 border-b border-white/10 bg-[#0a0a0f]/80 backdrop-blur-2xl sticky top-0 z-40">
         
         {/* Left: Brand Logo & Desktop Category Quick Links */}
@@ -292,7 +292,7 @@ export default function Home({
         </div>
 
         {/* Right: Desktop Search Bar & Notification Bell */}
-        <div className="flex items-center space-x-4 rtl:space-x-reverse">
+        <div className="flex items-center space-x-3 rtl:space-x-reverse">
           <div className="hidden md:flex items-center bg-white/5 border border-white/10 rounded-full px-4 py-2 w-64 focus-within:w-80 focus-within:border-[#CC222F] transition-all duration-300">
             <Search size={16} className="text-neutral-400 shrink-0" />
             <input 
@@ -346,7 +346,7 @@ export default function Home({
         </div>
       ) : (
         <>
-          {/* 1. WIDESCREEN CINEMATIC HERO BANNER (OPTIMIZED FOR DESKTOP & MOBILE) */}
+          {/* 1. HERO BANNER (Original Mobile Layout on Mobile, Widescreen Cinema Banner on Desktop) */}
           {currentFeatured && (() => {
             const bgImg = currentFeatured.backdrop || currentFeatured.image;
             const genresText = Array.isArray(currentFeatured.genre)
@@ -358,8 +358,25 @@ export default function Home({
             return (
               <div className="relative w-full px-0 md:px-8 md:pt-6">
                 <div
-                  className="relative w-full overflow-hidden cursor-pointer select-none group bg-[#0f0f13] md:rounded-3xl border-0 md:border md:border-white/10 shadow-2xl"
+                  className="relative w-full overflow-hidden cursor-pointer select-none group bg-[#0f0f13] mb-6 sm:mb-8 md:mb-10 md:rounded-3xl border-0 md:border md:border-white/10 shadow-2xl"
                   onClick={() => onSelect(currentFeatured)}
+                  onTouchStart={(e) => {
+                    const t = e.touches[0];
+                    (e.currentTarget as HTMLElement).dataset.touchX = String(t.clientX);
+                    (e.currentTarget as HTMLElement).dataset.touchY = String(t.clientY);
+                  }}
+                  onTouchEnd={(e) => {
+                    const startX = Number((e.currentTarget as HTMLElement).dataset.touchX || 0);
+                    const startY = Number((e.currentTarget as HTMLElement).dataset.touchY || 0);
+                    const dx = e.changedTouches[0].clientX - startX;
+                    const dy = e.changedTouches[0].clientY - startY;
+                    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (dx < 0) nextFeatured();
+                      else prevFeatured();
+                    }
+                  }}
                 >
                   <div className="relative w-full aspect-[16/10] sm:aspect-[21/9] md:aspect-[2.5/1] lg:aspect-[3/1]">
                     {bgImg && (
@@ -374,53 +391,76 @@ export default function Home({
                       />
                     )}
 
-                    {/* Gradient Vignette */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-black/40 to-transparent pointer-events-none" />
+                    {/* Gradient Vignette Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-black/35 to-transparent pointer-events-none" />
                     <div className="hidden md:block absolute inset-0 bg-gradient-to-r from-[#0a0a0f] via-[#0a0a0f]/40 to-transparent pointer-events-none" />
 
-                    {/* Rating Badge */}
+                    {/* Top-Right Rating Badge */}
                     {currentFeatured.rating && (
-                      <div className="absolute top-4 right-4 rtl:right-auto rtl:left-4 z-20">
-                        <div className="bg-black/75 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/15 text-xs font-black text-white flex items-center space-x-1.5 shadow-xl">
-                          <Star size={14} className="fill-amber-400 text-amber-400" />
+                      <div className="absolute top-3.5 right-3.5 rtl:right-auto rtl:left-3.5 z-20">
+                        <div className="bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/15 text-xs font-black text-white flex items-center space-x-1.5 shadow-lg rtl:space-x-reverse">
+                          <Star size={12} className="fill-amber-400 text-amber-400" />
                           <span>{currentFeatured.rating}</span>
                         </div>
                       </div>
                     )}
 
-                    {/* Hero Info Stack */}
-                    <div className="absolute bottom-4 left-4 right-4 sm:bottom-8 sm:left-10 sm:right-10 z-20 flex items-end gap-5 rtl:flex-row-reverse">
-                      <div className="relative w-24 sm:w-32 md:w-40 aspect-[2/3] rounded-2xl overflow-hidden border-2 border-[#CC222F] shadow-2xl shrink-0 group-hover:scale-105 transition duration-300">
+                    {/* Bottom Row Content: Floating Thumbnail + Title Stack */}
+                    <div className="absolute bottom-3 left-3 right-3 sm:bottom-6 sm:left-8 sm:right-8 z-20 flex items-end gap-3.5 sm:gap-6 rtl:flex-row-reverse">
+                      
+                      {/* Vertical Poster Thumbnail */}
+                      <div className="relative w-22 sm:w-28 md:w-36 aspect-[2/3] rounded-2xl overflow-hidden border-2 border-[#CC222F] shadow-2xl shrink-0 group-hover:scale-105 transition-transform duration-300">
                         <Image
                           src={currentFeatured.image}
                           alt={currentFeatured.title || ''}
                           fill
+                          sizes="(max-width: 768px) 90px, 150px"
                           className="object-cover"
                           unoptimized={true}
                         />
                       </div>
 
-                      <div className="flex-1 min-w-0 flex flex-col justify-end space-y-2">
-                        <h1 className="text-base sm:text-2xl md:text-3xl lg:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-md truncate">
+                      {/* Info Stack */}
+                      <div className="flex-1 min-w-0 flex flex-col justify-end space-y-1 ltr:pl-1 rtl:pr-1">
+                        <h1 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight drop-shadow-md truncate">
                           {getLocalized(currentFeatured, 'title', language)}
                         </h1>
 
-                        <div className="flex items-center gap-2 text-xs sm:text-sm text-neutral-300 font-bold">
-                          {genresText ? <span className="bg-white/10 px-2.5 py-0.5 rounded-md backdrop-blur-md">{genresText}</span> : null}
-                          {currentFeatured.year ? <span>{currentFeatured.year}</span> : null}
+                        <div className="flex items-center gap-2 text-[11px] sm:text-sm text-neutral-300 font-medium truncate">
+                          {genresText ? <span>{genresText}</span> : null}
+                          {currentFeatured.year ? (
+                            <>
+                              <span className="text-neutral-400">•</span>
+                              <span>{currentFeatured.year}</span>
+                            </>
+                          ) : null}
                         </div>
 
-                        {/* Desktop Play Action Button */}
-                        <div className="pt-2 flex items-center gap-3">
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); onSelect(currentFeatured); }}
-                            className="px-6 py-3 bg-[#CC222F] hover:bg-red-700 text-white font-black rounded-xl text-xs md:text-sm transition-all duration-300 flex items-center gap-2 shadow-xl shadow-red-600/40 hover:scale-105 active:scale-95"
+                        {/* Carousel Dots */}
+                        {featuredMovies.length > 1 && (
+                          <div
+                            className="flex items-center gap-1.5 pt-1"
+                            onClick={(e) => e.stopPropagation()}
                           >
-                            <Play size={18} className="fill-white" />
-                            <span>{t.watchNow || 'Watch Now'}</span>
-                          </button>
-                        </div>
+                            {featuredMovies.map((_, i) => (
+                              <button
+                                key={i}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCurrentFeaturedIndex(i);
+                                }}
+                                className="transition-all duration-300 rounded-full"
+                                style={{
+                                  width: i === currentFeaturedIndex ? '20px' : '6px',
+                                  height: '5px',
+                                  backgroundColor: i === currentFeaturedIndex ? '#CC222F' : 'rgba(255,255,255,0.35)',
+                                }}
+                              />
+                            ))}
+                          </div>
+                        )}
                       </div>
+
                     </div>
                   </div>
                 </div>
@@ -428,8 +468,9 @@ export default function Home({
             );
           })()}
 
-          {/* MAIN CONTENT ROWS (OPTIMIZED DESKTOP GRID) */}
-          <div className="px-4 md:px-8 lg:px-10 space-y-12 pt-8">
+
+          {/* CONTENT ROWS (Original Horizontal Swipe Rows on Mobile, Multi-column Grid on Desktop) */}
+          <div className="px-4 md:px-8 lg:px-10 space-y-10 pt-2">
 
             {/* TOP CONTENTS / TRENDING NOW */}
             {topContents.length > 0 && (
@@ -448,19 +489,20 @@ export default function Home({
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                {/* Mobile: Horizontal Swipe Row (-mx-4 px-4 overflow-x-auto) | Desktop: Multi-column Grid (md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6) */}
+                <div className="flex space-x-4 md:space-x-0 overflow-x-auto md:overflow-visible pb-4 md:pb-0 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 md:gap-6">
                   {topContents
                     .filter(m => filterType === 'all' ? true : m.type === filterType)
                     .slice(0, displayLimit)
                     .map((movie, idx) => (
                     <motion.div 
                       key={movie.id}
-                      whileHover={{ y: -8, scale: 1.03 }}
+                      whileHover={{ y: -6, scale: 1.03 }}
                       transition={{ duration: 0.2 }}
                       onClick={() => onSelect(movie)}
-                      className="cursor-pointer group flex flex-col"
+                      className="flex-none w-36 sm:w-44 md:w-auto cursor-pointer group flex flex-col"
                     >
-                      <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-[#14151c] border border-white/10 shadow-2xl group-hover:border-[#CC222F]/60 transition-colors">
+                      <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-[#14151c] border border-white/10 shadow-xl group-hover:border-[#CC222F]/60 transition-colors">
                         <Image 
                           src={movie.image} 
                           alt={movie.title} 
@@ -470,9 +512,9 @@ export default function Home({
                           unoptimized={true}
                         />
 
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                          <div className="w-12 h-12 rounded-full bg-[#CC222F] text-white flex items-center justify-center shadow-xl shadow-red-600/50">
-                            <Play size={20} className="fill-white ml-0.5" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                          <div className="w-10 h-10 rounded-full bg-[#CC222F] text-white flex items-center justify-center shadow-lg shadow-red-600/40">
+                            <Play size={18} className="fill-white ml-0.5" />
                           </div>
                         </div>
 
@@ -522,16 +564,17 @@ export default function Home({
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+                  {/* Mobile: Horizontal Swipe Row | Desktop: Multi-column Grid */}
+                  <div className="flex space-x-4 md:space-x-0 overflow-x-auto md:overflow-visible pb-4 md:pb-0 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 md:gap-6">
                     {listMovies.slice(0, displayLimit).map((movie) => (
                       <motion.div 
                         key={movie.id}
-                        whileHover={{ y: -8, scale: 1.03 }}
+                        whileHover={{ y: -6, scale: 1.03 }}
                         transition={{ duration: 0.2 }}
                         onClick={() => onSelect(movie)}
-                        className="cursor-pointer group flex flex-col"
+                        className="flex-none w-36 sm:w-44 md:w-auto cursor-pointer group flex flex-col"
                       >
-                        <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-[#14151c] border border-white/10 shadow-2xl group-hover:border-[#CC222F]/60 transition-colors">
+                        <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-[#14151c] border border-white/10 shadow-xl group-hover:border-[#CC222F]/60 transition-colors">
                           <Image 
                             src={movie.image} 
                             alt={movie.title} 
@@ -540,9 +583,9 @@ export default function Home({
                             className="object-cover group-hover:scale-105 transition-transform duration-500"
                             unoptimized={true}
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                            <div className="w-12 h-12 rounded-full bg-[#CC222F] text-white flex items-center justify-center shadow-xl shadow-red-600/50">
-                              <Play size={20} className="fill-white ml-0.5" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                            <div className="w-10 h-10 rounded-full bg-[#CC222F] text-white flex items-center justify-center shadow-lg shadow-red-600/40">
+                              <Play size={18} className="fill-white ml-0.5" />
                             </div>
                           </div>
                         </div>
