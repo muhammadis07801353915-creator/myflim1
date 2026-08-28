@@ -23,6 +23,7 @@ import { Star, Flame, ChevronRight, ChevronLeft, Search, Bell, Info, X } from 'l
 import { translations } from '../utils/translations';
 import { getLocalized } from '../utils/localization';
 import FloatingSocialButton from '../components/FloatingSocialButton';
+import { DEMO_TABAN1_MOVIES } from '../utils/demoData';
 
 const formatNotifTime = (d: string, lang: string) => {
   if (!d) return '';
@@ -177,34 +178,30 @@ export default function HomeScreen({ navigation }: any) {
     markNotificationsRead();
   };
 
-  const featured = isUnlocked && !isRestrictedUser ? movies.filter((m) => m.is_featured) : [];
-  const topContents = isUnlocked && !isRestrictedUser
+  const featured = isRestrictedUser 
+    ? DEMO_TABAN1_MOVIES 
+    : isUnlocked 
+    ? movies.filter((m) => m.is_featured) 
+    : [];
+
+  const topContents = isRestrictedUser 
+    ? DEMO_TABAN1_MOVIES 
+    : isUnlocked
     ? movies
         .filter((m) => m.top_rank)
         .sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99))
     : [];
+
   // Dynamically compute ALL movie lists present in database without duplicates
   const allDynamicLists = useMemo(() => {
-    if (!isUnlocked) return [];
-
     if (isRestrictedUser) {
-      const dubbedSeries = movies.filter(
-        (m) =>
-          m.list_name === 'زنجیرەی کوردی دۆبلاژ' ||
-          m.category === 'زنجیرەی کوردی دۆبلاژ' ||
-          (m.list_name && m.list_name.includes('زنجیرەی کوردی دۆبلاژ')) ||
-          (m.genre && m.genre.includes('زنجیرەی کوردی دۆبلاژ')) ||
-          (m.list_name && m.list_name.includes('دۆبلاژ') && m.type === 'Series') ||
-          (m.genre && m.genre.includes('دۆبلاژ') && m.type === 'Series')
-      );
-
-      const fallbackList = dubbedSeries.length > 0
-        ? dubbedSeries
-        : movies.filter((m) => m.type === 'Series');
-
-      const title = getLocalized({ name: 'زنجیرەی کوردی دۆبلاژ', name_ku: 'زنجیرەی کوردی دۆبلاژ' }, 'name', language) || 'زنجیرەی کوردی دۆبلاژ';
-      return [[title, fallbackList]];
+      return [
+        ['ڤیدیۆی وەرزشی', DEMO_TABAN1_MOVIES.filter(m => m.genre === 'وەرزشی')],
+        ['کۆمیدی و پێکەنین', DEMO_TABAN1_MOVIES.filter(m => m.genre === 'کۆمیدی')]
+      ];
     }
+
+    if (!isUnlocked) return [];
 
     const listMap = new Map<string, any[]>();
     const addedRawNames = new Set<string>();
