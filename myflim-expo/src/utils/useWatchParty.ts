@@ -116,7 +116,8 @@ export function useWatchParty() {
       setIsInParty(true);
       setupPartyChannel(newInvite);
 
-      return { success: true, invite: newInvite };
+      const shareUrl = `https://myflim.com/?movie=${movie.id}&party=${inviteId}`;
+      return { success: true, invite: newInvite, shareUrl };
     } catch (e: any) {
       return { success: false, message: e.message || 'ناردنی داوەتنامە سەرکەوتوو نەبوو.' };
     }

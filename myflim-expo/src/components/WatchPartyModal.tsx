@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Pressable,
   Share,
+  Alert,
 } from 'react-native';
 import { Users, X, Send, Mic, MicOff, PhoneOff, CheckCircle2, User, AlertCircle, Copy, Share2 } from 'lucide-react-native';
 import { useAppStore } from '../store/useAppStore';
@@ -234,8 +235,16 @@ export default function WatchPartyModal({
               onPress={async () => {
                 const res = await onSendInvite('Friend');
                 if (res.shareUrl) {
+                  Alert.alert(
+                    language === 'ku' ? 'داوەتنامەی سەیری فیلم پێکەوە 🎬' : 'Watch Together Link',
+                    language === 'ku' ? 'لینکی داوەتنامەکە دروستکرا و ئامادەیە بۆ ناردن! دەتوانیت لە واتسئەپ، تێلیگرام یان فەیسبووک بنێریت.' : 'Watch Party link is ready to share!'
+                  );
                   try {
-                    await Share.share({ message: res.shareUrl });
+                    await Share.share({
+                      title: 'سەیری فیلم پێکەوە 🎬',
+                      message: `وەرە بەیەکەوە سەیری ئەم فیلمە بکەین! 🎬\n${res.shareUrl}`,
+                      url: res.shareUrl
+                    });
                   } catch (e) {}
                 }
               }}
