@@ -42,28 +42,45 @@ export default function SearchScreen({ navigation }: any) {
   const [results, setResults] = useState<any[]>([]);
   const [showFilterModal, setShowFilterModal] = useState(false);
 
-  const rawTypeOptions = [
+  const typeOptions = [
     { id: 'All', label: language === 'ku' ? 'هەمووی' : language === 'badini' ? 'هەمی' : language === 'ar' ? 'الكل' : 'All' },
     { id: 'Movie', label: language === 'ku' ? 'فیلمەکان' : language === 'badini' ? 'فیلم' : language === 'ar' ? 'أفلام' : 'Movies' },
     { id: 'Series', label: language === 'ku' ? 'زنجیرەکان' : language === 'badini' ? 'زنجیرە' : language === 'ar' ? 'مسلسلات' : 'Series' },
+    { id: 'Anime', label: language === 'ku' ? 'ئەنیمەیشن' : language === 'badini' ? 'ئەنیمەیشن' : language === 'ar' ? 'أنيمي' : 'Anime' },
+    { id: 'LiveTV', label: language === 'ku' ? 'ڕاستەوخۆ' : language === 'badini' ? 'ڕاستەوخۆ' : language === 'ar' ? 'بث مباشر' : 'Live TV' },
   ];
-  const typeOptions = isRestrictedUser ? rawTypeOptions.filter(o => o.id !== 'All') : rawTypeOptions;
 
-  const rawGenresList = [
+  const genresList = [
     { id: 'All', label: language === 'ku' ? 'هەموو جۆرەکان' : language === 'badini' ? 'تەڤایا جۆران' : language === 'ar' ? 'جميع الأنواع' : 'All Genres' },
     { id: 'وەرزشی', label: 'وەرزشی' },
     { id: 'کۆمیدی', label: 'کۆمیدی' },
     { id: 'Action', label: language === 'ku' ? 'ئەکشن' : language === 'badini' ? 'ئەکشن' : language === 'ar' ? 'أكشن' : 'Action' },
+    { id: 'Comedy', label: language === 'ku' ? 'کۆمیدی' : language === 'badini' ? 'کۆمیدی' : language === 'ar' ? 'كوميدي' : 'Comedy' },
     { id: 'Drama', label: language === 'ku' ? 'دراما' : language === 'badini' ? 'دراما' : language === 'ar' ? 'دراما' : 'Drama' },
+    { id: 'Horror', label: language === 'ku' ? 'ترسناک' : language === 'badini' ? 'ترسناک' : language === 'ar' ? 'رعب' : 'Horror' },
+    { id: 'Romance', label: language === 'ku' ? 'رۆمانسی' : language === 'badini' ? 'رۆمانسی' : language === 'ar' ? 'رومانسي' : 'Romance' },
+    { id: 'Sci-Fi', label: language === 'ku' ? 'زانستی' : language === 'badini' ? 'زانستی' : language === 'ar' ? 'خيال علمي' : 'Sci-Fi' },
+    { id: 'Crime', label: language === 'ku' ? 'تاوان کاری' : language === 'badini' ? 'تاوان کاری' : language === 'ar' ? 'جريمة' : 'Crime' },
+    { id: 'Animation', label: language === 'ku' ? 'ئەنیمەیشن' : language === 'badini' ? 'ئەنیمەیشن' : language === 'ar' ? 'رسوم متحركة' : 'Animation' },
+    { id: 'زنجیرەی کوردی دۆبلاژ', label: language === 'ku' ? 'کوردی دۆبلاژ' : language === 'badini' ? 'دۆبلاژکری یێن کوردی' : language === 'ar' ? 'مدبلج كوردي' : 'Kurdish Dubbed' },
   ];
-  const genresList = isRestrictedUser ? rawGenresList.filter(o => o.id !== 'All') : rawGenresList;
 
-  const rawYearsList = [
+  const yearsList = [
     { id: 'All', label: language === 'ku' ? 'هەموو ساڵەکان' : language === 'badini' ? 'تەڤایا ساڵان' : language === 'ar' ? 'جميع السنوات' : 'All Years' },
     { id: '2026', label: '2026' },
     { id: '2025', label: '2025' },
+    { id: '2024', label: '2024' },
+    { id: '2023', label: '2023' },
+    { id: '2022', label: '2022' },
+    { id: '2021', label: '2021' },
+    { id: '2020', label: '2020' },
+    { id: '2019', label: '2019' },
+    { id: '2018', label: '2018' },
+    { id: '2015', label: '2015' },
+    { id: '2010', label: '2010' },
+    { id: '2000s', label: language === 'ku' ? 'ساڵانی 2000' : language === 'badini' ? 'ساڵێن 2000' : language === 'ar' ? 'عقد 2000' : '2000s' },
+    { id: '1990s', label: language === 'ku' ? 'ساڵانی 1990' : language === 'badini' ? 'ساڵێن 1990' : language === 'ar' ? 'عقد 1990' : '1990s' },
   ];
-  const yearsList = isRestrictedUser ? rawYearsList.filter(o => o.id !== 'All') : rawYearsList;
 
   const scrollToRightEdgeRTL = (ref: React.RefObject<ScrollView | null>) => {
     if (isRTL) {
@@ -116,9 +133,7 @@ export default function SearchScreen({ navigation }: any) {
 
   useEffect(() => {
     let pool: any[] = [];
-    if (isRestrictedUser) {
-      pool = DEMO_TABAN1_MOVIES;
-    } else if (activeType === 'All') {
+    if (activeType === 'All') {
       pool = [
         ...movies, 
         ...(liveTv || []).map(c => ({ ...c, type: 'LiveTV', title: c.name, rating: '8.5' }))
