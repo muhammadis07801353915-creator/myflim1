@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Users, X, Send, Mic, MicOff, PhoneOff, CheckCircle2, User, Play, AlertCircle } from 'lucide-react';
+import { Users, X, Send, Mic, MicOff, PhoneOff, CheckCircle2, User, AlertCircle, Copy, Link } from 'lucide-react';
 import { useLanguage } from '../lib/LanguageContext';
 
 interface WatchPartyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSendInvite: (friendUsername: string) => Promise<{ success: boolean; message?: string }>;
+  onSendInvite: (friendUsername: string) => Promise<{ success: boolean; message?: string; shareUrl?: string }>;
   incomingInvite: any;
   onAcceptInvite: (invite: any) => void;
   onDeclineInvite: (inviteId: string) => void;
@@ -38,6 +38,7 @@ export default function WatchPartyModal({
   const [sending, setSending] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [createdShareUrl, setCreatedShareUrl] = useState('');
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,15 +47,24 @@ export default function WatchPartyModal({
     setSending(true);
     setErrorMsg('');
     setSuccessMsg('');
+    setCreatedShareUrl('');
 
     const res = await onSendInvite(friendUsername.trim());
     setSending(false);
 
     if (res.success) {
       setSuccessMsg(language === 'ku' ? 'داوەتنامەکە بە سەرکەوتوویی نێردرا!' : 'Invite sent successfully!');
+      if (res.shareUrl) setCreatedShareUrl(res.shareUrl);
       setFriendUsername('');
     } else {
       setErrorMsg(res.message || 'هەڵەیەک ڕوویدا');
+    }
+  };
+
+  const copyLink = () => {
+    if (createdShareUrl) {
+      navigator.clipboard.writeText(createdShareUrl);
+      alert(language === 'ku' ? 'لینکی ژووری داوەت کۆپی کرا!' : 'Watch link copied!');
     }
   };
 
@@ -96,7 +106,7 @@ export default function WatchPartyModal({
     );
   }
 
-  // 2. Active Party Control Panel Overlay (when party is active)
+  // 2. Active Party Control Panel Overlay
   if (activeParty) {
     return (
       <div className="fixed bottom-6 right-6 z-[450] bg-[#14151c]/95 border border-red-500/40 backdrop-blur-xl text-white rounded-2xl p-4 shadow-2xl flex items-center gap-4 animate-in slide-in-from-bottom-5 duration-300">
@@ -173,7 +183,7 @@ export default function WatchPartyModal({
                 type="text"
                 value={friendUsername}
                 onChange={e => setFriendUsername(e.target.value)}
-                placeholder={language === 'ku' ? 'یوزەرنەیمەکەی بنووسە...' : 'Type username...'}
+                placeholder={language === 'ku' ? 'یوزەرنەیمەکەی بنووسە (نموونە: Hamais400)' : 'Type username (e.g. Hamais400)'}
                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-10 py-2.5 text-xs text-white placeholder-white/30 outline-none focus:border-[#CC222F]"
                 autoFocus
               />
@@ -189,9 +199,21 @@ export default function WatchPartyModal({
           )}
 
           {successMsg && (
-            <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-xs font-bold text-emerald-400 flex items-center gap-2">
-              <CheckCircle2 size={16} />
-              <span>{successMsg}</span>
+            <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-xs font-bold text-emerald-400 space-y-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={16} />
+                <span>{successMsg}</span>
+              </div>
+              {createdShareUrl && (
+                <button
+                  type="button"
+                  onClick={copyLink}
+                  className="w-full py-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 transition"
+                >
+                  <Copy size={13} />
+                  <span>{language === 'ku' ? 'کۆپی کردنی لینکی داوەتنامە' : 'Copy Direct Watch Link'}</span>
+                </button>
+              )}
             </div>
           )}
 

@@ -6,9 +6,10 @@ import { getUserAccount } from './userAuth';
 
 export interface WatchPartyInvite {
   id: string;
+  room_code: string;
   host_username: string;
   host_avatar?: string;
-  guest_username: string;
+  guest_username?: string;
   movie_id: string | number;
   movie_title: string;
   movie_image?: string;
@@ -39,26 +40,39 @@ export function useWatchParty() {
       if (acc?.name) {
         setCurrentUser(acc.name);
       } else {
-        setCurrentUser('');
+        const anon = typeof window !== 'undefined' ? localStorage.getItem('myfilm_anon_username') : null;
+        if (anon) setCurrentUser(anon);
+        else setCurrentUser('');
       }
     };
     update();
     window.addEventListener('userAccountUpdated', update);
-    const interval = setInterval(update, 2000);
+    const interval = setInterval(update, 1500);
     return () => {
       window.removeEventListener('userAccountUpdated', update);
       clearInterval(interval);
     };
   }, []);
 
-  // Check invites helper
+  // Check URL params for direct join link (?party=ID)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const partyId = params.get('party');
+    if (partyId && !isInParty && !activeInvite) {
+      joinByPartyId(partyId);
+    }
+  }, [isInParty, activeInvite]);
+
+  // Check pending invites helper (bypassing REST cache)
   const checkPendingInvites = useCallback(async (activeUsername: string) => {
     if (!activeUsername) return;
     try {
-      const { data } = await supabase.from('settings').select('value').eq('key', 'watch_party_invites').maybeSingle();
+      const { data } = await supabase.from('settings').select('value, id').eq('key', 'watch_party_invites').maybeSingle();
       if (data?.value) {
         const list: WatchPartyInvite[] = JSON.parse(data.value);
         const pending = list.find(inv => 
+          inv.guest_username && 
           inv.guest_username.trim().toLowerCase() === activeUsername.trim().toLowerCase() && 
           inv.status === 'pending'
         );
@@ -73,9 +87,10 @@ export function useWatchParty() {
 
   // Global Realtime Broadcast listener for invites
   useEffect(() => {
-    if (!currentUser) return;
+    const activeName = currentUser || (typeof window !== 'undefined' ? localStorage.getItem('myfilm_user_name') || '' : '');
+    if (!activeName) return;
 
-    checkPendingInvites(currentUser);
+    checkPendingInvites(activeName);
 
     const globalChannel = supabase.channel('global_watch_parties', {
       config: { broadcast: { self: false } }
@@ -83,7 +98,7 @@ export function useWatchParty() {
 
     globalChannel
       .on('broadcast', { event: 'new_invite' }, ({ payload }) => {
-        if (payload?.guest_username && payload.guest_username.trim().toLowerCase() === currentUser.trim().toLowerCase()) {
+        if (payload?.guest_username && payload.guest_username.trim().toLowerCase() === activeName.trim().toLowerCase()) {
           setIncomingInvite(payload);
         }
       })
@@ -91,7 +106,7 @@ export function useWatchParty() {
 
     globalChannelRef.current = globalChannel;
 
-    const interval = setInterval(() => checkPendingInvites(currentUser), 3000);
+    const interval = setInterval(() => checkPendingInvites(activeName), 2000);
 
     return () => {
       clearInterval(interval);
@@ -103,12 +118,19 @@ export function useWatchParty() {
 
   // Send Invitation to a friend
   const sendInvite = async (friendUsername: string, movie: any) => {
-    const sender = currentUser || getUserAccount()?.name;
-    if (!sender) return { success: false, message: 'تکایە سەرەتا ئەکاونت دروست بکە یان چوونە ژوورەوە بکە.' };
+    let sender = currentUser || getUserAccount()?.name;
+    if (!sender) {
+      sender = 'User_' + Math.random().toString(36).slice(2, 6);
+      if (typeof window !== 'undefined') localStorage.setItem('myfilm_anon_username', sender);
+      setCurrentUser(sender);
+    }
 
     const inviteId = `wp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const roomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+
     const newInvite: WatchPartyInvite = {
       id: inviteId,
+      room_code: roomCode,
       host_username: sender,
       guest_username: friendUsername.trim(),
       movie_id: movie.id,
@@ -140,10 +162,28 @@ export function useWatchParty() {
       setIsInParty(true);
       setupPartyChannel(newInvite);
 
-      return { success: true, invite: newInvite };
+      const shareUrl = typeof window !== 'undefined' 
+        ? `${window.location.origin}${window.location.pathname}?movie=${movie.id}&party=${inviteId}` 
+        : `https://myflim.com/?movie=${movie.id}&party=${inviteId}`;
+
+      return { success: true, invite: newInvite, shareUrl };
     } catch (e: any) {
       return { success: false, message: e.message || 'ناردنی داوەتنامە سەرکەوتوو نەبوو.' };
     }
+  };
+
+  // Join party directly by Party ID / Link / Code
+  const joinByPartyId = async (partyId: string) => {
+    try {
+      const { data } = await supabase.from('settings').select('value').eq('key', 'watch_party_invites').maybeSingle();
+      if (data?.value) {
+        const list: WatchPartyInvite[] = JSON.parse(data.value);
+        const match = list.find(i => i.id === partyId || i.room_code === partyId.toUpperCase());
+        if (match) {
+          acceptInvite(match);
+        }
+      }
+    } catch (e) {}
   };
 
   // Accept Invitation
@@ -218,7 +258,7 @@ export function useWatchParty() {
     });
   }, [isHost]);
 
-  // WebRTC P2P Voice Setup (Zero Server / DB Audio Overhead)
+  // WebRTC P2P Voice Setup
   const toggleMic = async () => {
     if (isMicOn) {
       if (localStreamRef.current) {
@@ -343,9 +383,11 @@ export function useWatchParty() {
     isMicOn,
     connectionStatus,
     partnerUsername,
+    currentUser,
     sendInvite,
     acceptInvite,
     declineInvite,
+    joinByPartyId,
     broadcastVideoSync,
     toggleMic,
     leaveParty,

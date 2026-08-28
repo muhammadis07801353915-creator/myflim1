@@ -8,15 +8,16 @@ import {
   TextInput,
   ActivityIndicator,
   Pressable,
+  Share,
 } from 'react-native';
-import { Users, X, Send, Mic, MicOff, PhoneOff, CheckCircle2, User, AlertCircle } from 'lucide-react-native';
+import { Users, X, Send, Mic, MicOff, PhoneOff, CheckCircle2, User, AlertCircle, Copy, Share2 } from 'lucide-react-native';
 import { useAppStore } from '../store/useAppStore';
-import { getColors, COLORS } from '../theme/theme';
+import { getColors } from '../theme/theme';
 
 interface WatchPartyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSendInvite: (friendUsername: string) => Promise<{ success: boolean; message?: string }>;
+  onSendInvite: (friendUsername: string) => Promise<{ success: boolean; message?: string; shareUrl?: string }>;
   incomingInvite: any;
   onAcceptInvite: (invite: any) => void;
   onDeclineInvite: (inviteId: string) => void;
@@ -51,6 +52,7 @@ export default function WatchPartyModal({
   const [sending, setSending] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [createdShareUrl, setCreatedShareUrl] = useState('');
 
   const handleSend = async () => {
     if (!friendUsername.trim()) return;
@@ -58,15 +60,25 @@ export default function WatchPartyModal({
     setSending(true);
     setErrorMsg('');
     setSuccessMsg('');
+    setCreatedShareUrl('');
 
     const res = await onSendInvite(friendUsername.trim());
     setSending(false);
 
     if (res.success) {
       setSuccessMsg(language === 'ku' ? 'داوەتنامەکە بە سەرکەوتوویی نێردرا!' : 'Invite sent successfully!');
+      if (res.shareUrl) setCreatedShareUrl(res.shareUrl);
       setFriendUsername('');
     } else {
       setErrorMsg(res.message || 'هەڵەیەک ڕوویدا');
+    }
+  };
+
+  const shareLink = async () => {
+    if (createdShareUrl) {
+      try {
+        await Share.share({ message: createdShareUrl });
+      } catch (e) {}
     }
   };
 
@@ -174,7 +186,7 @@ export default function WatchPartyModal({
               style={styles.input}
               value={friendUsername}
               onChangeText={setFriendUsername}
-              placeholder={language === 'ku' ? 'یوزەرنەیمەکەی بنووسە...' : 'Type username...'}
+              placeholder={language === 'ku' ? 'یوزەرنەیمەکەی بنووسە (نموونە: Hamais400)' : 'Type username...'}
               placeholderTextColor="#888"
               autoCapitalize="none"
             />
@@ -191,6 +203,15 @@ export default function WatchPartyModal({
                 <CheckCircle2 size={16} color="#10B981" />
                 <Text style={{ color: '#10B981', fontSize: 12, fontWeight: 'bold' }}>{successMsg}</Text>
               </View>
+            ) : null}
+
+            {createdShareUrl ? (
+              <TouchableOpacity style={styles.shareBtn} onPress={shareLink}>
+                <Share2 size={16} color="#10B981" style={{ marginRight: 6 }} />
+                <Text style={{ color: '#10B981', fontSize: 12, fontWeight: 'bold' }}>
+                  {language === 'ku' ? 'ناردنی لینکی داوەت لە واتسئەپ / تێلیگرام' : 'Share Direct Link'}
+                </Text>
+              </TouchableOpacity>
             ) : null}
 
             <TouchableOpacity
@@ -320,6 +341,15 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     backgroundColor: 'rgba(16, 185, 129, 0.15)',
+  },
+  shareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    marginTop: 10,
   },
   sendBtn: {
     backgroundColor: '#CC222F',
