@@ -39,26 +39,26 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
   const party = useWatchParty();
 
   // Listen for real-time video sync events from Host
+  const registerSync = party.registerVideoSyncListener;
   useEffect(() => {
-    party.registerVideoSyncListener((payload) => {
+    registerSync((payload) => {
       if (payload.type === 'PLAY') {
         setIsPlaying(true);
       } else if (payload.type === 'PAUSE') {
         setIsPlaying(false);
       }
     });
-  }, [party]);
+  }, [registerSync]);
 
   // Auto-play when party is accepted
+  const isInParty = party.isInParty;
   useEffect(() => {
-    if (party.isInParty) {
-      if (!selectedServerUrl) {
-        const srvUrl = (servers && servers.length > 0 ? servers[0]?.url : null) || item?.url || '';
-        if (srvUrl) setSelectedServerUrl(srvUrl);
-      }
+    if (isInParty && !isPlaying) {
+      const srvUrl = (servers && servers.length > 0 ? servers[0]?.url : null) || item?.url || '';
+      if (srvUrl) setSelectedServerUrl(srvUrl);
       setIsPlaying(true);
     }
-  }, [party.isInParty, servers, item, selectedServerUrl]);
+  }, [isInParty, isPlaying, item?.url]);
 
   useEffect(() => {
     // هەرکاتێک بەکارهێنەر دەگەڕێتەوە ناو فیلمەکە، ژمارە تازەکە دەهێنین
