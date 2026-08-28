@@ -129,13 +129,10 @@ export default function SearchScreen({ navigation }: any) {
   };
 
   useEffect(() => {
-    if (!isUnlocked || isRestrictedUser) {
-      setResults([]);
-      return;
-    }
-
     let pool: any[] = [];
-    if (activeType === 'All') {
+    if (isRestrictedUser) {
+      pool = movies.filter(m => matchesGenreOrList(m, 'زنجیرەی کوردی دۆبلاژ'));
+    } else if (activeType === 'All') {
       pool = [
         ...movies, 
         ...(liveTv || []).map(c => ({ ...c, type: 'LiveTV', title: c.name, rating: '8.5' }))
