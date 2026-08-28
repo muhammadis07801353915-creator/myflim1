@@ -224,9 +224,26 @@ export default function WatchPartyModal({
               ) : (
                 <>
                   <Send size={16} color="#FFF" style={{ marginRight: 6 }} />
-                  <Text style={styles.sendBtnTxt}>{language === 'ku' ? 'ناردنی داوەتنامە' : 'Send Invite'}</Text>
+                  <Text style={styles.sendBtnTxt}>{language === 'ku' ? 'ناردنی داوەتنامە بە ناوی بەکارهێنەر' : 'Send Invite by Username'}</Text>
                 </>
               )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.directShareBtn}
+              onPress={async () => {
+                const res = await onSendInvite('Friend');
+                if (res.shareUrl) {
+                  try {
+                    await Share.share({ message: res.shareUrl });
+                  } catch (e) {}
+                }
+              }}
+            >
+              <Share2 size={16} color="#10B981" style={{ marginRight: 6 }} />
+              <Text style={{ color: '#10B981', fontSize: 13, fontWeight: 'bold' }}>
+                {language === 'ku' ? 'بەشکردنی لینکی داوەت لە واتسئەپ / تێلیگرام 🔗' : 'Share Direct Watch Link 🔗'}
+              </Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -349,6 +366,17 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
     backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    marginTop: 10,
+  },
+  directShareBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 13,
+    borderRadius: 14,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
     marginTop: 10,
   },
   sendBtn: {

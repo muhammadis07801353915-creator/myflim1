@@ -223,7 +223,22 @@ export default function WatchPartyModal({
             className="w-full py-3 bg-[#CC222F] hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-red-600/30 flex items-center justify-center gap-2"
           >
             <Send size={15} />
-            <span>{language === 'ku' ? 'ناردنی داوەتنامە' : 'Send Invite'}</span>
+            <span>{language === 'ku' ? 'ناردنی داوەتنامە بە ناوی بەکارهێنەر' : 'Send Invite by Username'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={async () => {
+              const res = await onSendInvite('Friend');
+              if (res.shareUrl) {
+                navigator.clipboard.writeText(res.shareUrl);
+                alert(language === 'ku' ? 'لینکی داوەتنامە کۆپی کرا!' : 'Watch link copied!');
+              }
+            }}
+            className="w-full py-3 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 font-bold rounded-xl text-xs transition flex items-center justify-center gap-2"
+          >
+            <Copy size={15} />
+            <span>{language === 'ku' ? 'کۆپی کردنی لینکی داوەت (Share Link) 🔗' : 'Copy Direct Watch Link 🔗'}</span>
           </button>
         </form>
       </div>
