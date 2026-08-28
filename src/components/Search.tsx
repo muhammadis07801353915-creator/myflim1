@@ -212,9 +212,9 @@ export default function Search({ onSelect }: { onSelect: (item: any) => void }) 
       {/* ── HEADER ROW (Result count & Sort selector) ── */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base font-bold text-white light-mode:text-black tracking-tight">
-          {query || activeType !== 'All' || activeGenre !== 'All'
+          {query || activeType !== 'All' || activeGenre !== 'All' || activeYear !== 'All'
             ? `${language === 'ku' ? 'ئەنجامەکان' : language === 'badini' ? 'ئەنجام' : language === 'ar' ? 'النتائج' : 'Results'} (${filteredItems.length})`
-            : (language === 'ku' ? 'تۆپ 250' : language === 'badini' ? 'تۆپ 250' : language === 'ar' ? 'الرائج الآن' : 'Trending Now')}
+            : `${language === 'ku' ? 'هەمووی' : language === 'badini' ? 'هەمی' : language === 'ar' ? 'الكل' : 'All'} (${filteredItems.length})`}
         </h2>
 
         <button

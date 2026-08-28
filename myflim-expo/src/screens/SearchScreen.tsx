@@ -52,8 +52,6 @@ export default function SearchScreen({ navigation }: any) {
 
   const genresList = [
     { id: 'All', label: language === 'ku' ? 'هەموو جۆرەکان' : language === 'badini' ? 'تەڤایا جۆران' : language === 'ar' ? 'جميع الأنواع' : 'All Genres' },
-    { id: 'وەرزشی', label: 'وەرزشی' },
-    { id: 'کۆمیدی', label: 'کۆمیدی' },
     { id: 'Action', label: language === 'ku' ? 'ئەکشن' : language === 'badini' ? 'ئەکشن' : language === 'ar' ? 'أكشن' : 'Action' },
     { id: 'Comedy', label: language === 'ku' ? 'کۆمیدی' : language === 'badini' ? 'کۆمیدی' : language === 'ar' ? 'كوميدي' : 'Comedy' },
     { id: 'Drama', label: language === 'ku' ? 'دراما' : language === 'badini' ? 'دراما' : language === 'ar' ? 'دراما' : 'Drama' },
@@ -280,7 +278,7 @@ export default function SearchScreen({ navigation }: any) {
               onPress={() => setActiveGenre(g.id)}
               activeOpacity={0.8}
             >
-              <Text style={[styles.genrePillText, { color: themeColors.textSecondary }, activeGenre === g.id && styles.genrePillTextActive]}>
+              <Text numberOfLines={1} style={[styles.genrePillText, { color: themeColors.textSecondary }, activeGenre === g.id && styles.genrePillTextActive]}>
                 {g.label}
               </Text>
             </TouchableOpacity>
@@ -308,7 +306,7 @@ export default function SearchScreen({ navigation }: any) {
               onPress={() => setActiveYear(y.id)}
               activeOpacity={0.8}
             >
-              <Text style={[styles.genrePillText, { color: themeColors.textSecondary }, activeYear === y.id && styles.genrePillTextActive]}>
+              <Text numberOfLines={1} style={[styles.genrePillText, { color: themeColors.textSecondary }, activeYear === y.id && styles.genrePillTextActive]}>
                 {y.label}
               </Text>
             </TouchableOpacity>
@@ -334,9 +332,9 @@ export default function SearchScreen({ navigation }: any) {
           isUnlocked ? (
             <View style={[styles.listHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
               <Text style={[styles.listHeader, { color: themeColors.text }]}>
-                {query.length > 0 || activeType !== 'All' || activeGenre !== 'All'
+                {query.length > 0 || activeType !== 'All' || activeGenre !== 'All' || activeYear !== 'All'
                   ? `${language === 'ku' ? 'ئەنجامەکان' : language === 'badini' ? 'ئەنجام' : language === 'ar' ? 'النتائج' : 'Results'} (${results.length})` 
-                  : (language === 'ku' ? 'تۆپ 250' : language === 'badini' ? 'تۆپ 250' : language === 'ar' ? 'الرائج الآن' : 'Trending Now')}
+                  : `${language === 'ku' ? 'هەمووی' : language === 'badini' ? 'هەمی' : language === 'ar' ? 'الكل' : 'All'} (${results.length})`}
               </Text>
               
               <TouchableOpacity 
