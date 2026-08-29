@@ -511,7 +511,7 @@ export default function LiveTVScreen({ navigation }: any) {
                 <React.Fragment key={cat.id || cat.name}>
                   <View style={s.section}>
                     <View style={[s.sectionRow, isRTL && { flexDirection: 'row-reverse' }]}>
-                      <Text style={[s.sectionTitle, { color: themeColors.text }]}>
+                      <Text numberOfLines={1} style={[s.sectionTitle, { color: themeColors.text }]}>
                         {getLocalized(cat, 'name', language) || translateCategoryName(cat.name, language)}
                       </Text>
                       {catChannels.length > 6 && (

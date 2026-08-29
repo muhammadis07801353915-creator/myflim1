@@ -896,7 +896,7 @@ export default function LiveTV() {
               return (
                 <section key={catObj?.id || category || catIdx} className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-[18px] font-black tracking-tight">{getLocalized(catObj, 'name', language) || category}</h2>
+                    <h2 className="text-[18px] font-black tracking-tight whitespace-nowrap">{getLocalized(catObj, 'name', language) || category}</h2>
                     {categoryChannels.length > 6 && (
                       <button onClick={() => setViewAllCategory(category)} className="text-[#CC222F] text-sm font-bold hover:text-red-400 transition">
                         {language === 'ku' ? 'هەموویان' : language === 'badini' ? 'سەحکرنا هەمیان' : language === 'ar' ? 'عرض الكل' : 'See All'}
