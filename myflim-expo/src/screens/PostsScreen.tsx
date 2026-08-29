@@ -28,6 +28,7 @@ import {
   Globe,
   ChevronDown,
   Trash2,
+  Eye,
 } from 'lucide-react-native';
 
 interface PostComment {
@@ -48,6 +49,7 @@ interface Post {
   image?: string;
   likes: string[];
   comments: PostComment[];
+  views: string[];
   created_at: string;
 }
 
@@ -74,6 +76,7 @@ async function fetchAllPostsFromDB(): Promise<Post[]> {
           ...p,
           likes: Array.isArray(p.likes) ? Array.from(new Set(p.likes)) : [],
           comments: Array.isArray(p.comments) ? p.comments : [],
+          views: Array.isArray(p.views) ? Array.from(new Set(p.views)) : [],
         }));
         return sanitized.sort(
           (a: Post, b: Post) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -88,18 +91,43 @@ async function fetchAllPostsFromDB(): Promise<Post[]> {
 
 async function saveAllPostsToDB(posts: Post[]) {
   try {
+    // Merge existing DB posts with new posts (deduplicate by id)
+    const existingDBPosts = await fetchAllPostsFromDB();
+    const map = new Map<string, Post>();
+
+    posts.forEach(p => {
+      if (p && p.id) map.set(p.id, p);
+    });
+
+    existingDBPosts.forEach(p => {
+      if (p && p.id && !map.has(p.id)) {
+        map.set(p.id, p);
+      }
+    });
+
+    let merged = Array.from(map.values()).sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    // Keep top 100 posts to stay within Supabase payload limits
+    merged = merged.slice(0, 100);
+    const jsonString = JSON.stringify(merged);
+
     const { data: existing } = await supabase
       .from('settings')
       .select('key')
       .eq('key', SETTINGS_KEY)
       .maybeSingle();
+
     if (existing) {
-      await supabase.from('settings').update({ value: JSON.stringify(posts) }).eq('key', SETTINGS_KEY);
+      const { error } = await supabase.from('settings').update({ value: jsonString }).eq('key', SETTINGS_KEY);
+      if (error) console.error('Supabase update error:', error);
     } else {
-      await supabase.from('settings').insert({ key: SETTINGS_KEY, value: JSON.stringify(posts) });
+      const { error } = await supabase.from('settings').insert({ key: SETTINGS_KEY, value: jsonString });
+      if (error) console.error('Supabase insert error:', error);
     }
   } catch (e) {
-    console.warn('savePosts error:', e);
+    console.error('savePosts error:', e);
   }
 }
 
@@ -149,7 +177,31 @@ export default function PostsScreen() {
 
   const loadPosts = async () => {
     const data = await fetchAllPostsFromDB();
-    setPosts(data);
+    const currentId = getUserIdentifier();
+    
+    setPosts(prev => {
+      const map = new Map<string, Post>();
+      // Preserve local optimistic posts first
+      prev.forEach(p => map.set(p.id, p));
+      data.forEach(p => map.set(p.id, p));
+
+      let merged = Array.from(map.values()).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      // Auto track views for current user
+      if (currentId) {
+        merged = merged.map(p => {
+          const viewsArr = Array.isArray(p.views) ? p.views : [];
+          if (!viewsArr.includes(currentId)) {
+            return { ...p, views: [...viewsArr, currentId] };
+          }
+          return { ...p, views: viewsArr };
+        });
+      }
+
+      return merged;
+    });
     setLoading(false);
   };
 
@@ -382,14 +434,24 @@ export default function PostsScreen() {
               </>
             )}
           </View>
-          {item.comments.length > 0 && (
-            <TouchableOpacity onPress={() => setExpandedComments(prev => ({ ...prev, [item.id]: !prev[item.id] }))} style={styles.commentsCountRow}>
+
+          <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 12 }}>
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 4 }}>
+              <Eye color={themeColors.textSecondary} size={14} />
               <Text style={[styles.countText, { color: themeColors.textSecondary }]}>
-                {item.comments.length} {language === 'ku' ? 'کۆمێنت' : language === 'badini' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'comments'}
+                {item.views ? item.views.length : 1} {language === 'ku' ? 'بینەر' : language === 'badini' ? 'بینەر' : language === 'ar' ? 'مشاهدة' : 'views'}
               </Text>
-              <ChevronDown color={themeColors.textSecondary} size={14} style={{ transform: [{ rotate: showComments ? '180deg' : '0deg' }] }} />
-            </TouchableOpacity>
-          )}
+            </View>
+
+            {item.comments.length > 0 && (
+              <TouchableOpacity onPress={() => setExpandedComments(prev => ({ ...prev, [item.id]: !prev[item.id] }))} style={styles.commentsCountRow}>
+                <Text style={[styles.countText, { color: themeColors.textSecondary }]}>
+                  {item.comments.length} {language === 'ku' ? 'کۆمێنت' : language === 'badini' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'comments'}
+                </Text>
+                <ChevronDown color={themeColors.textSecondary} size={14} style={{ transform: [{ rotate: showComments ? '180deg' : '0deg' }] }} />
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Actions Bar */}

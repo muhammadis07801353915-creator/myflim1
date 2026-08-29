@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Heart, MessageCircle, Share2, ImagePlus, Send,
   X, MoreHorizontal, Smile, Globe, Loader2,
-  ChevronDown, User, Trash2,
+  ChevronDown, User, Trash2, Eye,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { getUserAccount, DEFAULT_AVATARS } from '../lib/userAuth';
@@ -29,6 +29,7 @@ interface Post {
   image?: string;
   likes: string[];
   comments: PostComment[];
+  views: string[];
   created_at: string;
 }
 
@@ -48,6 +49,7 @@ async function fetchAllPostsFromDB(): Promise<Post[]> {
           ...p,
           likes: Array.isArray(p.likes) ? Array.from(new Set(p.likes)) : [],
           comments: Array.isArray(p.comments) ? p.comments : [],
+          views: Array.isArray(p.views) ? Array.from(new Set(p.views)) : [],
         }));
         return sanitized.sort(
           (a: Post, b: Post) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -62,15 +64,36 @@ async function fetchAllPostsFromDB(): Promise<Post[]> {
 
 async function saveAllPostsToDB(posts: Post[]) {
   try {
+    const existingDBPosts = await fetchAllPostsFromDB();
+    const map = new Map<string, Post>();
+
+    posts.forEach(p => {
+      if (p && p.id) map.set(p.id, p);
+    });
+
+    existingDBPosts.forEach(p => {
+      if (p && p.id && !map.has(p.id)) {
+        map.set(p.id, p);
+      }
+    });
+
+    let merged = Array.from(map.values()).sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    merged = merged.slice(0, 100);
+    const jsonString = JSON.stringify(merged);
+
     const { data: existing } = await supabase
       .from('settings')
       .select('key')
       .eq('key', SETTINGS_KEY)
       .maybeSingle();
+
     if (existing) {
-      await supabase.from('settings').update({ value: JSON.stringify(posts) }).eq('key', SETTINGS_KEY);
+      await supabase.from('settings').update({ value: jsonString }).eq('key', SETTINGS_KEY);
     } else {
-      await supabase.from('settings').insert({ key: SETTINGS_KEY, value: JSON.stringify(posts) });
+      await supabase.from('settings').insert({ key: SETTINGS_KEY, value: jsonString });
     }
   } catch (e) {
     console.warn('savePosts error:', e);
@@ -164,7 +187,29 @@ export default function Posts() {
 
   const loadPosts = async () => {
     const data = await fetchAllPostsFromDB();
-    setPosts(data);
+    const currentId = userAccount?.id ? userAccount.id : (typeof window !== 'undefined' ? (localStorage.getItem('taban_device_id') || 'web_guest') : 'web_guest');
+    
+    setPosts(prev => {
+      const map = new Map<string, Post>();
+      prev.forEach(p => map.set(p.id, p));
+      data.forEach(p => map.set(p.id, p));
+
+      let merged = Array.from(map.values()).sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      if (currentId) {
+        merged = merged.map(p => {
+          const viewsArr = Array.isArray(p.views) ? p.views : [];
+          if (!viewsArr.includes(currentId)) {
+            return { ...p, views: [...viewsArr, currentId] };
+          }
+          return { ...p, views: viewsArr };
+        });
+      }
+
+      return merged;
+    });
     setLoading(false);
   };
 
@@ -192,6 +237,7 @@ export default function Posts() {
       image: newPostImage || undefined,
       likes: [],
       comments: [],
+      views: [userAccount.id],
       created_at: new Date().toISOString(),
     };
 
@@ -508,7 +554,7 @@ function PostCard({
         </div>
       )}
 
-      {/* Like/comment counts */}
+      {/* Like/comment/views counts */}
       <div className="px-4 py-2 flex items-center justify-between border-t border-white/5 light-mode:border-slate-100">
         <div className="flex items-center gap-1.5">
           {post.likes.length > 0 && (
@@ -520,12 +566,20 @@ function PostCard({
             </>
           )}
         </div>
-        {post.comments.length > 0 && (
-          <button onClick={toggleComments} className="flex items-center gap-1 text-xs text-white/35 light-mode:text-slate-500 hover:text-white/70 light-mode:hover:text-slate-800 transition">
-            <span>{post.comments.length} {language === 'ku' ? 'کۆمێنت' : language === 'badini' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'comment'}</span>
-            <ChevronDown size={13} className={`transition-transform ${showComments ? 'rotate-180' : ''}`} />
-          </button>
-        )}
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 text-xs text-white/35 light-mode:text-slate-500">
+            <Eye size={13} className="text-white/40 light-mode:text-slate-400" />
+            <span>{post.views ? post.views.length : 1} {language === 'ku' ? 'بینەر' : language === 'badini' ? 'بینەر' : language === 'ar' ? 'مشاهدة' : 'views'}</span>
+          </div>
+
+          {post.comments.length > 0 && (
+            <button onClick={toggleComments} className="flex items-center gap-1 text-xs text-white/35 light-mode:text-slate-500 hover:text-white/70 light-mode:hover:text-slate-800 transition">
+              <span>{post.comments.length} {language === 'ku' ? 'کۆمێنت' : language === 'badini' ? 'کۆمێنت' : language === 'ar' ? 'تعليق' : 'comment'}</span>
+              <ChevronDown size={13} className={`transition-transform ${showComments ? 'rotate-180' : ''}`} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Action buttons */}
