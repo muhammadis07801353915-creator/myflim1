@@ -18,7 +18,8 @@ import {
   WifiOff,
   MessageSquare,
   AlertTriangle,
-  Globe
+  Globe,
+  Flame
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/src/lib/supabase';
@@ -110,6 +111,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Analytics', path: '/portal-control-center/analytics', icon: <BarChart size={20} /> },
     { name: 'Users', path: '/portal-control-center/users', icon: <Users size={20} /> },
     { name: 'Movies & Series', path: '/portal-control-center/movies', icon: <Film size={20} /> },
+    { name: 'Most Viewed / پڕبینەرترینەکان', path: '/portal-control-center/most-viewed', icon: <Flame size={20} /> },
     { name: 'Comments', path: '/portal-control-center/comments', icon: <MessageSquare size={20} /> },
     { name: 'User Reports', path: '/portal-control-center/reports', icon: <AlertTriangle size={20} /> },
     { name: 'Top Contents', path: '/portal-control-center/top-contents', icon: <Trophy size={20} /> },
