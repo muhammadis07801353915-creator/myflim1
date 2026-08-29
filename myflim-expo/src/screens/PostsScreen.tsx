@@ -27,6 +27,7 @@ import {
   X,
   Globe,
   ChevronDown,
+  Trash2,
 } from 'lucide-react-native';
 
 interface PostComment {
@@ -306,10 +307,36 @@ export default function PostsScreen() {
     }
   };
 
+  const handleDeletePost = async (postId: string) => {
+    Alert.alert(
+      language === 'ku' ? 'سڕینەوەی پۆست' : language === 'badini' ? 'سڕینەوا پۆستی' : language === 'ar' ? 'حذف المنشور' : 'Delete Post',
+      language === 'ku' ? 'ئایا دڵنیایت لە سڕینەوەی ئەم پۆستە؟' : language === 'badini' ? 'تە دڤێت ڤی پۆستی بڕەشینی؟' : language === 'ar' ? 'هل أنت متأكد من حذف هذا المنشور؟' : 'Are you sure you want to delete this post?',
+      [
+        { text: language === 'ku' ? 'نەخێر' : language === 'badini' ? 'نەخێر' : language === 'ar' ? 'إلغاء' : 'Cancel', style: 'cancel' },
+        {
+          text: language === 'ku' ? 'بەڵێ، بسڕەوە' : language === 'badini' ? 'بەڵێ، بڕەشینە' : language === 'ar' ? 'نعم، احذف' : 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setPosts(prev => prev.filter(p => p.id !== postId));
+            try {
+              const allPosts = await fetchAllPostsFromDB();
+              await saveAllPostsToDB(allPosts.filter(p => p.id !== postId));
+            } catch (e) {
+              console.error('Delete post error:', e);
+              loadPosts();
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const renderPostItem = ({ item }: { item: Post }) => {
     const isLiked = isUserLiked(item.likes);
     const showComments = expandedComments[item.id] || false;
     const commentInput = commentInputs[item.id] || '';
+    const isOwner = (item.user_name && user?.name && item.user_name.trim().toLowerCase() === user.name.trim().toLowerCase()) ||
+                    (item.user_id && item.user_id.toLowerCase() === getUserIdentifier().toLowerCase());
 
     return (
       <View style={[styles.postCard, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
@@ -323,6 +350,14 @@ export default function PostsScreen() {
               <Text style={[styles.timeText, { color: themeColors.textSecondary }]}>{timeAgo(item.created_at, language)}</Text>
             </View>
           </View>
+          {isOwner && (
+            <TouchableOpacity 
+              onPress={() => handleDeletePost(item.id)}
+              style={{ padding: 8, borderRadius: 10, backgroundColor: 'rgba(239, 68, 68, 0.12)' }}
+            >
+              <Trash2 color="#ef4444" size={16} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Post Text */}

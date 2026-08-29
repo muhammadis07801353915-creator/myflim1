@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import {
   Heart, MessageCircle, Share2, ImagePlus, Send,
   X, MoreHorizontal, Smile, Globe, Loader2,
-  ChevronDown, User,
+  ChevronDown, User, Trash2,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { getUserAccount, DEFAULT_AVATARS } from '../lib/userAuth';
@@ -485,9 +485,10 @@ function PostCard({
         {isOwner && (
           <button
             onClick={() => { if (confirm(language === 'ku' ? 'ئایا دڵنیایت لە سڕینەوەی پۆستەکە؟' : language === 'badini' ? 'تە دڤێت ڤی پۆستی بڕەشینی؟' : language === 'ar' ? 'هل أنت متأكد من حذف المنشور؟' : 'Delete this post?')) onDelete(post.id); }}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white/30 light-mode:text-slate-400 hover:text-red-500 transition"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-red-500/80 hover:text-red-500 hover:bg-red-500/10 transition"
+            title={language === 'ku' ? 'سڕینەوەی پۆست' : 'Delete Post'}
           >
-            <MoreHorizontal size={18} />
+            <Trash2 size={16} />
           </button>
         )}
       </div>
