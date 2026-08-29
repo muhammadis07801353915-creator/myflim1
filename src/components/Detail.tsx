@@ -382,12 +382,15 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
       const separator = finalUrl.includes('?') ? '&' : '?';
       return `${finalUrl}${separator}embed=1`;
     }
-    if (finalUrl.includes('ok.ru/video/')) {
-      finalUrl = finalUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
-    }
-    if (finalUrl.includes('ok.ru/videoembed/') && !finalUrl.includes('autoplay=')) {
-      const sep = finalUrl.includes('?') ? '&' : '?';
-      finalUrl += `${sep}autoplay=1`;
+    if (finalUrl.includes('ok.ru')) {
+      finalUrl = finalUrl.replace('://ok.ru/', '://m.ok.ru/').replace('://www.ok.ru/', '://m.ok.ru/');
+      if (finalUrl.includes('m.ok.ru/video/')) {
+        finalUrl = finalUrl.replace('m.ok.ru/video/', 'm.ok.ru/videoembed/');
+      }
+      if (!finalUrl.includes('autoplay=')) {
+        const sep = finalUrl.includes('?') ? '&' : '?';
+        finalUrl += `${sep}autoplay=1&nohead=1`;
+      }
     }
     if (finalUrl.includes('dailymotion.com/video/')) {
       return finalUrl.replace('dailymotion.com/video/', 'dailymotion.com/embed/video/');

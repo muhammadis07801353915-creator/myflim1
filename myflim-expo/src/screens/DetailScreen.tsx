@@ -139,6 +139,16 @@ export default function DetailScreen({ route, navigation }: any) {
         return `https://vidsrc.pm/embed/tv/${id}/${season}/${ep}`;
       }
     }
+    if (url.includes('ok.ru')) {
+      url = url.replace('://ok.ru/', '://m.ok.ru/').replace('://www.ok.ru/', '://m.ok.ru/');
+      if (url.includes('m.ok.ru/video/')) {
+        url = url.replace('m.ok.ru/video/', 'm.ok.ru/videoembed/');
+      }
+      if (!url.includes('autoplay=')) {
+        const sep = url.includes('?') ? '&' : '?';
+        url += `${sep}autoplay=1&nohead=1`;
+      }
+    }
     return url;
   };
 
@@ -194,12 +204,15 @@ export default function DetailScreen({ route, navigation }: any) {
   }
 
   let activeVideoUrl = activeVideoUrl_original;
-  if (activeVideoUrl?.includes('ok.ru/video/')) {
-    activeVideoUrl = activeVideoUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
-  }
-  if (activeVideoUrl?.includes('ok.ru/videoembed/') && !activeVideoUrl.includes('autoplay=')) {
-    const sep = activeVideoUrl.includes('?') ? '&' : '?';
-    activeVideoUrl += `${sep}autoplay=1`;
+  if (activeVideoUrl?.includes('ok.ru')) {
+    activeVideoUrl = activeVideoUrl.replace('://ok.ru/', '://m.ok.ru/').replace('://www.ok.ru/', '://m.ok.ru/');
+    if (activeVideoUrl.includes('m.ok.ru/video/')) {
+      activeVideoUrl = activeVideoUrl.replace('m.ok.ru/video/', 'm.ok.ru/videoembed/');
+    }
+    if (!activeVideoUrl.includes('autoplay=')) {
+      const sep = activeVideoUrl.includes('?') ? '&' : '?';
+      activeVideoUrl += `${sep}autoplay=1&nohead=1`;
+    }
   }
   if (activeVideoUrl?.includes('dailymotion.com/video/')) {
     activeVideoUrl = activeVideoUrl.replace('dailymotion.com/video/', 'dailymotion.com/embed/video/');
@@ -212,14 +225,27 @@ export default function DetailScreen({ route, navigation }: any) {
     (function() {
       try {
         const style = document.createElement('style');
-        style.innerHTML = '.footer, .header, .side-bar { display: none !important; }';
+        style.innerHTML = \`
+          .footer, .header, .side-bar, .vp-layer, .controls, .widget_cnt, .vp_ctrls { display: none !important; }
+          video { width: 100% !important; height: 100% !important; object-fit: contain !important; display: block !important; visibility: visible !important; }
+        \`;
         document.head.appendChild(style);
-        const video = document.querySelector("video");
-        if (video) {
-          video.style.display = "block";
-          video.style.visibility = "visible";
-          video.play().catch(function(){});
+
+        function autoStartVideo() {
+          const video = document.querySelector("video");
+          if (video) {
+            video.style.display = "block";
+            video.style.visibility = "visible";
+            video.muted = false;
+            video.play().catch(function() {
+              video.muted = true;
+              video.play().catch(function(){});
+            });
+          } else {
+            setTimeout(autoStartVideo, 250);
+          }
         }
+        autoStartVideo();
       } catch(e) {}
     })();
     true;
