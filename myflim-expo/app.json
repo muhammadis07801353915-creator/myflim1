@@ -20,7 +20,7 @@
       "package": "com.muhamad.myflim",
       "versionCode": 10,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/app-logo-new.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
