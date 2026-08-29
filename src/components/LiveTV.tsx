@@ -925,7 +925,7 @@ export default function LiveTV() {
                   </div>
                   {interspersedBanners.filter(b => b.placement_after === category).map(banner => (
                     <div key={banner.id} onClick={() => banner.link && window.open(banner.link, '_blank')}
-                      className="relative w-full h-24 md:h-32 cursor-pointer rounded-xl overflow-hidden border border-white/5 mt-4">
+                      className="relative w-[calc(100%+2rem)] md:w-[calc(100%+4rem)] -mx-4 md:-mx-8 h-28 md:h-36 cursor-pointer overflow-hidden border-y border-white/10 my-4">
                       <Image src={banner.image} alt="Ad" fill sizes="100vw" className="object-cover" unoptimized />
                     </div>
                   ))}

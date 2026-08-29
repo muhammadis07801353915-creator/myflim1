@@ -749,7 +749,7 @@ const s = StyleSheet.create({
   tabLabelActive: { color: '#fff' },
 
   // Banner
-  bannerWrap: { marginHorizontal: 16, marginBottom: 20, borderRadius: 16, overflow: 'hidden', height: 160, backgroundColor: '#1a1a22' },
+  bannerWrap: { width: '100%', marginHorizontal: 0, marginBottom: 20, borderRadius: 0, overflow: 'hidden', height: 170, backgroundColor: '#1a1a22' },
   bannerImg: { width: '100%', height: '100%' },
 
   // Sections
