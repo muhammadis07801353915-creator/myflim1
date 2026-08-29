@@ -519,8 +519,15 @@ export default function ProfileScreen({ navigation }: any) {
         }
       }
 
-      match.password = password;
-      await saveRemoteAccounts(storedUsers);
+      // Verify password strictly!
+      if (match.password && match.password.trim() !== password.trim()) {
+        Alert.alert(
+          language === 'ku' ? 'هەڵە' : 'Error',
+          language === 'ku' ? 'وشەی نهێنی (پاسۆرد) هەڵەیە! تکایە پاسۆردی ڕاستەقینە بنووسە.' : 'Incorrect password. Please enter the correct password.'
+        );
+        setAuthLoading(false);
+        return;
+      }
 
       const userKey = match.id || `usr_${username.toLowerCase()}`;
       const avatar = match.avatar || user?.image || DEFAULT_AVATARS[0];

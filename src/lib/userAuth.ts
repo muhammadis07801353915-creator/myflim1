@@ -223,9 +223,13 @@ export async function loginUserAccount(data: {
     };
   }
 
-  // Auto-sync & update password on login
-  account.password = trimmedPass;
-  await syncSaveAccountsDB(accounts);
+  // Verify password strictly!
+  if (account.password && account.password.trim() !== trimmedPass) {
+    return {
+      success: false,
+      message: 'وشەی نهێنی (پاسۆرد) هەڵەیە! تکایە پاسۆردی ڕاستەقینە بنووسە.'
+    };
+  }
 
   // Password matched! Set active session
   localStorage.setItem('myfilm_user_id', account.id);
