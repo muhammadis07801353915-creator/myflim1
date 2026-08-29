@@ -464,7 +464,7 @@ export default function LiveTVScreen({ navigation }: any) {
             {featured.length > 0 && (
               <View style={s.section}>
                 <View style={[s.sectionRow, isRTL && { flexDirection: 'row-reverse' }]}>
-                  <Text style={[s.sectionTitle, { color: themeColors.text }]}>
+                  <Text style={[s.sectionTitle, { color: themeColors.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                     {language === 'ku' ? 'زۆرترین بیندراو' : language === 'badini' ? 'زۆرترین سەحکری' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched'}
                   </Text>
                   <TouchableOpacity onPress={() => handleViewAll(language === 'ku' ? 'زۆرترین بیندراو' : language === 'badini' ? 'زۆرترین سەحکری' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched')}>
@@ -511,7 +511,7 @@ export default function LiveTVScreen({ navigation }: any) {
                 <React.Fragment key={cat.id || cat.name}>
                   <View style={s.section}>
                     <View style={[s.sectionRow, isRTL && { flexDirection: 'row-reverse' }]}>
-                      <Text numberOfLines={1} style={[s.sectionTitle, { color: themeColors.text }]}>
+                      <Text style={[s.sectionTitle, { color: themeColors.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
                         {getLocalized(cat, 'name', language) || translateCategoryName(cat.name, language)}
                       </Text>
                       {catChannels.length > 6 && (
