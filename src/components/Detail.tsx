@@ -433,6 +433,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
               ) : isIframeLink ? (
                 <div className="w-full h-full relative bg-black flex items-center justify-center">
                   <iframe 
+                    key={selectedServerUrl}
                     src={getEmbedUrl(selectedServerUrl)} 
                     className="w-full h-full border-0 absolute inset-0 z-50"
                     allowFullScreen
@@ -443,6 +444,7 @@ export default function Detail({ item, onBack }: { item: any, onBack: () => void
                 </div>
               ) : (
                 <PremiumPlayer 
+                  key={selectedServerUrl}
                   ref={playerRef}
                   url={selectedServerUrl} 
                   title={getLocalized(item, 'title', language)}

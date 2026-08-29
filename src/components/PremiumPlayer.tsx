@@ -73,17 +73,33 @@ const PremiumPlayer = forwardRef<PremiumPlayerRef, PremiumPlayerProps>(({
 
     const isM3u8 = url.toLowerCase().includes('.m3u8');
 
+    const attemptPlay = () => {
+      video.play().then(() => setIsPlaying(true)).catch(() => {
+        video.muted = true;
+        video.play().then(() => setIsPlaying(true)).catch(() => {});
+      });
+    };
+
     if (isM3u8 && Hls.isSupported()) {
-      hls = new Hls({ enableWorker: true });
+      hls = new Hls({ enableWorker: true, autoStartLoad: true });
       hls.loadSource(url);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+      hls.on(Hls.Events.MANIFEST_PARSED, attemptPlay);
       hls.on(Hls.Events.ERROR, (_, data) => {
-        if (data.fatal && onError) onError();
+        if (data.fatal) {
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            hls.startLoad();
+          } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+            hls.recoverMediaError();
+          } else if (onError) {
+            onError();
+          }
+        }
       });
     } else {
       video.src = url;
-      video.oncanplay = () => video.play().catch(() => {});
+      attemptPlay();
+      video.oncanplay = attemptPlay;
       video.onerror = () => { if (onError) onError(); };
     }
 

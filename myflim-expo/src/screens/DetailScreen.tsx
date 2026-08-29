@@ -309,13 +309,34 @@ export default function DetailScreen({ route, navigation }: any) {
         
         <View style={styles.liveVideoContainer}>
           {isPlaying && liveVideoUrl ? (
-            <Video
-              source={{ uri: liveVideoUrl }}
-              style={StyleSheet.absoluteFillObject}
-              resizeMode={ResizeMode.CONTAIN}
-              shouldPlay
-              useNativeControls
-            />
+            liveVideoUrl.toLowerCase().includes('embed') || liveVideoUrl.toLowerCase().includes('iframe') || liveVideoUrl.toLowerCase().includes('ok.ru') || liveVideoUrl.toLowerCase().includes('youtube') ? (
+              <WebView
+                key={liveVideoUrl}
+                source={{ 
+                  uri: getEmbedUrl(liveVideoUrl),
+                  headers: {
+                    'Referer': 'https://www.myflim.com/',
+                    'Origin': 'https://www.myflim.com/'
+                  }
+                }}
+                style={StyleSheet.absoluteFillObject}
+                allowsFullscreenVideo
+                allowsInlineMediaPlayback
+                mediaPlaybackRequiresUserAction={false}
+                javaScriptEnabled
+                domStorageEnabled
+                androidLayerType="none"
+              />
+            ) : (
+              <Video
+                key={liveVideoUrl}
+                source={{ uri: liveVideoUrl }}
+                style={StyleSheet.absoluteFillObject}
+                resizeMode={ResizeMode.CONTAIN}
+                shouldPlay
+                useNativeControls
+              />
+            )
           ) : (
             <Image 
               source={{ uri: activeChannel.image || item.image }} 
