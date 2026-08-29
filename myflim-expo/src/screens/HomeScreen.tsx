@@ -429,14 +429,14 @@ export default function HomeScreen({ navigation }: any) {
       {/* ── STICKY HEADER BAR (RTL Dynamic) ─────────────────────────── */}
       <View style={[styles.headerBar, { paddingTop: insets.top + 8, paddingBottom: 12, backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}>
         {/* Logo + Brand */}
-        <View style={[header.brand, isRTL && { flexDirection: 'row-reverse' }]}>
+        <View style={[header.brand, { flexDirection: 'row', alignItems: 'center' }]}>
           <Image
             source={require('../../assets/app-logo-new.png')}
             style={header.logo}
             resizeMode="contain"
           />
-          <View style={[header.brandText, isRTL && { flexDirection: 'row-reverse' }]}>
-            <Text style={[header.brandBold, { color: themeColors.text }]}>Taban</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={[header.brandBold, { color: themeColors.text }]}>Taban </Text>
             <Text style={[header.brandBold, { color: '#CC222F' }]}>Play</Text>
           </View>
         </View>
