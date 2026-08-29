@@ -12,7 +12,56 @@ export interface StoredUserAccount {
   username: string;
   password: string;
   avatar: string;
+  platform?: 'App' | 'Web';
   createdAt: string;
+}
+
+export async function recordDailyVisit(platform: 'App' | 'Web', userId?: string) {
+  try {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const uid = userId || `user_${Math.random().toString(36).substring(2, 8)}`;
+
+    const { data } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'taban_daily_active_users_history')
+      .maybeSingle();
+
+    let history: Record<string, { appUsers: string[]; webUsers: string[] }> = {};
+    if (data?.value) {
+      try {
+        history = JSON.parse(data.value);
+      } catch (e) {}
+    }
+
+    if (!history[todayStr]) {
+      history[todayStr] = { appUsers: [], webUsers: [] };
+    }
+
+    if (platform === 'App') {
+      const arr = Array.isArray(history[todayStr].appUsers) ? history[todayStr].appUsers : [];
+      if (!arr.includes(uid)) arr.push(uid);
+      history[todayStr].appUsers = arr;
+    } else {
+      const arr = Array.isArray(history[todayStr].webUsers) ? history[todayStr].webUsers : [];
+      if (!arr.includes(uid)) arr.push(uid);
+      history[todayStr].webUsers = arr;
+    }
+
+    const { data: existing } = await supabase
+      .from('settings')
+      .select('key')
+      .eq('key', 'taban_daily_active_users_history')
+      .maybeSingle();
+
+    if (existing) {
+      await supabase.from('settings').update({ value: JSON.stringify(history) }).eq('key', 'taban_daily_active_users_history');
+    } else {
+      await supabase.from('settings').insert({ key: 'taban_daily_active_users_history', value: JSON.stringify(history) });
+    }
+  } catch (e) {
+    console.warn('recordDailyVisit error:', e);
+  }
 }
 
 export const DEFAULT_AVATARS = [
@@ -157,6 +206,7 @@ export async function registerUserAccount(data: {
     username: trimmedUser,
     password: trimmedPass,
     avatar: finalAvatar,
+    platform: 'Web',
     createdAt: new Date().toISOString()
   };
 

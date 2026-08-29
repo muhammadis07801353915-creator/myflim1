@@ -434,6 +434,7 @@ export default function ProfileScreen({ navigation }: any) {
         username,
         password,
         avatar,
+        platform: 'App',
         createdAt: new Date().toISOString()
       };
 
