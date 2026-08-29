@@ -150,6 +150,7 @@ export default function PostsScreen() {
   const insets = useSafeAreaInsets();
   const { theme, language, user } = useAppStore();
   const themeColors = getColors(theme);
+  const isRTL = language === 'ku' || language === 'badini' || language === 'ar';
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
