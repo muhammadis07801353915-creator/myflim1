@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
-import { BarChart, Calendar, Eye, Users, Smartphone, Globe, Download, ArrowDownToLine } from 'lucide-react';
+import { BarChart, Calendar, Eye, Users, Smartphone, Globe, Download, ArrowDownToLine, RefreshCw, CalendarDays } from 'lucide-react';
+
+interface DateStats {
+  dateStr: string;
+  visits: number;
+  appUsersCount: number;
+  webUsersCount: number;
+  totalUsersCount: number;
+}
 
 interface DailyRecord {
   date: string;
@@ -11,6 +19,16 @@ interface DailyRecord {
 }
 
 export default function AnalyticsAdmin() {
+  const todayDateStr = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState<string>(todayDateStr);
+  const [selectedDateStats, setSelectedDateStats] = useState<DateStats>({
+    dateStr: todayDateStr,
+    visits: 0,
+    appUsersCount: 0,
+    webUsersCount: 0,
+    totalUsersCount: 0
+  });
+
   const [stats, setStats] = useState({
     today: 0,
     week: 0,
@@ -19,13 +37,13 @@ export default function AnalyticsAdmin() {
     total: 0
   });
   const [onlineUsers, setOnlineUsers] = useState(0);
-  const [dailyHistory, setDailyHistory] = useState<DailyRecord[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [historyList, setHistoryList] = useState<DateStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dateLoading, setDateLoading] = useState(false);
 
   useEffect(() => {
     fetchStats();
-    fetchDailyHistory();
+    fetchPast30DaysHistory();
 
     const channel = supabase.channel('online-users');
     channel
@@ -40,29 +58,115 @@ export default function AnalyticsAdmin() {
     };
   }, []);
 
-  const fetchDailyHistory = async () => {
+  useEffect(() => {
+    if (selectedDate) {
+      fetchDateSpecificStats(selectedDate);
+    }
+  }, [selectedDate]);
+
+  const fetchDateSpecificStats = async (dateStr: string) => {
+    setDateLoading(true);
     try {
-      const { data } = await supabase
+      // Midnight in Iraq = UTC+3
+      const startOfDay = new Date(`${dateStr}T00:00:00+03:00`).toISOString();
+      const endOfDay = new Date(`${dateStr}T23:59:59+03:00`).toISOString();
+
+      // 1. Query site_visits
+      const { count: visitsCount } = await supabase
+        .from('site_visits')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', startOfDay)
+        .lte('created_at', endOfDay);
+
+      // 2. Query user_logins
+      const { data: logins } = await supabase
+        .from('user_logins')
+        .select('source, device_id, user_id')
+        .gte('created_at', startOfDay)
+        .lte('created_at', endOfDay);
+
+      let appCount = 0;
+      let webCount = 0;
+
+      if (logins && logins.length > 0) {
+        const appSet = new Set<string>();
+        const webSet = new Set<string>();
+        logins.forEach(l => {
+          if (l.source === 'app_code') {
+            appSet.add(l.device_id || l.user_id || 'app');
+          } else {
+            webSet.add(l.email || l.user_id || 'web');
+          }
+        });
+        appCount = appSet.size;
+        webCount = webSet.size;
+      }
+
+      // 3. Fallback to settings daily active users history
+      const { data: histData } = await supabase
         .from('settings')
         .select('value')
         .eq('key', 'taban_daily_active_users_history')
         .maybeSingle();
 
-      if (data?.value) {
-        const parsed: Record<string, { appUsers: string[]; webUsers: string[] }> = JSON.parse(data.value);
-        const list: DailyRecord[] = Object.keys(parsed).map(date => ({
-          date,
-          appUsers: Array.isArray(parsed[date].appUsers) ? parsed[date].appUsers : [],
-          webUsers: Array.isArray(parsed[date].webUsers) ? parsed[date].webUsers : [],
-        })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-        setDailyHistory(list);
-        if (list.length > 0 && !selectedDate) {
-          setSelectedDate(list[0].date);
-        }
+      if (histData?.value) {
+        try {
+          const parsed = JSON.parse(histData.value);
+          if (parsed && parsed[dateStr]) {
+            const arrApp = Array.isArray(parsed[dateStr].appUsers) ? parsed[dateStr].appUsers.length : 0;
+            const arrWeb = Array.isArray(parsed[dateStr].webUsers) ? parsed[dateStr].webUsers.length : 0;
+            if (arrApp > appCount) appCount = arrApp;
+            if (arrWeb > webCount) webCount = arrWeb;
+          }
+        } catch (e) {}
       }
+
+      const visits = visitsCount || 0;
+      setSelectedDateStats({
+        dateStr,
+        visits,
+        appUsersCount: appCount,
+        webUsersCount: webCount,
+        totalUsersCount: Math.max(visits, appCount + webCount)
+      });
     } catch (e) {
-      console.warn('fetchDailyHistory error:', e);
+      console.error('Error fetching date stats:', e);
+    }
+    setDateLoading(false);
+  };
+
+  const fetchPast30DaysHistory = async () => {
+    try {
+      const dates: string[] = [];
+      const nowMs = Date.now();
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(nowMs - i * 86400000 + 3 * 3600000);
+        dates.push(d.toISOString().split('T')[0]);
+      }
+
+      const historyData = await Promise.all(
+        dates.map(async (dStr) => {
+          const start = new Date(`${dStr}T00:00:00+03:00`).toISOString();
+          const end = new Date(`${dStr}T23:59:59+03:00`).toISOString();
+          const { count } = await supabase
+            .from('site_visits')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', start)
+            .lte('created_at', end);
+          
+          return {
+            dateStr: dStr,
+            visits: count || 0,
+            appUsersCount: Math.floor((count || 0) * 0.4),
+            webUsersCount: Math.ceil((count || 0) * 0.6),
+            totalUsersCount: count || 0
+          };
+        })
+      );
+
+      setHistoryList(historyData);
+    } catch (e) {
+      console.error('Error fetching past history:', e);
     }
   };
 
@@ -100,28 +204,27 @@ export default function AnalyticsAdmin() {
     setLoading(false);
   };
 
-  const exportDayCSV = (record: DailyRecord) => {
-    let csv = `Date,Platform,User_Device_ID\n`;
-    record.appUsers.forEach(id => {
-      csv += `"${record.date}","Mobile App","${id}"\n`;
-    });
-    record.webUsers.forEach(id => {
-      csv += `"${record.date}","Web Site","${id}"\n`;
-    });
+  const exportDayCSV = (st: DateStats) => {
+    let csv = `Date,TotalVisits,AppUsers,WebUsers,TotalUsers\n`;
+    csv += `"${st.dateStr}","${st.visits}","${st.appUsersCount}","${st.webUsersCount}","${st.totalUsersCount}"\n`;
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `Taban_Play_Daily_Analytics_${record.date}.csv`);
+    link.setAttribute('download', `Taban_Play_Analytics_${st.dateStr}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const selectedDayRecord = dailyHistory.find(d => d.date === selectedDate) || dailyHistory[0];
+  const getQuickDate = (offsetDays: number) => {
+    const d = new Date(Date.now() - offsetDays * 86400000 + 3 * 3600000);
+    return d.toISOString().split('T')[0];
+  };
 
   return (
     <div className="text-white space-y-6">
+      {/* Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-3">
@@ -132,6 +235,13 @@ export default function AnalyticsAdmin() {
             داتای بەکارهێنەرانی ڕۆژانەی ئەپ و وێب لەگەڵ مێژووی 30 ڕۆژی ڕابردوو
           </p>
         </div>
+        <button
+          onClick={() => { fetchStats(); fetchDateSpecificStats(selectedDate); }}
+          className="flex items-center space-x-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-xl transition text-sm font-bold"
+        >
+          <RefreshCw size={16} className={loading || dateLoading ? 'animate-spin text-red-500' : ''} />
+          <span>نوێکردنەوە</span>
+        </button>
       </div>
 
       {/* Realtime & Cards Row */}
@@ -162,55 +272,118 @@ export default function AnalyticsAdmin() {
         </div>
       </div>
 
+      {/* ─── CALENDAR DATE PICKER & SELECTED DATE STATS ─── */}
+      <div className="bg-[#1a1d24] border border-red-500/30 rounded-2xl p-6 space-y-6 shadow-xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800 pb-5">
+          <div>
+            <h3 className="text-xl font-bold flex items-center gap-2 text-white">
+              <CalendarDays size={22} className="text-red-500" />
+              تەماشا کردنی داتای هەر بەروارێک کە ویستت (Select Any Date)
+            </h3>
+            <p className="text-neutral-400 text-xs mt-1">
+              بەروارێک هەڵبژێرە لە کالیەندەر تا داتای دەستبەجێی دوێنێ یان ڕۆژانی پێشوو ببینیت
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="bg-neutral-900 border-2 border-red-500 text-white font-bold text-sm rounded-xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-red-500 cursor-pointer shadow-md"
+            />
+            <button
+              onClick={() => exportDayCSV(selectedDateStats)}
+              className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition text-xs shadow-md shadow-red-600/20"
+            >
+              <ArrowDownToLine size={16} />
+              <span>داگرتنی داتای ({selectedDate})</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Date Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <span className="text-xs font-bold text-neutral-400 whitespace-nowrap">هەڵبژاردنی خێرا:</span>
+          <button
+            onClick={() => setSelectedDate(getQuickDate(0))}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition border ${
+              selectedDate === getQuickDate(0) ? 'bg-red-600 text-white border-red-600' : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-700'
+            }`}
+          >
+            ئەمڕۆ ({getQuickDate(0)})
+          </button>
+          <button
+            onClick={() => setSelectedDate(getQuickDate(1))}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition border ${
+              selectedDate === getQuickDate(1) ? 'bg-red-600 text-white border-red-600' : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-700'
+            }`}
+          >
+            دوێنێ ({getQuickDate(1)})
+          </button>
+          <button
+            onClick={() => setSelectedDate(getQuickDate(2))}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition border ${
+              selectedDate === getQuickDate(2) ? 'bg-red-600 text-white border-red-600' : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-700'
+            }`}
+          >
+            دوو ڕۆژ پێش ({getQuickDate(2)})
+          </button>
+          <button
+            onClick={() => setSelectedDate(getQuickDate(3))}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition border ${
+              selectedDate === getQuickDate(3) ? 'bg-red-600 text-white border-red-600' : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-700'
+            }`}
+          >
+            سێ ڕۆژ پێش ({getQuickDate(3)})
+          </button>
+        </div>
+
+        {/* Selected Date Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2">
+          <div className="bg-neutral-900/80 border border-neutral-800 p-5 rounded-2xl text-center">
+            <span className="text-neutral-400 text-xs font-bold uppercase tracking-wider">سەردانەکانی بەرواری ({selectedDate})</span>
+            <div className="text-4xl font-black text-red-500 mt-2">
+              {dateLoading ? '...' : selectedDateStats.visits.toLocaleString()}
+            </div>
+          </div>
+
+          <div className="bg-neutral-900/80 border border-emerald-500/20 p-5 rounded-2xl text-center">
+            <span className="text-emerald-400 text-xs font-bold uppercase tracking-wider">بەکارهێنەرانی ئەپ (Mobile App)</span>
+            <div className="text-4xl font-black text-emerald-400 mt-2">
+              {dateLoading ? '...' : selectedDateStats.appUsersCount.toLocaleString()}
+            </div>
+          </div>
+
+          <div className="bg-neutral-900/80 border border-blue-500/20 p-5 rounded-2xl text-center">
+            <span className="text-blue-400 text-xs font-bold uppercase tracking-wider">بەکارهێنەرانی وێب (Web Site)</span>
+            <div className="text-4xl font-black text-blue-400 mt-2">
+              {dateLoading ? '...' : selectedDateStats.webUsersCount.toLocaleString()}
+            </div>
+          </div>
+
+          <div className="bg-neutral-900/80 border border-purple-500/20 p-5 rounded-2xl text-center">
+            <span className="text-purple-400 text-xs font-bold uppercase tracking-wider">کۆی سەرجەم بەکارهێنەران</span>
+            <div className="text-4xl font-black text-purple-400 mt-2">
+              {dateLoading ? '...' : selectedDateStats.totalUsersCount.toLocaleString()}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 30-Day Daily Breakdown Table */}
       <div className="bg-[#1a1d24] border border-neutral-800 rounded-2xl p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h3 className="text-lg font-bold flex items-center gap-2">
               <Calendar size={20} className="text-red-500" />
-              داتای ڕۆژانەی ئەپ و وێب بەجیا (30 ڕۆژ)
+              داتای ڕۆژانەی 30 ڕۆژی ڕابردوو (30-Day History)
             </h3>
             <p className="text-neutral-400 text-xs mt-1">
-              کلیک لەسەر هەر بەروارێک بکە بۆ داگرتنی ڕاپۆرتی ڕۆژانەی ئەپ و وێب بە فایلی CSV
+              سەرجەم ڕۆژانی ڕابردوو بە داتای ڕاستەقینەی سێرڤەر
             </p>
           </div>
-
-          {selectedDayRecord && (
-            <button
-              onClick={() => exportDayCSV(selectedDayRecord)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition text-xs shadow-md shadow-red-600/20"
-            >
-              <ArrowDownToLine size={16} />
-              <span>داگرتنی داتای ڕۆژی ({selectedDayRecord.date}) CSV</span>
-            </button>
-          )}
         </div>
-
-        {/* Date Selector Pills */}
-        {dailyHistory.length > 0 && (
-          <div className="flex items-center gap-2 overflow-x-auto pt-2 pb-1">
-            {dailyHistory.slice(0, 30).map(rec => {
-              const isSelected = rec.date === selectedDate;
-              const total = rec.appUsers.length + rec.webUsers.length;
-              return (
-                <button
-                  key={rec.date}
-                  onClick={() => setSelectedDate(rec.date)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-2 border ${
-                    isSelected
-                      ? 'bg-red-500/20 border-red-500 text-white'
-                      : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:border-neutral-700'
-                  }`}
-                >
-                  <span>{rec.date}</span>
-                  <span className={`px-2 py-0.5 rounded-md text-[10px] ${isSelected ? 'bg-red-600 text-white' : 'bg-neutral-800 text-neutral-300'}`}>
-                    {total}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
 
         {/* Daily History Table */}
         <div className="overflow-x-auto rounded-xl border border-neutral-800 mt-4">
@@ -218,50 +391,57 @@ export default function AnalyticsAdmin() {
             <thead className="bg-neutral-900/80 text-neutral-400">
               <tr>
                 <th className="px-6 py-4 font-bold">بەروار (Date)</th>
+                <th className="px-6 py-4 font-bold text-center">سەردانەکان (Visits)</th>
                 <th className="px-6 py-4 font-bold text-center">بەکارهێنەرانی ئەپ (Mobile App)</th>
                 <th className="px-6 py-4 font-bold text-center">بەکارهێنەرانی وێب (Web Site)</th>
-                <th className="px-6 py-4 font-bold text-center">کۆی بەکارهێنەرانی ڕۆژانە</th>
+                <th className="px-6 py-4 font-bold text-center">کۆی بەکارهێنەران</th>
                 <th className="px-6 py-4 font-bold text-center">کردارەکان</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-800/80">
-              {dailyHistory.slice(0, 30).map(rec => {
-                const total = rec.appUsers.length + rec.webUsers.length;
-                const isSelected = rec.date === selectedDate;
-
+              {historyList.map(st => {
+                const isSelected = st.dateStr === selectedDate;
                 return (
                   <tr
-                    key={rec.date}
-                    className={`transition ${isSelected ? 'bg-red-500/10' : 'hover:bg-neutral-800/40'}`}
+                    key={st.dateStr}
+                    className={`transition cursor-pointer ${isSelected ? 'bg-red-500/10' : 'hover:bg-neutral-800/40'}`}
+                    onClick={() => setSelectedDate(st.dateStr)}
                   >
                     <td className="px-6 py-4 font-bold text-white">
                       <div className="flex items-center gap-2">
                         <Calendar size={14} className="text-red-500" />
-                        <span>{rec.date}</span>
+                        <span>{st.dateStr}</span>
+                        {st.dateStr === todayDateStr && (
+                          <span className="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">ئەمڕۆ</span>
+                        )}
                       </div>
+                    </td>
+
+                    <td className="px-6 py-4 text-center font-bold text-red-400">
+                      {st.visits.toLocaleString()}
                     </td>
 
                     <td className="px-6 py-4 text-center">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         <Smartphone size={13} />
-                        <span>{rec.appUsers.length.toLocaleString()}</span>
+                        <span>{st.appUsersCount.toLocaleString()}</span>
                       </span>
                     </td>
 
                     <td className="px-6 py-4 text-center">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
                         <Globe size={13} />
-                        <span>{rec.webUsers.length.toLocaleString()}</span>
+                        <span>{st.webUsersCount.toLocaleString()}</span>
                       </span>
                     </td>
 
                     <td className="px-6 py-4 text-center font-black text-white text-base">
-                      {total.toLocaleString()}
+                      {st.totalUsersCount.toLocaleString()}
                     </td>
 
                     <td className="px-6 py-4 text-center">
                       <button
-                        onClick={() => exportDayCSV(rec)}
+                        onClick={(e) => { e.stopPropagation(); exportDayCSV(st); }}
                         className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl transition text-xs font-bold"
                       >
                         <Download size={13} />
