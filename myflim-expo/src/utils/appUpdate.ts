@@ -44,29 +44,42 @@ export function compareVersions(a: string, b: string): number {
 }
 
 export async function fetchLatestAndroidUpdate(): Promise<AppUpdateInfo | null> {
-  const { data, error } = await supabase
-    .from('app_updates')
-    .select('version, build_version, apk_url, release_notes, mandatory')
-    .eq('platform', 'android')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle<SupabaseUpdateRow>();
+  try {
+    const { data, error } = await supabase
+      .from('app_updates')
+      .select('version, build_version, apk_url, release_notes, mandatory')
+      .eq('platform', 'android')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle<SupabaseUpdateRow>();
 
-  if (error) {
-    throw error;
-  }
+    if (!error && data?.version && data?.apk_url) {
+      return {
+        version: data.version,
+        buildVersion: data.build_version ?? null,
+        apkUrl: data.apk_url,
+        releaseNotes: data.release_notes ?? null,
+        mandatory: data.mandatory ?? false,
+      };
+    }
+  } catch (e) {}
 
-  if (!data?.version || !data?.apk_url) {
-    return null;
-  }
+  try {
+    const { data } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'taban_app_update_info')
+      .maybeSingle();
 
-  return {
-    version: data.version,
-    buildVersion: data.build_version ?? null,
-    apkUrl: data.apk_url,
-    releaseNotes: data.release_notes ?? null,
-    mandatory: data.mandatory ?? false,
-  };
+    if (data?.value) {
+      const parsed = JSON.parse(data.value);
+      if (parsed?.version && parsed?.apkUrl) {
+        return parsed;
+      }
+    }
+  } catch (e) {}
+
+  return null;
 }
 
 export async function checkForAvailableUpdate(): Promise<AppUpdateInfo | null> {
