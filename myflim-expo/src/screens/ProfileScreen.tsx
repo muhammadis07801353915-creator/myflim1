@@ -112,12 +112,14 @@ export default function ProfileScreen({ navigation }: any) {
   const [newName, setNewName] = useState(user.name);
   const [selectedAvatar, setSelectedAvatar] = useState(user.image || DEFAULT_AVATARS[0]);
 
-  // Auth / Code Modal States
-  const [authTab, setAuthTab] = useState<'register' | 'login'>('register');
+  // Code Modal State (simplified - code-only)
+  const [codeInput, setCodeInput] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  // Legacy stub states (kept to prevent TS errors in dead-code functions below)
   const [authCode, setAuthCode] = useState('');
   const [authUsername, setAuthUsername] = useState('');
   const [authPassword, setAuthPassword] = useState('');
-  const [authLoading, setAuthLoading] = useState(false);
+  const [authTab, setAuthTab] = useState<'register' | 'login'>('register');
 
   // Support Chat States
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -797,7 +799,7 @@ export default function ProfileScreen({ navigation }: any) {
               </View>
               <View style={styles.proTextContainer}>
                 <Text style={[styles.proTitle, { color: '#ffffff', fontWeight: '900' }]}>
-                  {language === 'ku' ? 'دروستکردنی هەژمار / داخڵکردنی کۆد' : language === 'badini' ? 'چێکرنا هەژمارێ / توومارکرنا کۆدی' : language === 'ar' ? 'إنشاء حساب / إدخال الكود' : 'Register Account / Enter Code'}
+                  {language === 'ku' ? 'داخلکردنی کۆد' : language === 'badini' ? 'توومارکرنا کۆدی' : language === 'ar' ? 'إدخال الكود' : 'Enter Activation Code'}
                 </Text>
                 <Text style={[styles.proSubtitle, { color: 'rgba(255,255,255,0.92)' }]}>
                   {language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکان' : language === 'badini' ? 'کۆدی بنڤێسە بۆ چالاککرنا هەمی بەشێن ئەپێ' : language === 'ar' ? 'أدخل الكود لتفعيل جميع أجزاء التطبيق' : 'Enter code to unlock all sections of the app'}
@@ -1312,11 +1314,9 @@ export default function ProfileScreen({ navigation }: any) {
                 <View style={[styles.langRadioCircle, language === 'ar' ? { backgroundColor: '#CC222F' } : { backgroundColor: theme === 'light' ? '#E5E7EB' : 'rgba(255,255,255,0.1)' }]}>
                   {language === 'ar' && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
                 </View>
-
                 <Text style={[styles.langCardLabel, { color: language === 'ar' ? '#CC222F' : themeColors.text }, isRTL && { textAlign: 'right' }]}>
                   العربية
                 </Text>
-
                 <View style={styles.langFlagBadge}>
                   <Text style={styles.langFlagEmoji}>🇮🇶</Text>
                 </View>
@@ -1339,11 +1339,9 @@ export default function ProfileScreen({ navigation }: any) {
                 <View style={[styles.langRadioCircle, language === 'en' ? { backgroundColor: '#CC222F' } : { backgroundColor: theme === 'light' ? '#E5E7EB' : 'rgba(255,255,255,0.1)' }]}>
                   {language === 'en' && <Check size={13} color="#FFFFFF" strokeWidth={3} />}
                 </View>
-
                 <Text style={[styles.langCardLabel, { color: language === 'en' ? '#CC222F' : themeColors.text }, isRTL && { textAlign: 'right' }]}>
                   English
                 </Text>
-
                 <View style={styles.langFlagBadge}>
                   <Text style={styles.langFlagEmoji}>🇬🇧</Text>
                 </View>
@@ -1353,162 +1351,90 @@ export default function ProfileScreen({ navigation }: any) {
         </Pressable>
       </Modal>
 
-      {/* ── WEBSITE-STYLE AUTHENTICATION & CODE MODAL ───────────────────────── */}
+      {/* ── CODE-ONLY UNLOCK MODAL ──────────────────────────────────────── */}
       <Modal visible={showUnlockModal} transparent animationType="fade" onRequestClose={() => setShowUnlockModal(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setShowUnlockModal(false)}>
           <Pressable style={[styles.nameModalContent, { backgroundColor: themeColors.surface, borderColor: themeColors.border, width: width - 32 }]}>
-            
-            {/* Modal Header */}
-            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-              <Text style={[styles.nameModalTitle, { color: themeColors.text, marginBottom: 0, fontSize: 18 }]}>
-                {authTab === 'register' 
-                  ? (language === 'ku' ? 'دروستکردنی هەژماری نوێ' : language === 'badini' ? 'چێکرنا هەژمارەکێ نوو' : language === 'ar' ? 'إنشاء حساب جديد' : 'Create New Account')
-                  : (language === 'ku' ? 'چوونە ژوورەوە' : language === 'badini' ? 'تێکەڤتن' : language === 'ar' ? 'تسجيل الدخول' : 'Account Log In')
-                }
-              </Text>
+
+            {/* Header */}
+            <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+              <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 10 }}>
+                <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: 'rgba(204,34,47,0.12)', alignItems: 'center', justifyContent: 'center' }}>
+                  <Key size={20} color="#CC222F" />
+                </View>
+                <Text style={[styles.nameModalTitle, { color: themeColors.text, marginBottom: 0, fontSize: 17 }]}>
+                  {language === 'ku' ? 'داخلکردنی کۆد' : language === 'badini' ? 'توومارکرنا کۆدی' : language === 'ar' ? 'إدخال الكود' : 'Enter Activation Code'}
+                </Text>
+              </View>
               <TouchableOpacity onPress={() => setShowUnlockModal(false)} style={[styles.closeBtn, { backgroundColor: themeColors.surfaceLight }]}>
                 <X size={18} color={themeColors.text} />
               </TouchableOpacity>
             </View>
 
-            {/* Top Pink Alert Banner */}
-            <View style={{ backgroundColor: 'rgba(204, 34, 47, 0.1)', borderColor: 'rgba(204, 34, 47, 0.3)', borderWidth: 1, padding: 10, borderRadius: 12, flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <Key size={16} color="#CC222F" />
-              <Text style={{ color: themeColors.text, fontSize: 11, fontWeight: '700', flex: 1, textAlign: isRTL ? 'right' : 'left' }}>
-                {language === 'ku' 
-                  ? 'تکایە کۆدەکە دابنێ ئینجا یوزەرنەیم و پاسۆرد دابنێ'
-                  : language === 'badini'
-                  ? 'تکایە کۆدی بنڤێسە پاشی یوزەرنەیچی و پاسۆردی بنڤێسە'
-                  : language === 'ar'
-                  ? 'الرجاء أدخل الكود ثم أدخل اسم المستخدم وكلمة المرور'
-                  : 'Please enter the code then enter username and password'}
+            {/* Info */}
+            <View style={{ backgroundColor: 'rgba(204,34,47,0.08)', borderColor: 'rgba(204,34,47,0.25)', borderWidth: 1, padding: 12, borderRadius: 12, marginBottom: 18 }}>
+              <Text style={{ color: themeColors.text, fontSize: 12, fontWeight: '600', textAlign: isRTL ? 'right' : 'left', lineHeight: 20 }}>
+                {language === 'ku' ? 'کۆدەکە بنووسە بۆ چالاککردنی سەرجەم بەشەکانی ئەپ' : language === 'badini' ? 'کۆدی بنڤێسە بۆ چالاكرنا هەمی بەشێن ئەپێ' : language === 'ar' ? 'أدخل الكود لتفعيل جميع أقسام التطبيق' : 'Enter the code to unlock all sections of the app'}
               </Text>
             </View>
 
-            {/* Tabs: Register vs Log In */}
-            <View style={{ flexDirection: 'row', backgroundColor: themeColors.surfaceLight, borderRadius: 12, padding: 3, marginBottom: 14 }}>
-              <TouchableOpacity
-                style={{ flex: 1, paddingVertical: 8, borderRadius: 9, alignItems: 'center', backgroundColor: authTab === 'register' ? '#CC222F' : 'transparent' }}
-                onPress={() => setAuthTab('register')}
-              >
-                <Text style={{ color: authTab === 'register' ? '#fff' : themeColors.textSecondary, fontSize: 13, fontWeight: 'bold' }}>
-                  {language === 'ku' ? 'تۆماربوون' : language === 'badini' ? 'تۆماربوون' : language === 'ar' ? 'إنشاء حساب' : 'Register'}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={{ flex: 1, paddingVertical: 8, borderRadius: 9, alignItems: 'center', backgroundColor: authTab === 'login' ? '#CC222F' : 'transparent' }}
-                onPress={() => setAuthTab('login')}
-              >
-                <Text style={{ color: authTab === 'login' ? '#fff' : themeColors.textSecondary, fontSize: 13, fontWeight: 'bold' }}>
-                  {language === 'ku' ? 'چوونە ژوورەوە' : language === 'badini' ? 'تێکەڤتن' : language === 'ar' ? 'تسجيل الدخول' : 'Log In'}
-                </Text>
-              </TouchableOpacity>
+            {/* Code Input */}
+            <View style={{ marginBottom: 18 }}>
+              <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: '700', marginBottom: 6, textAlign: isRTL ? 'right' : 'left' }}>
+                {language === 'ku' ? 'کۆدی چالاککردن:' : language === 'ar' ? 'رمز التفعيل:' : 'Activation Code:'}
+              </Text>
+              <TextInput
+                style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 48, fontSize: 15, letterSpacing: 1 }]}
+                value={codeInput}
+                onChangeText={setCodeInput}
+                placeholder={language === 'ku' ? 'کۆدەکە لێرە بنووسە...' : language === 'ar' ? 'أدخل الكود هنا...' : 'Enter code here...'}
+                placeholderTextColor={themeColors.textMuted}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
             </View>
 
-            {/* Register Form */}
-            {authTab === 'register' ? (
-              <View style={{ gap: 10 }}>
-                <View>
-                  <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
-                    {language === 'ku' ? 'کۆدی چالاککردن:' : language === 'badini' ? 'کۆدێ چالاککرنێ:' : language === 'ar' ? 'رمز التفعيل:' : 'Activation Code:'}
+            {/* Submit */}
+            <TouchableOpacity
+              style={[styles.saveBtn, { height: 48, justifyContent: 'center', borderRadius: 14 }]}
+              disabled={authLoading}
+              onPress={async () => {
+                const codeLower = codeInput.trim().toLowerCase();
+                setAuthLoading(true);
+                try {
+                  if (codeLower === 'tabanplay1' || codeLower === 'taban play1' || codeLower === 'myflim1' || codeLower === 'taban2026') {
+                    await AsyncStorage.setItem('app_unlocked', 'true');
+                    await AsyncStorage.removeItem('taban_app_device_user_id');
+                    await updateUser({ name: 'User', image: DEFAULT_AVATARS[0], isPro: true });
+                    useAppStore.setState({ isUnlocked: true });
+                    setShowUnlockModal(false);
+                    setCodeInput('');
+                    Alert.alert(language === 'ku' ? '✅ سەرکەوتوو' : '✅ Unlocked', language === 'ku' ? 'ئەپەکە بە تەواوی کرایەوە!' : 'App fully unlocked!');
+                  } else if (codeLower === 'mdhd123') {
+                    await AsyncStorage.setItem('app_unlocked', 'true');
+                    await AsyncStorage.setItem('taban_app_device_user_id', 'usr_taban1');
+                    await updateUser({ name: 'Taban1', image: DEFAULT_AVATARS[0], isPro: false });
+                    useAppStore.setState({ isUnlocked: true });
+                    setShowUnlockModal(false);
+                    setCodeInput('');
+                    Alert.alert(language === 'ku' ? '✅ دیمۆ' : '✅ Demo', language === 'ku' ? 'بەشی دیمۆ کرایەوە!' : 'Demo mode activated!');
+                  } else {
+                    Alert.alert(language === 'ku' ? 'هەڵە' : 'Error', language === 'ku' ? 'کۆدەکە هەڵەیە.' : 'Invalid code.');
+                  }
+                } catch (e) {
+                  Alert.alert('Error', 'Something went wrong.');
+                } finally {
+                  setAuthLoading(false);
+                }
+              }}
+            >
+              {authLoading
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={[styles.saveBtnText, { fontSize: 15, fontWeight: '900' }]}>
+                    {language === 'ku' ? 'چالاککردن' : language === 'ar' ? 'تفعيل' : 'Activate'}
                   </Text>
-                  <TextInput
-                    style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
-                    value={authCode}
-                    onChangeText={setAuthCode}
-                    placeholder={language === 'ku' ? 'کۆدەکە بنووسە...' : language === 'badini' ? 'کۆدی بنڤێسە...' : language === 'ar' ? 'أدخل الكود...' : 'Enter code...'}
-                    placeholderTextColor={themeColors.textMuted}
-                    autoCapitalize="none"
-                  />
-                </View>
-
-                <View>
-                  <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
-                    {language === 'ku' ? 'ناوی بەکارهێنەر:' : language === 'badini' ? 'ناوی بەکارهێنەری:' : language === 'ar' ? 'اسم المستخدم:' : 'Username:'}
-                  </Text>
-                  <TextInput
-                    style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
-                    value={authUsername}
-                    onChangeText={setAuthUsername}
-                    placeholder={language === 'ku' ? 'یوزەرنەیمێک هەڵبژێرە...' : language === 'badini' ? 'یوزەرنەیمەکێ هەڵبژێره...' : language === 'ar' ? 'اختر اسم المستخدم...' : 'Choose username...'}
-                    placeholderTextColor={themeColors.textMuted}
-                    autoCapitalize="none"
-                  />
-                </View>
-
-                <View>
-                  <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
-                    {language === 'ku' ? 'وشەی نهێنی (پاسۆرد):' : language === 'badini' ? 'وشەیا نهێنی (پاسۆرد):' : language === 'ar' ? 'كلمة المرور:' : 'Password:'}
-                  </Text>
-                  <TextInput
-                    style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
-                    value={authPassword}
-                    onChangeText={setAuthPassword}
-                    placeholder={language === 'ku' ? 'پاسۆردێک بنووسە...' : language === 'badini' ? 'پاسۆردەکێ بنڤێسە...' : language === 'ar' ? 'أدخل كلمة المرور...' : 'Enter password...'}
-                    placeholderTextColor={themeColors.textMuted}
-                  />
-                </View>
-
-                <TouchableOpacity
-                  style={[styles.saveBtn, { marginTop: 6, height: 44, justifyContent: 'center', borderRadius: 12 }]}
-                  onPress={handleRegisterAccount}
-                  disabled={authLoading}
-                >
-                  {authLoading ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={[styles.saveBtnText, { fontSize: 14, fontWeight: '900' }]}>
-                      {language === 'ku' ? 'دروستکردنی هەژمار' : language === 'badini' ? 'چێکرنا هەژمارێ' : language === 'ar' ? 'إنشاء حساب' : 'Create Account'}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            ) : (
-              /* Log In Form */
-              <View style={{ gap: 10 }}>
-                <View>
-                  <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
-                    {language === 'ku' ? 'ناوی بەکارهێنەر:' : language === 'badini' ? 'ناوی بەکارهێنەری:' : language === 'ar' ? 'اسم المستخدم:' : 'Username:'}
-                  </Text>
-                  <TextInput
-                    style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
-                    value={authUsername}
-                    onChangeText={setAuthUsername}
-                    placeholder={language === 'ku' ? 'ناوی بەکارهێنەر بنووسە...' : language === 'badini' ? 'ناوی بەکارهێنەری بنڤێسە...' : language === 'ar' ? 'أدخل اسم المستخدم...' : 'Enter username...'}
-                    placeholderTextColor={themeColors.textMuted}
-                    autoCapitalize="none"
-                  />
-                </View>
-
-                <View>
-                  <Text style={{ color: themeColors.textSecondary, fontSize: 11, fontWeight: 'bold', marginBottom: 4, textAlign: isRTL ? 'right' : 'left' }}>
-                    {language === 'ku' ? 'وشەی نهێنی (پاسۆرد):' : language === 'badini' ? 'وشەیا نهێنی (پاسۆرد):' : language === 'ar' ? 'كلمة المرور:' : 'Password:'}
-                  </Text>
-                  <TextInput
-                    style={[styles.nameInput, { backgroundColor: themeColors.surfaceLight, color: themeColors.text, borderColor: themeColors.border, height: 42, fontSize: 13 }]}
-                    value={authPassword}
-                    onChangeText={setAuthPassword}
-                    placeholder={language === 'ku' ? 'پاسۆردەکەت بنووسە...' : language === 'badini' ? 'پاسۆردێ خۆ بنڤێسە...' : language === 'ar' ? 'أدخل كلمة المرور...' : 'Enter password...'}
-                    placeholderTextColor={themeColors.textMuted}
-                  />
-                </View>
-
-                <TouchableOpacity
-                  style={[styles.saveBtn, { marginTop: 6, height: 44, justifyContent: 'center', borderRadius: 12 }]}
-                  onPress={handleLoginAccount}
-                  disabled={authLoading}
-                >
-                  {authLoading ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={[styles.saveBtnText, { fontSize: 14, fontWeight: '900' }]}>
-                      {language === 'ku' ? 'چوونە ژوورەوە' : language === 'badini' ? 'تێکەڤتن' : language === 'ar' ? 'تسجيل الدخول' : 'Log In'}
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              </View>
-            )}
+              }
+            </TouchableOpacity>
 
           </Pressable>
         </Pressable>

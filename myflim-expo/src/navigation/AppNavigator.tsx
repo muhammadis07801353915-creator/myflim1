@@ -54,12 +54,13 @@ function TabNavigator() {
       label: t.liveTv,
       icon: ({ color, size }: any) => <Tv color={color} size={size} />,
     },
-    {
-      name: "PostsTab",
-      component: PostsScreen,
-      label: language === 'ku' ? 'پۆستەکان' : language === 'ar' ? 'المنشورات' : 'Posts',
-      icon: ({ color, size }: any) => <LayoutGrid color={color} size={size} />,
-    },
+    // ── Posts tab (disabled for now – uncomment to re-enable) ──
+    // {
+    //   name: "PostsTab",
+    //   component: PostsScreen,
+    //   label: language === 'ku' ? 'پۆستەکان' : language === 'ar' ? 'المنشورات' : 'Posts',
+    //   icon: ({ color, size }: any) => <LayoutGrid color={color} size={size} />,
+    // },
     {
       name: "ProfileTab",
       component: ProfileScreen,
