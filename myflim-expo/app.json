@@ -29,7 +29,13 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [],
+    "plugins": [
+      "expo-splash-screen",
+      "expo-status-bar",
+      "expo-web-browser",
+      "expo-font",
+      "expo-video"
+    ],
     "owner": "taboo1",
     "extra": {
       "eas": {

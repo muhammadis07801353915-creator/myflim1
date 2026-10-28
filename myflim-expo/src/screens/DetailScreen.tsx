@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS, SPACING, SIZES, getColors } from '../theme/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, Play, Bookmark, Share2, Star, Clock, Calendar, Users, X, Server, Eye } from 'lucide-react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { WebView } from 'react-native-webview';
 import { useAppStore } from '../store/useAppStore';
 import CommentSection from '../components/CommentSection';
@@ -41,6 +41,22 @@ export default function DetailScreen({ route, navigation }: any) {
   const [showPartyModal, setShowPartyModal] = useState(false);
   const [activeChannel, setActiveChannel] = useState(item);
   const [realLiveViewers, setRealLiveViewers] = useState<number>(1);
+
+  // expo-video player (replaces deprecated expo-av)
+  const videoPlayer = useVideoPlayer(null as any, (player) => {
+    player.loop = false;
+  });
+
+  // Update the player source whenever the active URL changes
+  useEffect(() => {
+    const urlToPlay = isDirectVideo ? activeVideoUrl : null;
+    if (urlToPlay && videoPlayer) {
+      try {
+        videoPlayer.replace({ uri: urlToPlay });
+        videoPlayer.play();
+      } catch (e) { /* ignore */ }
+    }
+  }, [activeVideoUrl, isDirectVideo]);
 
   // Listen for real-time video sync events from Host
   const registerSync = party.registerVideoSyncListener;
@@ -354,13 +370,12 @@ export default function DetailScreen({ route, navigation }: any) {
                 androidLayerType="none"
               />
             ) : (
-              <Video
+              <VideoView
                 key={liveVideoUrl}
-                source={{ uri: liveVideoUrl }}
+                player={videoPlayer}
                 style={StyleSheet.absoluteFillObject}
-                resizeMode={ResizeMode.CONTAIN}
-                shouldPlay
-                useNativeControls
+                allowsFullscreen
+                nativeControls
               />
             )
           ) : (
@@ -469,12 +484,11 @@ export default function DetailScreen({ route, navigation }: any) {
         <View style={[styles.headerContainer, isPlaying && { marginTop: insets.top + 14 }]}>
           {isPlaying && activeVideoUrl ? (
             isDirectVideo ? (
-              <Video
-                source={{ uri: activeVideoUrl }}
+              <VideoView
+                player={videoPlayer}
                 style={StyleSheet.absoluteFillObject}
-                resizeMode={ResizeMode.CONTAIN}
-                shouldPlay
-                useNativeControls
+                allowsFullscreen
+                nativeControls
               />
             ) : (
               <WebView
