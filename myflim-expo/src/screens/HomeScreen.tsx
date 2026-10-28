@@ -258,8 +258,9 @@ export default function HomeScreen({ navigation }: any) {
     allDynamicLists.forEach(([title]) => {
       items.push({ key: title as string, label: title as string });
     });
-    return items;
-  }, [topContents, allDynamicLists, t.popular]);
+    // For RTL languages, reverse the order so first item appears at right
+    return isRTL ? items.reverse() : items;
+  }, [topContents, allDynamicLists, t.popular, isRTL]);
 
   const scrollToSection = useCallback((key: string) => {
     const y = sectionYRefs.current[key];
@@ -451,7 +452,7 @@ export default function HomeScreen({ navigation }: any) {
     <View style={[styles.root, { backgroundColor: themeColors.background }]}>
 
       {/* ── STICKY HEADER BAR (RTL Dynamic) ─────────────────────────── */}
-      <View style={[styles.headerBar, { paddingTop: insets.top + 8, paddingBottom: 12, backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}>
+      <View style={[styles.headerBar, { paddingTop: insets.top + 8, paddingBottom: 12, backgroundColor: themeColors.surface }, isRTL && { flexDirection: 'row-reverse' }]}>
         {/* Logo + Brand */}
         <View style={[header.brand, { flexDirection: 'row', alignItems: 'center' }]}>
           <Image
@@ -487,10 +488,7 @@ export default function HomeScreen({ navigation }: any) {
             horizontal
             showsHorizontalScrollIndicator={false}
             style={navBar.scroll}
-            contentContainerStyle={[
-              navBar.content,
-              isRTL && { flexDirection: 'row-reverse' }
-            ]}
+            contentContainerStyle={navBar.content}
           >
             {navSections.map(({ key, label }) => {
               const isActive = activeNavSection === key;
@@ -517,7 +515,6 @@ export default function HomeScreen({ navigation }: any) {
               );
             })}
           </ScrollView>
-          <View style={[navBar.bottomLine, { backgroundColor: themeColors.border }]} />
         </View>
       )}
 
@@ -958,7 +955,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    borderBottomWidth: 1,
   },
   notifOverlay: {
     flex: 1,

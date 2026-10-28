@@ -151,6 +151,7 @@ export default function Home({
   }, [movies]);
 
   // All nav sections (Top Contents + all movie lists that have content)
+  const isRTLLang = language === 'ku' || language === 'ar' || language === 'badini';
   const navSections = useMemo(() => {
     const items: { key: string; label: string }[] = [];
     if (topContents.length > 0) {
@@ -163,8 +164,9 @@ export default function Home({
         items.push({ key: `section-${list.name.replace(/\s+/g, '-')}`, label });
       }
     });
-    return items;
-  }, [topContents, movieLists, movies, language, t.popular]);
+    // Reverse order for RTL so first item sits at the right
+    return isRTLLang ? [...items].reverse() : items;
+  }, [topContents, movieLists, movies, language, t.popular, isRTLLang]);
 
   const [activeNavKey, setActiveNavKey] = useState<string>('');
 
@@ -501,13 +503,11 @@ export default function Home({
               className="sticky top-[61px] z-30 overflow-x-auto scrollbar-hide"
               style={{
                 background: '#f5f5f7',
-                borderBottom: '1px solid rgba(0,0,0,0.08)',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
               }}
             >
               <div
                 className={`flex items-center gap-2.5 px-4 md:px-8 lg:px-10 py-3 min-w-max ${
-                  language === 'ku' || language === 'ar' || language === 'badini' ? 'flex-row-reverse' : 'flex-row'
+                  isRTLLang ? 'flex-row-reverse' : 'flex-row'
                 }`}
               >
                 {navSections.map(({ key, label }) => {
