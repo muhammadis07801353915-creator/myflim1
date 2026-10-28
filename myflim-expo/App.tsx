@@ -69,8 +69,15 @@ function App(): React.JSX.Element {
           barStyle={theme === 'light' ? 'dark-content' : 'light-content'}
           backgroundColor={themeColors.background}
         />
-        <AppNavigator />
-        <UpdateChecker />
+        {/* ── Gate: show code entry screen until user enters valid code ── */}
+        {!isUnlocked ? (
+          <AccessScreen />
+        ) : (
+          <>
+            <AppNavigator />
+            <UpdateChecker />
+          </>
+        )}
       </NavigationContainer>
 
       {/* Custom Animated Splash Screen */}
