@@ -317,7 +317,7 @@ export default function HomeScreen({ navigation }: any) {
     const current = featured[activeIndex] || featured[0];
 
     return (
-      <View style={hero.container} {...panResponder.panHandlers}>
+      <View style={[hero.container, { backgroundColor: '#0F0F13' }]} {...panResponder.panHandlers}>
         {/* Backdrop Image */}
         <Image
           source={{ uri: current.backdrop || current.image }}
@@ -327,8 +327,8 @@ export default function HomeScreen({ navigation }: any) {
 
         {/* Gradient overlay for top icon contrast and bottom text readability (No theme background shape) */}
         <LinearGradient
-          colors={['rgba(0,0,0,0.35)', 'transparent', 'rgba(0,0,0,0.65)']}
-          locations={[0, 0.4, 1]}
+          colors={['rgba(0,0,0,0.3)', 'transparent', 'rgba(0,0,0,0.82)', 'rgba(0,0,0,0.97)']}
+          locations={[0, 0.35, 0.82, 1]}
           style={hero.gradient}
         >
           {/* Top-right: Rating badge */}
@@ -483,7 +483,7 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* ── CATEGORY QUICK-NAV BAR ──────────────────────────────────── */}
       {isUnlocked && navSections.length > 0 && (
-        <View style={[navBar.wrapper, { backgroundColor: '#EAEAEE' }]}>
+        <View style={navBar.wrapper}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}

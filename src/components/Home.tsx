@@ -420,7 +420,7 @@ export default function Home({
                     )}
 
                     {/* Gradient Vignette Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-black/35 to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/20 to-transparent pointer-events-none" style={{ background: 'linear-gradient(to top, #0a0a0f 0%, #0a0a0f 8%, rgba(10,10,15,0.6) 45%, transparent 100%)' }} />
                     <div className="hidden md:block absolute inset-0 bg-gradient-to-r from-[#0a0a0f] via-[#0a0a0f]/40 to-transparent pointer-events-none" />
 
                     {/* Top-Right Rating Badge */}
