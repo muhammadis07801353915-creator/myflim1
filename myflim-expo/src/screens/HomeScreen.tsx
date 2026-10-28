@@ -482,34 +482,46 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* ── CATEGORY QUICK-NAV BAR ──────────────────────────────────── */}
       {isUnlocked && navSections.length > 0 && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={[navBar.wrap, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}
-          contentContainerStyle={navBar.content}
-          inverted={isRTL}
-        >
-          {navSections.map(({ key, label }) => {
-            const isActive = activeNavSection === key;
-            return (
-              <TouchableOpacity
-                key={key}
-                activeOpacity={0.8}
-                onPress={() => scrollToSection(key)}
-                style={[
-                  navBar.pill,
-                  isActive
-                    ? { backgroundColor: '#CC222F', borderColor: '#CC222F' }
-                    : { backgroundColor: themeColors.surfaceLight || 'rgba(255,255,255,0.07)', borderColor: themeColors.border }
-                ]}
-              >
-                <Text style={[navBar.pillText, { color: isActive ? '#fff' : themeColors.textSecondary || '#aaa' }]} numberOfLines={1}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        <View style={[navBar.wrapper, { backgroundColor: themeColors.surface }]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={navBar.scroll}
+            contentContainerStyle={[
+              navBar.content,
+              isRTL && { flexDirection: 'row-reverse' }
+            ]}
+          >
+            {navSections.map(({ key, label }) => {
+              const isActive = activeNavSection === key;
+              return (
+                <TouchableOpacity
+                  key={key}
+                  activeOpacity={0.75}
+                  onPress={() => scrollToSection(key)}
+                  style={[
+                    navBar.pill,
+                    isActive
+                      ? navBar.pillActive
+                      : { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.1)' }
+                  ]}
+                >
+                  {isActive && <View style={navBar.pillDot} />}
+                  <Text
+                    style={[
+                      navBar.pillText,
+                      { color: isActive ? '#fff' : 'rgba(255,255,255,0.5)' }
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+          <View style={[navBar.bottomLine, { backgroundColor: themeColors.border }]} />
+        </View>
       )}
 
       <ScrollView
@@ -885,28 +897,54 @@ const hero = StyleSheet.create({
 });
 
 const navBar = StyleSheet.create({
-  wrap: {
-    borderBottomWidth: 1,
-    maxHeight: 50,
+  wrapper: {
+    width: '100%',
+  },
+  scroll: {
+    flexGrow: 0,
   },
   content: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 12,
     gap: 8,
     flexDirection: 'row',
     alignItems: 'center',
   },
   pill: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 16,
+    paddingVertical: 7,
+    borderRadius: 24,
     borderWidth: 1,
     flexShrink: 0,
+  },
+  pillActive: {
+    backgroundColor: '#CC222F',
+    borderColor: '#CC222F',
+    shadowColor: '#CC222F',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  pillDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.85)',
   },
   pillText: {
     fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 0.2,
+    letterSpacing: 0.1,
+  },
+  bottomLine: {
+    height: 1,
+    marginHorizontal: 0,
+    opacity: 0.3,
   },
 });
 

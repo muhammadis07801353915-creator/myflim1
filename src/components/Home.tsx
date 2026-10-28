@@ -497,20 +497,51 @@ export default function Home({
 
           {/* SECTION QUICK-NAV BAR */}
           {navSections.length > 1 && !filteredByDesktopSearch && (
-            <div className="sticky top-[61px] z-30 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 lg:px-10 py-2.5 overflow-x-auto scrollbar-hide">
-              <div className={`flex items-center gap-2 ${language === 'ku' || language === 'ar' || language === 'badini' ? 'flex-row-reverse' : 'flex-row'}`}>
+            <div
+              className="sticky top-[61px] z-30 backdrop-blur-2xl overflow-x-auto scrollbar-hide"
+              style={{
+                background: 'linear-gradient(to bottom, rgba(10,10,15,0.97) 0%, rgba(10,10,15,0.88) 100%)',
+                borderBottom: '1px solid rgba(255,255,255,0.07)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.35)',
+              }}
+            >
+              <div
+                className={`flex items-center gap-2 px-4 md:px-8 lg:px-10 py-3 min-w-max ${
+                  language === 'ku' || language === 'ar' || language === 'badini' ? 'flex-row-reverse' : 'flex-row'
+                }`}
+              >
                 {navSections.map(({ key, label }) => {
                   const isActive = activeNavKey === key;
                   return (
                     <button
                       key={key}
                       onClick={() => scrollToSection(key)}
-                      className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 border ${
-                        isActive
-                          ? 'bg-[#CC222F] text-white border-[#CC222F] shadow-lg shadow-red-600/30'
-                          : 'bg-white/5 text-neutral-400 border-white/10 hover:text-white hover:bg-white/10 hover:border-white/20'
-                      }`}
+                      className="flex items-center gap-1.5 whitespace-nowrap transition-all duration-300"
+                      style={{
+                        padding: '6px 18px',
+                        borderRadius: '999px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        letterSpacing: '0.02em',
+                        border: isActive ? '1px solid #CC222F' : '1px solid rgba(255,255,255,0.1)',
+                        backgroundColor: isActive ? '#CC222F' : 'rgba(255,255,255,0.05)',
+                        color: isActive ? '#fff' : 'rgba(255,255,255,0.45)',
+                        boxShadow: isActive ? '0 0 16px rgba(204,34,47,0.4), 0 2px 8px rgba(0,0,0,0.4)' : 'none',
+                        transform: isActive ? 'scale(1.04)' : 'scale(1)',
+                      }}
                     >
+                      {isActive && (
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            width: 5,
+                            height: 5,
+                            borderRadius: '50%',
+                            backgroundColor: 'rgba(255,255,255,0.9)',
+                            flexShrink: 0,
+                          }}
+                        />
+                      )}
                       {label}
                     </button>
                   );
