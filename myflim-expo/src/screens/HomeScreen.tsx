@@ -502,13 +502,15 @@ export default function HomeScreen({ navigation }: any) {
                     navBar.pill,
                     isActive
                       ? navBar.pillActive
-                      : { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E8E8EC' }
+                      : isDark
+                        ? { backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }
+                        : { backgroundColor: '#D8DCE6', borderWidth: 1, borderColor: '#B8BDC8' }
                   ]}
                 >
                   <Text
                     style={[
                       navBar.pillText,
-                      { color: isActive ? '#fff' : (isDark ? 'rgba(255,255,255,0.65)' : '#333') }
+                      { color: isActive ? '#fff' : (isDark ? 'rgba(255,255,255,0.75)' : '#2A2D36') }
                     ]}
                     numberOfLines={1}
                   >
