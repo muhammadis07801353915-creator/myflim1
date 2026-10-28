@@ -483,7 +483,7 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* ── CATEGORY QUICK-NAV BAR ──────────────────────────────────── */}
       {isUnlocked && navSections.length > 0 && (
-        <View style={navBar.wrapper}>
+        <View style={[navBar.wrapper, { backgroundColor: '#EAEAEE' }]}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -521,7 +521,7 @@ export default function HomeScreen({ navigation }: any) {
       <ScrollView
         ref={mainScrollRef}
         style={[styles.root, { backgroundColor: themeColors.background }]}
-        contentContainerStyle={{ paddingTop: 10, paddingBottom: 120 }}
+        contentContainerStyle={{ paddingTop: 0, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl

@@ -499,7 +499,7 @@ export default function Home({
 
           {/* SECTION QUICK-NAV BAR */}
           {navSections.length > 1 && !filteredByDesktopSearch && (
-            <div className="sticky top-[61px] z-30 overflow-x-auto scrollbar-hide">
+            <div className="sticky top-[61px] z-30 overflow-x-auto scrollbar-hide" style={{ backgroundColor: '#EAEAEE' }}>
               <div
                 className={`flex items-center gap-2.5 px-4 md:px-8 lg:px-10 py-2.5 min-w-max ${
                   isRTLLang ? 'flex-row-reverse' : 'flex-row'
