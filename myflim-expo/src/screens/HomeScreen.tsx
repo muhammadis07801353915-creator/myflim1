@@ -482,7 +482,7 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* ── CATEGORY QUICK-NAV BAR ──────────────────────────────────── */}
       {isUnlocked && navSections.length > 0 && (
-        <View style={[navBar.wrapper, { backgroundColor: themeColors.surface }]}>
+        <View style={[navBar.wrapper, { backgroundColor: themeColors.background }]}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -501,16 +501,13 @@ export default function HomeScreen({ navigation }: any) {
                   onPress={() => scrollToSection(key)}
                   style={[
                     navBar.pill,
-                    isActive
-                      ? navBar.pillActive
-                      : { backgroundColor: 'rgba(255,255,255,0.06)', borderColor: 'rgba(255,255,255,0.1)' }
+                    isActive ? navBar.pillActive : navBar.pillInactive
                   ]}
                 >
-                  {isActive && <View style={navBar.pillDot} />}
                   <Text
                     style={[
                       navBar.pillText,
-                      { color: isActive ? '#fff' : 'rgba(255,255,255,0.5)' }
+                      { color: isActive ? '#fff' : '#333' }
                     ]}
                     numberOfLines={1}
                   >
@@ -914,37 +911,25 @@ const navBar = StyleSheet.create({
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 16,
-    paddingVertical: 7,
-    borderRadius: 24,
-    borderWidth: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 9,
+    borderRadius: 14,
     flexShrink: 0,
   },
   pillActive: {
     backgroundColor: '#CC222F',
-    borderColor: '#CC222F',
-    shadowColor: '#CC222F',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.45,
-    shadowRadius: 8,
-    elevation: 6,
   },
-  pillDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.85)',
+  pillInactive: {
+    backgroundColor: '#E8E8EC',
   },
   pillText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.1,
   },
   bottomLine: {
     height: 1,
-    marginHorizontal: 0,
-    opacity: 0.3,
+    opacity: 0.18,
   },
 });
 
