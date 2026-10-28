@@ -534,7 +534,7 @@ export default function HomeScreen({ navigation }: any) {
         {/* ── HERO ───────────────────────────────────── */}
         {renderHero()}
 
-        <View style={[styles.body, { paddingTop: 24 }]}>
+        <View style={styles.body}>
           {/* ── TOP 250 ─────────────────────────────────────── */}
           {topContents.length > 0 ? (
             <View

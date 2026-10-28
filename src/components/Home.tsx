@@ -535,7 +535,7 @@ export default function Home({
           )}
 
           {/* CONTENT ROWS (Original Horizontal Swipe Rows on Mobile, Multi-column Grid on Desktop) */}
-          <div className="px-4 md:px-8 lg:px-10 space-y-10 pt-2">
+          <div className="px-4 md:px-8 lg:px-10 space-y-10">
 
             {/* TOP CONTENTS / TRENDING NOW */}
             {topContents.length > 0 && (
