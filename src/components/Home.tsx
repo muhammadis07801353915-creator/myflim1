@@ -499,7 +499,7 @@ export default function Home({
 
           {/* SECTION QUICK-NAV BAR */}
           {navSections.length > 1 && !filteredByDesktopSearch && (
-            <div className="sticky top-[61px] z-30 overflow-x-auto scrollbar-hide" style={{ backgroundColor: '#EAEAEE' }}>
+            <div className="sticky top-[61px] z-30 overflow-x-auto scrollbar-hide" style={{ backgroundColor: '#111116', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
               <div
                 className={`flex items-center gap-2.5 px-4 md:px-8 lg:px-10 py-2.5 min-w-max ${
                   isRTLLang ? 'flex-row-reverse' : 'flex-row'
@@ -513,17 +513,17 @@ export default function Home({
                       onClick={() => scrollToSection(key)}
                       className="whitespace-nowrap transition-all duration-200"
                       style={{
-                        padding: '8px 22px',
+                        padding: '7px 20px',
                         borderRadius: '12px',
                         fontSize: '13px',
                         fontWeight: 700,
                         letterSpacing: '0.01em',
-                        border: 'none',
+                        border: isActive ? 'none' : '1px solid rgba(255,255,255,0.12)',
                         outline: 'none',
                         cursor: 'pointer',
-                        backgroundColor: isActive ? '#CC222F' : '#e4e4ea',
-                        color: isActive ? '#fff' : '#222',
-                        boxShadow: isActive ? '0 2px 10px rgba(204,34,47,0.3)' : 'none',
+                        backgroundColor: isActive ? '#CC222F' : 'rgba(255,255,255,0.08)',
+                        color: isActive ? '#fff' : 'rgba(255,255,255,0.6)',
+                        boxShadow: isActive ? '0 2px 12px rgba(204,34,47,0.35)' : 'none',
                       }}
                     >
                       {label}
