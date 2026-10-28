@@ -483,7 +483,7 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* ── CATEGORY QUICK-NAV BAR ──────────────────────────────────── */}
       {isUnlocked && navSections.length > 0 && (
-        <View style={navBar.wrapper}>
+        <View style={[navBar.wrapper, { backgroundColor: themeColors.surface }]}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -492,6 +492,7 @@ export default function HomeScreen({ navigation }: any) {
           >
             {navSections.map(({ key, label }) => {
               const isActive = activeNavSection === key;
+              const isDark = themeColors.background === '#0F0F13';
               return (
                 <TouchableOpacity
                   key={key}
@@ -499,13 +500,15 @@ export default function HomeScreen({ navigation }: any) {
                   onPress={() => scrollToSection(key)}
                   style={[
                     navBar.pill,
-                    isActive ? navBar.pillActive : navBar.pillInactive
+                    isActive
+                      ? navBar.pillActive
+                      : { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E8E8EC' }
                   ]}
                 >
                   <Text
                     style={[
                       navBar.pillText,
-                      { color: isActive ? '#fff' : '#333' }
+                      { color: isActive ? '#fff' : (isDark ? 'rgba(255,255,255,0.65)' : '#333') }
                     ]}
                     numberOfLines={1}
                   >
@@ -534,7 +537,7 @@ export default function HomeScreen({ navigation }: any) {
         {/* ── HERO ───────────────────────────────────── */}
         {renderHero()}
 
-        <View style={styles.body}>
+        <View style={[styles.body, { paddingTop: 12 }]}>
           {/* ── TOP 250 ─────────────────────────────────────── */}
           {topContents.length > 0 ? (
             <View
