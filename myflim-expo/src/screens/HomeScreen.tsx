@@ -483,7 +483,7 @@ export default function HomeScreen({ navigation }: any) {
 
       {/* ── CATEGORY QUICK-NAV BAR ──────────────────────────────────── */}
       {isUnlocked && navSections.length > 0 && (
-        <View style={[navBar.wrapper, { backgroundColor: themeColors.background }]}>
+        <View style={navBar.wrapper}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -893,14 +893,14 @@ const hero = StyleSheet.create({
 const navBar = StyleSheet.create({
   wrapper: {
     width: '100%',
+    backgroundColor: 'transparent',
   },
   scroll: {
     flexGrow: 0,
   },
   content: {
     paddingHorizontal: 14,
-    paddingTop: 10,
-    paddingBottom: 12,
+    paddingVertical: 10,
     gap: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -923,10 +923,6 @@ const navBar = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.1,
-  },
-  bottomLine: {
-    height: 1,
-    opacity: 0.18,
   },
 });
 
