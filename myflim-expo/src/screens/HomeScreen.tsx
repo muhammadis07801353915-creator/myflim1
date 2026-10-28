@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -245,6 +245,30 @@ export default function HomeScreen({ navigation }: any) {
     return Array.from(listMap.entries());
   }, [categories, movies, isUnlocked, language, isRestrictedUser]);
 
+  // ── Category Quick-Nav refs ──────────────────────────────────────────────
+  const mainScrollRef = useRef<ScrollView>(null);
+  const sectionYRefs = useRef<Record<string, number>>({});
+  const [activeNavSection, setActiveNavSection] = useState<string>('');
+
+  const navSections = useMemo(() => {
+    const items: { key: string; label: string }[] = [];
+    if (topContents.length > 0) {
+      items.push({ key: '__top__', label: t.popular || 'پڕبینەرترینەکان' });
+    }
+    allDynamicLists.forEach(([title]) => {
+      items.push({ key: title as string, label: title as string });
+    });
+    return items;
+  }, [topContents, allDynamicLists, t.popular]);
+
+  const scrollToSection = useCallback((key: string) => {
+    const y = sectionYRefs.current[key];
+    if (y !== undefined && mainScrollRef.current) {
+      mainScrollRef.current.scrollTo({ y: Math.max(0, y - 12), animated: true });
+    }
+    setActiveNavSection(key);
+  }, []);
+
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = async () => {
     setRefreshing(true);
@@ -456,7 +480,40 @@ export default function HomeScreen({ navigation }: any) {
         </View>
       </View>
 
+      {/* ── CATEGORY QUICK-NAV BAR ──────────────────────────────────── */}
+      {isUnlocked && navSections.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={[navBar.wrap, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}
+          contentContainerStyle={navBar.content}
+          inverted={isRTL}
+        >
+          {navSections.map(({ key, label }) => {
+            const isActive = activeNavSection === key;
+            return (
+              <TouchableOpacity
+                key={key}
+                activeOpacity={0.8}
+                onPress={() => scrollToSection(key)}
+                style={[
+                  navBar.pill,
+                  isActive
+                    ? { backgroundColor: '#CC222F', borderColor: '#CC222F' }
+                    : { backgroundColor: themeColors.surfaceLight || 'rgba(255,255,255,0.07)', borderColor: themeColors.border }
+                ]}
+              >
+                <Text style={[navBar.pillText, { color: isActive ? '#fff' : themeColors.textSecondary || '#aaa' }]} numberOfLines={1}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
+
       <ScrollView
+        ref={mainScrollRef}
         style={[styles.root, { backgroundColor: themeColors.background }]}
         contentContainerStyle={{ paddingTop: 10, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
@@ -473,25 +530,40 @@ export default function HomeScreen({ navigation }: any) {
 
         <View style={[styles.body, { paddingTop: 24 }]}>
           {/* ── TOP 250 ─────────────────────────────────────── */}
-          {topContents.length > 0
-            ? renderSection(
+          {topContents.length > 0 ? (
+            <View
+              onLayout={e => {
+                sectionYRefs.current['__top__'] = e.nativeEvent.layout.y;
+              }}
+            >
+              {renderSection(
                 t.popular,
                 topContents.slice(0, 20),
                 topContents,
                 'Top Contents',
-                true // flame icon
-              )
-            : null}
+                true
+              )}
+            </View>
+          ) : null}
 
-          {/* ── ALL DYNAMIC MOVIE LISTS (Kurdish Dubbed Movies, Cartoons, Dubbed Series, etc.) ──── */}
+          {/* ── ALL DYNAMIC MOVIE LISTS ──── */}
           {allDynamicLists.map(([listTitle, listMovies]) => {
             if (!isUnlocked || listMovies.length === 0) return null;
 
-            return renderSection(
-              listTitle,
-              listMovies.slice(0, 15),
-              listMovies,
-              listTitle
+            return (
+              <View
+                key={listTitle as string}
+                onLayout={e => {
+                  sectionYRefs.current[listTitle as string] = e.nativeEvent.layout.y;
+                }}
+              >
+                {renderSection(
+                  listTitle as string,
+                  (listMovies as any[]).slice(0, 15),
+                  listMovies as any[],
+                  listTitle as string
+                )}
+              </View>
             );
           })}
         </View>
@@ -809,6 +881,32 @@ const hero = StyleSheet.create({
     color: 'rgba(255,255,255,0.5)',
     fontSize: 13,
     marginTop: 6,
+  },
+});
+
+const navBar = StyleSheet.create({
+  wrap: {
+    borderBottomWidth: 1,
+    maxHeight: 50,
+  },
+  content: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pill: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    flexShrink: 0,
+  },
+  pillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
 });
 

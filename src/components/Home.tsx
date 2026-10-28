@@ -150,6 +150,32 @@ export default function Home({
     return movies.filter(m => m.top_rank).sort((a, b) => (a.top_rank || 99) - (b.top_rank || 99));
   }, [movies]);
 
+  // All nav sections (Top Contents + all movie lists that have content)
+  const navSections = useMemo(() => {
+    const items: { key: string; label: string }[] = [];
+    if (topContents.length > 0) {
+      items.push({ key: 'section-top', label: t.popular || 'پڕبینەرترین' });
+    }
+    movieLists.forEach(list => {
+      const listMovies = movies.filter(m => m.list_name === list.name);
+      if (listMovies.length > 0) {
+        const label = getLocalized(list, 'name', language) || list.name;
+        items.push({ key: `section-${list.name.replace(/\s+/g, '-')}`, label });
+      }
+    });
+    return items;
+  }, [topContents, movieLists, movies, language, t.popular]);
+
+  const [activeNavKey, setActiveNavKey] = useState<string>('');
+
+  const scrollToSection = (key: string) => {
+    setActiveNavKey(key);
+    const el = document.getElementById(key);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const filteredByDesktopSearch = useMemo(() => {
     if (!desktopSearchQuery.trim()) return null;
     const q = desktopSearchQuery.trim().toLowerCase();
@@ -469,12 +495,36 @@ export default function Home({
           })()}
 
 
+          {/* SECTION QUICK-NAV BAR */}
+          {navSections.length > 1 && !filteredByDesktopSearch && (
+            <div className="sticky top-[61px] z-30 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/10 px-4 md:px-8 lg:px-10 py-2.5 overflow-x-auto scrollbar-hide">
+              <div className={`flex items-center gap-2 ${language === 'ku' || language === 'ar' || language === 'badini' ? 'flex-row-reverse' : 'flex-row'}`}>
+                {navSections.map(({ key, label }) => {
+                  const isActive = activeNavKey === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => scrollToSection(key)}
+                      className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 border ${
+                        isActive
+                          ? 'bg-[#CC222F] text-white border-[#CC222F] shadow-lg shadow-red-600/30'
+                          : 'bg-white/5 text-neutral-400 border-white/10 hover:text-white hover:bg-white/10 hover:border-white/20'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* CONTENT ROWS (Original Horizontal Swipe Rows on Mobile, Multi-column Grid on Desktop) */}
           <div className="px-4 md:px-8 lg:px-10 space-y-10 pt-2">
 
             {/* TOP CONTENTS / TRENDING NOW */}
             {topContents.length > 0 && (
-              <section className="space-y-4">
+              <section id="section-top" className="space-y-4 scroll-mt-28">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl md:text-2xl font-black text-white tracking-tight flex items-center space-x-2">
                     <Flame size={22} className="text-[#CC222F]" />
@@ -548,9 +598,10 @@ export default function Home({
               if (listMovies.length === 0) return null;
 
               const listTitle = getLocalized(list, 'name', language) || list.name;
+              const sectionId = `section-${list.name.replace(/\s+/g, '-')}`;
 
               return (
-                <section key={list.id} className="space-y-4">
+                <section key={list.id} id={sectionId} className="space-y-4 scroll-mt-28">
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl md:text-2xl font-black text-white tracking-tight">
                       {listTitle}
