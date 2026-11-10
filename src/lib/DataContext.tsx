@@ -2,6 +2,14 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase, fetchAllRows } from './supabase';
+import { 
+  REAL_MOVIES, 
+  REAL_CHANNELS, 
+  REAL_CATEGORIES, 
+  REAL_CHANNEL_CATEGORIES, 
+  REAL_COUNTRIES, 
+  REAL_BANNERS 
+} from '../data/realData';
 
 interface DataContextType {
   movies: any[];
@@ -26,13 +34,13 @@ interface InitialData {
 }
 
 export function DataProvider({ children, initialData }: { children: React.ReactNode; initialData?: InitialData }) {
-  const [movies, setMovies] = useState<any[]>(initialData?.movies || []);
-  const [movieLists, setMovieLists] = useState<any[]>(initialData?.movieLists || []);
-  const [channels, setChannels] = useState<any[]>(initialData?.channels || []);
-  const [categories, setCategories] = useState<any[]>(initialData?.categories || []);
-  const [banners, setBanners] = useState<any[]>(initialData?.banners || []);
-  const [countries, setCountries] = useState<any[]>(initialData?.countries || []);
-  const [loading, setLoading] = useState(!initialData);
+  const [movies, setMovies] = useState<any[]>(initialData?.movies?.length ? initialData.movies : REAL_MOVIES);
+  const [movieLists, setMovieLists] = useState<any[]>(initialData?.movieLists?.length ? initialData.movieLists : REAL_CATEGORIES);
+  const [channels, setChannels] = useState<any[]>(initialData?.channels?.length ? initialData.channels : REAL_CHANNELS);
+  const [categories, setCategories] = useState<any[]>(initialData?.categories?.length ? initialData.categories : REAL_CHANNEL_CATEGORIES);
+  const [banners, setBanners] = useState<any[]>(initialData?.banners?.length ? initialData.banners : REAL_BANNERS);
+  const [countries, setCountries] = useState<any[]>(initialData?.countries?.length ? initialData.countries : REAL_COUNTRIES);
+  const [loading, setLoading] = useState(false);
 
   const fetchData = useCallback(async (isSilent = false) => {
     try {
@@ -43,29 +51,44 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
       const moviesData = await fetchAllRows(supabase, 'movies', 'created_at');
       
       const [listsRes, channelsRes, categoriesRes, bannersRes, countriesRes] = await Promise.all([
-        supabase.from('movie_lists').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
-        supabase.from('channels').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
-        supabase.from('channel_categories').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
-        supabase.from('banners').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
-        supabase.from('channel_countries').select('*').order('order_index', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e }))
+        supabase.from('movie_lists').select('*').order('order_index', { ascending: true }).then(r => r).catch(() => ({ data: [] })),
+        supabase.from('channels').select('*').order('order_index', { ascending: true }).then(r => r).catch(() => ({ data: [] })),
+        supabase.from('channel_categories').select('*').order('order_index', { ascending: true }).then(r => r).catch(() => ({ data: [] })),
+        supabase.from('banners').select('*').order('order_index', { ascending: true }).then(r => r).catch(() => ({ data: [] })),
+        supabase.from('channel_countries').select('*').order('order_index', { ascending: true }).then(r => r).catch(() => ({ data: [] }))
       ]);
 
-      setMovies(moviesData || []);
-      if (listsRes?.data) setMovieLists(listsRes.data);
-      if (channelsRes?.data) setChannels(channelsRes.data);
-      if (categoriesRes?.data) setCategories(categoriesRes.data);
-      if (bannersRes?.data) setBanners(bannersRes.data);
-      if (countriesRes?.data) setCountries(countriesRes.data);
+      if (moviesData && moviesData.length > 0) {
+        setMovies(moviesData);
+      } else if (movies.length === 0) {
+        setMovies(REAL_MOVIES);
+      }
+
+      if (listsRes?.data && listsRes.data.length > 0) {
+        setMovieLists(listsRes.data);
+      }
+      if (channelsRes?.data && channelsRes.data.length > 0) {
+        setChannels(channelsRes.data);
+      }
+      if (categoriesRes?.data && categoriesRes.data.length > 0) {
+        setCategories(categoriesRes.data);
+      }
+      if (bannersRes?.data && bannersRes.data.length > 0) {
+        setBanners(bannersRes.data);
+      }
+      if (countriesRes?.data && countriesRes.data.length > 0) {
+        setCountries(countriesRes.data);
+      }
     } catch (error) {
-      console.error('Error fetching global data:', error);
+      console.warn('Supabase fetch failed, keeping fallback data:', error);
+      if (movies.length === 0) setMovies(REAL_MOVIES);
+      if (channels.length === 0) setChannels(REAL_CHANNELS);
     } finally {
-      // Only hide loading if we actually have data now
       setLoading(false);
     }
-  }, [movies.length]);
+  }, [movies.length, channels.length]);
 
   useEffect(() => {
-    // Always fetch fresh data on mount (ensures new tables like channel_countries load)
     fetchData();
 
     // Subscribe to realtime changes for all tables
@@ -103,8 +126,12 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
     };
   }, [fetchData]);
 
+  const refreshData = async () => {
+    await fetchData(false);
+  };
+
   return (
-    <DataContext.Provider value={{ movies, movieLists, channels, categories, banners, countries, loading, refreshData: fetchData }}>
+    <DataContext.Provider value={{ movies, movieLists, channels, categories, banners, countries, loading, refreshData }}>
       {children}
     </DataContext.Provider>
   );
@@ -112,7 +139,7 @@ export function DataProvider({ children, initialData }: { children: React.ReactN
 
 export function useData() {
   const context = useContext(DataContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useData must be used within a DataProvider');
   }
   return context;

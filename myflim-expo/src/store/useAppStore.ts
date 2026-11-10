@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { supabase } from '../api/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { REAL_MOVIES, REAL_CHANNELS, REAL_BANNERS, REAL_CATEGORIES, REAL_CHANNEL_CATEGORIES, REAL_COUNTRIES } from '../data/realData';
+
+const R2_BASE_URL = 'https://pub-2e0fad43910745bf8310497add3ae5fe.r2.dev';
 
 interface AppState {
   movies: any[];
@@ -48,17 +51,26 @@ const DEFAULT_USER = {
 };
 
 export const useAppStore = create<AppState>((set, get) => ({
-  movies: [],
-  series: [],
-  anime: [],
-  categories: [],
-  liveTv: [],
-  channelCategories: [],
-  countries: [],
-  banners: [],
+  movies: REAL_MOVIES,
+  series: REAL_MOVIES.filter(item => item.type === 'Series'),
+  anime: REAL_MOVIES.filter(item => 
+    item.type === 'Anime' ||
+    (item.genre && /anime|animation|cartoon|کارتۆن|ئەنیمەیشن/i.test(item.genre)) ||
+    (item.list_name && /کارتۆن|ئەنیمەیشن|ئەنیمی|anime|cartoon/i.test(item.list_name))
+  ),
+  categories: REAL_CATEGORIES,
+  liveTv: REAL_CHANNELS,
+  channelCategories: REAL_CHANNEL_CATEGORIES,
+  countries: REAL_COUNTRIES,
+  banners: REAL_BANNERS,
   watchlist: [],
   watchHistory: {},
   user: DEFAULT_USER,
+  theme: 'dark',
+  language: 'ku',
+  loading: false,
+  error: null,
+  isUnlocked: false,
   notifications: [],
   unreadNotifCount: 0,
 
@@ -140,6 +152,32 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   fetchInitialData: async () => {
+    // 1. Always load Local Storage first
+    try {
+      const w = await AsyncStorage.getItem('watchlist');
+      const u = await AsyncStorage.getItem('user_data');
+      const t = await AsyncStorage.getItem('app_theme');
+      const lang = await AsyncStorage.getItem('app_language');
+      const un = await AsyncStorage.getItem('app_unlocked');
+      const hist = await AsyncStorage.getItem('watch_history');
+
+      let parsedUser = DEFAULT_USER;
+      if (u) {
+        try { parsedUser = { ...DEFAULT_USER, ...JSON.parse(u) }; } catch {}
+      }
+
+      set({
+        watchlist: w ? JSON.parse(w) : get().watchlist,
+        user: parsedUser,
+        theme: (t === 'light' || t === 'dark') ? t : (get().theme || 'dark'),
+        language: (lang === 'ku' || lang === 'badini' || lang === 'ar' || lang === 'en') ? (lang as any) : (get().language || 'ku'),
+        isUnlocked: un === 'true',
+        watchHistory: hist ? JSON.parse(hist) : (get().watchHistory || {}),
+      });
+    } catch (e) {
+      console.warn('AsyncStorage error:', e);
+    }
+
     const isAlreadyLoaded = get().movies.length > 0;
     if (!isAlreadyLoaded) {
       set({ loading: true, error: null });
@@ -173,27 +211,73 @@ export const useAppStore = create<AppState>((set, get) => ({
         return allData;
       };
 
-      // Parallel fetch from Supabase
-      const [
-        allMovies,
-        { data: movieLists, error: listsError },
-        { data: channels, error: channelsError },
-        { data: channelCats, error: catError },
-        { data: bannersData, error: bannersError },
-        { data: countriesData, error: countriesError }
-      ] = await Promise.all([
-        fetchAllRows('movies', 'id', false),
-        supabase.from('movie_lists').select('*').order('order_index', { ascending: true }),
-        supabase.from('channels').select('*').order('order_index', { ascending: true }),
-        supabase.from('channel_categories').select('*').order('order_index', { ascending: true }),
-        supabase.from('banners').select('*').order('order_index', { ascending: true }),
-        supabase.from('channel_countries').select('*').eq('is_active', true).order('order_index', { ascending: true })
-      ]);
+      let allMovies: any[] = [];
+      let movieLists: any[] = [];
+      let channels: any[] = [];
+      let channelCats: any[] = [];
+      let bannersData: any[] = [];
+      let countriesData: any[] = [];
 
-      if (listsError) throw listsError;
-      if (channelsError) throw channelsError;
-      if (catError) throw catError;
-      if (bannersError) throw bannersError;
+      let loadedFromR2 = false;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const res = await fetch(`${R2_BASE_URL}/data.json`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const r2Data = await res.json();
+          if (r2Data && Array.isArray(r2Data.movies) && r2Data.movies.length > 0) {
+            allMovies = r2Data.movies;
+            channels = r2Data.channels || [];
+            bannersData = r2Data.banners || [];
+            movieLists = r2Data.categories || [];
+            channelCats = r2Data.channelCategories || [];
+            countriesData = r2Data.countries || [];
+            loadedFromR2 = true;
+          }
+        }
+      } catch (e) {
+        console.warn('R2 fetch error:', e);
+      }
+
+      if (!loadedFromR2) {
+        // Parallel fetch from Supabase (fallback)
+        try {
+          const [
+            sbMovies,
+            { data: sbLists },
+            { data: sbChannels },
+            { data: sbChannelCats },
+            { data: sbBanners },
+            { data: sbCountries }
+          ] = await Promise.all([
+            fetchAllRows('movies', 'id', false),
+            supabase.from('movie_lists').select('*').order('order_index', { ascending: true }),
+            supabase.from('channels').select('*').order('order_index', { ascending: true }),
+            supabase.from('channel_categories').select('*').order('order_index', { ascending: true }),
+            supabase.from('banners').select('*').order('order_index', { ascending: true }),
+            supabase.from('channel_countries').select('*').eq('is_active', true).order('order_index', { ascending: true })
+          ]);
+          allMovies = sbMovies || [];
+          movieLists = sbLists || [];
+          channels = sbChannels || [];
+          channelCats = sbChannelCats || [];
+          bannersData = sbBanners || [];
+          countriesData = sbCountries || [];
+        } catch (sbErr) {
+          console.warn('Supabase fetch error:', sbErr);
+        }
+      }
+
+      // If network sources (R2 & Supabase) didn't return data, use embedded real data
+      if (!loadedFromR2 && allMovies.length === 0) {
+        allMovies = REAL_MOVIES;
+        movieLists = REAL_CATEGORIES;
+        channels = REAL_CHANNELS;
+        channelCats = REAL_CHANNEL_CATEGORIES;
+        bannersData = REAL_BANNERS;
+        countriesData = REAL_COUNTRIES;
+      }
 
       // Type-based filtering for main content
       const movies = allMovies?.filter(item => item.type === 'Movie') || [];
@@ -211,7 +295,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       let storedWatchlist = [];
       let storedUser = DEFAULT_USER;
       let storedTheme: 'dark' | 'light' = 'dark';
-      let storedLanguage: 'ku' | 'ar' | 'en' = 'ku';
+      let storedLanguage: 'ku' | 'badini' | 'ar' | 'en' = 'ku';
       let storedUnlocked = false;
 
       try {
@@ -228,7 +312,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (t === 'light' || t === 'dark') storedTheme = t;
 
         const lang = await AsyncStorage.getItem('app_language');
-        if (lang === 'ku' || lang === 'ar' || lang === 'en') storedLanguage = lang as 'ku'|'ar'|'en';
+        if (lang === 'ku' || lang === 'badini' || lang === 'ar' || lang === 'en') storedLanguage = lang as any;
         
         const un = await AsyncStorage.getItem('app_unlocked');
         if (un === 'true') storedUnlocked = true;

@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,10 +15,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAppStore } from '../store/useAppStore';
-import { getColors, COLORS } from '../theme/theme';
+import { getColors } from '../theme/theme';
 import { getLocalized, translateCategoryName } from '../utils/localization';
-import { Play, Menu, X, Globe, CheckCircle2, Search, Sparkles } from 'lucide-react-native';
+import { Menu, X, Globe, CheckCircle2, Search, Sparkles } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -30,12 +31,14 @@ export default function LiveTVScreen({ navigation }: any) {
   const isRestrictedUser = user?.name?.toLowerCase() === 'taban1';
 
   const categoryScrollRef = useRef<ScrollView>(null);
+  const bannerScrollRef = useRef<ScrollView>(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [isCountryModalOpen, setIsCountryModalOpen] = useState(false);
   const [countrySearchQuery, setCountrySearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
 
   const scrollToRightEdgeRTL = (ref: React.RefObject<ScrollView | null>) => {
     if (isRTL) {
@@ -69,29 +72,57 @@ export default function LiveTVScreen({ navigation }: any) {
         : liveTv.filter((c) => c.country === selectedCountry))
     : liveTv;
 
-  // ── Category-filtered channels ────────────────────────────────────────────
-  const filteredChannels =
-    selectedCategory === 'All' ? countryFiltered : countryFiltered.filter((c) => c.category === selectedCategory);
-
   // ── Search results ────────────────────────────────────────────────────────
   const searchResults = searchQuery.trim()
     ? countryFiltered.filter((c) => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : [];
 
-  // ── Featured / Most Watched (Featured + News fallback + remaining) ────────
-  const featuredChannelsList = countryFiltered.filter((c) => c.is_featured);
-  const newsChannelsList = countryFiltered.filter((c) =>
-    (c.category === 'News' || c.category === 'هەواڵ' || c.category === 'الأخبار') &&
-    !featuredChannelsList.some((f) => f.id === c.id)
+  // ── Top Hero Carousel Banners (Admin Panel / Database slot) ──────────────
+  const dbTopBanners = (banners || []).filter(
+    (b: any) => b.type?.toLowerCase() === 'top' || b.type?.toLowerCase() === 'livetv_top' || b.type?.toLowerCase() === 'hero' || !b.placement_after
   );
-  const remainingChannelsList = countryFiltered.filter((c) =>
-    !featuredChannelsList.some((f) => f.id === c.id) &&
-    !newsChannelsList.some((n) => n.id === c.id)
-  );
-  const featured = [...featuredChannelsList, ...newsChannelsList, ...remainingChannelsList];
 
-  // ── Banners ───────────────────────────────────────────────────────────────
-  const interspersedBanners = (banners || []).filter((b: any) => b.type?.toLowerCase() !== 'top');
+  const defaultTopBanners = [
+    {
+      id: 'default_hero_1',
+      image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=1200&auto=format&fit=crop&q=80',
+      title: 'وەبەرهێنان بکە - قازانج وەرگرە!',
+      subtitle: 'SafeHome Finance & Investment',
+      link: 'https://tabanplay.com',
+    },
+    {
+      id: 'default_hero_2',
+      image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1200&auto=format&fit=crop&q=80',
+      title: 'خەونەکانت بەدیبهێنە!',
+      subtitle: 'KIIB International Bank',
+      link: 'https://tabanplay.com',
+    },
+    {
+      id: 'default_hero_3',
+      image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200&auto=format&fit=crop&q=80',
+      title: 'پەخشی ڕاستەوخۆی سەرجەم کەناڵەکان',
+      subtitle: 'Taban Play Live Stream',
+      link: 'https://tabanplay.com',
+    },
+  ];
+
+  const topBanners = dbTopBanners.length > 0 ? dbTopBanners : defaultTopBanners;
+
+  // Auto-scroll hero banner slider
+  useEffect(() => {
+    if (topBanners.length <= 1) return;
+    const interval = setInterval(() => {
+      setActiveBannerIndex((prev) => {
+        const next = (prev + 1) % topBanners.length;
+        bannerScrollRef.current?.scrollTo({ x: next * width, animated: true });
+        return next;
+      });
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [topBanners.length]);
+
+  // ── Intersperse Category Banners ──────────────────────────────────────────
+  const interspersedBanners = (banners || []).filter((b: any) => b.type?.toLowerCase() !== 'top' && b.type?.toLowerCase() !== 'livetv_top' && b.type?.toLowerCase() !== 'hero');
 
   // ── Categories to render ──────────────────────────────────────────────────
   const categoriesToRender =
@@ -108,9 +139,7 @@ export default function LiveTVScreen({ navigation }: any) {
     navigation.navigate('Detail', { item: { ...item, type: 'LiveTV' } });
 
   const handleViewAll = (category: string) => {
-    const data = (category === 'Most Watched' || category === 'زۆرترین بیندراو' || category === 'الأكثر مشاهدة')
-      ? featured
-      : (channelsByCategory[category] || []);
+    const data = channelsByCategory[category] || [];
     navigation.navigate('Category', { title: category, data, type: 'LiveTV' });
   };
 
@@ -130,15 +159,14 @@ export default function LiveTVScreen({ navigation }: any) {
     return c.name_en;
   };
 
-  // ── Selected country object ───────────────────────────────────────────────
   const selectedCountryObj = selectedCountry
     ? countries.find((c: any) => c.name_en === selectedCountry)
     : null;
 
   if (isRestrictedUser) {
     return (
-      <View style={[s.center, { backgroundColor: themeColors.background, flex: 1 }]}>
-        <Text style={{ color: themeColors.textMuted, fontSize: 14, fontWeight: 'bold' }}>
+      <View style={[s.center, { backgroundColor: '#13151D', flex: 1 }]}>
+        <Text style={{ color: '#8E95A5', fontSize: 14, fontWeight: 'bold' }}>
           {language === 'ku' ? 'هیچ پەخشێک بەردەست نییە' : 'No channels available'}
         </Text>
       </View>
@@ -148,105 +176,87 @@ export default function LiveTVScreen({ navigation }: any) {
   // ── Loading ───────────────────────────────────────────────────────────────
   if (loading && liveTv.length === 0) {
     return (
-      <View style={[s.center, { backgroundColor: themeColors.background }]}>
-        <ActivityIndicator size="large" color="#CC222F" />
+      <View style={[s.center, { backgroundColor: '#13151D' }]}>
+        <ActivityIndicator size="large" color="#E53935" />
       </View>
     );
   }
 
-  // ── Grid card size ────────────────────────────────────────────────────────
-  const cardW = Math.floor((width - 32 - 20) / 3);
+  // Exact 3-column card dimensions
+  const H_PAD = 16;
+  const GAP = 12;
+  const cardW = Math.floor((width - (H_PAD * 2) - (GAP * 2)) / 3);
 
   return (
-    <View style={[s.root, { backgroundColor: themeColors.background, paddingTop: insets.top }]}>
+    <View style={[s.root, { backgroundColor: '#13151D', paddingTop: insets.top }]}>
 
-      {/* ── HEADER ─────────────────────────────────────────────────── */}
-      <View style={[s.header, { backgroundColor: themeColors.surface, borderBottomColor: themeColors.border }]}>
-
-        {/* LEFT SIDE: Country button (LTR) or Search button (RTL) */}
+      {/* ── TOP HEADER BAR ─────────────────────────────────────────── */}
+      <View style={s.header}>
+        {/* RTL: Search button on the left | LTR: Country button on the left */}
         <View style={s.headerSide}>
           {isRTL ? (
-            /* RTL: Search button on the left */
             <TouchableOpacity
-              style={[s.searchBtn, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}
+              style={s.iconButton}
               onPress={() => { setIsSearchOpen(!isSearchOpen); if (isSearchOpen) setSearchQuery(''); }}
               activeOpacity={0.8}
             >
-              {isSearchOpen
-                ? <X size={20} color={themeColors.text} />
-                : <Search size={20} color={themeColors.text} />
-              }
+              {isSearchOpen ? <X size={20} color="#FFFFFF" /> : <Search size={20} color="#FFFFFF" />}
             </TouchableOpacity>
           ) : (
-            /* LTR: Country button on the left */
             <TouchableOpacity
-              style={[
-                s.countryBtn,
-                { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border },
-                selectedCountry && s.countryBtnActive,
-              ]}
+              style={[s.countryPill, selectedCountry && s.countryPillActive]}
               onPress={() => setIsCountryModalOpen(true)}
               activeOpacity={0.8}
             >
-              <Menu size={16} color={selectedCountry ? '#CC222F' : themeColors.text} />
+              <Menu size={16} color={selectedCountry ? '#E53935' : '#FFFFFF'} />
               {selectedCountryObj?.flag_url ? (
-                <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryBtnFlag} />
+                <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryFlag} />
               ) : null}
-              <Text style={[s.countryBtnText, { color: selectedCountry ? '#CC222F' : themeColors.text }]} numberOfLines={1}>
+              <Text style={[s.countryText, { color: selectedCountry ? '#E53935' : '#FFFFFF' }]} numberOfLines={1}>
                 {selectedCountryObj ? getCountryName(selectedCountryObj) : (language === 'ku' ? 'وڵات' : language === 'badini' ? 'وەڵات' : language === 'ar' ? 'الدولة' : 'Country')}
               </Text>
               {selectedCountry && (
                 <TouchableOpacity onPress={() => setSelectedCountry(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <X size={12} color="#CC222F" />
+                  <X size={12} color="#E53935" />
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
           )}
         </View>
 
-        {/* Centered Title */}
-        <Text style={[s.headerTitle, { color: themeColors.text }]} numberOfLines={1}>
+        {/* Center Title */}
+        <Text style={s.headerTitle} numberOfLines={1}>
           {language === 'ku' ? 'ڕاستەوخۆ' : language === 'badini' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'Live'}
         </Text>
 
-        {/* RIGHT SIDE: Search button (LTR) or Country button (RTL) */}
+        {/* RTL: Country button on the right | LTR: Search button on the right */}
         <View style={[s.headerSide, { alignItems: 'flex-end' }]}>
           {isRTL ? (
-            /* RTL: Country button on the right */
             <TouchableOpacity
-              style={[
-                s.countryBtn,
-                { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border },
-                selectedCountry && s.countryBtnActive,
-                { flexDirection: 'row-reverse' },
-              ]}
+              style={[s.countryPill, selectedCountry && s.countryPillActive, { flexDirection: 'row-reverse' }]}
               onPress={() => setIsCountryModalOpen(true)}
               activeOpacity={0.8}
             >
-              <Menu size={16} color={selectedCountry ? '#CC222F' : themeColors.text} />
+              <Menu size={16} color={selectedCountry ? '#E53935' : '#FFFFFF'} />
               {selectedCountryObj?.flag_url ? (
-                <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryBtnFlag} />
+                <Image source={{ uri: selectedCountryObj.flag_url }} style={s.countryFlag} />
               ) : null}
-              <Text style={[s.countryBtnText, { color: selectedCountry ? '#CC222F' : themeColors.text }]} numberOfLines={1}>
+              <Text style={[s.countryText, { color: selectedCountry ? '#E53935' : '#FFFFFF' }]} numberOfLines={1}>
                 {selectedCountryObj ? getCountryName(selectedCountryObj) : (language === 'ku' ? 'وڵات' : language === 'badini' ? 'وەڵات' : language === 'ar' ? 'الدولة' : 'Country')}
               </Text>
               {selectedCountry && (
                 <TouchableOpacity onPress={() => setSelectedCountry(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <X size={12} color="#CC222F" />
+                  <X size={12} color="#E53935" />
                 </TouchableOpacity>
               )}
             </TouchableOpacity>
           ) : (
-            /* LTR: Search button on the right */
             <TouchableOpacity
-              style={[s.searchBtn, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}
+              style={s.iconButton}
               onPress={() => { setIsSearchOpen(!isSearchOpen); if (isSearchOpen) setSearchQuery(''); }}
               activeOpacity={0.8}
             >
-              {isSearchOpen
-                ? <X size={20} color={themeColors.text} />
-                : <Search size={20} color={themeColors.text} />
-              }
+              {isSearchOpen ? <X size={20} color="#FFFFFF" /> : <Search size={20} color="#FFFFFF" />}
             </TouchableOpacity>
           )}
         </View>
@@ -256,57 +266,53 @@ export default function LiveTVScreen({ navigation }: any) {
       <Modal visible={isCountryModalOpen} animationType="slide" transparent onRequestClose={() => setIsCountryModalOpen(false)}>
         <View style={s.modalOverlay}>
           <TouchableOpacity style={s.modalBackdrop} onPress={() => setIsCountryModalOpen(false)} activeOpacity={1} />
-          <View style={[s.modalSheet, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-            {/* Modal Header */}
-            <View style={[s.modalHeader, { borderBottomColor: themeColors.border }]}>
+          <View style={s.modalSheet}>
+            <View style={s.modalHeader}>
               <View>
-                <Text style={[s.modalTitle, { color: themeColors.text }]}>
+                <Text style={s.modalTitle}>
                   {language === 'ku' ? 'وڵاتەکان' : language === 'badini' ? 'وەڵات' : language === 'ar' ? 'الدول' : 'Countries'}
                 </Text>
-                <Text style={[s.modalSubtitle, { color: themeColors.textSecondary }]}>
+                <Text style={s.modalSubtitle}>
                   {language === 'ku' ? 'وڵاتێک هەلبژێرە' : language === 'badini' ? 'وەڵاتەکێ هەڵبژێرە' : language === 'ar' ? 'اختر دولة' : 'Select a country to filter'}
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => { setIsCountryModalOpen(false); setCountrySearchQuery(''); }} style={[s.modalClose, { backgroundColor: themeColors.surfaceLight }]}>
-                <X size={20} color={themeColors.text} />
+              <TouchableOpacity onPress={() => { setIsCountryModalOpen(false); setCountrySearchQuery(''); }} style={s.modalClose}>
+                <X size={20} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
 
-            {/* Country Search Bar */}
-            <View style={[s.modalSearchWrap, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}>
-              <Search size={16} color={themeColors.textSecondary} />
+            <View style={s.modalSearchWrap}>
+              <Search size={16} color="#8E95A5" />
               <TextInput
-                style={[s.modalSearchInput, { color: themeColors.text }]}
+                style={s.modalSearchInput}
                 placeholder={language === 'ku' ? 'گەڕان بۆ وڵات...' : language === 'badini' ? 'لێگەڕیان بۆ وەڵاتی...' : language === 'ar' ? 'البحث عن دولة...' : 'Search country...'}
-                placeholderTextColor={themeColors.textMuted}
+                placeholderTextColor="#64748B"
                 value={countrySearchQuery}
                 onChangeText={setCountrySearchQuery}
               />
               {countrySearchQuery ? (
                 <TouchableOpacity onPress={() => setCountrySearchQuery('')}>
-                  <X size={16} color={themeColors.textSecondary} />
+                  <X size={16} color="#8E95A5" />
                 </TouchableOpacity>
               ) : null}
             </View>
 
-            {/* All Countries option */}
             {!countrySearchQuery.trim() && (
               <TouchableOpacity
-                style={[s.countryItem, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }, !selectedCountry && s.countryItemActive]}
+                style={[s.countryItem, !selectedCountry && s.countryItemActive]}
                 onPress={() => { setSelectedCountry(null); setIsCountryModalOpen(false); }}
                 activeOpacity={0.8}
               >
                 <View style={s.countryItemFlag}>
-                  <Globe size={22} color={themeColors.textSecondary} />
+                  <Globe size={22} color="#8E95A5" />
                 </View>
-                <Text style={[s.countryItemName, { color: themeColors.text }, !selectedCountry && s.countryItemNameActive]}>
+                <Text style={[s.countryItemName, !selectedCountry && s.countryItemNameActive]}>
                   {language === 'ku' ? 'هەموو وڵاتەکان' : language === 'badini' ? 'تەڤایا وەڵاتان' : language === 'ar' ? 'جميع الدول' : 'All Countries'}
                 </Text>
-                {!selectedCountry && <CheckCircle2 size={20} color="#CC222F" />}
+                {!selectedCountry && <CheckCircle2 size={20} color="#E53935" />}
               </TouchableOpacity>
             )}
 
-            {/* Taban Play VIP Option (Option #1 right below All Countries) */}
             {(!countrySearchQuery.trim() || 'taban play vip'.includes(countrySearchQuery.toLowerCase()) || 'تابان پڵەی vip'.includes(countrySearchQuery.toLowerCase())) && (
               <TouchableOpacity
                 style={[
@@ -327,9 +333,8 @@ export default function LiveTVScreen({ navigation }: any) {
               </TouchableOpacity>
             )}
 
-            <View style={[s.modalDivider, { backgroundColor: themeColors.border }]} />
+            <View style={s.modalDivider} />
 
-            {/* Country list */}
             <FlatList
               data={filteredCountries}
               keyExtractor={(item: any) => String(item.id)}
@@ -338,7 +343,7 @@ export default function LiveTVScreen({ navigation }: any) {
                 const isSelected = selectedCountry === item.name_en;
                 return (
                   <TouchableOpacity
-                    style={[s.countryItem, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }, isSelected && s.countryItemActive]}
+                    style={[s.countryItem, isSelected && s.countryItemActive]}
                     onPress={() => { setSelectedCountry(item.name_en); setIsCountryModalOpen(false); setCountrySearchQuery(''); }}
                     activeOpacity={0.8}
                   >
@@ -346,13 +351,13 @@ export default function LiveTVScreen({ navigation }: any) {
                       {item.flag_url ? (
                         <Image source={{ uri: item.flag_url }} style={s.flagImg} resizeMode="cover" />
                       ) : (
-                        <Globe size={20} color={themeColors.textSecondary} />
+                        <Globe size={20} color="#8E95A5" />
                       )}
                     </View>
-                    <Text style={[s.countryItemName, { color: themeColors.text }, isSelected && s.countryItemNameActive]} numberOfLines={1}>
+                    <Text style={[s.countryItemName, isSelected && s.countryItemNameActive]} numberOfLines={1}>
                       {getCountryName(item)}
                     </Text>
-                    {isSelected && <CheckCircle2 size={20} color="#CC222F" />}
+                    {isSelected && <CheckCircle2 size={20} color="#E53935" />}
                   </TouchableOpacity>
                 );
               }}
@@ -361,9 +366,61 @@ export default function LiveTVScreen({ navigation }: any) {
         </View>
       </Modal>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 130 }}>
 
-        {/* ── CATEGORY TABS ──────────────────────────────────────────── */}
+        {/* ── TOP HERO BANNER / AD SLIDER (قالبە گەورەکەی ڕیکلام) ───────── */}
+        <View style={s.heroBannerWrapper}>
+          <ScrollView
+            ref={bannerScrollRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={(e) => {
+              const idx = Math.round(e.nativeEvent.contentOffset.x / width);
+              setActiveBannerIndex(idx);
+            }}
+          >
+            {topBanners.map((banner: any, idx: number) => (
+              <TouchableOpacity
+                key={banner.id || idx}
+                activeOpacity={0.92}
+                style={{ width, height: 230 }}
+                onPress={() => {
+                  if (banner.link) {
+                    Linking.openURL(banner.link).catch(() => {});
+                  }
+                }}
+              >
+                <Image
+                  source={{ uri: banner.image }}
+                  style={s.heroBannerImage}
+                  resizeMode="cover"
+                />
+                <LinearGradient
+                  colors={['transparent', 'rgba(19, 21, 29, 0.35)', 'rgba(19, 21, 29, 0.95)']}
+                  style={StyleSheet.absoluteFillObject}
+                />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Pagination Dots (Matching screenshot) */}
+          {topBanners.length > 1 && (
+            <View style={s.heroPaginationDots}>
+              {topBanners.map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    s.heroDot,
+                    i === activeBannerIndex ? s.heroDotActive : s.heroDotInactive,
+                  ]}
+                />
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* ── CATEGORY PILLS ────────────────────────────────────────── */}
         <ScrollView
           ref={categoryScrollRef}
           horizontal
@@ -371,88 +428,63 @@ export default function LiveTVScreen({ navigation }: any) {
           contentContainerStyle={[s.tabsScroll, isRTL && { flexDirection: 'row-reverse' }]}
           onContentSizeChange={() => scrollToRightEdgeRTL(categoryScrollRef)}
         >
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              style={[
-                s.tab,
-                { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border },
-                selectedCategory === tab.id && s.tabActive,
-              ]}
-              onPress={() => setSelectedCategory(tab.id)}
-              activeOpacity={0.8}
-            >
-              <Text style={[s.tabLabel, { color: themeColors.textSecondary }, selectedCategory === tab.id && s.tabLabelActive]}>
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {tabs.map((tab) => {
+            const isActive = selectedCategory === tab.id;
+            return (
+              <TouchableOpacity
+                key={tab.id}
+                style={[s.tab, isActive ? s.tabActive : s.tabInactive]}
+                onPress={() => setSelectedCategory(tab.id)}
+                activeOpacity={0.8}
+              >
+                <Text style={[s.tabLabel, isActive ? s.tabLabelActive : s.tabLabelInactive]}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
 
-        {/* ── SEARCH BAR ──────────────────────────────────────────────── */}
+        {/* ── SEARCH INPUT ───────────────────────────────────────────── */}
         {isSearchOpen && (
-          <View style={[s.searchBar, { backgroundColor: themeColors.surfaceLight, borderColor: themeColors.border }]}>
-            <Search size={16} color={themeColors.textSecondary} />
+          <View style={s.searchBar}>
+            <Search size={18} color="#8E95A5" />
             <TextInput
-              style={[s.searchInput, { color: themeColors.text }]}
+              style={s.searchInput}
               placeholder={language === 'ku' ? 'گەڕانی کەناڵ...' : language === 'badini' ? 'لێگەڕیانا کەناڵان...' : language === 'ar' ? 'البحث عن قناة...' : 'Search channels...'}
-              placeholderTextColor={themeColors.textMuted}
+              placeholderTextColor="#64748B"
               value={searchQuery}
               onChangeText={setSearchQuery}
               autoFocus
             />
             {searchQuery ? (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <X size={16} color={themeColors.textSecondary} />
+                <X size={16} color="#8E95A5" />
               </TouchableOpacity>
             ) : null}
           </View>
         )}
 
-        {/* ── SEARCH RESULTS ──────────────────────────────────────────── */}
+        {/* ── SEARCH RESULTS ─────────────────────────────────────────── */}
         {isSearchOpen && searchQuery.trim() ? (
-          <View style={{ paddingHorizontal: 16 }}>
+          <View style={[s.gridContainer, isRTL && { flexDirection: 'row-reverse' }]}>
             {searchResults.map((ch: any) => (
               <TouchableOpacity
                 key={ch.id}
-                style={[s.listRow, { borderBottomColor: themeColors.border }, isRTL ? { flexDirection: 'row' } : { flexDirection: 'row' }]}
+                style={[s.channelCard, { width: cardW, height: cardW }]}
                 onPress={() => handlePress(ch)}
                 activeOpacity={0.85}
               >
-                {/* LTR: Logo left | RTL: Logo right (placed last in row) */}
-                {!isRTL && (
-                  <View style={[s.listLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-                    {ch.image ? (
-                      <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
-                    ) : (
-                      <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={1}>{ch.name[0]}</Text>
-                    )}
-                    <View style={s.listLiveDot} />
-                  </View>
-                )}
-
-                {/* Text info */}
-                <View style={[s.listInfo, isRTL && { alignItems: 'flex-end' }]}>
-                  <Text numberOfLines={1} style={[s.listName, { color: themeColors.text }]}>{ch.name}</Text>
-                  <Text style={[s.listCat, { color: themeColors.textSecondary }]}>{ch.category}</Text>
-                </View>
-
-                {/* RTL: Logo right */}
-                {isRTL && (
-                  <View style={[s.listLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-                    {ch.image ? (
-                      <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
-                    ) : (
-                      <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={1}>{ch.name[0]}</Text>
-                    )}
-                    <View style={s.listLiveDot} />
-                  </View>
+                {ch.image ? (
+                  <Image source={{ uri: ch.image }} style={s.channelLogo} resizeMode="contain" />
+                ) : (
+                  <Text style={s.fallbackLetter} numberOfLines={1}>{ch.name[0]}</Text>
                 )}
               </TouchableOpacity>
             ))}
             {searchResults.length === 0 && (
               <View style={s.emptyState}>
-                <Text style={[s.emptyText, { color: themeColors.textSecondary }]}>
+                <Text style={s.emptyText}>
                   {language === 'ku' ? 'هیچ کەناڵێک نەدۆزرایەوە' : language === 'badini' ? 'هیچ کەناڵەک نەهاتە دیتن' : language === 'ar' ? 'لا توجد قنوات' : 'No channels found'}
                 </Text>
               </View>
@@ -460,108 +492,56 @@ export default function LiveTVScreen({ navigation }: any) {
           </View>
         ) : isUnlocked ? (
           <>
-            {/* ── FEATURED / MOST WATCHED CHANNELS (3 Column x 2 Row Grid) ─── */}
-            {featured.length > 0 && (
-              <View style={s.section}>
-                <View style={[s.sectionRow, isRTL && { flexDirection: 'row-reverse' }]}>
-                  <Text style={[s.sectionTitle, { color: themeColors.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
-                    {language === 'ku' ? 'زۆرترین بیندراو' : language === 'badini' ? 'زۆرترین سەحکری' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched'}
-                  </Text>
-                  <TouchableOpacity onPress={() => handleViewAll(language === 'ku' ? 'زۆرترین بیندراو' : language === 'badini' ? 'زۆرترین سەحکری' : language === 'ar' ? 'الأكثر مشاهدة' : 'Most Watched')}>
-                    <Text style={s.seeAll}>{language === 'ku' ? 'هەموویان' : language === 'badini' ? 'سەحکرنا هەمیان' : language === 'ar' ? 'عرض الكل' : 'See All'}</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={[s.gridContainer, isRTL && { flexDirection: 'row-reverse' }]}>
-                  {featured.slice(0, 6).map((ch: any) => (
-                    <TouchableOpacity
-                      key={ch.id}
-                      style={[s.gridCard, { width: cardW, height: cardW, backgroundColor: themeColors.surface, borderColor: themeColors.border }]}
-                      onPress={() => handlePress(ch)}
-                      activeOpacity={0.85}
-                    >
-                      {ch.image ? (
-                        <Image source={{ uri: ch.image }} style={StyleSheet.absoluteFill} resizeMode="cover" />
-                      ) : (
-                        <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={2}>{ch.name}</Text>
-                      )}
-
-                      {/* LIVE Badge */}
-                      <View style={s.liveBadge}>
-                        <View style={s.liveDot} />
-                        <Text style={s.liveText}>LIVE</Text>
-                      </View>
-
-                      {/* Bottom gradient name overlay */}
-                      <View style={s.gridTitleOverlay}>
-                        <Text numberOfLines={1} style={s.gridTitleText}>{ch.name}</Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {/* ── ALL CHANNELS — grouped by category ────────────────── */}
+            {/* ── CATEGORY SECTIONS (EXACT 3x3 = 9 CHANNELS PER CATEGORY) ─── */}
             {categoriesToRender.map((cat: any) => {
               const catChannels = channelsByCategory[cat.name] || [];
               if (catChannels.length === 0) return null;
               const catBanners = interspersedBanners.filter((b: any) => b.placement_after === cat.name);
+              const localizedCatName = getLocalized(cat, 'name', language) || translateCategoryName(cat.name, language);
+
+              // Exactly 9 channels per list, matching user request and screenshot
+              const displayedChannels = selectedCategory === 'All' ? catChannels.slice(0, 9) : catChannels;
+              const hasMore = catChannels.length > 9;
+
               return (
                 <React.Fragment key={cat.id || cat.name}>
                   <View style={s.section}>
-                    <View style={[s.sectionRow, isRTL && { flexDirection: 'row-reverse' }]}>
-                      <Text style={[s.sectionTitle, { color: themeColors.text, flex: 1, textAlign: isRTL ? 'right' : 'left' }]}>
-                        {getLocalized(cat, 'name', language) || translateCategoryName(cat.name, language)}
-                      </Text>
-                      {catChannels.length > 6 && (
-                        <TouchableOpacity onPress={() => handleViewAll(cat.name)}>
-                          <Text style={s.seeAll}>{language === 'ku' ? 'هەموویان' : language === 'badini' ? 'سەحکرنا هەمیان' : language === 'ar' ? 'عرض الكل' : 'See All'}</Text>
+                    {/* Header Row: Category Name + '+ View all' in red */}
+                    <View style={[s.sectionHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
+                      <Text style={s.sectionTitle} numberOfLines={1} ellipsizeMode="tail">{localizedCatName}</Text>
+                      {hasMore && (
+                        <TouchableOpacity 
+                          onPress={() => handleViewAll(cat.name)} 
+                          activeOpacity={0.7}
+                          style={s.seeAllButton}
+                        >
+                          <Text style={s.seeAllRed} numberOfLines={1} ellipsizeMode="clip">
+                            {language === 'ku' ? '+ زیاتر' : language === 'badini' ? '+ هەمیان' : language === 'ar' ? '+ الكل' : '+ View all'}
+                          </Text>
                         </TouchableOpacity>
                       )}
                     </View>
 
-                    {/* Channel rows */}
-                    {catChannels.slice(0, 6).map((ch: any) => (
-                      <TouchableOpacity
-                        key={ch.id}
-                        style={[s.listRow, { borderBottomColor: themeColors.border }]}
-                        onPress={() => handlePress(ch)}
-                        activeOpacity={0.85}
-                      >
-                        {/* LTR: Logo on left */}
-                        {!isRTL && (
-                          <View style={[s.listLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-                            {ch.image ? (
-                              <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
-                            ) : (
-                              <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={1}>{ch.name[0]}</Text>
-                            )}
-                            <View style={s.listLiveDot} />
-                          </View>
-                        )}
-
-                        {/* Text info */}
-                        <View style={[s.listInfo, isRTL && { alignItems: 'flex-end' }]}>
-                          <Text numberOfLines={1} style={[s.listName, { color: themeColors.text }]}>{ch.name}</Text>
-                          <Text style={[s.listCat, { color: themeColors.textSecondary }]}>{ch.category}</Text>
-                        </View>
-
-                        {/* RTL: Logo on right */}
-                        {isRTL && (
-                          <View style={[s.listLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-                            {ch.image ? (
-                              <Image source={{ uri: ch.image }} style={s.listLogo} resizeMode="contain" />
-                            ) : (
-                              <Text style={[s.listLogoFallback, { color: themeColors.text }]} numberOfLines={1}>{ch.name[0]}</Text>
-                            )}
-                            <View style={s.listLiveDot} />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    ))}
+                    {/* 3x3 Grid of 9 Cards (Matching Screenshot) */}
+                    <View style={[s.gridContainer, isRTL && { flexDirection: 'row-reverse' }]}>
+                      {displayedChannels.map((ch: any) => (
+                        <TouchableOpacity
+                          key={ch.id}
+                          style={[s.channelCard, { width: cardW, height: cardW }]}
+                          onPress={() => handlePress(ch)}
+                          activeOpacity={0.85}
+                        >
+                          {ch.image ? (
+                            <Image source={{ uri: ch.image }} style={s.channelLogo} resizeMode="contain" />
+                          ) : (
+                            <Text style={s.fallbackLetter} numberOfLines={1}>{ch.name[0]}</Text>
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </View>
                   </View>
 
+                  {/* Promotional Ad Banner between categories (Matching Screenshot) */}
                   {catBanners.map((banner: any) => (
                     <TouchableOpacity key={banner.id} style={s.bannerWrap} activeOpacity={0.95}
                       onPress={() => { if (banner.link) Linking.openURL(banner.link).catch(() => {}); }}>
@@ -573,10 +553,10 @@ export default function LiveTVScreen({ navigation }: any) {
             })}
 
             {/* Empty state when country filter yields no results */}
-            {selectedCountry && filteredChannels.length === 0 && (
+            {selectedCountry && countryFiltered.length === 0 && (
               <View style={s.emptyState}>
-                <Globe size={40} color={themeColors.textMuted} />
-                <Text style={[s.emptyText, { color: themeColors.textSecondary }]}>
+                <Globe size={40} color="#64748B" />
+                <Text style={s.emptyText}>
                   {language === 'ku' ? 'هیچ کەناڵێک نەدۆزرایەوە بۆ ئەم وڵاتە' : language === 'badini' ? 'هیچ کەناڵەک نەهاتە دیتن بۆ ڤی وەڵاتی' : language === 'ar' ? 'لا توجد قنوات لهذه الدولة' : 'No channels found for this country'}
                 </Text>
               </View>
@@ -584,7 +564,7 @@ export default function LiveTVScreen({ navigation }: any) {
           </>
         ) : (
           <View style={s.locked}>
-            <Text style={[s.lockedText, { color: themeColors.textSecondary }]}>
+            <Text style={s.lockedText}>
               {language === 'ku' ? 'قفڵ کراوە — بەشدار بکەوە' : 'Locked — Subscribe to watch'}
             </Text>
           </View>
@@ -594,78 +574,241 @@ export default function LiveTVScreen({ navigation }: any) {
   );
 }
 
-// ─── STYLES ───────────────────────────────────────────────────────────────
+// ─── STYLES (MATCHING USER SCREENSHOTS) ────────────────────────────────────
 const s = StyleSheet.create({
-  root: { flex: 1 },
+  root: { flex: 1, backgroundColor: '#13151D' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-  // Header
+  // Top App Bar
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingBottom: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
     paddingTop: 6,
-    borderBottomWidth: 1,
+    backgroundColor: '#13151D',
   },
   headerSide: {
     flexShrink: 0,
+    minWidth: 70,
     alignItems: 'flex-start',
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '900',
+    color: '#FFFFFF',
     letterSpacing: -0.5,
     textAlign: 'center',
     flex: 1,
   },
-
-  // Search button (replaces Cast icon)
-  searchBtn: {
+  iconButton: {
     width: 38,
     height: 38,
     borderRadius: 19,
+    backgroundColor: '#1E212D',
     borderWidth: 1,
+    borderColor: '#2F3344',
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'flex-end',
   },
 
-  // Country button
-  countryBtn: {
+  // Country pill (≡ وڵات)
+  countryPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 14,
+    gap: 7,
+    paddingHorizontal: 13,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: '#1E212D',
     borderWidth: 1,
-    maxWidth: 140,
+    borderColor: '#2F3344',
     height: 38,
   },
-  countryBtnActive: { backgroundColor: 'rgba(204,34,47,0.16)', borderColor: 'rgba(204,34,47,0.45)' },
-  countryBtnText: { fontSize: 13, fontWeight: '800', maxWidth: 80 },
-  countryBtnFlag: { width: 22, height: 15, borderRadius: 3, borderWidth: 0.5, borderColor: 'rgba(255,255,255,0.25)' },
+  countryPillActive: {
+    backgroundColor: 'rgba(229, 57, 53, 0.16)',
+    borderColor: '#E53935',
+  },
+  countryText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    maxWidth: 80,
+  },
+  countryFlag: {
+    width: 20,
+    height: 14,
+    borderRadius: 3,
+  },
 
-  // Search bar
+  // Hero Banner Slider (قالبە گەورەکەی سەرەوە)
+  heroBannerWrapper: {
+    width: '100%',
+    height: 230,
+    position: 'relative',
+    backgroundColor: '#13151D',
+    marginBottom: 6,
+  },
+  heroBannerImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroPaginationDots: {
+    position: 'absolute',
+    bottom: 12,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    zIndex: 10,
+  },
+  heroDot: {
+    height: 6,
+    borderRadius: 3,
+  },
+  heroDotActive: {
+    width: 16,
+    backgroundColor: '#E53935',
+  },
+  heroDotInactive: {
+    width: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+  },
+
+  // Category Pills (Horizontal)
+  tabsScroll: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 14,
+    gap: 8,
+  },
+  tab: {
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  tabActive: {
+    backgroundColor: '#E53935',
+    borderColor: '#E53935',
+  },
+  tabInactive: {
+    backgroundColor: '#1C1F2B',
+    borderColor: '#2D3142',
+  },
+  tabLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  tabLabelActive: {
+    color: '#FFFFFF',
+  },
+  tabLabelInactive: {
+    color: '#94A3B8',
+  },
+
+  // Search input
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     marginHorizontal: 16,
-    marginTop: 4,
-    marginBottom: 8,
+    marginBottom: 12,
     paddingHorizontal: 14,
     height: 44,
     borderRadius: 14,
+    backgroundColor: '#1C1F2B',
     borderWidth: 1,
+    borderColor: '#2F3344',
   },
-  searchInput: { flex: 1, fontSize: 15, paddingVertical: 0 },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#FFFFFF',
+    paddingVertical: 0,
+  },
 
-  // Country Modal
+  // Category Sections
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    gap: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
+    flex: 1,
+  },
+  seeAllButton: {
+    flexShrink: 0,
+    flexGrow: 0,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    paddingVertical: 2,
+    paddingLeft: 4,
+  },
+  seeAllRed: {
+    color: '#E53935',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+
+  // 3-Column Grid Container
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    gap: 12,
+  },
+
+  // Individual Channel Card (Exact match for the screenshot)
+  channelCard: {
+    borderRadius: 16,
+    backgroundColor: '#1F222E',
+    borderWidth: 1.5,
+    borderColor: '#383B47',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    padding: 10,
+  },
+  channelLogo: {
+    width: '88%',
+    height: '88%',
+  },
+  fallbackLetter: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: '#FFFFFF',
+  },
+
+  // Promotional Banner (Ad Banner between categories)
+  bannerWrap: {
+    width: '100%',
+    marginVertical: 14,
+    overflow: 'hidden',
+    height: 76,
+    backgroundColor: '#1F222E',
+  },
+  bannerImg: {
+    width: '100%',
+    height: '100%',
+  },
+
+  // Modal
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
+  modalBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.7)' },
   modalSheet: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -673,6 +816,8 @@ const s = StyleSheet.create({
     maxHeight: '80%',
     minHeight: '50%',
     paddingTop: 8,
+    backgroundColor: '#181A24',
+    borderColor: '#2F3344',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -681,17 +826,19 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
+    borderBottomColor: '#2F3344',
   },
-  modalTitle: { fontSize: 18, fontWeight: '900' },
-  modalSubtitle: { fontSize: 12, marginTop: 2 },
+  modalTitle: { fontSize: 18, fontWeight: '900', color: '#FFFFFF' },
+  modalSubtitle: { fontSize: 12, marginTop: 2, color: '#8E95A5' },
   modalClose: {
     width: 36,
     height: 36,
     borderRadius: 18,
+    backgroundColor: '#242837',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  modalDivider: { height: 1, marginVertical: 4 },
+  modalDivider: { height: 1, backgroundColor: '#2F3344', marginVertical: 4 },
   modalSearchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -702,11 +849,11 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     height: 42,
     borderRadius: 14,
+    backgroundColor: '#1E212D',
     borderWidth: 1,
+    borderColor: '#2F3344',
   },
-  modalSearchInput: { flex: 1, fontSize: 14, paddingVertical: 0 },
-
-  // Country list item
+  modalSearchInput: { flex: 1, fontSize: 14, color: '#FFFFFF', paddingVertical: 0 },
   countryItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -716,130 +863,32 @@ const s = StyleSheet.create({
     marginHorizontal: 8,
     marginVertical: 4,
     borderRadius: 16,
+    backgroundColor: '#1E212D',
     borderWidth: 1,
+    borderColor: '#2F3344',
   },
   countryItemActive: {
-    backgroundColor: 'rgba(204,34,47,0.18)',
-    borderColor: 'rgba(204,34,47,0.45)',
+    backgroundColor: 'rgba(229, 57, 53, 0.16)',
+    borderColor: '#E53935',
   },
   countryItemFlag: {
-    width: 54,
-    height: 36,
+    width: 52,
+    height: 34,
     borderRadius: 8,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: '#242837',
   },
   flagImg: { width: '100%', height: '100%' },
-  countryItemName: { flex: 1, fontSize: 17, fontWeight: '700' },
-  countryItemNameActive: { color: '#CC222F', fontWeight: '900' },
+  countryItemName: { flex: 1, fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  countryItemNameActive: { color: '#E53935', fontWeight: '900' },
 
-  // Tabs
-  tabsScroll: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 16, gap: 8 },
-  tab: {
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  tabActive: { backgroundColor: '#CC222F', borderColor: '#CC222F' },
-  tabLabel: { fontSize: 13, fontWeight: '700' },
-  tabLabelActive: { color: '#fff' },
-
-  // Banner
-  bannerWrap: { width: '100%', marginHorizontal: 0, marginBottom: 20, borderRadius: 0, overflow: 'hidden', height: 170, backgroundColor: '#1a1a22' },
-  bannerImg: { width: '100%', height: '100%' },
-
-  // Sections
-  section: { marginBottom: 24 },
-  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, marginBottom: 14 },
-  sectionTitle: { fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
-  seeAll: { color: '#CC222F', fontSize: 13, fontWeight: '700' },
-
-  // Grid cards (3 col x 2 row)
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    gap: 10,
-  },
-  gridCard: {
-    borderRadius: 18,
-    overflow: 'hidden',
-    borderWidth: 1,
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  gridTitleOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.82)',
-    paddingVertical: 6,
-    paddingHorizontal: 4,
-    alignItems: 'center',
-  },
-  gridTitleText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-
-  // LIVE badge
-  liveBadge: {
-    position: 'absolute', top: 8, right: 8,
-    backgroundColor: 'rgba(204,34,47,0.92)',
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 7, paddingVertical: 3,
-    borderRadius: 6, gap: 4,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)',
-    zIndex: 10,
-  },
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' },
-  liveText: { color: '#fff', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
-
-  // List rows — logo on RIGHT, text on LEFT (matching website design)
-  listRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    gap: 14,
-  },
-  listLogoWrap: {
-    width: 58,
-    height: 58,
-    borderRadius: 14,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    position: 'relative',
-    flexShrink: 0,
-  },
-  listLogo: { width: '80%', height: '80%' },
-  listLogoFallback: { fontSize: 20, fontWeight: '900' },
-  listLiveDot: {
-    position: 'absolute', bottom: 4, right: 4,
-    width: 8, height: 8, borderRadius: 4,
-    backgroundColor: '#E53935',
-    borderWidth: 1.5, borderColor: '#0F0F13',
-  },
-  listInfo: { flex: 1 },
-  listName: { fontSize: 16, fontWeight: '700', marginBottom: 3 },
-  listCat: { fontSize: 13, fontWeight: '500' },
-
-  // Empty state
-  emptyState: { alignItems: 'center', paddingVertical: 60, gap: 12 },
-  emptyText: { fontSize: 14, fontWeight: '500', textAlign: 'center', paddingHorizontal: 32 },
-
-  // Locked
+  // Empty & Locked
+  emptyState: { width: '100%', alignItems: 'center', paddingVertical: 50 },
+  emptyText: { fontSize: 14, fontWeight: '500', color: '#8E95A5', textAlign: 'center' },
   locked: { alignItems: 'center', marginTop: 80 },
-  lockedText: { fontSize: 15, fontWeight: '600' },
+  lockedText: { fontSize: 15, fontWeight: '600', color: '#8E95A5' },
 });

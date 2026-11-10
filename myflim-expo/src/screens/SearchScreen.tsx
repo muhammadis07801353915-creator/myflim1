@@ -26,7 +26,7 @@ export default function SearchScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { movies, series, anime, liveTv, language, isUnlocked, theme, user } = useAppStore();
   const themeColors = getColors(theme);
-  const t = translations[language];
+  const t = translations[language] || translations.ku || translations.en;
   const isRTL = language === 'ku' || language === 'ar';
   const isRestrictedUser = user?.name?.toLowerCase() === 'taban1';
 
@@ -230,7 +230,8 @@ export default function SearchScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {/* ── TYPE FILTER PILLS (RTL flipped to Right side) ─────── */}
+      {/* ── TYPE FILTER PILLS ─────────────────────────────────────── */}
+      {!isRestrictedUser && (
       <View style={{ marginBottom: 6 }}>
         <ScrollView
           ref={typeScrollRef}
@@ -257,8 +258,10 @@ export default function SearchScreen({ navigation }: any) {
           ))}
         </ScrollView>
       </View>
+      )}
 
-      {/* ── GENRE FILTER PILLS (RTL flipped to Right side) ────────────────── */}
+      {/* ── GENRE FILTER PILLS ──────────────────────────────────────── */}
+      {!isRestrictedUser && (
       <View style={{ marginBottom: 6 }}>
         <ScrollView
           ref={genreScrollRef}
@@ -285,8 +288,10 @@ export default function SearchScreen({ navigation }: any) {
           ))}
         </ScrollView>
       </View>
+      )}
 
-      {/* ── YEAR FILTER PILLS (RTL flipped to Right side) ─────────────────── */}
+      {/* ── YEAR FILTER PILLS ───────────────────────────────────────── */}
+      {!isRestrictedUser && (
       <View style={{ marginBottom: 6 }}>
         <ScrollView
           ref={yearScrollRef}
@@ -313,10 +318,11 @@ export default function SearchScreen({ navigation }: any) {
           ))}
         </ScrollView>
       </View>
+      )}
 
-      {/* ── RESULTS GRID (Perfect Symmetrical 2-Column Grid) ──────── */}
+      {/* ── RESULTS GRID ──────────────────────────────────────────── */}
       <FlatList
-        data={isUnlocked ? results : []}
+        data={isUnlocked && !isRestrictedUser ? results : []}
         renderItem={({ item }) => (
           <MovieCard 
             item={item} 
@@ -329,7 +335,7 @@ export default function SearchScreen({ navigation }: any) {
         keyExtractor={(item) => String(item.id)}
         numColumns={2}
         ListHeaderComponent={
-          isUnlocked ? (
+          (isUnlocked && !isRestrictedUser) ? (
             <View style={[styles.listHeaderRow, isRTL && { flexDirection: 'row-reverse' }]}>
               <Text style={[styles.listHeader, { color: themeColors.text }]}>
                 {query.length > 0 || activeType !== 'All' || activeGenre !== 'All' || activeYear !== 'All'
@@ -354,11 +360,13 @@ export default function SearchScreen({ navigation }: any) {
           ) : null
         }
         contentContainerStyle={styles.listContent}
-        columnWrapperStyle={styles.columnWrapper}
+        columnWrapperStyle={!isRestrictedUser ? styles.columnWrapper : undefined}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={[styles.emptyText, { color: themeColors.textSecondary }]}>
-              {isUnlocked 
+              {isRestrictedUser
+                ? (language === 'ku' ? 'گەڕان بەردەست نییە' : language === 'badini' ? 'گەڕان بەردەست نی' : language === 'ar' ? 'البحث غير متاح' : 'Search not available')
+                : isUnlocked 
                 ? (language === 'ku' ? 'هیچ ئەنجامێک نەدۆزرایەوە' : language === 'badini' ? 'هیچ ئەنجامەک نەهاتە دیتن' : language === 'ar' ? 'لم يتم العثور على نتائج' : t.noResults)
                 : t.noResults}
             </Text>

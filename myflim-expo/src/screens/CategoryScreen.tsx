@@ -25,6 +25,7 @@ const { width } = Dimensions.get('window');
 const GAP = 12;
 const H_PAD = 16;
 const CARD_W = (width - H_PAD * 2 - GAP) / 2;
+const TV_CARD_W = Math.floor((width - H_PAD * 2 - GAP * 2) / 3);
 
 export default function CategoryScreen({ route, navigation }: any) {
   const { title, data, type, listName } = route.params;
@@ -116,17 +117,22 @@ export default function CategoryScreen({ route, navigation }: any) {
   // ── Render: Live TV card ─────────────────────────────────────────────────
   const renderTVCard = ({ item }: any) => (
     <TouchableOpacity
-      style={styles.card}
+      style={{
+        width: TV_CARD_W,
+        height: TV_CARD_W,
+        borderRadius: 16,
+        backgroundColor: '#1F222E',
+        borderWidth: 1.5,
+        borderColor: '#383B47',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 10,
+        marginBottom: 12,
+      }}
       onPress={() => navigation.navigate('Detail', { item: { ...item, type: 'LiveTV' } })}
       activeOpacity={0.85}
     >
-      <View style={[styles.tvLogoWrap, { backgroundColor: themeColors.surface, borderColor: themeColors.border }]}>
-        <Image source={{ uri: item.image }} style={styles.tvLogo} resizeMode="contain" />
-        <View style={[styles.liveBadge, isRTL && { flexDirection: 'row-reverse' }]}>
-          <View style={styles.liveDot} />
-          <Text style={styles.liveText}>LIVE</Text>
-        </View>
-      </View>
+      <Image source={{ uri: item.image }} style={{ width: '88%', height: '88%' }} resizeMode="contain" />
     </TouchableOpacity>
   );
 
@@ -194,13 +200,18 @@ export default function CategoryScreen({ route, navigation }: any) {
       <StatusBar barStyle={theme === 'light' ? 'dark-content' : 'light-content'} backgroundColor={themeColors.background} />
 
       <FlatList
+        key={type === 'LiveTV' ? 'tv_grid_3' : 'movie_grid_2'}
         data={filteredData}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
-        numColumns={2}
+        numColumns={type === 'LiveTV' ? 3 : 2}
         ListHeaderComponent={<ListHeader />}
         contentContainerStyle={styles.listContent}
-        columnWrapperStyle={[styles.columnWrapper, isRTL && { flexDirection: 'row-reverse' }]}
+        columnWrapperStyle={[
+          styles.columnWrapper, 
+          isRTL && { flexDirection: 'row-reverse' },
+          type === 'LiveTV' && { gap: 12, justifyContent: 'flex-start' }
+        ]}
         showsVerticalScrollIndicator={false}
       />
     </View>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -10,9 +10,11 @@ import {
   StatusBar,
   Modal,
   Pressable,
-  ActivityIndicator
+  ActivityIndicator,
+  BackHandler
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, SPACING, SIZES, getColors } from '../theme/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, Play, Bookmark, Share2, Star, Clock, Calendar, Users, X, Server, Eye } from 'lucide-react-native';
@@ -36,7 +38,7 @@ export default function DetailScreen({ route, navigation }: any) {
   const { incrementViews, toggleWatchlist, watchlist, language, liveTv, saveWatchProgress, theme } = useAppStore();
   const themeColors = getColors(theme);
   const isRTL = language === 'ku' || language === 'ar';
-  const t = translations[language];
+  const t = translations[language] || translations.ku || translations.en;
   const party = useWatchParty();
   const [showPartyModal, setShowPartyModal] = useState(false);
   const [activeChannel, setActiveChannel] = useState(item);
@@ -47,16 +49,81 @@ export default function DetailScreen({ route, navigation }: any) {
     player.loop = false;
   });
 
-  // Update the player source whenever the active URL changes
-  useEffect(() => {
-    const urlToPlay = isDirectVideo ? activeVideoUrl : null;
-    if (urlToPlay && videoPlayer) {
-      try {
-        videoPlayer.replace({ uri: urlToPlay });
-        videoPlayer.play();
-      } catch (e) { /* ignore */ }
+  
+  // Dedicated live TV video player using expo-video
+  const liveVideoUrl = item.type === 'LiveTV' ? (activeChannel?.stream_url || item?.stream_url) : null;
+  const isLiveEmbed = !!(
+    liveVideoUrl && (
+      liveVideoUrl.toLowerCase().includes('embed') || 
+      liveVideoUrl.toLowerCase().includes('iframe') || 
+      liveVideoUrl.toLowerCase().includes('ok.ru') || 
+      liveVideoUrl.toLowerCase().includes('youtube') || 
+      liveVideoUrl.toLowerCase().includes('youtu.be')
+    )
+  );
+
+  const livePlayer = useVideoPlayer(
+    (item.type === 'LiveTV' && !isLiveEmbed && liveVideoUrl) ? { uri: liveVideoUrl } : null,
+    (player) => {
+      player.loop = true;
+      player.play();
     }
-  }, [activeVideoUrl, isDirectVideo]);
+  );
+
+  useEffect(() => {
+    if (item.type === 'LiveTV' && !isLiveEmbed && liveVideoUrl && livePlayer) {
+      try {
+        livePlayer.replace({ uri: liveVideoUrl });
+        livePlayer.play();
+      } catch (e) { /* ignore */ }
+    } else if (livePlayer && isLiveEmbed) {
+      try { livePlayer.pause(); } catch (e) {}
+    }
+  }, [liveVideoUrl, isLiveEmbed]);
+
+  // Clean up players on unmount
+  useEffect(() => {
+    return () => {
+      try { livePlayer?.pause(); } catch (e) {}
+      try { videoPlayer?.pause(); } catch (e) {}
+    };
+  }, [livePlayer, videoPlayer]);
+
+  // Clean up players when navigating away / screen loses focus
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        try { livePlayer?.pause(); } catch (e) {}
+        try { videoPlayer?.pause(); } catch (e) {}
+      };
+    }, [livePlayer, videoPlayer])
+  );
+
+  // Hardware back button handler for Android
+  useEffect(() => {
+    const onBackPress = () => {
+      try { livePlayer?.pause(); } catch (e) {}
+      try { videoPlayer?.pause(); } catch (e) {}
+      return false;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => sub.remove();
+  }, [livePlayer, videoPlayer]);
+
+  // NOTE: VideoPlayer effect is defined after activeVideoUrl/isDirectVideo are computed below
+
+  const [isWatchlisted, setIsWatchlisted] = useState(
+    watchlist.some(i => String(i.id) === String(item.id))
+  );
+
+  const [isPlaying, setIsPlaying] = useState(item.type === 'LiveTV');
+  const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
+  const [selectedEpisodeIndex, setSelectedEpisodeIndex] = useState<number | null>(null);
+  const [showServerModal, setShowServerModal] = useState(false);
+  const [viewCount, setViewCount] = useState(item.views || 0);
+  const [selectedMovieServerUrl, setSelectedMovieServerUrl] = useState<string | null>(null);
+  const [selectedMovieServerIndex, setSelectedMovieServerIndex] = useState<number | null>(null);
+  const [selectedServerName, setSelectedServerName] = useState<string | null>(null);
 
   // Listen for real-time video sync events from Host
   const registerSync = party.registerVideoSyncListener;
@@ -109,33 +176,20 @@ export default function DetailScreen({ route, navigation }: any) {
       supabase.removeChannel(presenceChannel);
     };
   }, [item.type, activeChannel?.id]);
-  
-  const [isWatchlisted, setIsWatchlisted] = useState(
-    watchlist.some(i => String(i.id) === String(item.id))
-  );
-
-  const [isPlaying, setIsPlaying] = useState(item.type === 'LiveTV');
-  const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
-  const [selectedEpisodeIndex, setSelectedEpisodeIndex] = useState<number | null>(null);
-  const [showServerModal, setShowServerModal] = useState(false);
-  const [viewCount, setViewCount] = useState(item.views || 0);
-  const [selectedMovieServerUrl, setSelectedMovieServerUrl] = useState<string | null>(null);
-  const [selectedMovieServerIndex, setSelectedMovieServerIndex] = useState<number | null>(null);
 
   // Parse video_url format dynamically
   let servers: any[] = [];
   let episodes: any[] = [];
 
-  const getEmbedUrl = (rawUrl: string) => {
-    if (!rawUrl) return '';
+  const getEmbedUrl = (rawUrl: any) => {
+    if (!rawUrl || typeof rawUrl !== 'string') return '';
+    rawUrl = String(rawUrl);
     let url = rawUrl.trim();
 
     // Extract src if raw iframe HTML tag was provided
     if (url.includes('<iframe')) {
       const match = url.match(/src=["']([^"']+)["']/i);
-      if (match && match[1]) {
-        url = match[1];
-      }
+      if (match && match[1]) url = match[1];
     }
 
     url = url.replace(/^\/+/, '');
@@ -143,40 +197,104 @@ export default function DetailScreen({ route, navigation }: any) {
       url = 'https://' + url;
     }
 
+    // â”€â”€ vidsrc:// shorthand â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (url.startsWith('vidsrc://')) {
       const parts = url.replace('vidsrc://', '').split('/');
-      const type = parts[0];
-      const id = parts[1];
-      if (type === 'movie') {
-        return `https://vidsrc.pm/embed/movie/${id}`;
-      } else {
-        const season = parts[2] || '1';
-        const ep = parts[3] || '1';
-        return `https://vidsrc.pm/embed/tv/${id}/${season}/${ep}`;
-      }
+      const type = parts[0]; const id = parts[1];
+      if (type === 'movie') return `https://vidsrc.to/embed/movie/${id}`;
+      const season = parts[2] || '1'; const ep = parts[3] || '1';
+      return `https://vidsrc.to/embed/tv/${id}/${season}/${ep}`;
     }
+
+    // â”€â”€ Google Drive: /view â†’ /preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    if (url.includes('drive.google.com')) {
+      const fileIdMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (fileIdMatch && fileIdMatch[1]) {
+        return `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
+      }
+      url = url.replace('/view', '/preview').replace('/edit', '/preview');
+    }
+
+    // â”€â”€ YouTube: watch â†’ embed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    if (url.includes('youtube.com/watch') || url.includes('youtu.be/')) {
+      const idMatch = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      if (idMatch) return `https://www.youtube.com/embed/${idMatch[1]}?autoplay=1`;
+    }
+
+    // â”€â”€ VK Video: convert to embed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    if (url.includes('vk.com/video') && !url.includes('video_ext')) {
+      const m = url.match(/video(-?\d+)_(\d+)/);
+      if (m) return `https://vk.com/video_ext.php?oid=${m[1]}&id=${m[2]}&hd=2&autoplay=1`;
+    }
+    if (url.includes('vk.com/video_ext')) {
+      if (!url.includes('autoplay=')) url += (url.includes('?') ? '&' : '?') + 'autoplay=1';
+    }
+
+    // â”€â”€ OK.ru â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (url.includes('ok.ru')) {
       url = url.replace('://ok.ru/', '://m.ok.ru/').replace('://www.ok.ru/', '://m.ok.ru/');
-      if (url.includes('m.ok.ru/video/')) {
-        url = url.replace('m.ok.ru/video/', 'm.ok.ru/videoembed/');
-      }
-      if (!url.includes('autoplay=')) {
-        const sep = url.includes('?') ? '&' : '?';
-        url += `${sep}autoplay=1&nohead=1`;
-      }
+      if (url.includes('m.ok.ru/video/')) url = url.replace('m.ok.ru/video/', 'm.ok.ru/videoembed/');
+      if (!url.includes('autoplay=')) url += (url.includes('?') ? '&' : '?') + 'autoplay=1&nohead=1';
     }
+
+    // â”€â”€ Dailymotion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    if (url.includes('dailymotion.com/video/')) {
+      url = url.replace('dailymotion.com/video/', 'dailymotion.com/embed/video/');
+    }
+
+    // ── Streamtape ───────────────────────────────────────────────
+    if (url.includes('streamtape.com/v/')) {
+      url = url.replace('streamtape.com/v/', 'streamtape.com/e/');
+    }
+
     return url;
   };
 
+  const isSeriesContent = item.type === 'Series';
+
   try {
-    const parsed = JSON.parse(item.video_url || '[]');
+    // video_url can be: array (from realData.ts), JSON string, or plain URL string
+    let parsed: any;
+    if (Array.isArray(item.video_url)) {
+      parsed = item.video_url;
+    } else if (typeof item.video_url === 'string' && item.video_url.trim()) {
+      parsed = JSON.parse(item.video_url);
+    } else {
+      parsed = [];
+    }
+
+    let tmdbId = item.tmdb_id ? String(item.tmdb_id).trim() : '';
+
+    const buildMovieServers = (id: string) => [
+      { name: 'Server 1 : Movy SX (Vidy 4K)', url: `https://multiembed.mov/?video_id=${id}&tmdb=1`, quality: '4K Ultra' },
+      { name: 'Server 2 : VidLink Pro', url: `https://vidlink.pro/movie/${id}`, quality: '1080p HD' },
+      { name: 'Server 3 : AutoEmbed (Player X)', url: `https://autoembed.co/movie/tmdb/${id}`, quality: 'HD' },
+      { name: 'Server 4 : SmashyStream (HD)', url: `https://embed.smashystream.com/playere.php?tmdb=${id}`, quality: 'HD' },
+      { name: 'Server 5 : 2Embed (Cinema)', url: `https://www.2embed.cc/embed/${id}`, quality: 'Cinema' },
+      { name: 'Server 6 : NontonGo (VIP)', url: `https://www.NontonGo.win/embed/movie/${id}`, quality: 'VIP' },
+    ];
+
+    const processServersList = (list: any[]) => {
+      const custom: any[] = [];
+      (list || []).forEach((s: any, i: number) => {
+        const u = s?.url || '';
+        if (typeof u === 'string' && u.startsWith('vidsrc://')) {
+          const parts = u.replace('vidsrc://', '').split('/');
+          if (parts[1]) tmdbId = parts[1];
+        } else if (u && typeof u === 'string' && u.trim()) {
+          custom.push({
+            name: s.name || `Server ${i + 1}`,
+            url: getEmbedUrl(u),
+            quality: s.quality || 'HD'
+          });
+        }
+      });
+      return custom;
+    };
+
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
       if (parsed.servers && Array.isArray(parsed.servers)) {
-        servers = parsed.servers.map((s: any, i: number) => ({
-          name: s.name || `Server ${i + 1}`,
-          url: getEmbedUrl(s.url || ''),
-          quality: s.quality || 'HD'
-        }));
+        servers = processServersList(parsed.servers);
       }
       if (parsed.episodes && Array.isArray(parsed.episodes)) {
         episodes = parsed.episodes;
@@ -185,20 +303,39 @@ export default function DetailScreen({ route, navigation }: any) {
       if (parsed.length > 0 && parsed[0].number !== undefined) {
         episodes = parsed;
       } else {
-        servers = parsed.map((s: any, i: number) => ({
-          name: s.name || `Server ${i + 1}`,
-          url: getEmbedUrl(s.url || ''),
-          quality: s.quality || 'HD'
-        }));
+        servers = processServersList(parsed);
+      }
+    }
+
+    // Auto-generate Movy SX, VidLink Pro, AutoEmbed, SmashyStream etc. for all content with TMDB ID
+    if (tmdbId) {
+      const modernList = buildMovieServers(tmdbId);
+      servers = [...servers, ...modernList];
+
+      if (isSeriesContent && episodes.length > 0) {
+        episodes = episodes.map((ep: any, epIdx: number) => {
+          const epNum = String(ep.number || epIdx + 1);
+          const seasonNum = String(ep.season || '1');
+          const epServers = processServersList(ep.servers || []);
+          const modernSeriesServers = [
+            { name: 'Server 1 : Movy SX (Vidy 4K)', url: `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${seasonNum}&e=${epNum}`, quality: '4K Ultra' },
+            { name: 'Server 2 : VidLink Pro', url: `https://vidlink.pro/tv/${tmdbId}/${seasonNum}/${epNum}`, quality: '1080p HD' },
+            { name: 'Server 3 : AutoEmbed (Player X)', url: `https://autoembed.co/tv/tmdb/${tmdbId}-${seasonNum}-${epNum}`, quality: 'HD' },
+            { name: 'Server 4 : SmashyStream (HD)', url: `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}&season=${seasonNum}&episode=${epNum}`, quality: 'HD' },
+            { name: 'Server 5 : 2Embed (Cinema)', url: `https://www.2embed.cc/embedtv/${tmdbId}&s=${seasonNum}&e=${epNum}`, quality: 'Cinema' },
+          ];
+          return {
+            ...ep,
+            servers: [...epServers, ...modernSeriesServers]
+          };
+        });
       }
     }
   } catch (e) {
-    if (item.video_url) {
+    if (item.video_url && typeof item.video_url === 'string') {
       servers = [{ name: 'Server 1', url: getEmbedUrl(item.video_url), quality: 'HD' }];
     }
   }
-
-  const isSeriesContent = item.type === 'Series';
 
   if (!servers || !Array.isArray(servers)) servers = [];
   if (!episodes || !Array.isArray(episodes)) episodes = [];
@@ -208,7 +345,7 @@ export default function DetailScreen({ route, navigation }: any) {
   let activeVideoUrl_original: string | null = currentVideoUrl;
   if (!activeVideoUrl_original) {
     if (item.type === 'LiveTV') {
-      activeVideoUrl_original = item.stream_url;
+      activeVideoUrl_original = null;
     } else if (isSeriesContent && episodes.length > 0) {
       const epIdx = selectedEpisodeIndex ?? 0;
       const ep = episodes[epIdx];
@@ -234,8 +371,24 @@ export default function DetailScreen({ route, navigation }: any) {
     activeVideoUrl = activeVideoUrl.replace('dailymotion.com/video/', 'dailymotion.com/embed/video/');
   }
 
-  const isDirectVideo = activeVideoUrl?.toLowerCase().split('?')[0].endsWith('.mp4') || 
-                        activeVideoUrl?.toLowerCase().includes('.m3u8');
+  const isDirectVideo = !!(
+    item.type !== 'LiveTV' && (
+      activeVideoUrl?.toLowerCase().split('?')[0].endsWith('.mp4') || 
+      activeVideoUrl?.toLowerCase().includes('.m3u8')
+    )
+  );
+  // All embed-style URLs go through WebView (Drive preview, ok.ru, vk, youtube, dailymotion etc.)
+  // Only raw .mp4 direct URLs use VideoView
+
+  // Update expo-video player when a direct .mp4 URL is selected (movies only)
+  useEffect(() => {
+    if (item.type !== 'LiveTV' && isDirectVideo && activeVideoUrl && videoPlayer) {
+      try {
+        videoPlayer.replace({ uri: activeVideoUrl });
+        videoPlayer.play();
+      } catch (e) { /* ignore */ }
+    }
+  }, [activeVideoUrl, isDirectVideo, item.type]);
 
   const injectedJS = `
     (function() {
@@ -283,12 +436,12 @@ export default function DetailScreen({ route, navigation }: any) {
       return;
     }
     if (selectedMovieServerUrl) {
-      handlePlayServer(selectedMovieServerUrl);
+      handlePlayServer(selectedMovieServerUrl, selectedServerName || servers[selectedMovieServerIndex || 0]?.name);
     } else if (servers.length > 0) {
       if (servers.length > 1) {
         setShowServerModal(true);
       } else {
-        handlePlayServer(servers[0].url);
+        handlePlayServer(servers[0].url, servers[0].name);
       }
     } else {
       scrollRef.current?.scrollTo({ y: 400, animated: true });
@@ -300,8 +453,9 @@ export default function DetailScreen({ route, navigation }: any) {
     setIsWatchlisted(prev => !prev);
   };
 
-  const handlePlayServer = (url: string) => {
+  const handlePlayServer = (url: string, name?: string) => {
     setCurrentVideoUrl(url);
+    if (name) setSelectedServerName(name);
     setIsPlaying(true);
     setShowServerModal(false);
     if (party.isInParty && party.isHost) {
@@ -328,7 +482,7 @@ export default function DetailScreen({ route, navigation }: any) {
     } else {
       setSelectedMovieServerIndex(index);
       setSelectedMovieServerUrl(servers[index].url);
-      handlePlayServer(servers[index].url);
+      handlePlayServer(servers[index].url, servers[index].name);
     }
   };
 
@@ -351,36 +505,32 @@ export default function DetailScreen({ route, navigation }: any) {
         
         <View style={styles.liveVideoContainer}>
           {isPlaying && liveVideoUrl ? (
-            liveVideoUrl.toLowerCase().includes('embed') || liveVideoUrl.toLowerCase().includes('iframe') || liveVideoUrl.toLowerCase().includes('ok.ru') || liveVideoUrl.toLowerCase().includes('youtube') ? (
+            isLiveEmbed ? (
               <WebView
                 key={liveVideoUrl}
-                source={{ 
-                  uri: getEmbedUrl(liveVideoUrl),
-                  headers: {
-                    'Referer': 'https://www.myflim.com/',
-                    'Origin': 'https://www.myflim.com/'
-                  }
-                }}
-                style={StyleSheet.absoluteFillObject}
+                source={{ uri: getEmbedUrl(liveVideoUrl) }}
+                style={{ width: '100%', height: '100%' }}
                 allowsFullscreenVideo
                 allowsInlineMediaPlayback
                 mediaPlaybackRequiresUserAction={false}
                 javaScriptEnabled
                 domStorageEnabled
-                androidLayerType="none"
+                mixedContentMode="always"
+                userAgent="Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36"
               />
             ) : (
               <VideoView
-                key={liveVideoUrl}
-                player={videoPlayer}
-                style={StyleSheet.absoluteFillObject}
+                player={livePlayer}
+                style={{ width: '100%', height: '100%' }}
+                contentFit="contain"
+                surfaceType="textureView"
                 allowsFullscreen
                 nativeControls
               />
             )
           ) : (
             <Image 
-              source={{ uri: activeChannel.image || item.image }} 
+              source={{ uri: activeChannel?.image || item?.image }} 
               style={styles.backdrop}
               resizeMode="cover"
             />
@@ -388,7 +538,11 @@ export default function DetailScreen({ route, navigation }: any) {
           
           <TouchableOpacity 
             style={[styles.backArrow, { top: insets.top + 10 }]}
-            onPress={() => navigation.goBack()}
+            onPress={() => {
+              try { livePlayer?.pause(); } catch (e) {}
+              try { videoPlayer?.pause(); } catch (e) {}
+              navigation.goBack();
+            }}
           >
             <ChevronLeft color="white" size={28} />
           </TouchableOpacity>
@@ -396,8 +550,8 @@ export default function DetailScreen({ route, navigation }: any) {
 
         <View style={[styles.liveInfoContainer, { borderBottomColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}>
           <View style={styles.liveInfoLeft}>
-            <Text style={[styles.liveTitle, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{activeChannel.name || getLocalized(item, 'title', language)}</Text>
-            <Text style={[styles.liveCategory, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>{activeChannel.category || item.category || 'Live TV'}</Text>
+            <Text style={[styles.liveTitle, { color: themeColors.text }, isRTL && { textAlign: 'right' }]}>{activeChannel?.name || getLocalized(item, 'title', language)}</Text>
+            <Text style={[styles.liveCategory, { color: themeColors.textSecondary }, isRTL && { textAlign: 'right' }]}>{activeChannel?.category || item?.category || 'Live TV'}</Text>
           </View>
           
           <TouchableOpacity style={[styles.livePresenceButton, isRTL && { flexDirection: 'row-reverse' }]}>
@@ -443,8 +597,28 @@ export default function DetailScreen({ route, navigation }: any) {
                         borderColor: isCurrent ? '#E53935' : themeColors.border,
                       }}
                       onPress={() => {
+                        if (ch.id === activeChannel.id) return;
+                        try { livePlayer?.pause(); } catch (e) {}
+                        try { videoPlayer?.pause(); } catch (e) {}
                         setActiveChannel(ch);
                         setIsPlaying(true);
+
+                        const newUrl = ch.stream_url;
+                        const isEmbed = !!(
+                          newUrl && (
+                            newUrl.toLowerCase().includes('embed') || 
+                            newUrl.toLowerCase().includes('iframe') || 
+                            newUrl.toLowerCase().includes('ok.ru') || 
+                            newUrl.toLowerCase().includes('youtube') || 
+                            newUrl.toLowerCase().includes('youtu.be')
+                          )
+                        );
+                        if (!isEmbed && newUrl && livePlayer) {
+                          try {
+                            livePlayer.replace({ uri: newUrl });
+                            livePlayer.play();
+                          } catch (e) {}
+                        }
                       }}
                     >
                       <View style={{ flexDirection: isRTL ? 'row-reverse' : 'row', alignItems: 'center', gap: 12 }}>
@@ -486,21 +660,25 @@ export default function DetailScreen({ route, navigation }: any) {
             isDirectVideo ? (
               <VideoView
                 player={videoPlayer}
-                style={StyleSheet.absoluteFillObject}
+                style={StyleSheet.absoluteFill}
                 allowsFullscreen
                 nativeControls
               />
             ) : (
               <WebView
                 key={activeVideoUrl}
-                source={{
-                  uri: activeVideoUrl,
-                  headers: {
-                    'Referer': 'https://www.myflim.com/',
-                    'Origin': 'https://www.myflim.com',
-                  },
-                }}
-                style={StyleSheet.absoluteFillObject}
+                source={
+                  activeVideoUrl.includes('ok.ru')
+                    ? {
+                        uri: activeVideoUrl,
+                        headers: {
+                          'Referer': 'https://ok.ru/',
+                        },
+                      }
+                    : { uri: activeVideoUrl }
+                }
+                javaScriptCanOpenWindowsAutomatically={false}
+                style={StyleSheet.absoluteFill}
                 allowsInlineMediaPlayback={true}
                 mediaPlaybackRequiresUserAction={false}
                 javaScriptEnabled={true}
@@ -534,7 +712,15 @@ export default function DetailScreen({ route, navigation }: any) {
           
           <TouchableOpacity 
             style={[styles.backButton, { top: isPlaying ? 10 : insets.top + 10 }]}
-            onPress={() => navigation.goBack()}
+            onPress={() => {
+              if (videoPlayer) {
+                try { videoPlayer.pause(); } catch (e) {}
+              }
+              if (livePlayer) {
+                try { livePlayer.pause(); } catch (e) {}
+              }
+              navigation.goBack();
+            }}
           >
             <ChevronLeft color="white" size={28} />
           </TouchableOpacity>
@@ -543,6 +729,28 @@ export default function DetailScreen({ route, navigation }: any) {
             <Image source={{ uri: item.image }} style={styles.floatingPoster} />
           )}
         </View>
+
+          {isPlaying && !isSeriesContent && servers.length > 1 && (
+            <View style={[styles.activeServerBar, { backgroundColor: themeColors.surface, borderColor: themeColors.border }, isRTL && { flexDirection: 'row-reverse' }]}>
+              <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 8 }, isRTL && { flexDirection: 'row-reverse' }]}>
+                <Server size={15} color="#E53935" />
+                <Text style={{ color: themeColors.textSecondary, fontSize: 12 }}>
+                  {language === 'ku' ? 'سێرڤەری پەخش:' : 'Server:'}
+                </Text>
+                <Text style={{ color: '#E53935', fontSize: 13, fontWeight: '700' }} numberOfLines={1}>
+                  {selectedServerName || servers[0]?.name || 'Server 1'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.switchServerPill, { backgroundColor: 'rgba(229, 57, 53, 0.15)', borderColor: '#E53935' }]}
+                onPress={() => setShowServerModal(true)}
+              >
+                <Text style={{ color: '#E53935', fontSize: 11, fontWeight: '700' }}>
+                  {language === 'ku' ? 'گۆڕین' : 'Change'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
         <View style={styles.contentContainer}>
           <View style={[styles.mainInfo, isRTL && { flexDirection: 'row-reverse' }]}>
@@ -671,7 +879,7 @@ export default function DetailScreen({ route, navigation }: any) {
         <Pressable style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.6)' }]} onPress={() => setShowServerModal(false)}>
           <View style={[styles.modalContent, { backgroundColor: themeColors.surface }]}>
             <View style={[styles.modalHeader, isRTL && { flexDirection: 'row-reverse' }]}>
-              <Text style={[styles.modalTitle, { color: themeColors.text }]}>{language === 'ku' ? 'سێرڤەر هەڵبژێرە' : 'Choose Server'}</Text>
+              <Text style={[styles.modalTitle, { color: themeColors.text }]}>{language === 'ku' ? 'سێرڤەر هەڵبژێرە' : language === 'ar' ? 'اختر السيرفر' : 'Choose Server'}</Text>
               <TouchableOpacity onPress={() => setShowServerModal(false)}>
                 <X size={24} color={themeColors.text} />
               </TouchableOpacity>
@@ -681,7 +889,7 @@ export default function DetailScreen({ route, navigation }: any) {
                 <TouchableOpacity
                   key={idx}
                   style={[styles.serverOption, { borderBottomColor: themeColors.border }]}
-                  onPress={() => handlePlayServer(srv.url)}
+                  onPress={() => handlePlayServer(srv.url, srv.name)}
                 >
                   <View style={[{ flex: 1, flexDirection: 'row', alignItems: 'center' }, isRTL && { flexDirection: 'row-reverse' }]}>
                     <Server size={20} color="#E53935" />
@@ -723,6 +931,25 @@ export default function DetailScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  activeServerBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  switchServerPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+
   container: {
     flex: 1,
     backgroundColor: '#0a0a0a',
@@ -737,7 +964,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   gradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   backButton: {
     position: 'absolute',
