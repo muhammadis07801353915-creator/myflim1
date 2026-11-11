@@ -1,8 +1,31 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, Tv, ArrowUp, ArrowDown } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 import ImageUpload from '../../components/ImageUpload';
+
+// Use API routes instead of direct Supabase (avoids egress quota errors)
+const API = '/api/channels';
+
+async function apiGet() {
+  const res = await fetch(API, { cache: 'no-store' });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+async function apiPost(body: any) {
+  const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Save failed'); }
+  return res.json();
+}
+async function apiDelete(id: number) {
+  const res = await fetch(API, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+  if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Delete failed'); }
+  return res.json();
+}
+async function apiPatch(updates: { id: number; order_index: number }[]) {
+  const res = await fetch(API, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ updates }) });
+  if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Reorder failed'); }
+  return res.json();
+}
 
 export default function LiveTVAdmin() {
   const [channels, setChannels] = useState<any[]>([]);
@@ -26,33 +49,41 @@ export default function LiveTVAdmin() {
   }, []);
 
   const fetchCountries = async () => {
-    const { data } = await supabase.from('channel_countries').select('*').order('order_index', { ascending: true });
-    if (data) setCountries(data);
+    try {
+      const res = await fetch('/api/channels/meta?type=countries', { cache: 'no-store' });
+      if (res.ok) { const d = await res.json(); if (d.data) setCountries(d.data); }
+    } catch {}
+    // fallback: direct supabase for metadata (categories/countries are small, low egress)
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const sb = createClient('https://xzvojposgvdjwriivryp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6dm9qcG9zZ3ZkandyaWl2cnlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNjI0ODYsImV4cCI6MjA5MTYzODQ4Nn0.espsU_o7aQuzsOnvwBuVeOaYXdoATCpploiF-OPZnCk');
+      const { data } = await sb.from('channel_countries').select('*').order('order_index', { ascending: true });
+      if (data) setCountries(data);
+    } catch {}
   };
 
   const fetchCategories = async () => {
-    const { data } = await supabase.from('channel_categories').select('*').order('order_index', { ascending: true });
-    if (data) {
-      setCategories(data);
-      if (data.length > 0 && !formData.category) {
-        setFormData(prev => ({ ...prev, category: data[0].name }));
+    try {
+      const { createClient } = await import('@supabase/supabase-js');
+      const sb = createClient('https://xzvojposgvdjwriivryp.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6dm9qcG9zZ3ZkandyaWl2cnlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNjI0ODYsImV4cCI6MjA5MTYzODQ4Nn0.espsU_o7aQuzsOnvwBuVeOaYXdoATCpploiF-OPZnCk');
+      const { data } = await sb.from('channel_categories').select('*').order('order_index', { ascending: true });
+      if (data) {
+        setCategories(data);
+        if (data.length > 0 && !formData.category) {
+          setFormData(prev => ({ ...prev, category: data[0].name }));
+        }
       }
-    }
+    } catch {}
   };
 
   const fetchChannels = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('channels')
-      .select('*')
-      .order('order_index', { ascending: true });
-    
-    if (error) {
-      console.error("Error fetching channels:", error);
-      setErrorMsg(`Error loading channels: ${error.message}`);
-    }
-    if (data) {
-      setChannels(data);
+    try {
+      const json = await apiGet();
+      setChannels(json.channels || []);
+    } catch (err: any) {
+      console.error('Error fetching channels via API:', err);
+      setErrorMsg(`Error loading channels: ${err.message}`);
     }
     setLoading(false);
   };
@@ -104,11 +135,11 @@ export default function LiveTVAdmin() {
 
   const handleDelete = async (id: number) => {
     if(window.confirm('Are you sure you want to delete this channel?')) {
-      const { error } = await supabase.from('channels').delete().eq('id', id);
-      if (!error) {
+      try {
+        await apiDelete(id);
         setChannels(channels.filter(item => item.id !== id));
-      } else {
-        alert('Error deleting channel: ' + error.message);
+      } catch (err: any) {
+        alert('Error deleting channel: ' + err.message);
       }
     }
   };
@@ -166,21 +197,16 @@ export default function LiveTVAdmin() {
 
     if (!editingId) {
       payload.order_index = nextOrder;
+    } else {
+      payload.id = editingId;
     }
 
     try {
-      if (editingId) {
-        const { error } = await supabase.from('channels').update(payload).eq('id', editingId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('channels').insert([payload]);
-        if (error) throw error;
-      }
-      
+      await apiPost(payload);
       fetchChannels();
       setView('list');
     } catch (err: any) {
-      console.error('Supabase save error:', err);
+      console.error('Channel save error:', err);
       const msg = `کێشەیەک هەیە: ${err.message || 'هەڵەیەکی نەزانراو'}`;
       setErrorMsg(msg);
       alert(msg);
@@ -344,11 +370,9 @@ export default function LiveTVAdmin() {
     setChannels(updatedAllChannels);
 
     try {
-      // Update sequential order_index for ALL channels to keep it clean
-      const updates = updatedAllChannels.map((chan, i) => 
-        supabase.from('channels').update({ order_index: i }).eq('id', chan.id)
-      );
-      await Promise.all(updates);
+      // Update sequential order_index for ALL channels via API
+      const updates = updatedAllChannels.map((chan, i) => ({ id: chan.id, order_index: i }));
+      await apiPatch(updates);
       fetchChannels();
     } catch (err) {
       console.error("Error reordering channels:", err);
