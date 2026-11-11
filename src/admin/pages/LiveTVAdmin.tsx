@@ -131,13 +131,34 @@ export default function LiveTVAdmin() {
       nextOrder = catChannels.length > 0 ? Math.max(...catChannels.map(c => c.order_index || 0)) + 1 : 0;
     }
 
+    let cleanedStreamUrl = (formData.stream_url || '').trim();
+
+    // 1. Extract src if raw iframe was pasted
+    if (cleanedStreamUrl.includes('<iframe')) {
+      const match = cleanedStreamUrl.match(/src=["']([^"']+)["']/i);
+      if (match && match[1]) cleanedStreamUrl = match[1];
+    }
+
+    // 2. Format OK.ru URL automatically
+    if (cleanedStreamUrl.includes('ok.ru/video/') && !cleanedStreamUrl.includes('videoembed')) {
+      cleanedStreamUrl = cleanedStreamUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
+    }
+
+    // 3. Format YouTube URL automatically
+    if (cleanedStreamUrl.includes('youtube.com/watch') || cleanedStreamUrl.includes('youtu.be/')) {
+      const idMatch = cleanedStreamUrl.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      if (idMatch) {
+        cleanedStreamUrl = `https://www.youtube.com/embed/${idMatch[1]}?autoplay=1&controls=0`;
+      }
+    }
+
     const payload: any = {
       name: formData.name,
       category: formData.category,
       status: formData.status,
       stream_url: formData.profile_link 
-        ? JSON.stringify({ url: formData.stream_url, profile_link: formData.profile_link }) 
-        : formData.stream_url,
+        ? JSON.stringify({ url: cleanedStreamUrl, profile_link: formData.profile_link }) 
+        : cleanedStreamUrl,
       image: formData.image,
       is_pro: formData.is_pro,
       country: formData.country || null
@@ -261,6 +282,10 @@ export default function LiveTVAdmin() {
                 placeholder="https://ok.ru/videoembed/12345 or https://example.com/stream.m3u8" 
                 className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2.5 text-white outline-none focus:border-red-500 transition" 
               />
+              <div className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 p-2.5 rounded-lg flex items-center gap-2">
+                <span>✓</span>
+                <span>پشتیوانی هەموو جۆرە لینکێک: <strong>OK.ru</strong>، <strong>Embed</strong>، <strong>YouTube</strong>، <strong>M3U8</strong>، یان <strong>MP4</strong>. سیستەمەکە ئۆتۆماتیکی دەیکاتە پەخشی ٢٤/٧ بەپێی کاتی سەعات و کۆنتڕۆڵی پاش و پێش کردن قفڵ دەکرێت.</span>
+              </div>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-neutral-300">Profile / External Link (Optional)</label>

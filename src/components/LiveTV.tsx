@@ -263,7 +263,9 @@ export default function LiveTV() {
               }
 
               if (finalUrl.includes('ok.ru/video/')) {
-                return finalUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
+                finalUrl = finalUrl.replace('ok.ru/video/', 'ok.ru/videoembed/');
+                if (!finalUrl.includes('autoplay=')) finalUrl += (finalUrl.includes('?') ? '&' : '?') + 'autoplay=1&nohead=1';
+                return finalUrl;
               }
 
               if (finalUrl.includes('dailymotion.com/video/')) {
@@ -272,7 +274,7 @@ export default function LiveTV() {
 
               if (finalUrl.includes('youtube.com/watch?v=')) {
                 const videoId = finalUrl.split('v=')[1]?.split('&')[0];
-                return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                return `https://www.youtube-nocookie.com/embed/?autoplay=1&controls=0&disablekb=1&modestbranding=1&loop=1&playlist=&rel=0`;
               }
 
               if (finalUrl.includes('youtu.be/')) {

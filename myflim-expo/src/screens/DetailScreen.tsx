@@ -81,6 +81,104 @@ export default function DetailScreen({ route, navigation }: any) {
     }
   }, [liveVideoUrl, isLiveEmbed]);
 
+  // 24/7 Clock-synchronized pseudo-live playback for direct MP4/stream in LiveTV
+  useEffect(() => {
+    if (item.type === 'LiveTV' && !isLiveEmbed && livePlayer) {
+      const syncDirect = () => {
+        try {
+          const dur = livePlayer.duration;
+          if (dur && dur > 10) {
+            const nowSec = Math.floor(Date.now() / 1000);
+            const targetTime = nowSec % Math.floor(dur);
+            if (Math.abs(livePlayer.currentTime - targetTime) > 6) {
+              livePlayer.currentTime = targetTime;
+            }
+          }
+        } catch (e) {}
+      };
+      const interval = setInterval(syncDirect, 2500);
+      return () => clearInterval(interval);
+    }
+  }, [livePlayer, isLiveEmbed, item.type]);
+
+  // Injected JavaScript for WebView to synchronize embed players (OK.ru, embeds) with 24/7 wall-clock
+  // and lock anti-seek / hide all progress bars and scrubbers
+  const liveTvInjectedJS = `
+    (function() {
+      try {
+        var style = document.getElementById('pseudo-live-css');
+        if (!style) {
+          style = document.createElement('style');
+          style.id = 'pseudo-live-css';
+          style.innerHTML = \`
+            .vp-progress, .vp-scrubber, .progress, .scrubber, .timeline,
+            [class*="progress"], [class*="scrubber"], [class*="timeline"],
+            [class*="seek"], [class*="time-slider"], [class*="progressbar"],
+            input[type="range"], .ytp-progress-bar-container, .ytp-time-display,
+            .vjs-progress-control, .jw-slider-time, .plyr__progress,
+            .dplayer-bar-wrap, .v-progress {
+              display: none !important;
+              opacity: 0 !important;
+              pointer-events: none !important;
+              visibility: hidden !important;
+              height: 0 !important;
+              max-height: 0 !important;
+            }
+            * {
+              -webkit-user-select: none !important;
+              user-select: none !important;
+            }
+          \`;
+          if (document.head) document.head.appendChild(style);
+        }
+
+        var hasInitiallySynced = false;
+        function syncLiveVideo() {
+          var video = document.querySelector('video');
+          if (!video) return;
+
+          video.autoplay = true;
+          video.playsInline = true;
+          video.loop = true;
+
+          var dur = video.duration;
+          if (dur && !isNaN(dur) && dur > 10) {
+            var nowSec = Math.floor(Date.now() / 1000);
+            var targetTime = nowSec % Math.floor(dur);
+            if (!hasInitiallySynced || Math.abs(video.currentTime - targetTime) > 6) {
+              video.currentTime = targetTime;
+              hasInitiallySynced = true;
+            }
+          }
+
+          // Anti-seek lock: if user or embed attempts to seek, snap back to live position
+          video.onseeking = function() {
+            var d = video.duration;
+            if (d && !isNaN(d) && d > 10) {
+              var expectedTime = Math.floor(Date.now() / 1000) % Math.floor(d);
+              if (Math.abs(video.currentTime - expectedTime) > 3) {
+                video.currentTime = expectedTime;
+              }
+            }
+          };
+
+          if (video.paused) {
+            video.play().catch(function() {
+              video.muted = true;
+              video.play();
+            });
+          }
+        }
+
+        setInterval(syncLiveVideo, 1000);
+        syncLiveVideo();
+        document.addEventListener('DOMContentLoaded', syncLiveVideo);
+        window.addEventListener('load', syncLiveVideo);
+      } catch (e) {}
+    })();
+    true;
+  `;
+
   // Clean up players on unmount
   useEffect(() => {
     return () => {
@@ -216,9 +314,14 @@ export default function DetailScreen({ route, navigation }: any) {
     }
 
     // â”€â”€ YouTube: watch â†’ embed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    if (url.includes('youtube.com/watch') || url.includes('youtu.be/')) {
-      const idMatch = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-      if (idMatch) return `https://www.youtube.com/embed/${idMatch[1]}?autoplay=1`;
+    if (url.includes('youtube.com/watch') || url.includes('youtu.be/') || url.includes('youtube.com/embed/')) {
+      const idMatch = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+      if (idMatch) {
+        if (item.type === 'LiveTV') {
+          return `https://www.youtube-nocookie.com/embed/${idMatch[1]}?autoplay=1&controls=0&disablekb=1&modestbranding=1&loop=1&playlist=${idMatch[1]}&rel=0`;
+        }
+        return `https://www.youtube.com/embed/${idMatch[1]}?autoplay=1`;
+      }
     }
 
     // â”€â”€ VK Video: convert to embed â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -506,27 +609,49 @@ export default function DetailScreen({ route, navigation }: any) {
         <View style={styles.liveVideoContainer}>
           {isPlaying && liveVideoUrl ? (
             isLiveEmbed ? (
-              <WebView
-                key={liveVideoUrl}
-                source={{ uri: getEmbedUrl(liveVideoUrl) }}
-                style={{ width: '100%', height: '100%' }}
-                allowsFullscreenVideo
-                allowsInlineMediaPlayback
-                mediaPlaybackRequiresUserAction={false}
-                javaScriptEnabled
-                domStorageEnabled
-                mixedContentMode="always"
-                userAgent="Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36"
-              />
+              <View style={{ width: '100%', height: '100%', position: 'relative' }}>
+                <WebView
+                  key={liveVideoUrl}
+                  source={{ uri: getEmbedUrl(liveVideoUrl) }}
+                  style={{ width: '100%', height: '100%' }}
+                  injectedJavaScript={liveTvInjectedJS}
+                  injectedJavaScriptBeforeContentLoaded={liveTvInjectedJS}
+                  allowsFullscreenVideo
+                  allowsInlineMediaPlayback
+                  mediaPlaybackRequiresUserAction={false}
+                  javaScriptEnabled
+                  domStorageEnabled
+                  mixedContentMode="always"
+                  userAgent="Mozilla/5.0 (Linux; Android 10; SM-G973F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36"
+                />
+                {/* Physical touch blocker to prevent scrubbing the bottom timeline */}
+                <View style={styles.liveSeekBlocker} pointerEvents="auto" />
+                {/* Floating LIVE Badge */}
+                <View style={styles.liveBadgeFloating}>
+                  <View style={styles.liveBadgeDot} />
+                  <Text style={styles.liveBadgeText}>
+                    {language === 'ku' ? 'ڕاستەوخۆ' : language === 'badini' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'LIVE'}
+                  </Text>
+                </View>
+              </View>
             ) : (
-              <VideoView
-                player={livePlayer}
-                style={{ width: '100%', height: '100%' }}
-                contentFit="contain"
-                surfaceType="textureView"
-                allowsFullscreen
-                nativeControls
-              />
+              <View style={{ width: '100%', height: '100%', position: 'relative' }}>
+                <VideoView
+                  player={livePlayer}
+                  style={{ width: '100%', height: '100%' }}
+                  contentFit="contain"
+                  surfaceType="textureView"
+                  allowsFullscreen={false}
+                  nativeControls={false}
+                />
+                {/* Floating LIVE Badge */}
+                <View style={styles.liveBadgeFloating}>
+                  <View style={styles.liveBadgeDot} />
+                  <Text style={styles.liveBadgeText}>
+                    {language === 'ku' ? 'ڕاستەوخۆ' : language === 'badini' ? 'ڕاستەوخۆ' : language === 'ar' ? 'مباشر' : 'LIVE'}
+                  </Text>
+                </View>
+              </View>
             )
           ) : (
             <Image 
@@ -1166,6 +1291,45 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  liveSeekBlocker: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 48,
+    backgroundColor: 'transparent',
+    zIndex: 15,
+  },
+  liveBadgeFloating: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    backgroundColor: 'rgba(229, 57, 53, 0.92)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    zIndex: 25,
+    shadowColor: '#E53935',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  liveBadgeDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#FFFFFF',
+  },
+  liveBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.4,
   },
   liveInfoContainer: {
     flexDirection: 'row',
